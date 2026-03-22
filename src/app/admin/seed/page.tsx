@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Loader2, Database, CheckCircle2, Trash2, ShieldAlert, ChevronLeft } from "lucide-react";
+import { Loader2, Database, CheckCircle2, Trash2, ShieldAlert, ChevronLeft, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
 const STRAIN_DATA = [
@@ -39,51 +39,73 @@ export default function AdminSeedPage() {
   const handleResetAndSeed = async () => {
     if (!user) return;
     setStatus("loading");
-    setMessage("Starte ultimativen Cache-Kill & Bilder-Sync...");
+    setMessage("Starte Datenbank-Reinigung...");
 
     try {
-      await supabase.from("strains").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-      const { error } = await supabase.from("strains").insert(STRAIN_DATA);
-      if (error) throw error;
+      // 1. Echte Lösch-Anfrage (filtert nach allem was existiert)
+      const { error: deleteError } = await supabase
+        .from("strains")
+        .delete()
+        .gte("thc_max", 0); // Löscht alle Strains mit THC >= 0 (also alle)
+
+      if (deleteError) throw deleteError;
+
+      setMessage("Datenbank leer. Lade neue Legenden...");
+
+      // 2. Neu einfügen
+      const { error: insertError } = await supabase
+        .from("strains")
+        .insert(STRAIN_DATA);
+
+      if (insertError) throw insertError;
 
       setStatus("success");
-      setMessage("BILDER GEFIXED! Bitte lade die Strains-Seite neu.");
+      setMessage("ERFOLG! Alle Bilder wurden erneuert.");
     } catch (err: any) {
+      console.error(err);
       setStatus("error");
       setMessage(err.message || "Fehler beim Reset.");
     }
   };
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white flex flex-col items-center justify-center p-6 relative">
-      {/* Zurück Button */}
-      <Link href="/profile" className="absolute top-8 left-8 p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
-        <ChevronLeft size={18} /> Profil
+    <main className="min-h-screen bg-[#0e0e0f] text-white flex flex-col items-center justify-center p-6 relative font-mono">
+      <Link href="/profile" className="absolute top-8 left-8 p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em]">
+        <ChevronLeft size={14} /> Back to Terminal
       </Link>
 
-      <Card className="max-w-md w-full p-8 bg-[#1a191b] border-white/10 text-center space-y-6 shadow-2xl">
-        <ShieldAlert className="text-red-500 mx-auto animate-pulse" size={64} />
-        <h1 className="text-2xl font-black uppercase tracking-tighter italic text-white text-center">Cache <span className="text-[#00F5FF]">Killer Sync</span></h1>
-        <p className="text-white/40 text-[10px] uppercase tracking-widest leading-relaxed">
-          Dies erzwingt neue Bild-URLs in der Datenbank, um Browser-Caching-Fehler zu umgehen.
-        </p>
+      <Card className="max-w-md w-full p-10 bg-[#1a191b] border-white/10 text-center space-y-8 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00F5FF] to-transparent opacity-50" />
+        
+        <Database className="text-[#00F5FF] mx-auto animate-pulse" size={64} />
+        
+        <div className="space-y-2">
+          <h1 className="text-xl font-black uppercase tracking-[0.3em] italic text-white">System <span className="text-[#00F5FF]">Overhaul</span></h1>
+          <p className="text-white/30 text-[9px] uppercase tracking-widest leading-relaxed">
+            Database cleanup protocol initiated. Forces unique image IDs.
+          </p>
+        </div>
         
         <div className="space-y-4">
-          <Button onClick={handleResetAndSeed} disabled={status === "loading" || !user} className="w-full h-16 bg-[#00F5FF] text-black font-black hover:bg-[#00F5FF]/80 transition-all text-lg uppercase tracking-widest gap-2">
-            {status === "loading" ? <Loader2 className="animate-spin" /> : "ALLE BILDER ERZWINGEN"}
+          <Button 
+            onClick={handleResetAndSeed} 
+            disabled={status === "loading" || !user} 
+            className="w-full h-16 bg-red-600 text-white font-black hover:bg-red-700 transition-all text-sm uppercase tracking-widest gap-2 shadow-[0_0_40px_rgba(220,38,38,0.2)]"
+          >
+            {status === "loading" ? <Loader2 className="animate-spin" /> : "EXECUTE MASTER RESET"}
           </Button>
 
           {status === "success" && (
-            <div className="p-4 bg-[#2FF801]/10 border border-[#2FF801]/20 rounded-xl text-[#2FF801] text-xs font-bold flex flex-col items-center gap-2 animate-in zoom-in">
+            <div className="p-5 bg-[#2FF801]/10 border border-[#2FF801]/20 rounded-xl text-[#2FF801] text-xs font-bold flex flex-col items-center gap-3 animate-in zoom-in">
               <CheckCircle2 size={32} />
-              <p>{message}</p>
-              <Link href="/strains" className="mt-2 text-white bg-[#2FF801]/20 px-4 py-2 rounded-lg hover:bg-[#2FF801]/40">Zum Album →</Link>
+              <p className="uppercase tracking-widest">{message}</p>
+              <Link href="/strains" className="mt-2 text-black bg-[#2FF801] px-6 py-2 rounded-lg font-black uppercase text-[10px] tracking-widest hover:scale-105 transition-transform">Album öffnen</Link>
             </div>
           )}
 
           {status === "error" && (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-bold">
-              {message}
+            <div className="p-5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-[10px] font-bold flex items-center gap-2 uppercase tracking-widest">
+              <AlertCircle size={16} /> {message}
             </div>
           )}
         </div>
