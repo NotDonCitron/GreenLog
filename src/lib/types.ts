@@ -40,3 +40,64 @@ export interface Grow {
     name: string;
   };
 }
+
+export interface ProfileStats {
+  totalStrains: number;
+  totalGrows: number;
+  favoriteCount: number;
+  unlockedBadgeCount: number;
+  xp: number;
+  level: number;
+  progressToNextLevel: number;
+}
+
+export interface ProfileIdentity {
+  email: string | null;
+  username: string;
+  displayName: string;
+  initials: string;
+  profileVisibility: 'public' | 'private';
+  tagline: string;
+}
+
+export interface ProfileFavorite {
+  id: string;
+  name: string;
+  slug: string;
+  imageUrl: string | null;
+  type: Strain['type'] | null;
+  thcDisplay: string;
+  favoriteRank: number | null;
+}
+
+export interface ProfileBadge {
+  id: string;
+  name: string;
+  description: string;
+  iconKey: string;
+  rarity: string;
+  unlockedAt?: string;
+}
+
+export interface ProfileActivityItem {
+  id: string;
+  title: string;
+  detail: string;
+  value: string;
+  tone: 'neutral' | 'accent' | 'success';
+}
+
+export interface PublicProfilePreview {
+  title: string;
+  description: string;
+  chips: string[];
+}
+
+export interface ProfileViewModel {
+  identity: ProfileIdentity;
+  stats: ProfileStats;
+  favorites: ProfileFavorite[];
+  badges: ProfileBadge[];
+  activity: ProfileActivityItem[];
+  preview: PublicProfilePreview;
+}
