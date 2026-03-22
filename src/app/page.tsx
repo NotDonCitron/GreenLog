@@ -37,15 +37,20 @@ export default function Home() {
         return;
       }
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('ratings')
-        .select(`strain_id, strains (*)`)
+        .select(`
+          strain:strains (*)
+        `)
         .eq('user_id', user.id);
+      
+      if (error) {
+        console.error("Error fetching collection:", error);
+      }
       
       if (data) {
         const userStrains = data
-          .map(item => item.strains)
-          .flat()
+          .map(item => item.strain)
           .filter(Boolean) as unknown as Strain[];
         setStrains(userStrains);
       }
