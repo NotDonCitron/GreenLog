@@ -200,20 +200,71 @@ export default function StrainDetailPage() {
                 {isUploading && <div className="absolute inset-0 bg-black/60 flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>}
               </div>
               <div className="p-8 flex flex-col h-2/5 justify-between">
-                <div><Badge className="bg-[#2FF801]/10 text-[#2FF801] border-none px-3 py-1 text-[10px] font-bold uppercase mb-2">{strain.type}</Badge>
-                <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">{strain.name}</h1></div>
+                <div>
+                  <div className="flex justify-between items-start mb-2">
+                    <Badge className="bg-[#2FF801]/10 text-[#2FF801] border-none px-3 py-1 text-[10px] font-bold uppercase">{strain.type}</Badge>
+                    {strain.is_medical && (
+                      <Badge className="bg-[#00F5FF]/10 text-[#00F5FF] border-none px-2 py-1 text-[8px] font-black uppercase tracking-tighter">Medical Grade</Badge>
+                    )}
+                  </div>
+                  <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">{strain.name}</h1>
+                  {strain.brand && <p className="text-[10px] font-bold text-[#00F5FF] uppercase tracking-widest mt-1">{strain.brand}</p>}
+                </div>
                 <div className="text-[10px] font-bold text-white/40 tracking-widest uppercase">Tap to Flip</div>
               </div>
             </Card>
             <Card className="absolute inset-0 rotate-y-180 backface-hidden overflow-hidden border-2 rounded-[2.5rem] bg-[#1a191b] border-[#2FF801] ring-8 ring-[#2FF801]/10 shadow-[0_0_50px_rgba(47,248,1,0.15)]">
-              <div className="p-8 h-full flex flex-col justify-between">
-                <div><h3 className="text-[#2FF801] font-bold tracking-widest text-xs uppercase mb-6">Strain Profile</h3>
-                  <div className="space-y-6">
-                    <div><p className="text-[10px] text-white/30 uppercase font-black mb-2">Lineage</p><p className="text-sm font-medium italic text-white/80 leading-relaxed">{strain.description}</p></div>
-                    <div><p className="text-[10px] text-white/30 uppercase font-black mb-2">Terpenes</p><div className="flex flex-wrap gap-2">{strain.terpenes?.map((t: string) => (<Badge key={t} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[10px] font-bold">{t}</Badge>))}</div></div>
+              <div className="p-8 h-full flex flex-col justify-between overflow-y-auto custom-scrollbar">
+                <div>
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-[#2FF801] font-bold tracking-widest text-xs uppercase">{strain.is_medical ? 'Medical Profile' : 'Strain Profile'}</h3>
+                    {strain.thc_max && <Badge variant="outline" className="border-[#2FF801]/30 text-[#2FF801] text-[10px] font-mono">THC: ~{strain.thc_max}%</Badge>}
+                  </div>
+                  
+                  <div className="space-y-5">
+                    {strain.genetics && (
+                      <div>
+                        <p className="text-[9px] text-white/30 uppercase font-black mb-1">Genetics</p>
+                        <p className="text-xs font-bold text-white/90 tracking-tight">{strain.genetics}</p>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <p className="text-[9px] text-white/30 uppercase font-black mb-1">Lineage & Effects</p>
+                      <p className="text-[11px] font-medium italic text-white/70 leading-relaxed">{strain.description}</p>
+                    </div>
+
+                    {strain.indications && strain.indications.length > 0 && (
+                      <div>
+                        <p className="text-[9px] text-white/30 uppercase font-black mb-2">Common Indications</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {strain.indications.map(ind => (
+                            <Badge key={ind} className="bg-white/5 text-white/60 border-white/10 text-[9px] font-bold">{ind}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <p className="text-[9px] text-white/30 uppercase font-black mb-2">Terpenes</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {strain.terpenes?.map((t: string) => (
+                          <Badge key={t} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold">{t}</Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    {strain.manufacturer && (
+                      <div className="pt-2">
+                        <p className="text-[8px] text-white/20 uppercase font-bold">Manufacturer: {strain.manufacturer}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="pt-6 border-t border-white/5 flex justify-between items-center"><span className="text-[10px] text-[#2FF801] font-black uppercase">Verified Bud</span><Info size={20} className="text-white/20" /></div>
+                <div className="pt-4 mt-4 border-t border-white/5 flex justify-between items-center">
+                  <span className="text-[10px] text-[#2FF801] font-black uppercase">{strain.is_medical ? 'Pharma Certified' : 'Verified Bud'}</span>
+                  <Info size={18} className="text-white/20" />
+                </div>
               </div>
             </Card>
           </div>
