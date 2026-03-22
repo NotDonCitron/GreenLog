@@ -10,9 +10,20 @@ import { Loader2, Plus, Sprout, Calendar, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
+interface Grow {
+  id: string;
+  title: string;
+  grow_type: string;
+  status: string;
+  start_date: string;
+  strains?: {
+    name: string;
+  };
+}
+
 export default function GrowsPage() {
   const { user, isDemoMode, loading: authLoading } = useAuth();
-  const [grows, setGrows] = useState<any[]>([]);
+  const [grows, setGrows] = useState<Grow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -75,9 +86,11 @@ export default function GrowsPage() {
             <span className="text-[10px] text-[#00F5FF] font-black uppercase tracking-[0.4em]">Grow Tracker</span>
             <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">Meine Grows</h1>
           </div>
-          <Button size="icon" className="bg-[#00F5FF] hover:bg-[#00D5E0] text-black rounded-full shadow-[0_0_15px_rgba(0,245,255,0.3)]">
-            <Plus size={24} />
-          </Button>
+          <Link href="/grows/new">
+            <Button size="icon" className="bg-[#00F5FF] hover:bg-[#00D5E0] text-black rounded-full shadow-[0_0_15px_rgba(0,245,255,0.3)]">
+              <Plus size={24} />
+            </Button>
+          </Link>
         </div>
       </header>
 
@@ -131,9 +144,11 @@ export default function GrowsPage() {
               <h2 className="text-xl font-bold uppercase tracking-tight">Keine aktiven Grows</h2>
               <p className="text-white/40 text-sm mt-2 max-w-[200px] mx-auto">Starte jetzt deinen ersten Grow und tracke deinen Fortschritt!</p>
             </div>
-            <Button className="bg-[#00F5FF] hover:bg-[#00D5E0] text-black font-black uppercase tracking-widest text-xs px-8 py-6 rounded-2xl shadow-[0_0_20px_rgba(0,245,255,0.2)]">
-              Jetzt Starten
-            </Button>
+            <Link href="/grows/new">
+              <Button className="bg-[#00F5FF] hover:bg-[#00D5E0] text-black font-black uppercase tracking-widest text-xs px-8 py-6 rounded-2xl shadow-[0_0_20px_rgba(0,245,255,0.2)]">
+                Jetzt Starten
+              </Button>
+            </Link>
           </div>
         )}
       </div>
