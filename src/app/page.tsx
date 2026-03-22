@@ -142,7 +142,7 @@ export default function Home() {
                     <div className="h-2/3 relative">
                       <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#1a191b] via-transparent to-transparent" />
-                      <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-[#00F5FF]/30 rounded-full w-12 h-12 flex items-center justify-center text-[10px] font-bold">{strain.thc_max}%</div>
+                      <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-[#00F5FF]/30 rounded-full w-12 h-12 flex items-center justify-center text-[10px] font-bold">{strain.avg_thc || strain.thc_max}%</div>
                     </div>
                     <div className="p-5 flex flex-col h-1/3 justify-between">
                       <div>
@@ -155,7 +155,10 @@ export default function Home() {
                   </Card>
                   <Card className={`absolute inset-0 rotate-y-180 backface-hidden overflow-hidden border-2 rounded-3xl bg-[#1a191b] shadow-2xl border-[#2FF801] ring-4 ring-[#2FF801]/20`} onClick={() => isTop && setIsFlipped(!isFlipped)}>
                     <div className="p-6 h-full flex flex-col justify-between relative text-left">
-                      <div><h3 className="text-[#2FF801] font-bold tracking-widest text-xs uppercase mb-6">Strain Profile</h3><div className="space-y-4"><div><p className="text-[10px] text-white/40 uppercase mb-1">Terpenes</p><div className="flex flex-wrap gap-2">{strain.terpenes?.map((t: string) => (<Badge key={t} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[10px]">{t}</Badge>))}</div></div></div></div>
+                      <div><h3 className="text-[#2FF801] font-bold tracking-widest text-xs uppercase mb-6">Strain Profile</h3><div className="space-y-4"><div><p className="text-[10px] text-white/40 uppercase mb-1">Terpenes</p><div className="flex flex-wrap gap-2">{strain.terpenes?.map((t: any, i: number) => {
+                        const name = typeof t === 'string' ? t : t.name;
+                        return (<Badge key={i} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[10px]">{name}</Badge>);
+                      })}</div></div></div></div>
                       <div className="pt-6 border-t border-white/5 flex justify-between items-center"><span className="text-[10px] text-[#2FF801] font-bold uppercase tracking-widest">Demo Member</span><Info size={16} className="text-white/20" /></div>
                     </div>
                   </Card>
