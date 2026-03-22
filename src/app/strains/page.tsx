@@ -2,88 +2,119 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Grid2X2, List, Loader2, Leaf } from "lucide-react";
+import { Search, Loader2, Trophy, Lock } from "lucide-react";
 import Link from "next/link";
 
 export default function StrainsPage() {
+  const { user, isDemoMode } = useAuth();
   const [strains, setStrains] = useState<any[]>([]);
+  const [userCollection, setUserCollection] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    async function fetchStrains() {
-      const { data } = await supabase.from("strains").select("*").order("name");
-      if (data) setStrains(data);
+    async function fetchData() {
+      // 1. Alle Strains laden
+      const { data: allStrains } = await supabase.from("strains").select("*").order("name");
+      if (allStrains) setStrains(allStrains);
+
+      // 2. User Collection laden
+      if (user) {
+        const { data: ratings } = await supabase.from("ratings").select("strain_id").eq("user_id", user.id);
+        if (ratings) setUserCollection(ratings.map(r => r.strain_id));
+      }
+      
+      // Demo Mode Support
+      if (isDemoMode) {
+        setUserCollection(allStrains?.slice(0, 3).map(s => s.id) || []);
+      }
+
       setLoading(false);
     }
-    fetchStrains();
-  }, []);
+    fetchData();
+  }, [user, isDemoMode]);
 
   const filteredStrains = strains.filter(s => 
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.type.toLowerCase().includes(search.toLowerCase())
+    s.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  const collectedCount = user ? userCollection.length : 0;
 
   return (
     <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
-      {/* Header */}
-      <header className="p-6 sticky top-0 bg-[#0e0e0f]/80 backdrop-blur-xl z-50 border-b border-white/5">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-black italic tracking-tighter uppercase">Strain Album</h1>
-          <div className="flex gap-2">
-            <button className="p-2 bg-white/5 rounded-lg text-[#00F5FF]"><Grid2X2 size={20} /></button>
-            <button className="p-2 text-white/20"><List size={20} /></button>
+      {/* Album Header */}
+      <header className="p-8 sticky top-0 bg-[#0e0e0f]/90 backdrop-blur-xl z-50 border-b border-white/5">
+        <div className="flex justify-between items-end mb-6">
+          <div>
+            <span className="text-[10px] text-[#00F5FF] font-black uppercase tracking-[0.4em]">Sticker Album</span>
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">The 20 Legends</h1>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] text-white/40 uppercase font-bold">Progress</p>
+            <p className="text-xl font-black text-[#2FF801]">{collectedCount} / {strains.length}</p>
           </div>
         </div>
 
+        {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-3 text-white/20" size={18} />
+          <Search className="absolute left-4 top-3.5 text-white/20" size={18} />
           <input 
             type="text" 
-            placeholder="Sorte suchen..."
-            className="w-full bg-white/5 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-[#00F5FF]/50 transition-all"
+            placeholder="Sorte im Album suchen..."
+            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:border-[#00F5FF]/50 transition-all shadow-inner"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </header>
 
-      {/* Content */}
+      {/* Album Grid */}
       <div className="p-6">
         {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-[#00F5FF]" size={32} />
-          </div>
-        ) : filteredStrains.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4">
-            {filteredStrains.map((strain) => (
-              <Link key={strain.id} href={`/strains/${strain.slug}`}>
-                <Card className="bg-[#1a191b] border-white/5 overflow-hidden group hover:border-[#00F5FF]/30 transition-all active:scale-95">
-                  <div className="aspect-square relative">
-                    <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-500" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#1a191b] via-transparent to-transparent" />
-                    <Badge className="absolute top-2 right-2 bg-black/60 text-[8px] uppercase border-none">{strain.type}</Badge>
-                  </div>
-                  <div className="p-3">
-                    <h3 className="font-bold text-xs uppercase tracking-tight truncate">{strain.name}</h3>
-                    <p className="text-[10px] text-white/40 font-mono mt-1">{strain.thc_max}% THC</p>
-                  </div>
-                </Card>
-              </Link>
-            ))}
-          </div>
+          <div className="flex justify-center py-20"><Loader2 className="animate-spin text-[#00F5FF]" size={32} /></div>
         ) : (
-          <div className="text-center py-20 space-y-4">
-            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto">
-              <Leaf className="text-white/10" size={32} />
-            </div>
-            <p className="text-white/40 text-sm">Keine Strains gefunden.</p>
-            <Link href="/admin/seed" className="text-[#00F5FF] text-xs uppercase font-bold tracking-widest hover:underline">
-              Datenbank Seeden →
-            </Link>
+          <div className="grid grid-cols-2 gap-6">
+            {filteredStrains.map((strain) => {
+              const isCollected = userCollection.includes(strain.id);
+              return (
+                <Link key={strain.id} href={`/strains/${strain.slug}`}>
+                  <Card className={`relative bg-[#1a191b] overflow-hidden transition-all duration-500 group active:scale-95 ${
+                    isCollected 
+                      ? 'border-[#00F5FF]/50 shadow-[0_0_20px_rgba(0,245,255,0.15)] ring-1 ring-[#00F5FF]/30' 
+                      : 'border-white/5 opacity-60'
+                  }`}>
+                    {/* Visual Status Indicator */}
+                    {!isCollected && (
+                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-grayscale">
+                        <Lock className="text-white/20" size={24} />
+                      </div>
+                    )}
+
+                    {/* Card Content */}
+                    <div className={`aspect-[4/5] relative ${!isCollected ? 'grayscale brightness-50' : ''}`}>
+                      <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#1a191b] via-transparent to-transparent" />
+                      
+                      {isCollected && <div className="absolute inset-0 card-holo opacity-30 animate-pulse" />}
+                    </div>
+
+                    <div className="p-3 relative bg-[#1a191b]">
+                      <h3 className={`font-black text-[11px] uppercase tracking-tight truncate ${isCollected ? 'text-white' : 'text-white/40'}`}>
+                        {strain.name}
+                      </h3>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-[8px] text-white/30 font-mono">#{strain.id.slice(0,4)}</span>
+                        {isCollected && <Trophy size={10} className="text-[#2FF801]" />}
+                      </div>
+                    </div>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
