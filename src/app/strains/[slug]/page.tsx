@@ -3,17 +3,21 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, Share2 } from "lucide-react";
+import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, Share2, CheckCircle2 } from "lucide-react";
 
 export default function StrainDetailPage() {
   const { slug } = useParams();
+  const { user } = useAuth();
   const router = useRouter();
   const [strain, setStrain] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasCollected, setHasCollected] = useState(false);
 
   useEffect(() => {
     async function fetchStrain() {
@@ -23,11 +27,45 @@ export default function StrainDetailPage() {
         .eq("slug", slug)
         .single();
       
-      if (data) setStrain(data);
+      if (data) {
+        setStrain(data);
+        // Prüfen ob bereits gesammelt
+        if (user) {
+          const { data: rating } = await supabase
+            .from("ratings")
+            .select("id")
+            .eq("strain_id", data.id)
+            .eq("user_id", user.id)
+            .single();
+          if (rating) setHasCollected(true);
+        }
+      }
       setLoading(false);
     }
     if (slug) fetchStrain();
-  }, [slug]);
+  }, [slug, user]);
+
+  const addToLogbook = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    if (hasCollected) return;
+
+    setIsSaving(true);
+    const { error } = await supabase
+      .from("ratings")
+      .insert({
+        strain_id: strain.id,
+        user_id: user.id,
+        overall_rating: 5, // Default für den ersten Sammler-Klick
+      });
+
+    if (!error) {
+      setHasCollected(true);
+    }
+    setIsSaving(false);
+  };
 
   if (loading) {
     return (
@@ -150,8 +188,16 @@ export default function StrainDetailPage() {
 
         {/* Call to Action */}
         <div className="w-full max-w-[340px] mt-10 space-y-4">
-          <button className="w-full bg-white text-black font-black py-4 rounded-2xl uppercase tracking-widest hover:bg-[#00F5FF] transition-all active:scale-95 shadow-xl">
-            In mein Logbuch eintragen
+          <button 
+            onClick={addToLogbook}
+            disabled={isSaving || hasCollected}
+            className={`w-full font-black py-4 rounded-2xl uppercase tracking-widest transition-all active:scale-95 shadow-xl flex items-center justify-center gap-3 ${
+              hasCollected 
+                ? "bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/30 cursor-default" 
+                : "bg-white text-black hover:bg-[#00F5FF]"
+            }`}
+          >
+            {isSaving ? <Loader2 className="animate-spin" /> : hasCollected ? <><CheckCircle2 size={20} /> In der Sammlung</> : "In mein Logbuch eintragen"}
           </button>
           <p className="text-center text-[10px] text-white/20 uppercase tracking-[0.3em]">Unlock achievements by logging this strain</p>
         </div>
