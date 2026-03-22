@@ -24,6 +24,7 @@ export default function StrainDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isFavorited, setIsFavorite] = useState(false);
   const [hasCollected, setHasCollected] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [batchInfo, setBatchInfo] = useState("");
