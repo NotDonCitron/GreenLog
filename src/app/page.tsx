@@ -38,7 +38,7 @@ export default function Home() {
       }
 
       const { data, error } = await supabase
-        .from('ratings')
+        .from('user_collection')
         .select(`
           user_notes,
           batch_info,
