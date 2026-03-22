@@ -60,6 +60,20 @@ export default function Home() {
     setActiveIndex((prev) => (prev + 1) % strains.length);
   };
 
+  const prevCard = () => {
+    if (strains.length === 0) return;
+    setIsFlipped(false);
+    setActiveIndex((prev) => (prev - 1 + strains.length) % strains.length);
+  };
+
+  const handleSwipe = (start: number, end: number) => {
+    const diff = start - end;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) nextCard();
+      else prevCard();
+    }
+  };
+
   if (loading || authLoading) return <div className="min-h-screen bg-[#0e0e0f] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
 
   return (
@@ -72,13 +86,39 @@ export default function Home() {
         {isDemoMode && <Badge className="bg-[#2FF801] text-black border-none font-bold animate-pulse"><FlaskConical size={12} className="mr-1"/> DEMO</Badge>}
       </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center relative px-6 py-8 select-none" onTouchStart={(e) => touchStartX.current = e.touches[0].clientX} onTouchEnd={(e) => {
-        if (!touchStartX.current) return;
-        if (Math.abs(touchStartX.current - e.changedTouches[0].clientX) > 50) nextCard();
-        touchStartX.current = null;
-      }}>
+      <div 
+        className="flex-1 flex flex-col items-center justify-center relative px-6 py-8 select-none"
+        onTouchStart={(e) => touchStartX.current = e.touches[0].clientX}
+        onTouchEnd={(e) => {
+          if (!touchStartX.current) return;
+          handleSwipe(touchStartX.current, e.changedTouches[0].clientX);
+          touchStartX.current = null;
+        }}
+        onMouseDown={(e) => touchStartX.current = e.clientX}
+        onMouseUp={(e) => {
+          if (!touchStartX.current) return;
+          handleSwipe(touchStartX.current, e.clientX);
+          touchStartX.current = null;
+        }}
+      >
         {strains.length > 0 ? (
           <div className="relative w-full max-w-[320px] aspect-[3/4.5] perspective-1000">
+            {/* Navigation Buttons for PC */}
+            <div className="absolute -left-16 top-1/2 -translate-y-1/2 hidden lg:flex flex-col gap-4 z-[60]">
+              <button onClick={(e) => { e.stopPropagation(); prevCard(); }} className="p-4 rounded-full bg-white/5 border border-white/10 hover:bg-[#00F5FF]/20 hover:border-[#00F5FF]/40 transition-all">
+                <ChevronLeft size={32} className="text-white/40" />
+              </button>
+            </div>
+            <div className="absolute -right-16 top-1/2 -translate-y-1/2 hidden lg:flex flex-col gap-4 z-[60]">
+              <button onClick={(e) => { e.stopPropagation(); nextCard(); }} className="p-4 rounded-full bg-white/5 border border-white/10 hover:bg-[#00F5FF]/20 hover:border-[#00F5FF]/40 transition-all">
+                <ChevronLeft size={32} className="text-white/40 rotate-180" />
+              </button>
+            </div>
+
+            {/* Hint for mobile/mouse */}
+            <div className="absolute -bottom-10 left-0 right-0 text-center lg:hidden">
+              <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">← Swipe to browse →</p>
+            </div>
             {strains.map((strain, index) => {
               const relativeIndex = (index - activeIndex + strains.length) % strains.length;
               const isTop = relativeIndex === 0;
