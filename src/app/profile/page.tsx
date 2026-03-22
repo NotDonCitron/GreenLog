@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Settings, FlaskConical, Palette, ExternalLink, Camera, Monitor, Leaf, Moon, Sun, Dna, Database, Heart, Zap } from "lucide-react";
+import { LogOut, Settings, FlaskConical, Palette, ExternalLink, Camera, Monitor, Leaf, Moon, Sun, Dna, Database, Heart, Zap, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -32,6 +32,7 @@ export default function ProfilePage() {
 
   const [favorites, setFavorites] = useState<any[]>([]);
   const [unlockedBadges, setUnlockedBadges] = useState<any[]>([]);
+  const [isPublic, setIsPublic] = useState(false);
 
   // Icon mapping for badges
   const IconMap: Record<string, any> = {
@@ -69,6 +70,10 @@ export default function ProfilePage() {
       const { data: badges } = await supabase.from('user_badges').select('*, badges(*)').eq('user_id', user.id);
       if (badges) setUnlockedBadges(badges.map(b => b.badges));
 
+      // Fetch visibility
+      const { data: profile } = await supabase.from('profiles').select('profile_visibility').eq('id', user.id).single();
+      if (profile) setIsPublic(profile.profile_visibility === 'public');
+
       // Fetch stats
       const { count: strainCount } = await supabase.from('ratings').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
       const { count: growCount } = await supabase.from('grows').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
@@ -91,6 +96,25 @@ export default function ProfilePage() {
   const handleSignOut = async () => {
     await signOut();
     router.push("/login");
+  };
+
+  const toggleVisibility = async () => {
+    if (isDemoMode) {
+      setIsPublic(!isPublic);
+      return;
+    }
+    if (!user) return;
+
+    const nextState = !isPublic;
+    setIsPublic(nextState);
+
+    try {
+      await supabase.from('profiles').update({ 
+        profile_visibility: nextState ? 'public' : 'private' 
+      }).eq('id', user.id);
+    } catch (err) {
+      console.error("Visibility error:", err);
+    }
   };
 
   if (loading) return null;
@@ -211,6 +235,24 @@ export default function ProfilePage() {
         <section className="space-y-3">
           <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] px-2">Dev Tools & Admin</h3>
           <div className="grid gap-3">
+            {/* Visibility Toggle */}
+            <Card className={`p-4 bg-[#1a191b] border-white/5 transition-all ${isPublic ? 'border-[#00F5FF]/30 bg-[#00F5FF]/5' : ''}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${isPublic ? 'bg-[#00F5FF]/20 text-[#00F5FF]' : 'bg-white/5 text-white/40'}`}>
+                    {isPublic ? <Eye size={20} /> : <EyeOff size={20} />}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold uppercase tracking-tight">Profil Status</p>
+                    <p className="text-[10px] text-white/40 uppercase">{isPublic ? 'Öffentlich (Sichtbar)' : 'Privat (Nur Ich)'}</p>
+                  </div>
+                </div>
+                <button onClick={toggleVisibility} className={`w-12 h-6 rounded-full transition-all relative ${isPublic ? 'bg-[#00F5FF]' : 'bg-white/10'}`}>
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isPublic ? 'left-7' : 'left-1'}`} />
+                </button>
+              </div>
+            </Card>
+
             <Card className={`p-4 bg-[#1a191b] border-white/5 transition-all ${isDemoMode ? 'border-[#2FF801]/30 bg-[#2FF801]/5' : ''}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
