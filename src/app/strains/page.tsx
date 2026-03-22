@@ -10,7 +10,7 @@ import { Search, Loader2, Trophy, Lock } from "lucide-react";
 import Link from "next/link";
 
 export default function StrainsPage() {
-  const { user, isDemoMode } = useAuth();
+  const { user, isDemoMode, loading: authLoading } = useAuth();
   const [strains, setStrains] = useState<any[]>([]);
   const [userCollection, setUserCollection] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,23 +18,36 @@ export default function StrainsPage() {
 
   useEffect(() => {
     async function fetchData() {
-      // 1. Alle Strains laden
-      const { data: allStrains } = await supabase.from("strains").select("*").order("name");
-      if (allStrains) setStrains(allStrains);
+      setLoading(true);
+      try {
+        // 1. Alle Strains laden (immer!)
+        const { data: allStrains, error: strainError } = await supabase
+          .from("strains")
+          .select("*")
+          .order("name");
+        
+        if (allStrains) setStrains(allStrains);
 
-      // 2. User Collection laden
-      if (user) {
-        const { data: ratings } = await supabase.from("ratings").select("strain_id").eq("user_id", user.id);
-        if (ratings) setUserCollection(ratings.map(r => r.strain_id));
+        // 2. User Collection laden (wenn eingeloggt)
+        if (user) {
+          const { data: ratings } = await supabase
+            .from("ratings")
+            .select("strain_id")
+            .eq("user_id", user.id);
+          if (ratings) setUserCollection(ratings.map(r => r.strain_id));
+        }
+        
+        if (isDemoMode && allStrains) {
+          setUserCollection(allStrains.slice(0, 3).map(s => s.id));
+        }
+      } catch (err) {
+        console.error("Data fetch error:", err);
+      } finally {
+        setLoading(false);
       }
-      
-      // Demo Mode Support
-      if (isDemoMode) {
-        setUserCollection(allStrains?.slice(0, 3).map(s => s.id) || []);
-      }
-
-      setLoading(false);
     }
+    
+    // Wichtig: Wir warten NICHT auf authLoading, sondern laden die Strains sofort
     fetchData();
   }, [user, isDemoMode]);
 
@@ -42,11 +55,10 @@ export default function StrainsPage() {
     s.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const collectedCount = user ? userCollection.length : 0;
+  const collectedCount = userCollection.length;
 
   return (
     <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
-      {/* Album Header */}
       <header className="p-8 sticky top-0 bg-[#0e0e0f]/90 backdrop-blur-xl z-50 border-b border-white/5">
         <div className="flex justify-between items-end mb-6">
           <div>
@@ -55,11 +67,10 @@ export default function StrainsPage() {
           </div>
           <div className="text-right">
             <p className="text-[10px] text-white/40 uppercase font-bold">Progress</p>
-            <p className="text-xl font-black text-[#2FF801]">{collectedCount} / {strains.length}</p>
+            <p className="text-xl font-black text-[#2FF801]">{collectedCount} / {strains.length || 20}</p>
           </div>
         </div>
 
-        {/* Search */}
         <div className="relative">
           <Search className="absolute left-4 top-3.5 text-white/20" size={18} />
           <input 
@@ -72,10 +83,12 @@ export default function StrainsPage() {
         </div>
       </header>
 
-      {/* Album Grid */}
       <div className="p-6">
-        {loading ? (
-          <div className="flex justify-center py-20"><Loader2 className="animate-spin text-[#00F5FF]" size={32} /></div>
+        {loading && strains.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
+            <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Initialisierung läuft...</p>
+          </div>
         ) : (
           <div className="grid grid-cols-2 gap-6">
             {filteredStrains.map((strain) => {
@@ -87,18 +100,15 @@ export default function StrainsPage() {
                       ? 'border-[#00F5FF]/50 shadow-[0_0_20px_rgba(0,245,255,0.15)] ring-1 ring-[#00F5FF]/30' 
                       : 'border-white/5 opacity-60'
                   }`}>
-                    {/* Visual Status Indicator */}
                     {!isCollected && (
                       <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-grayscale">
                         <Lock className="text-white/20" size={24} />
                       </div>
                     )}
 
-                    {/* Card Content */}
                     <div className={`aspect-[4/5] relative ${!isCollected ? 'grayscale brightness-50' : ''}`}>
                       <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#1a191b] via-transparent to-transparent" />
-                      
                       {isCollected && <div className="absolute inset-0 card-holo opacity-30 animate-pulse" />}
                     </div>
 
@@ -107,7 +117,7 @@ export default function StrainsPage() {
                         {strain.name}
                       </h3>
                       <div className="flex justify-between items-center mt-1">
-                        <span className="text-[8px] text-white/30 font-mono">#{strain.id.slice(0,4)}</span>
+                        <span className="text-[8px] text-white/30 font-mono">#{strain.id.toString().slice(0,4)}</span>
                         {isCollected && <Trophy size={10} className="text-[#2FF801]" />}
                       </div>
                     </div>
