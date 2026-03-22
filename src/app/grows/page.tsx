@@ -16,6 +16,7 @@ interface Grow {
   grow_type: string;
   status: string;
   start_date: string;
+  harvest_date?: string;
   strains?: {
     name: string;
   };
