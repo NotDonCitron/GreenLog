@@ -61,25 +61,25 @@ export default function AdminSeedPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white flex flex-col items-center justify-center p-6 relative">
+    <main className="min-h-screen bg-[#355E3B] text-white flex flex-col items-center justify-center p-6 relative">
       <Link href="/profile" className="absolute top-8 left-8 p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
         <ChevronLeft size={14} /> Back
       </Link>
 
       <Card className="max-w-md w-full p-10 bg-[#1a191b] border-white/10 text-center space-y-8 shadow-2xl border-t-4 border-t-[#2FF801]">
         <Database className="text-[#2FF801] mx-auto animate-pulse" size={64} />
-        
+
         <div className="space-y-2">
           <h1 className="text-xl font-black uppercase tracking-tighter italic">AI <span className="text-[#2FF801]">Visual Sync</span></h1>
           <p className="text-white/30 text-[10px] uppercase tracking-widest leading-relaxed">
             Generates high-fidelity photorealistic bud images for all legendary strains.
           </p>
         </div>
-        
+
         <div className="space-y-4">
-          <Button 
-            onClick={handleUpsertSeed} 
-            disabled={status === "loading" || !user} 
+          <Button
+            onClick={handleUpsertSeed}
+            disabled={status === "loading" || !user}
             className="w-full h-16 bg-[#2FF801] text-black font-black hover:bg-[#2FF801]/80 transition-all text-sm uppercase tracking-widest gap-2"
           >
             {status === "loading" ? <Loader2 className="animate-spin" /> : <><RefreshCw size={20} /> INITIALIZE AI SYNC</>}

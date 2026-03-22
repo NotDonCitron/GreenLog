@@ -63,7 +63,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] flex items-center justify-center p-6">
+    <main className="min-h-screen bg-[#355E3B] flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <span className="text-[12px] text-[#00F5FF] tracking-[0.5em] font-bold uppercase">Cannalog</span>
@@ -74,15 +74,15 @@ export default function LoginPage() {
         <Card className="p-6 bg-[#1a191b] border-white/10 shadow-2xl relative overflow-hidden">
           {/* Accent Glow */}
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#00F5FF]/10 blur-3xl rounded-full" />
-          
+
           <form onSubmit={handleLogin} className="space-y-4 relative z-10">
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1 font-mono">Terminal Access: User ID</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 text-white/20" size={18} />
-                <Input 
-                  type="email" 
-                  placeholder="name@example.com" 
+                <Input
+                  type="email"
+                  placeholder="name@example.com"
                   className="bg-black/40 border-white/5 pl-10 h-12 focus:ring-1 focus:ring-[#00F5FF]/50 transition-all text-white placeholder:text-white/10"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -95,9 +95,9 @@ export default function LoginPage() {
               <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1 font-mono">Terminal Access: Passcode</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 text-white/20" size={18} />
-                <Input 
-                  type="password" 
-                  placeholder="••••••••" 
+                <Input
+                  type="password"
+                  placeholder="••••••••"
                   className="bg-black/40 border-white/5 pl-10 h-12 focus:ring-1 focus:ring-[#00F5FF]/50 transition-all text-white placeholder:text-white/10"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -121,22 +121,22 @@ export default function LoginPage() {
             )}
 
             <div className="pt-4 flex flex-col gap-3">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={loading}
                 className="w-full h-12 bg-[#00F5FF] text-black font-black hover:bg-[#00F5FF]/80 transition-all tracking-widest"
               >
                 {loading ? <Loader2 className="animate-spin" size={20} /> : <div className="flex items-center gap-2"><LogIn size={18} /> INITIALIZE LOGIN</div>}
               </Button>
-              
+
               <div className="relative flex items-center py-2">
                 <div className="flex-grow border-t border-white/5"></div>
                 <span className="flex-shrink mx-4 text-[10px] text-white/20 uppercase font-bold tracking-widest">OR</span>
                 <div className="flex-grow border-t border-white/5"></div>
               </div>
 
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 variant="ghost"
                 onClick={handleSignUp}
                 disabled={loading}
@@ -147,7 +147,7 @@ export default function LoginPage() {
             </div>
           </form>
         </Card>
-        
+
         <p className="text-center text-[10px] text-white/20 uppercase tracking-[0.3em]">Authorized Access Only</p>
       </div>
     </main>

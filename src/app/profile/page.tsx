@@ -3,16 +3,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
   ArrowRight,
+  Camera,
   Eye,
   EyeOff,
   Globe2,
   Heart,
   Leaf,
+  Loader2,
   Lock,
   LogOut,
   Shield,
@@ -56,6 +58,7 @@ const BADGE_ICONS: Record<string, LucideIcon> = {
 type ProfileRow = {
   username?: string | null;
   display_name?: string | null;
+  avatar_url?: string | null;
   profile_visibility?: "public" | "private" | null;
 };
 
@@ -391,12 +394,14 @@ function ProfileSkeleton() {
 export default function ProfilePage() {
   const { user, signOut, loading, isDemoMode, setDemoMode } = useAuth();
   const router = useRouter();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const [viewModel, setViewModel] = useState<ProfileViewModel>(() => createFallbackViewModel(false));
   const [pageState, setPageState] = useState<"loading" | "ready" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (loading) {
@@ -430,7 +435,7 @@ export default function ProfilePage() {
         const [profileResult, favoritesResult, badgesResult, strainCountResult, growCountResult] = await Promise.all([
           supabase
             .from("profiles")
-            .select("username, display_name, profile_visibility")
+            .select("username, display_name, avatar_url, profile_visibility")
             .eq("id", user.id)
             .maybeSingle(),
           supabase
@@ -532,6 +537,7 @@ export default function ProfilePage() {
           username: `@${username.replace(/^@+/, "")}`,
           displayName,
           initials: getInitials(displayName),
+          avatarUrl: profile?.avatar_url?.trim() || null,
           profileVisibility: profile?.profile_visibility === "public" ? "public" : "private",
           tagline: createTagline(stats, false, true),
         };
@@ -619,6 +625,61 @@ export default function ProfilePage() {
     setStatusMessage(nextMode ? "Vorschaumodus aktiviert." : "Vorschaumodus deaktiviert.");
   };
 
+  const handleProfileImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file || !user || isDemoMode) {
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    setStatusMessage(null);
+
+    try {
+      const fileExt = file.name.split(".").pop() || "jpg";
+      const filePath = `avatars/${user.id}-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage.from("strains").upload(filePath, file, {
+        upsert: true,
+      });
+
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("strains").getPublicUrl(filePath);
+
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            id: user.id,
+            username: viewModel.identity.username.replace(/^@+/, "") || getBaseUsername(user.email),
+            display_name: viewModel.identity.displayName,
+            avatar_url: publicUrl,
+          },
+          { onConflict: "id" }
+        );
+
+      if (profileError) throw profileError;
+
+      setViewModel((current) => ({
+        ...current,
+        identity: {
+          ...current.identity,
+          avatarUrl: publicUrl,
+        },
+      }));
+      setStatusMessage("Profilbild aktualisiert.");
+    } catch (error) {
+      console.error("Avatar upload error:", error);
+      setStatusMessage("Das Profilbild konnte nicht gespeichert werden.");
+    } finally {
+      setIsUploadingAvatar(false);
+      event.target.value = "";
+    }
+  };
+
   if (pageState === "loading") {
     return <ProfileSkeleton />;
   }
@@ -631,8 +692,8 @@ export default function ProfilePage() {
   const primaryCtaLabel = user ? "Collection erweitern" : "Anmelden";
 
   return (
-    <main className="min-h-screen bg-[#0a0c0d] text-white pb-32">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[28rem] bg-[radial-gradient(circle_at_top,rgba(0,245,255,0.16),transparent_45%),radial-gradient(circle_at_top_right,rgba(47,248,1,0.08),transparent_28%)]" />
+    <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[28rem] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_45%),radial-gradient(circle_at_top_right,rgba(122,168,116,0.14),transparent_28%)]" />
 
       <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-8 px-5 py-6 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
@@ -664,11 +725,32 @@ export default function ProfilePage() {
                 <div className="relative">
                   <div className="absolute inset-0 rounded-full bg-[#00F5FF]/20 blur-3xl" />
                   <Avatar className="relative h-24 w-24 border border-white/15 bg-[#101214] p-1 sm:h-28 sm:w-28">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/thumbs/svg?seed=${user?.email || identity.username || "guest"}`} />
+                    <AvatarImage
+                      src={identity.avatarUrl || `https://api.dicebear.com/7.x/thumbs/svg?seed=${user?.email || identity.username || "guest"}`}
+                    />
                     <AvatarFallback className="bg-[#101214] text-lg font-semibold text-white/80">
                       {identity.initials}
                     </AvatarFallback>
                   </Avatar>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleProfileImageUpload}
+                  />
+                  {user && !isDemoMode && (
+                    <button
+                      type="button"
+                      onClick={() => avatarInputRef.current?.click()}
+                      disabled={isUploadingAvatar}
+                      className="absolute -top-1 -right-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-[#101214]/90 text-white/75 shadow-lg transition-colors hover:border-[#00F5FF]/35 hover:text-[#00F5FF] disabled:cursor-not-allowed disabled:opacity-60"
+                      aria-label="Profilbild ändern"
+                      title="Profilbild ändern"
+                    >
+                      {isUploadingAvatar ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
+                    </button>
+                  )}
                   <div className="absolute -bottom-2 right-0 rounded-full border border-black/40 bg-[#00F5FF] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-black shadow-lg shadow-[#00F5FF]/25">
                     Lvl {stats.level}
                   </div>

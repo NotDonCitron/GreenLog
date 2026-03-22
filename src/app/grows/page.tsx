@@ -80,8 +80,8 @@ export default function GrowsPage() {
   }, [user, isDemoMode, authLoading]);
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
-      <header className="p-8 sticky top-0 bg-[#0e0e0f]/90 backdrop-blur-xl z-50 border-b border-white/5">
+    <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+      <header className="p-8 sticky top-0 bg-[#355E3B]/90 backdrop-blur-xl z-50 border-b border-white/5">
         <div className="flex justify-between items-end mb-6">
           <div>
             <span className="text-[10px] text-[#00F5FF] font-black uppercase tracking-[0.4em]">Grow Tracker</span>
@@ -122,7 +122,7 @@ export default function GrowsPage() {
                       {grow.status.toUpperCase()}
                     </Badge>
                   </div>
-                  
+
                   <div className="flex justify-between items-center pt-2 border-t border-white/5">
                     <div className="flex items-center gap-2 text-white/40">
                       <Calendar size={12} />

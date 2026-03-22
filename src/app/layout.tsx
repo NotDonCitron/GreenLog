@@ -43,7 +43,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
       style={{ colorScheme: 'dark' }}
     >
-      <body className="h-full bg-[#0e0e0f] text-white">
+      <body className="h-full bg-[#355E3B] text-white">
         <AuthProvider>
           <div className="flex h-full flex-col">
             <main className="flex-1 overflow-y-auto">{children}</main>

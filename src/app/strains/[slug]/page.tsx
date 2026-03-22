@@ -15,7 +15,7 @@ export default function StrainDetailPage() {
   const { user, isDemoMode } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [strain, setStrain] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);
   const [userImageUrl, setUserImageUrl] = useState<string | null>(null);
@@ -27,7 +27,7 @@ export default function StrainDetailPage() {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [batchInfo, setBatchInfo] = useState("");
   const [userNotes, setUserNotes] = useState("");
-  
+
   const [ratings, setRatings] = useState({
     taste: 4.5,
     effect: 4.5,
@@ -45,7 +45,7 @@ export default function StrainDetailPage() {
     async function fetchStrain() {
       // Always try to fetch the real strain first, even in demo mode
       const { data, error } = await supabase.from("strains").select("*").eq("slug", slug).single();
-      
+
       if (data) {
         setStrain(data as Strain);
         if (user) {
@@ -66,14 +66,14 @@ export default function StrainDetailPage() {
         }
       } else if (isDemoMode) {
         // Fallback for demo mode only if strain not found
-        setStrain({ 
-          id: "sim-1", 
-          name: (slug as string).split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '), 
-          slug: slug as string, 
-          type: "hybrid", 
-          thc_max: 25, 
-          description: "Simulation Mode: This is a placeholder description for the demo experience.", 
-          image_url: `/strains/${slug}.jpg` 
+        setStrain({
+          id: "sim-1",
+          name: (slug as string).split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+          slug: slug as string,
+          type: "hybrid",
+          thc_max: 25,
+          description: "Simulation Mode: This is a placeholder description for the demo experience.",
+          image_url: `/strains/${slug}.jpg`
         });
       }
       setLoading(false);
@@ -90,17 +90,17 @@ export default function StrainDetailPage() {
       const fileName = `${user.id}/${strain.slug}-${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage.from('strains').upload(fileName, file);
       if (uploadError) throw uploadError;
-      
+
       const { data: { publicUrl } } = supabase.storage.from('strains').getPublicUrl(fileName);
-      
+
       // Update local state immediately
       setUserImageUrl(publicUrl);
-      
+
       // If already collected, update DB immediately
       if (hasCollected) {
         await supabase.from('user_collection').update({ user_image_url: publicUrl }).eq('strain_id', strain.id).eq('user_id', user.id);
       }
-      
+
       alert("Foto hochgeladen! Klicke auf 'Complete Log' um es zu speichern.");
     } catch (err: any) {
       alert("Error: " + err.message);
@@ -115,10 +115,10 @@ export default function StrainDetailPage() {
       return;
     }
     if (!user || !strain) return;
-    
+
     const nextState = !isFavorited;
     setIsFavorite(nextState);
-    
+
     try {
       await supabase.from("user_strain_relations").upsert({
         user_id: user.id,
@@ -171,7 +171,7 @@ export default function StrainDetailPage() {
         batch_info: batchInfo,
         user_notes: userNotes,
         user_thc_percent: strain.avg_thc || strain.thc_max,
-        user_image_url: userImageUrl 
+        user_image_url: userImageUrl
       }, { onConflict: 'user_id,strain_id' });
 
       // 4. Check & Unlock Badges
@@ -206,12 +206,12 @@ export default function StrainDetailPage() {
 
       setHasCollected(true);
       setShowRatingModal(false);
-      
+
       // Force immediate local update of notes so they appear on the card back
       // before the router.refresh() kicks in
       setUserNotes(userNotes);
       setBatchInfo(batchInfo);
-      
+
       router.refresh();
     } catch (err: any) {
       alert("Error saving: " + (err.message || "Unknown error"));
@@ -220,17 +220,17 @@ export default function StrainDetailPage() {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-[#0e0e0f] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
+  if (loading) return <div className="min-h-screen bg-[#355E3B] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
   if (!strain) return <div className="text-white text-center py-20 uppercase font-bold">Strain not found</div>;
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
-      <div className="p-6 flex justify-between items-center sticky top-0 z-50 bg-[#0e0e0f]/80 backdrop-blur-xl">
+    <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+      <div className="p-6 flex justify-between items-center sticky top-0 z-50 bg-[#355E3B]/80 backdrop-blur-xl">
         <button onClick={() => router.back()} className="p-2 rounded-full bg-white/5"><ChevronLeft size={24} /></button>
         <div className="flex gap-2">
           {user && <button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="p-2 rounded-full bg-[#00F5FF]/10 text-[#00F5FF] border border-[#00F5FF]/20"><Upload size={20} /></button>}
           <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
-          <button 
+          <button
             onClick={toggleFavorite}
             className={`p-2 rounded-full border transition-all ${isFavorited ? 'bg-red-500/20 border-red-500/40 text-red-500' : 'bg-white/5 border-white/5 text-white/40'}`}
           >
@@ -282,7 +282,7 @@ export default function StrainDetailPage() {
                       </Badge>
                     )}
                   </div>
-                  
+
                   <div className="space-y-5">
                     {strain.genetics && (
                       <div>
@@ -290,7 +290,7 @@ export default function StrainDetailPage() {
                         <p className="text-xs font-bold text-white/90 tracking-tight">{strain.genetics}</p>
                       </div>
                     )}
-                    
+
                     <div>
                       <p className="text-[9px] text-white/30 uppercase font-black mb-1">Lineage & Effects</p>
                       <p className="text-[11px] font-medium italic text-white/70 leading-relaxed">{strain.description}</p>
@@ -340,7 +340,7 @@ export default function StrainDetailPage() {
                           <Database size={12} />
                           <h4 className="text-[10px] font-black uppercase tracking-widest">Mein Journal</h4>
                         </div>
-                        
+
                         {batchInfo && (
                           <div>
                             <p className="text-[8px] text-white/30 uppercase font-black mb-1">Batch / Charge</p>
@@ -368,12 +368,11 @@ export default function StrainDetailPage() {
         </div>
 
         <div className="w-full max-w-[340px] mt-10 space-y-4 text-center">
-          <button 
+          <button
             onClick={() => !hasCollected && setShowRatingModal(true)}
             disabled={hasCollected}
-            className={`w-full font-black py-5 rounded-2xl uppercase tracking-[0.2em] shadow-2xl flex items-center justify-center gap-3 transition-all active:scale-95 ${
-              hasCollected ? "bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/30" : "bg-white text-black hover:bg-[#00F5FF]"
-            }`}
+            className={`w-full font-black py-5 rounded-2xl uppercase tracking-[0.2em] shadow-2xl flex items-center justify-center gap-3 transition-all active:scale-95 ${hasCollected ? "bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/30" : "bg-white text-black hover:bg-[#00F5FF]"
+              }`}
           >
             {hasCollected ? <><CheckCircle2 size={24} /> In Collection</> : "Collect & Rate"}
           </button>
@@ -413,8 +412,8 @@ export default function StrainDetailPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Batch / Apotheke</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="z.B. ABC-123 / Grünhorn"
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-xs focus:outline-none focus:border-[#00F5FF]/50 transition-all"
                   value={batchInfo}
@@ -423,7 +422,7 @@ export default function StrainDetailPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Notizen</label>
-                <textarea 
+                <textarea
                   placeholder="Wie war die Wirkung? Geschmack?"
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-xs focus:outline-none focus:border-[#00F5FF]/50 transition-all min-h-[80px]"
                   value={userNotes}

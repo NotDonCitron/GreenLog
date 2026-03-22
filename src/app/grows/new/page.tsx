@@ -8,21 +8,21 @@ import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
-import { 
-  Loader2, 
-  Sprout, 
-  Calendar, 
-  ChevronLeft, 
-  Save, 
-  Layout, 
-  Tag 
+import {
+  Loader2,
+  Sprout,
+  Calendar,
+  ChevronLeft,
+  Save,
+  Layout,
+  Tag
 } from "lucide-react";
 import Link from "next/link";
 import { Strain } from "@/lib/types";
@@ -30,7 +30,7 @@ import { Strain } from "@/lib/types";
 export default function NewGrowPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  
+
   const [strains, setStrains] = useState<Strain[]>([]);
   const [loadingStrains, setLoadingStrains] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -119,15 +119,15 @@ export default function NewGrowPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#0e0e0f] flex items-center justify-center">
+      <div className="min-h-screen bg-[#355E3B] flex items-center justify-center">
         <Loader2 className="animate-spin text-[#00F5FF]" size={40} />
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
-      <header className="p-6 sticky top-0 bg-[#0e0e0f]/90 backdrop-blur-xl z-50 border-b border-white/5">
+    <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+      <header className="p-6 sticky top-0 bg-[#355E3B]/90 backdrop-blur-xl z-50 border-b border-white/5">
         <div className="flex items-center gap-4">
           <Link href="/grows">
             <Button variant="ghost" size="icon" className="text-white/60 hover:text-white hover:bg-white/5 rounded-full">
@@ -160,7 +160,7 @@ export default function NewGrowPage() {
               <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <Tag size={12} className="text-[#00F5FF]" /> Grow Name
               </label>
-              <Input 
+              <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. My First Grow"
@@ -212,7 +212,7 @@ export default function NewGrowPage() {
               <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <Calendar size={12} className="text-[#00F5FF]" /> Start Date
               </label>
-              <Input 
+              <Input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
@@ -221,8 +221,8 @@ export default function NewGrowPage() {
             </div>
 
             <div className="pt-4">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isSubmitting || success}
                 className="w-full bg-[#00F5FF] hover:bg-[#00D5E0] text-black font-black uppercase tracking-widest py-6 rounded-2xl shadow-[0_0_20px_rgba(0,245,255,0.2)] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >

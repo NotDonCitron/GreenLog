@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, SyntheticEvent } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Search, SlidersHorizontal, Info, RefreshCw, Star, Loader2, Plus, FlaskConical, ChevronLeft } from "lucide-react";
+import { Search, SlidersHorizontal, Info, RefreshCw, Star, Loader2, Plus, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { Strain } from "@/lib/types";
 
@@ -45,11 +45,11 @@ export default function Home() {
           strain:strains (*)
         `)
         .eq('user_id', user.id);
-      
+
       if (error) {
         console.error("Error fetching collection:", error);
       }
-      
+
       if (data) {
         const userStrains = data
           .map(item => {
@@ -62,13 +62,13 @@ export default function Home() {
             };
           })
           .filter(Boolean) as unknown as Strain[];
-        
+
         // Ensure image URLs are correct in memory
         const correctedStrains = userStrains.map(s => ({
           ...s,
           image_url: s.image_url || `/strains/${s.slug}.jpg`
         }));
-        
+
         setStrains(correctedStrains);
       }
       setLoading(false);
@@ -96,19 +96,73 @@ export default function Home() {
     }
   };
 
-  if (loading || authLoading) return <div className="min-h-screen bg-[#0e0e0f] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
+  const getCannabinoidDisplay = (primary?: number, secondary?: number) => {
+    const value = primary ?? secondary;
+    return typeof value === "number" ? `${value}%` : "—";
+  };
+
+  const getTasteDisplay = (strain: Strain) => {
+    if (Array.isArray(strain.terpenes) && strain.terpenes.length > 0) {
+      return strain.terpenes
+        .map((terpene) => typeof terpene === "string" ? terpene : terpene?.name)
+        .filter(Boolean)
+        .slice(0, 2)
+        .join(" · ");
+    }
+
+    return strain.type ? strain.type.toUpperCase() : "—";
+  };
+
+  const getEffectDisplay = (strain: Strain) => {
+    if (Array.isArray(strain.effects) && strain.effects.length > 0) {
+      return strain.effects.slice(0, 2).join(" · ");
+    }
+
+    if (Array.isArray(strain.indications) && strain.indications.length > 0) {
+      return strain.indications.slice(0, 2).join(" · ");
+    }
+
+    return strain.is_medical ? "Medical" : "Balanced";
+  };
+
+  const getPrimaryImageUrl = (strain: Strain) => {
+    const source = strain.image_url?.trim();
+
+    if (!source) {
+      return `/strains/${strain.slug}.jpg`;
+    }
+
+    if (source.includes("pollinations.ai") || source.includes("loremflickr.com")) {
+      return `/strains/${strain.slug}.jpg`;
+    }
+
+    return source;
+  };
+
+  const handleCardImageError = (event: SyntheticEvent<HTMLImageElement>, strain: Strain) => {
+    const fallbackImage = `/strains/${strain.slug}.jpg`;
+
+    if (event.currentTarget.dataset.fallbackApplied === "true") {
+      event.currentTarget.src = "/strains/placeholder-1.svg";
+      return;
+    }
+
+    event.currentTarget.dataset.fallbackApplied = "true";
+    event.currentTarget.src = fallbackImage;
+  };
+
+  if (loading || authLoading) return <div className="min-h-screen bg-[#355E3B] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#0e0e0f] text-white overflow-hidden pb-24">
-      <header className="p-6 flex justify-between items-center border-b border-white/10 bg-[#0e0e0f]/80 backdrop-blur-md sticky top-0 z-50">
+    <main className="flex min-h-screen flex-col bg-[#355E3B] text-white overflow-hidden pb-24">
+      <header className="p-6 flex justify-between items-center border-b border-white/10 bg-[#355E3B]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="flex flex-col">
           <span className="text-[10px] text-[#00F5FF] tracking-[0.3em] font-bold uppercase">Cannalog</span>
           <h1 className="text-xl font-bold tracking-tight uppercase">Meine Collection</h1>
         </div>
-        {isDemoMode && <Badge className="bg-[#2FF801] text-black border-none font-bold animate-pulse"><FlaskConical size={12} className="mr-1"/> DEMO</Badge>}
       </header>
 
-      <div 
+      <div
         className="flex-1 flex flex-col items-center justify-center relative px-6 py-8 select-none"
         onTouchStart={(e) => touchStartX.current = e.touches[0].clientX}
         onTouchEnd={(e) => {
@@ -144,70 +198,124 @@ export default function Home() {
             {strains.map((strain, index) => {
               const relativeIndex = (index - activeIndex + strains.length) % strains.length;
               const isTop = relativeIndex === 0;
+              const thcDisplay = getCannabinoidDisplay(strain.avg_thc, strain.thc_max);
               if (relativeIndex > 2) return null;
               return (
                 <div key={strain.id} className={`absolute inset-0 transition-all duration-700 ease-in-out-expo preserve-3d ${isTop && isFlipped ? 'rotate-y-180' : ''}`} style={{ transform: isTop && isFlipped ? `rotateY(180deg)` : `translateY(${relativeIndex * -12}px) translateX(${relativeIndex * 12}px) scale(${1 - relativeIndex * 0.05}) rotate(${relativeIndex * 2}deg)`, zIndex: strains.length - relativeIndex }}>
                   <Card onClick={() => isTop && setIsFlipped(!isFlipped)} className={`absolute inset-0 backface-hidden overflow-hidden border-2 rounded-3xl bg-[#1a191b] shadow-2xl transition-all duration-300 ${isTop ? 'border-[#00F5FF] ring-4 ring-[#00F5FF]/20 shadow-[0_0_30px_rgba(0,245,255,0.2)]' : 'border-white/10'}`}>
                     <div className="absolute inset-0 card-holo opacity-40 pointer-events-none" />
                     <div className="h-2/3 relative">
-                      <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
+                      <img
+                        src={getPrimaryImageUrl(strain)}
+                        alt={strain.name}
+                        className="w-full h-full object-cover"
+                        onError={(event) => handleCardImageError(event, strain)}
+                      />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#1a191b] via-transparent to-transparent" />
-                      <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-[#00F5FF]/30 rounded-full w-12 h-12 flex items-center justify-center text-[10px] font-bold">{strain.avg_thc || strain.thc_max}%</div>
+                      <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-[#00F5FF]/30 rounded-full w-12 h-12 flex items-center justify-center text-[10px] font-bold">
+                        {thcDisplay}
+                      </div>
                     </div>
                     <div className="p-5 flex flex-col h-1/3 justify-between">
                       <div>
-                        <div className="flex justify-between items-start mb-1"><Badge variant="outline" className="text-[10px] border-[#2FF801]/30 text-[#2FF801] uppercase">{strain.type}</Badge></div>
-                        <h2 className="text-2xl font-black italic tracking-tighter uppercase leading-none mb-1">{strain.name}</h2>
-                        <p className="text-xs text-white/50 font-medium uppercase tracking-widest">{isDemoMode ? 'SIMULATED DATA' : 'PERSONAL COLLECTION'}</p>
+                        <div className="flex justify-between items-start mb-1 gap-3">
+                          <Badge variant="outline" className="text-[10px] border-[#2FF801]/30 text-[#2FF801] uppercase">{strain.type}</Badge>
+                          <span className="text-[10px] text-white/40 font-mono">#{String(strain.id).slice(0, 4)}</span>
+                        </div>
+                        <h2 className="text-2xl font-black italic tracking-tighter uppercase leading-none mb-1 line-clamp-2">{strain.name}</h2>
+                        <p className="text-xs text-white/50 font-medium uppercase tracking-widest">PERSONAL COLLECTION</p>
                       </div>
-                      <div className="flex justify-between items-end"><div className="text-[10px] font-bold text-[#00F5FF]/80 animate-pulse">TAP TO FLIP →</div></div>
+                      <div className="flex justify-between items-end gap-3">
+                        <div className="text-[10px] font-bold text-[#00F5FF]/80 animate-pulse">
+                          {isTop ? 'TAP TO FLIP →' : 'BROWSE STACK'}
+                        </div>
+                        <div className="text-[10px] text-white/35 font-mono">
+                          {String(activeIndex + 1).padStart(2, '0')}/{String(strains.length).padStart(2, '0')}
+                        </div>
+                      </div>
                     </div>
                   </Card>
                   <Card className={`absolute inset-0 rotate-y-180 backface-hidden overflow-hidden border-2 rounded-3xl bg-[#1a191b] shadow-2xl border-[#2FF801] ring-4 ring-[#2FF801]/20`} onClick={() => isTop && setIsFlipped(!isFlipped)}>
                     <div className="p-6 h-full flex flex-col justify-between relative text-left overflow-y-auto no-scrollbar">
-                      <div className="space-y-4">
-                        <h3 className="text-[#2FF801] font-bold tracking-widest text-xs uppercase mb-2">Strain Profile</h3>
-                        
-                        <div>
-                          <p className="text-[9px] text-white/40 uppercase mb-1 font-bold">Terpenes</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {strain.terpenes && Array.isArray(strain.terpenes) && strain.terpenes.length > 0 ? (
-                              strain.terpenes.map((t: any, i: number) => {
-                                const name = typeof t === 'string' ? t : t?.name;
-                                const percent = typeof t === 'object' ? t?.percent : null;
-                                if (!name) return null;
-                                return (
-                                  <Badge key={i} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold">
-                                    {name}{percent ? ` (${percent}%)` : ''}
-                                  </Badge>
-                                );
-                              })
-                            ) : (
-                              <span className="text-[8px] text-white/20 italic">Keine Daten</span>
-                            )}
-                          </div>
+                      <div>
+                        <div className="flex justify-between items-center mb-5">
+                          <h3 className="text-[#2FF801] font-bold tracking-widest text-xs uppercase">{strain.is_medical ? 'Medical Profile' : 'Strain Profile'}</h3>
+                          {(strain.avg_thc || strain.thc_max) && (
+                            <Badge variant="outline" className="border-[#2FF801]/30 text-[#2FF801] text-[10px] font-mono">
+                              THC: ~{strain.avg_thc || strain.thc_max}%
+                            </Badge>
+                          )}
                         </div>
 
-                        {/* Journal Section on Home Card */}
-                        {((strain as any).user_notes || (strain as any).batch_info) && (
-                          <div className="pt-3 border-t border-white/10 space-y-3">
-                            <p className="text-[9px] text-[#00F5FF] uppercase font-black tracking-widest">Mein Journal</p>
-                            {(strain as any).batch_info && (
-                              <div>
-                                <p className="text-[8px] text-white/30 uppercase">Batch</p>
-                                <p className="text-[10px] font-bold">{(strain as any).batch_info}</p>
+                        <div className="space-y-5">
+                          {strain.genetics && (
+                            <div>
+                              <p className="text-[9px] text-white/30 uppercase font-black mb-1">Genetics</p>
+                              <p className="text-xs font-bold text-white/90 tracking-tight">{strain.genetics}</p>
+                            </div>
+                          )}
+
+                          {strain.description && (
+                            <div>
+                              <p className="text-[9px] text-white/30 uppercase font-black mb-1">Lineage & Effects</p>
+                              <p className="text-[11px] font-medium italic text-white/70 leading-relaxed">{strain.description}</p>
+                            </div>
+                          )}
+
+                          {strain.indications && Array.isArray(strain.indications) && strain.indications.length > 0 && (
+                            <div>
+                              <p className="text-[9px] text-white/30 uppercase font-black mb-2">Common Indications</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {strain.indications.map((ind: string) => (
+                                  <Badge key={ind} className="bg-white/5 text-white/60 border-white/10 text-[9px] font-bold">{ind}</Badge>
+                                ))}
                               </div>
-                            )}
-                            {(strain as any).user_notes && (
-                              <p className="text-[10px] italic text-white/60 leading-relaxed bg-white/5 p-2 rounded-lg">
-                                {(strain as any).user_notes}
-                              </p>
-                            )}
+                            </div>
+                          )}
+
+                          <div>
+                            <p className="text-[9px] text-white/30 uppercase font-black mb-2">Terpenes</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {strain.terpenes && Array.isArray(strain.terpenes) && strain.terpenes.length > 0 ? (
+                                strain.terpenes.map((t: any, i: number) => {
+                                  const name = typeof t === 'string' ? t : t?.name;
+                                  const percent = typeof t === 'object' ? t?.percent : null;
+                                  if (!name) return null;
+                                  return (
+                                    <Badge key={i} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold">
+                                      {name}{percent ? ` (${percent}%)` : ''}
+                                    </Badge>
+                                  );
+                                })
+                              ) : (
+                                <span className="text-[10px] text-white/20 italic">Keine Terpen-Daten verfügbar</span>
+                              )}
+                            </div>
                           </div>
-                        )}
+
+                          {((strain as any).batch_info || (strain as any).user_notes) && (
+                            <div className="pt-4 border-t border-white/10 mt-2 space-y-4">
+                              <p className="text-[9px] text-[#00F5FF] uppercase font-black tracking-widest">Mein Journal</p>
+                              {(strain as any).batch_info && (
+                                <div>
+                                  <p className="text-[8px] text-white/30 uppercase font-black mb-1">Batch / Charge</p>
+                                  <p className="text-[10px] font-bold text-white/90">{(strain as any).batch_info}</p>
+                                </div>
+                              )}
+                              {(strain as any).user_notes && (
+                                <div>
+                                  <p className="text-[8px] text-white/30 uppercase font-black mb-1">Persönliche Notizen</p>
+                                  <p className="text-[10px] font-medium italic text-white/70 leading-relaxed bg-white/5 p-3 rounded-xl border border-white/5">
+                                    {(strain as any).user_notes}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="pt-4 border-t border-white/5 flex justify-between items-center">
-                        <span className="text-[10px] text-[#2FF801] font-bold uppercase tracking-widest">Personal Log</span>
+                      <div className="pt-4 mt-4 border-t border-white/5 flex justify-between items-center">
+                        <span className="text-[10px] text-[#2FF801] font-bold uppercase tracking-widest">{strain.is_medical ? 'Pharma Certified' : 'Verified Bud'}</span>
                         <Info size={16} className="text-white/20" />
                       </div>
                     </div>

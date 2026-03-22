@@ -22,16 +22,16 @@ export default function StrainsPage() {
     async function fetchData() {
       setLoading(true);
       setError(null);
-      
+
       try {
         console.log("Fetching strains...");
-        
+
         // 1. Alle Strains laden (Direkte Abfrage ohne Umwege)
         const { data: allStrains, error: strainError } = await supabase
           .from("strains")
           .select("*")
           .order("name");
-        
+
         if (strainError) {
           console.error("Supabase Error:", strainError);
           throw new Error(strainError.message);
@@ -49,7 +49,7 @@ export default function StrainsPage() {
             .eq("user_id", user.id);
           if (ratings) setUserCollection(ratings.map(r => r.strain_id));
         }
-        
+
         if (isDemoMode && allStrains) {
           setUserCollection(allStrains.slice(0, 3).map((s: any) => s.id));
         }
@@ -60,17 +60,17 @@ export default function StrainsPage() {
         setLoading(false);
       }
     }
-    
+
     fetchData();
   }, [user, isDemoMode]);
 
-  const filteredStrains = strains.filter(s => 
+  const filteredStrains = strains.filter(s =>
     s.name.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
-      <header className="p-8 sticky top-0 bg-[#0e0e0f]/90 backdrop-blur-xl z-50 border-b border-white/5">
+    <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+      <header className="p-8 sticky top-0 bg-[#355E3B]/90 backdrop-blur-xl z-50 border-b border-white/5">
         <div className="flex justify-between items-end mb-6">
           <div>
             <span className="text-[10px] text-[#00F5FF] font-black uppercase tracking-[0.4em]">Sticker Album</span>
@@ -84,8 +84,8 @@ export default function StrainsPage() {
 
         <div className="relative">
           <Search className="absolute left-4 top-3.5 text-white/20" size={18} />
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder="Sorte suchen..."
             className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:border-[#00F5FF]/50 transition-all shadow-inner"
             value={search}
@@ -112,11 +112,10 @@ export default function StrainsPage() {
               const isCollected = userCollection.includes(strain.id);
               return (
                 <Link key={strain.id} href={`/strains/${strain.slug}`}>
-                  <Card className={`relative bg-[#1a191b] overflow-hidden transition-all duration-500 group active:scale-95 ${
-                    isCollected 
-                      ? 'border-[#00F5FF]/50 shadow-[0_0_20px_rgba(0,245,255,0.15)]' 
+                  <Card className={`relative bg-[#1a191b] overflow-hidden transition-all duration-500 group active:scale-95 ${isCollected
+                      ? 'border-[#00F5FF]/50 shadow-[0_0_20px_rgba(0,245,255,0.15)]'
                       : 'border-white/5 opacity-60'
-                  }`}>
+                    }`}>
                     {!isCollected && (
                       <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-grayscale">
                         <Lock className="text-white/20" size={24} />
@@ -141,7 +140,7 @@ export default function StrainsPage() {
                         {strain.name}
                       </h3>
                       <div className="flex justify-between items-center mt-1">
-                        <span className="text-[8px] text-white/30 font-mono">#{strain.id.toString().slice(0,4)}</span>
+                        <span className="text-[8px] text-white/30 font-mono">#{strain.id.toString().slice(0, 4)}</span>
                         {isCollected && <Trophy size={10} className="text-[#2FF801]" />}
                       </div>
                     </div>

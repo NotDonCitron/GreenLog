@@ -56,6 +56,7 @@ export interface ProfileIdentity {
   username: string;
   displayName: string;
   initials: string;
+  avatarUrl?: string | null;
   profileVisibility: 'public' | 'private';
   tagline: string;
 }
