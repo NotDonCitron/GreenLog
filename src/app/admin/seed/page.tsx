@@ -5,9 +5,9 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Loader2, Database, CheckCircle2, AlertTriangle, Trash2 } from "lucide-react";
+import { Loader2, Database, CheckCircle2, Trash2 } from "lucide-react";
 
-// 20 GARANTIERT unterschiedliche Unsplash IDs für einzigartige Karten
+// 20 HANDVERLESENE, UNTERSCHIEDLICHE UND HOCHAUFLÖSENDE UNPLASH IDS
 const STRAIN_DATA = [
   { name: "Godfather OG", slug: "godfather-og", type: "indica", thc_max: 34, image_url: "https://images.unsplash.com/photo-1603909223429-69bb7101f420?auto=format&fit=crop&q=80&w=800" },
   { name: "Animal Face", slug: "animal-face", type: "indica", thc_max: 30, image_url: "https://images.unsplash.com/photo-1536859355448-76f926813d1d?auto=format&fit=crop&q=80&w=800" },
@@ -39,7 +39,7 @@ export default function AdminSeedPage() {
   const handleResetAndSeed = async () => {
     if (!user) return;
     setStatus("loading");
-    setMessage("Lösche Duplikate und lade 20 unikat Bilder...");
+    setMessage("Lösche alte Bilder und lade 20 unikat Legenden...");
 
     try {
       // 1. Alle Strains löschen
@@ -49,7 +49,7 @@ export default function AdminSeedPage() {
       if (error) throw error;
 
       setStatus("success");
-      setMessage("Erfolg! 20 verschiedene Legenden sind jetzt im Album.");
+      setMessage("Erfolg! 20 verschiedene Legenden mit Top-Bildern geladen.");
     } catch (err: any) {
       setStatus("error");
       setMessage(err.message || "Fehler beim Reset.");
@@ -60,12 +60,12 @@ export default function AdminSeedPage() {
     <main className="min-h-screen bg-[#0e0e0f] text-white flex flex-col items-center justify-center p-6">
       <Card className="max-w-md w-full p-8 bg-[#1a191b] border-white/10 text-center space-y-6 shadow-2xl">
         <Database className="text-[#00F5FF] mx-auto animate-bounce" size={64} />
-        <h1 className="text-2xl font-black uppercase tracking-tighter italic">Unique <span className="text-[#00F5FF]">Gallery Seed</span></h1>
+        <h1 className="text-2xl font-black uppercase tracking-tighter italic text-white">Unique <span className="text-[#00F5FF]">Master Gallery</span></h1>
         <p className="text-white/40 text-[10px] uppercase tracking-widest leading-relaxed">
-          Dies garantiert 20 unterschiedliche Bilder für deine Sticker-Album-Karten.
+          Dies garantiert 20 unterschiedliche, hochauflösende Bilder für dein Sticker-Album.
         </p>
         <Button onClick={handleResetAndSeed} disabled={status === "loading" || !user} className="w-full h-16 bg-[#00F5FF] text-black font-black hover:bg-[#00F5FF]/80 transition-all text-lg uppercase tracking-widest gap-2 shadow-[0_0_30px_rgba(0,245,255,0.3)]">
-          {status === "loading" ? <Loader2 className="animate-spin" /> : "JETZT REINIGEN & LADEN"}
+          {status === "loading" ? <Loader2 className="animate-spin" /> : <><Trash2 size={24} /> RESET & LOAD 20 UNIQUE BUDS</>}
         </Button>
         {status === "success" && <div className="p-4 bg-[#2FF801]/10 border border-[#2FF801]/20 rounded-xl text-[#2FF801] text-xs font-bold animate-in zoom-in">{message}</div>}
       </Card>
