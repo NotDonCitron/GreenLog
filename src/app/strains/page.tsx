@@ -74,7 +74,7 @@ export default function StrainsPage() {
         <div className="flex justify-between items-end mb-6">
           <div>
             <span className="text-[10px] text-[#00F5FF] font-black uppercase tracking-[0.4em]">Sticker Album</span>
-            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">The 20 Legends</h1>
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">World Collection</h1>
           </div>
           <div className="text-right">
             <p className="text-[10px] text-white/40 uppercase font-bold">Progress</p>
