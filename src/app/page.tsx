@@ -11,9 +11,9 @@ import Link from "next/link";
 import { Strain } from "@/lib/types";
 
 const DEMO_SIMULATION_DATA: Strain[] = [
-  { id: "sim-1", name: "Godfather OG", slug: "godfather-og", thc_max: 34, type: "indica", terpenes: ["Myrcene", "Limonene"], effects: ["Sleep"], image_url: "/strains/godfather-og.jpg" },
-  { id: "sim-2", name: "Animal Face", slug: "animal-face", thc_max: 30, type: "indica", terpenes: ["Caryophyllene"], effects: ["Relaxation"], image_url: "/strains/animal-face.jpg" },
-  { id: "sim-3", name: "GMO Cookies", slug: "gmo-cookies", thc_max: 33, type: "indica", terpenes: ["Myrcene"], effects: ["Euphoria"], image_url: "/strains/gmo-cookies.jpg" }
+  { id: "sim-1", name: "Aurora Ghost Train Haze", brand: "Aurora", slug: "godfather-og", thc_max: 34, type: "sativa", terpenes: ["Terpinolene", "Myrcene", "Limonene"], effects: ["Energy"], image_url: "/strains/godfather-og.jpg", is_medical: true },
+  { id: "sim-2", name: "420 Pharma Kush Mint", brand: "420 Pharma", slug: "animal-face", thc_max: 30, type: "hybrid", terpenes: ["Limonene", "Caryophyllene"], effects: ["Relaxation"], image_url: "/strains/animal-face.jpg", is_medical: true },
+  { id: "sim-3", name: "Tilray Master Kush", brand: "Tilray", slug: "gmo-cookies", thc_max: 33, type: "indica", terpenes: ["Myrcene", "Limonene"], effects: ["Sleep"], image_url: "/strains/gmo-cookies.jpg", is_medical: true }
 ];
 
 export default function Home() {
