@@ -134,7 +134,7 @@ export default function Home() {
                   onClick={isTop ? toggleFlip : undefined}
                 >
                   {/* FRONT OF CARD */}
-                  <Card className={`absolute inset-0 backface-hidden overflow-hidden border-2 rounded-3xl bg-[#1a191b] shadow-2xl transition-all duration-300 ${isTop ? 'border-[#00F5FF] ring-4 ring-[#00F5FF]/20 shadow-[#00F5FF]/10' : 'border-white/10'}`}>
+                  <Card className={`absolute inset-0 backface-hidden overflow-hidden border-2 rounded-3xl bg-[#1a191b] shadow-2xl transition-all duration-300 ${isTop ? 'border-[#00F5FF] ring-4 ring-[#00F5FF]/20 shadow-[0_0_30px_rgba(0,245,255,0.2)]' : 'border-white/10'}`}>
                     <div className="absolute inset-0 card-holo opacity-40 pointer-events-none" />
                     <div className="h-2/3 relative">
                       <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
