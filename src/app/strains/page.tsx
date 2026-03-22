@@ -45,7 +45,7 @@ export default function StrainsPage() {
         }
         
         if (isDemoMode && allStrains) {
-          setUserCollection(allStrains.slice(0, 3).map(s => s.id));
+          setUserCollection(allStrains.slice(0, 3).map((s: any) => s.id));
         }
       } catch (err: any) {
         setError(err.message || "Failed to load strains.");
