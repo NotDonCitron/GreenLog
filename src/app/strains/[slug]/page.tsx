@@ -71,22 +71,6 @@ export default function StrainDetailPage() {
     fetchStrain();
   }, [slug, user, isDemoMode]);
 
-  const handleExportImage = async () => {
-    if (!hiddenCardRef.current || !strain) return;
-    setIsExporting(true);
-    try {
-      const dataUrl = await toPng(hiddenCardRef.current, { cacheBust: true, pixelRatio: 3, backgroundColor: '#0e0e0f' });
-      const link = document.createElement('a');
-      link.download = `greenlog-${strain.slug}-card.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      console.error('Export failed:', err);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user || !strain) return;
@@ -186,23 +170,6 @@ export default function StrainDetailPage() {
 
   return (
     <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
-      {/* HIDDEN CLEAN CARD FOR EXPORT */}
-      <div ref={hiddenCardRef} className="absolute left-[-9999px] top-0 p-20 bg-[#0e0e0f]" style={{ width: '500px' }}>
-        <div className="relative w-full aspect-[3/4.5]">
-          <Card className="absolute inset-0 overflow-hidden border-2 rounded-[2.5rem] bg-[#1a191b] border-[#00F5FF] shadow-[0_0_50px_rgba(0,245,255,0.2)]">
-            <div className="h-3/5 relative">
-              <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#1a191b] via-transparent to-transparent" />
-            </div>
-            <div className="p-10 flex flex-col h-2/5 justify-between text-left">
-              <div><Badge className="bg-[#2FF801]/10 text-[#2FF801] border-none px-3 py-1 text-xs font-bold uppercase mb-4">{strain.type}</Badge>
-              <h1 className="text-5xl font-black italic tracking-tighter uppercase leading-none text-white">{strain.name}</h1></div>
-              <div className="text-xs font-bold text-white/20 tracking-widest uppercase">GreenLog Collection</div>
-            </div>
-          </Card>
-        </div>
-      </div>
-
       <div className="p-6 flex justify-between items-center sticky top-0 z-50 bg-[#0e0e0f]/80 backdrop-blur-xl">
         <button onClick={() => router.back()} className="p-2 rounded-full bg-white/5"><ChevronLeft size={24} /></button>
         <div className="flex gap-2">
