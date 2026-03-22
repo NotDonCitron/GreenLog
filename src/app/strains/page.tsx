@@ -23,19 +23,25 @@ export default function StrainsPage() {
       setLoading(true);
       setError(null);
       
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout: Supabase is not responding")), 15000)
-      );
-
       try {
-        const { data: allStrains, error: strainError } = await Promise.race([
-          supabase.from("strains").select("*").order("name"),
-          timeoutPromise
-        ]) as any;
+        console.log("Fetching strains...");
         
-        if (strainError) throw new Error(strainError.message);
-        if (allStrains) setStrains(allStrains as Strain[]);
+        // 1. Alle Strains laden (Direkte Abfrage ohne Umwege)
+        const { data: allStrains, error: strainError } = await supabase
+          .from("strains")
+          .select("*")
+          .order("name");
+        
+        if (strainError) {
+          console.error("Supabase Error:", strainError);
+          throw new Error(strainError.message);
+        }
 
+        if (allStrains) {
+          setStrains(allStrains as Strain[]);
+        }
+
+        // 2. User Collection laden (Parallel, damit es den Strain-Load nicht blockt)
         if (user) {
           const { data: ratings } = await supabase
             .from("ratings")
@@ -48,7 +54,8 @@ export default function StrainsPage() {
           setUserCollection(allStrains.slice(0, 3).map((s: any) => s.id));
         }
       } catch (err: any) {
-        setError(err.message || "Failed to load strains.");
+        console.error("Fetch error:", err);
+        setError(err.message || "Failed to load database content.");
       } finally {
         setLoading(false);
       }
@@ -61,8 +68,6 @@ export default function StrainsPage() {
     s.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const collectedCount = userCollection.length;
-
   return (
     <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
       <header className="p-8 sticky top-0 bg-[#0e0e0f]/90 backdrop-blur-xl z-50 border-b border-white/5">
@@ -73,7 +78,7 @@ export default function StrainsPage() {
           </div>
           <div className="text-right">
             <p className="text-[10px] text-white/40 uppercase font-bold">Progress</p>
-            <p className="text-xl font-black text-[#2FF801]">{collectedCount} / {strains.length || 20}</p>
+            <p className="text-xl font-black text-[#2FF801]">{userCollection.length} / {strains.length || 20}</p>
           </div>
         </div>
 
@@ -81,7 +86,7 @@ export default function StrainsPage() {
           <Search className="absolute left-4 top-3.5 text-white/20" size={18} />
           <input 
             type="text" 
-            placeholder="Search strains..."
+            placeholder="Sorte suchen..."
             className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:border-[#00F5FF]/50 transition-all shadow-inner"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -91,20 +96,15 @@ export default function StrainsPage() {
 
       <div className="p-6">
         {error ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4 text-red-500 text-center">
+          <div className="flex flex-col items-center justify-center py-20 gap-4 text-red-500">
             <AlertCircle size={48} />
-            <p className="text-sm font-black uppercase tracking-widest px-4">{error}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="mt-4 px-8 py-3 bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/20 transition-all"
-            >
-              System Reset
-            </button>
+            <p className="text-sm font-bold uppercase tracking-widest text-center">{error}</p>
+            <button onClick={() => window.location.reload()} className="mt-4 px-6 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold uppercase">System Neustart</button>
           </div>
         ) : loading && strains.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
-            <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Initializing system...</p>
+            <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Initialisierung läuft...</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-6">
@@ -114,7 +114,7 @@ export default function StrainsPage() {
                 <Link key={strain.id} href={`/strains/${strain.slug}`}>
                   <Card className={`relative bg-[#1a191b] overflow-hidden transition-all duration-500 group active:scale-95 ${
                     isCollected 
-                      ? 'border-[#00F5FF]/50 shadow-[0_0_20px_rgba(0,245,255,0.15)] ring-1 ring-[#00F5FF]/30' 
+                      ? 'border-[#00F5FF]/50 shadow-[0_0_20px_rgba(0,245,255,0.15)]' 
                       : 'border-white/5 opacity-60'
                   }`}>
                     {!isCollected && (
