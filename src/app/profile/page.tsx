@@ -55,19 +55,23 @@ export default function ProfilePage() {
       }
 
       // Fetch ratings (strains)
-      const { data: ratings, count } = await supabase
+      const { data: ratings, count, error: ratingsError } = await supabase
         .from('ratings')
         .select('*, strains(type)', { count: 'exact' })
         .eq('user_id', user.id);
       
+      if (ratingsError) console.error("Ratings fetch error:", ratingsError);
+
       // Fetch grows
-      const { count: growCount } = await supabase
+      const { count: growCount, error: growError } = await supabase
         .from('grows')
         .select('*', { count: 'exact' })
         .eq('user_id', user.id);
       
-      const strainCount = count || 0;
-      const totalGrows = growCount || 0;
+      if (growError) console.error("Grows fetch error:", growError);
+
+      const strainCount = count ?? 0;
+      const totalGrows = growCount ?? 0;
       const totalXp = (strainCount * 50) + (totalGrows * 100);
       const currentLevel = Math.floor(totalXp / 100) + 1;
       const progress = totalXp % 100;

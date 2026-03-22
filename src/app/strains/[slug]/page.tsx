@@ -35,19 +35,26 @@ export default function StrainDetailPage() {
 
   useEffect(() => {
     async function fetchStrain() {
-      if (isDemoMode) {
-        setStrain({ id: "sim-1", name: "Godfather OG", slug: "godfather-og", type: "indica", thc_max: 34, description: "Simulation Mode", image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Godfather%20OG?width=600&height=800&seed=1" });
-        setLoading(false);
-        return;
-      }
-
-      const { data } = await supabase.from("strains").select("*").eq("slug", slug).single();
+      // Always try to fetch the real strain first, even in demo mode
+      const { data, error } = await supabase.from("strains").select("*").eq("slug", slug).single();
+      
       if (data) {
         setStrain(data as Strain);
         if (user) {
           const { data: r } = await supabase.from("ratings").select("id").eq("strain_id", data.id).eq("user_id", user.id).single();
           if (r) setHasCollected(true);
         }
+      } else if (isDemoMode) {
+        // Fallback for demo mode only if strain not found
+        setStrain({ 
+          id: "sim-1", 
+          name: (slug as string).split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '), 
+          slug: slug as string, 
+          type: "hybrid", 
+          thc_max: 25, 
+          description: "Simulation Mode: This is a placeholder description for the demo experience.", 
+          image_url: `https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20${slug}?width=600&height=800&seed=1` 
+        });
       }
       setLoading(false);
     }
@@ -108,19 +115,17 @@ export default function StrainDetailPage() {
 
     setIsSaving(true);
     try {
-      const { data: profile, error: profileFetchError } = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle();
+      // Robust profile ensuring: use upsert on ID
+      const username = user.email?.split("@")[0] || "user_" + Math.random().toString(36).slice(2, 7);
       
-      if (!profile) {
-        const username = user.email?.split("@")[0] || "user_" + Math.random().toString(36).slice(2, 7);
-        const { error: profileInsertError } = await supabase.from("profiles").insert({ 
-          id: user.id, 
-          username: username, 
-          display_name: username 
-        });
-        if (profileInsertError) {
-          console.error("Profile creation error:", profileInsertError);
-          // Don't throw here, sometimes triggers/hooks create the profile automatically
-        }
+      const { error: profileError } = await supabase.from("profiles").upsert({ 
+        id: user.id, 
+        username: username, 
+        display_name: username 
+      }, { onConflict: 'id' });
+      
+      if (profileError && profileError.code !== '23505') {
+        console.error("Profile sync error:", profileError);
       }
 
       const { error } = await supabase.from("ratings").upsert({
@@ -130,14 +135,16 @@ export default function StrainDetailPage() {
         taste_rating: ratings.taste,
         effect_rating: ratings.effect,
         look_rating: ratings.look
-      }, { onConflict: 'strain_id, user_id' });
+      }, { onConflict: 'strain_id,user_id' });
 
       if (error) {
         console.error("Rating upsert error:", error);
         throw error;
       }
+      
       setHasCollected(true);
       setShowRatingModal(false);
+      router.refresh();
     } catch (err: any) {
       alert("Error saving rating: " + (err.message || "Unknown error"));
     } finally {
@@ -182,7 +189,13 @@ export default function StrainDetailPage() {
             <Card className="absolute inset-0 backface-hidden overflow-hidden border-2 rounded-[2.5rem] bg-[#1a191b] border-[#00F5FF] ring-8 ring-[#00F5FF]/10 shadow-[0_0_50px_rgba(0,245,255,0.2)]">
               <div className="absolute inset-0 card-holo opacity-50 pointer-events-none" />
               <div className="h-3/5 relative">
-                <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
+                {strain.image_url ? (
+                  <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-[#1a191b] to-black flex items-center justify-center">
+                    <Leaf className="text-white/5" size={80} />
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1a191b] via-transparent to-transparent" />
                 {isUploading && <div className="absolute inset-0 bg-black/60 flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>}
               </div>

@@ -6,7 +6,7 @@ import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Loader2, Trophy, Lock, AlertCircle } from "lucide-react";
+import { Search, Loader2, Trophy, Lock, AlertCircle, Leaf } from "lucide-react";
 import Link from "next/link";
 import { Strain } from "@/lib/types";
 
@@ -124,7 +124,14 @@ export default function StrainsPage() {
                     )}
 
                     <div className={`aspect-[4/5] relative ${!isCollected ? 'grayscale brightness-50' : ''}`}>
-                      <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
+                      {strain.image_url ? (
+                        <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-[#1a191b] to-black flex items-center justify-center">
+                          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+                          <Leaf className="text-white/5" size={64} />
+                        </div>
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-[#1a191b] via-transparent to-transparent" />
                       {isCollected && <div className="absolute inset-0 card-holo opacity-30 animate-pulse" />}
                     </div>
