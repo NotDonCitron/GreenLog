@@ -52,11 +52,15 @@ export default function Home() {
       
       if (data) {
         const userStrains = data
-          .map(item => ({
-            ...(item.strain as any),
-            user_notes: item.user_notes,
-            batch_info: item.batch_info
-          }))
+          .map(item => {
+            const s = item.strain as any;
+            if (!s) return null;
+            return {
+              ...s,
+              user_notes: item.user_notes,
+              batch_info: item.batch_info
+            };
+          })
           .filter(Boolean) as unknown as Strain[];
         
         // Ensure image URLs are correct in memory
