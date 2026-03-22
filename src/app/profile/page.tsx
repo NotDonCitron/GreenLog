@@ -27,11 +27,16 @@ export default function ProfilePage() {
     totalGrows: 0,
     xp: 0,
     level: 1,
-    progressToNextLevel: 0,
-    badges: [] as Badge[]
+    progressToNextLevel: 0
   });
 
   const [favorites, setFavorites] = useState<any[]>([]);
+  const [unlockedBadges, setUnlockedBadges] = useState<any[]>([]);
+
+  // Icon mapping for badges
+  const IconMap: Record<string, any> = {
+    Leaf, Moon, Sun, FlaskConical, Zap, Database, Dna
+  };
 
   useEffect(() => {
     async function fetchStats() {
@@ -41,14 +46,12 @@ export default function ProfilePage() {
           totalGrows: 5,
           xp: 850,
           level: 4,
-          progressToNextLevel: 65,
-          badges: [
-            { id: 'b1', name: 'First Bud', icon: <Leaf size={20} />, unlocked: true, color: 'text-green-500' },
-            { id: 'b2', name: 'Hybrid Hunter', icon: <Dna size={20} />, unlocked: true, color: 'text-purple-500' },
-            { id: 'b3', name: 'Sativa Soul', icon: <Sun size={20} />, unlocked: true, color: 'text-yellow-500' },
-            { id: 'b4', name: 'Night Owl', icon: <Moon size={20} />, unlocked: true, color: 'text-blue-500' }
-          ]
+          progressToNextLevel: 65
         });
+        setUnlockedBadges([
+          { name: 'First Bud', icon_url: 'Leaf', unlocked: true },
+          { name: 'Hybrid Hunter', icon_url: 'Dna', unlocked: true }
+        ]);
         setFavorites([
           { strains: { name: 'Godfather OG', slug: 'godfather-og', image_url: '/strains/godfather-og.jpg' } },
           { strains: { name: 'Animal Face', slug: 'animal-face', image_url: '/strains/animal-face.jpg' } }
@@ -56,57 +59,30 @@ export default function ProfilePage() {
         return;
       }
 
-      if (!user) {
-        return;
-      }
+      if (!user) return;
 
       // Fetch favorites
-      const { data: favs } = await supabase
-        .from('user_strain_relations')
-        .select('*, strains(*)')
-        .eq('user_id', user.id)
-        .eq('is_favorite', true)
-        .limit(5);
-      
+      const { data: favs } = await supabase.from('user_strain_relations').select('*, strains(*)').eq('user_id', user.id).eq('is_favorite', true).limit(5);
       if (favs) setFavorites(favs);
 
-      // Fetch ratings (strains)
-      const { data: ratings, count, error: ratingsError } = await supabase
-        .from('ratings')
-        .select('*, strains(type)', { count: 'exact' })
-        .eq('user_id', user.id);
+      // Fetch unlocked badges
+      const { data: badges } = await supabase.from('user_badges').select('*, badges(*)').eq('user_id', user.id);
+      if (badges) setUnlockedBadges(badges.map(b => b.badges));
+
+      // Fetch stats
+      const { count: strainCount } = await supabase.from('ratings').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
+      const { count: growCount } = await supabase.from('grows').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
+
+      const sCount = strainCount ?? 0;
+      const gCount = growCount ?? 0;
+      const totalXp = (sCount * 50) + (gCount * 100);
       
-      if (ratingsError) console.error("Ratings fetch error:", ratingsError);
-
-      // Fetch grows
-      const { count: growCount, error: growError } = await supabase
-        .from('grows')
-        .select('*', { count: 'exact' })
-        .eq('user_id', user.id);
-      
-      if (growError) console.error("Grows fetch error:", growError);
-
-      const strainCount = count ?? 0;
-      const totalGrows = growCount ?? 0;
-      const totalXp = (strainCount * 50) + (totalGrows * 100);
-      const currentLevel = Math.floor(totalXp / 100) + 1;
-      const progress = totalXp % 100;
-
-      const types = ratings?.map(r => r.strains?.type) || [];
-      const badgeList: Badge[] = [
-        { id: 'b1', name: 'First Bud', icon: <Leaf size={20} />, unlocked: strainCount >= 1, color: 'text-green-500' },
-        { id: 'b2', name: 'Hybrid Hunter', icon: <Dna size={20} />, unlocked: types.filter(t => t === 'hybrid').length >= 3, color: 'text-purple-500' },
-        { id: 'b3', name: 'Sativa Soul', icon: <Sun size={20} />, unlocked: types.includes('sativa'), color: 'text-yellow-500' },
-        { id: 'b4', name: 'Night Owl', icon: <Moon size={20} />, unlocked: types.filter(t => t === 'indica').length >= 2, color: 'text-blue-500' }
-      ];
-
       setStats({
-        totalStrains: strainCount,
-        totalGrows: totalGrows,
+        totalStrains: sCount,
+        totalGrows: gCount,
         xp: totalXp,
-        level: currentLevel,
-        progressToNextLevel: progress,
-        badges: badgeList
+        level: Math.floor(totalXp / 100) + 1,
+        progressToNextLevel: totalXp % 100
       });
     }
     fetchStats();
@@ -183,21 +159,29 @@ export default function ProfilePage() {
         )}
 
         {/* Badges Section */}
-        <section className="space-y-4">
-          <div className="flex justify-between items-center px-2">
-            <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Erfolge (Badges)</h3>
-            <span className="text-[10px] font-black text-yellow-500">{stats.badges.filter(b => b.unlocked).length} / {stats.badges.length}</span>
+        <section className=\"space-y-4\">
+          <div className=\"flex justify-between items-center px-2\">
+            <h3 className=\"text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]\">Erfolge (Badges)</h3>
+            <span className=\"text-[10px] font-black text-yellow-500\">{unlockedBadges.length} freigeschaltet</span>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            {stats.badges.map((badge) => (
-              <Card key={badge.id} className={`p-4 bg-[#1a191b] border-white/5 flex flex-col items-center gap-3 transition-all ${badge.unlocked ? 'border-yellow-500/20 bg-yellow-500/5' : 'opacity-40 grayscale'}`}>
-                <div className={`p-3 rounded-2xl ${badge.unlocked ? 'bg-black/40 ' + badge.color : 'bg-white/5 text-white/20'}`}>{badge.icon}</div>
-                <div className="text-center">
-                  <p className="text-[10px] font-black uppercase tracking-widest leading-none">{badge.name}</p>
-                  <p className="text-[8px] text-white/30 uppercase mt-1">{badge.unlocked ? 'Unlocked' : 'Locked'}</p>
-                </div>
-              </Card>
-            ))}
+          <div className=\"grid grid-cols-2 gap-3\">
+            {unlockedBadges.map((badge, idx) => {
+              const IconComponent = IconMap[badge.icon_url] || Leaf;
+              return (
+                <Card key={idx} className=\"p-4 bg-[#1a191b] border-yellow-500/20 bg-yellow-500/5 flex flex-col items-center gap-3 transition-all\">
+                  <div className=\"p-3 rounded-2xl bg-black/40 text-yellow-500\"><IconComponent size={20} /></div>
+                  <div className=\"text-center\">
+                    <p className=\"text-[10px] font-black uppercase tracking-widest leading-none\">{badge.name}</p>
+                    <p className=\"text-[8px] text-white/30 uppercase mt-1\">Unlocked</p>
+                  </div>
+                </Card>
+              );
+            })}
+            {unlockedBadges.length === 0 && (
+              <div className=\"col-span-2 py-10 text-center border-2 border-dashed border-white/5 rounded-3xl\">
+                <p className=\"text-[10px] font-bold text-white/20 uppercase tracking-widest\">Noch keine Erfolge freigeschaltet</p>
+              </div>
+            )}
           </div>
         </section>
 
