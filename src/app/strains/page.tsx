@@ -1,258 +1,94 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { BottomNav } from "@/components/bottom-nav";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Search, Grid2X2, List, Loader2, Leaf } from "lucide-react";
 import Link from "next/link";
 
-type Strain = {
-  id: string;
-  name: string;
-  slug: string;
-  type: "indica" | "sativa" | "hybrid";
-  thc: string;
-  avg_rating: number;
-  rating_count: number;
-  flavors: string[];
-  effects: string[];
-};
-
-// Mock-Daten bis Supabase angebunden ist
-const mockStrains: Strain[] = [
-  {
-    id: "1",
-    name: "Amnesia Haze",
-    slug: "amnesia-haze",
-    type: "sativa",
-    thc: "20-24%",
-    avg_rating: 4.5,
-    rating_count: 128,
-    flavors: ["Zitrus", "Erdig"],
-    effects: ["Euphorisch", "Kreativ", "Energetisch"],
-  },
-  {
-    id: "2",
-    name: "Northern Lights",
-    slug: "northern-lights",
-    type: "indica",
-    thc: "16-21%",
-    avg_rating: 4.7,
-    rating_count: 95,
-    flavors: ["Kiefer", "Suss"],
-    effects: ["Entspannt", "Schlafrig", "Happy"],
-  },
-  {
-    id: "3",
-    name: "White Widow",
-    slug: "white-widow",
-    type: "hybrid",
-    thc: "18-25%",
-    avg_rating: 4.3,
-    rating_count: 210,
-    flavors: ["Erdig", "Holzig"],
-    effects: ["Euphorisch", "Kreativ", "Entspannt"],
-  },
-  {
-    id: "4",
-    name: "OG Kush",
-    slug: "og-kush",
-    type: "hybrid",
-    thc: "19-26%",
-    avg_rating: 4.6,
-    rating_count: 175,
-    flavors: ["Zitrus", "Kiefer", "Wurzig"],
-    effects: ["Entspannt", "Happy", "Euphorisch"],
-  },
-  {
-    id: "5",
-    name: "Girl Scout Cookies",
-    slug: "girl-scout-cookies",
-    type: "hybrid",
-    thc: "25-28%",
-    avg_rating: 4.8,
-    rating_count: 302,
-    flavors: ["Suss", "Erdig", "Minze"],
-    effects: ["Euphorisch", "Entspannt", "Happy"],
-  },
-  {
-    id: "6",
-    name: "Blue Dream",
-    slug: "blue-dream",
-    type: "sativa",
-    thc: "17-24%",
-    avg_rating: 4.4,
-    rating_count: 189,
-    flavors: ["Beere", "Suss"],
-    effects: ["Entspannt", "Kreativ", "Happy"],
-  },
-];
-
-const typeColors = {
-  indica: "bg-purple-100 text-purple-700",
-  sativa: "bg-orange-100 text-orange-700",
-  hybrid: "bg-green-100 text-green-700",
-};
-
-const typeLabels = {
-  indica: "Indica",
-  sativa: "Sativa",
-  hybrid: "Hybrid",
-};
-
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-1">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <svg
-          key={star}
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill={star <= Math.round(rating) ? "#f59e0b" : "none"}
-          stroke="#f59e0b"
-          strokeWidth="2"
-        >
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-      ))}
-      <span className="ml-1 text-xs text-muted-foreground">
-        {rating.toFixed(1)} ({rating_count_format(0)})
-      </span>
-    </div>
-  );
-}
-
-function rating_count_format(count: number) {
-  return count;
-}
-
-function StrainCard({ strain }: { strain: Strain }) {
-  return (
-    <Link href={`/strains/${strain.slug}`}>
-      <Card className="border-border active:scale-[0.98] transition-transform">
-      <CardContent className="flex items-center gap-4 py-3 px-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100 text-2xl">
-          🌿
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold truncate">{strain.name}</h3>
-            <Badge
-              variant="secondary"
-              className={`shrink-0 text-[10px] px-1.5 py-0 ${typeColors[strain.type]}`}
-            >
-              {typeLabels[strain.type]}
-            </Badge>
-          </div>
-          <div className="mt-1 flex items-center gap-1">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <svg
-                key={star}
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill={star <= Math.round(strain.avg_rating) ? "#f59e0b" : "none"}
-                stroke="#f59e0b"
-                strokeWidth="2"
-              >
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
-            ))}
-            <span className="text-xs text-muted-foreground ml-1">
-              {strain.avg_rating.toFixed(1)} ({strain.rating_count})
-            </span>
-          </div>
-          <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
-            <span>THC {strain.thc}</span>
-            <span>·</span>
-            <span className="truncate">{strain.flavors.join(", ")}</span>
-          </div>
-        </div>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          className="shrink-0 text-muted-foreground"
-        >
-          <path d="m9 18 6-6-6-6" />
-        </svg>
-      </CardContent>
-    </Card>
-    </Link>
-  );
-}
-
-type FilterType = "all" | "indica" | "sativa" | "hybrid";
-
 export default function StrainsPage() {
+  const [strains, setStrains] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<FilterType>("all");
 
-  const filtered = mockStrains.filter((s) => {
-    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
-    const matchesFilter = filter === "all" || s.type === filter;
-    return matchesSearch && matchesFilter;
-  });
+  useEffect(() => {
+    async function fetchStrains() {
+      const { data } = await supabase.from("strains").select("*").order("name");
+      if (data) setStrains(data);
+      setLoading(false);
+    }
+    fetchStrains();
+  }, []);
 
-  const filters: { value: FilterType; label: string }[] = [
-    { value: "all", label: "Alle" },
-    { value: "indica", label: "Indica" },
-    { value: "sativa", label: "Sativa" },
-    { value: "hybrid", label: "Hybrid" },
-  ];
+  const filteredStrains = strains.filter(s => 
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
+    s.type.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div className="flex flex-col">
+    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm px-5 pt-5 pb-3">
-        <h1 className="text-2xl font-bold">Strains</h1>
-        <div className="mt-3">
-          <Input
+      <header className="p-6 sticky top-0 bg-[#0e0e0f]/80 backdrop-blur-xl z-50 border-b border-white/5">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-black italic tracking-tighter uppercase">Strain Album</h1>
+          <div className="flex gap-2">
+            <button className="p-2 bg-white/5 rounded-lg text-[#00F5FF]"><Grid2X2 size={20} /></button>
+            <button className="p-2 text-white/20"><List size={20} /></button>
+          </div>
+        </div>
+
+        <div className="relative">
+          <Search className="absolute left-3 top-3 text-white/20" size={18} />
+          <input 
+            type="text" 
             placeholder="Sorte suchen..."
+            className="w-full bg-white/5 border border-white/5 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-[#00F5FF]/50 transition-all"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-10 rounded-xl bg-muted/50"
           />
         </div>
-        <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar">
-          {filters.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => setFilter(f.value)}
-              className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                filter === f.value
-                  ? "bg-green-600 text-white"
-                  : "bg-muted text-muted-foreground"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      </header>
 
-      {/* Strain List */}
-      <div className="flex flex-col gap-2 px-5 pt-2 pb-4">
-        <p className="text-xs text-muted-foreground">
-          {filtered.length} {filtered.length === 1 ? "Sorte" : "Sorten"} gefunden
-        </p>
-        {filtered.map((strain) => (
-          <StrainCard key={strain.id} strain={strain} />
-        ))}
-        {filtered.length === 0 && (
-          <div className="py-12 text-center text-muted-foreground">
-            <span className="text-4xl">🔍</span>
-            <p className="mt-3 text-sm">Keine Sorten gefunden.</p>
+      {/* Content */}
+      <div className="p-6">
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="animate-spin text-[#00F5FF]" size={32} />
+          </div>
+        ) : filteredStrains.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4">
+            {filteredStrains.map((strain) => (
+              <Link key={strain.id} href={`/strains/${strain.slug}`}>
+                <Card className="bg-[#1a191b] border-white/5 overflow-hidden group hover:border-[#00F5FF]/30 transition-all active:scale-95">
+                  <div className="aspect-square relative">
+                    <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1a191b] via-transparent to-transparent" />
+                    <Badge className="absolute top-2 right-2 bg-black/60 text-[8px] uppercase border-none">{strain.type}</Badge>
+                  </div>
+                  <div className="p-3">
+                    <h3 className="font-bold text-xs uppercase tracking-tight truncate">{strain.name}</h3>
+                    <p className="text-[10px] text-white/40 font-mono mt-1">{strain.thc_max}% THC</p>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 space-y-4">
+            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto">
+              <Leaf className="text-white/10" size={32} />
+            </div>
+            <p className="text-white/40 text-sm">Keine Strains gefunden.</p>
+            <Link href="/admin/seed" className="text-[#00F5FF] text-xs uppercase font-bold tracking-widest hover:underline">
+              Datenbank Seeden →
+            </Link>
           </div>
         )}
       </div>
-    </div>
+
+      <BottomNav />
+    </main>
   );
 }
