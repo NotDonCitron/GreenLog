@@ -4,7 +4,7 @@ import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Settings, Award, History, Heart, FlaskConical, ShieldCheck, Palette, ExternalLink } from "lucide-react";
+import { LogOut, Settings, Award, History, Heart, FlaskConical, ShieldCheck, Palette, ExternalLink, Camera, Monitor } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -43,28 +43,57 @@ export default function ProfilePage() {
         </p>
       </div>
 
-      <div className="p-6 space-y-6">
-        {/* Pitch / Design Section (Temporary for Friends) */}
-        <section className="space-y-3">
+      <div className="p-6 space-y-8">
+        {/* Team Feedback Area (Temporary for Friends) */}
+        <section className="space-y-4">
           <h3 className="text-[10px] font-bold text-[#00F5FF] uppercase tracking-[0.2em] px-2 flex items-center gap-2">
             <Palette size={12} /> Team Feedback Area
           </h3>
-          <Link href="/designs.html" target="_blank">
-            <Card className="p-5 bg-gradient-to-r from-[#00F5FF]/10 to-[#2FF801]/10 border-[#00F5FF]/20 hover:border-[#00F5FF]/50 transition-all cursor-pointer group">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-black/40 rounded-2xl flex items-center justify-center text-[#00F5FF]">
-                    <Palette size={24} />
+          
+          <div className="grid gap-3">
+            {/* Design Gallery Link */}
+            <Link href="/designs.html" target="_blank">
+              <Card className="p-4 bg-[#1a191b] border-[#00F5FF]/20 hover:border-[#00F5FF]/50 transition-all cursor-pointer group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#00F5FF]/10 rounded-xl flex items-center justify-center text-[#00F5FF]">
+                      <Palette size={20} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-widest text-white">Design Konzepte</p>
+                      <p className="text-[9px] text-white/40 uppercase">24 Varianten anschauen</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-black uppercase tracking-widest text-white">Design Konzepte</p>
-                    <p className="text-[10px] text-white/40 uppercase font-bold">24 Varianten anschauen & wählen</p>
-                  </div>
+                  <ExternalLink size={14} className="text-white/20 group-hover:text-[#00F5FF]" />
                 </div>
-                <ExternalLink size={18} className="text-white/20 group-hover:text-[#00F5FF] transition-colors" />
+              </Card>
+            </Link>
+
+            {/* Scanner Test Tutorial & Link */}
+            <Card className="p-5 bg-[#1a191b] border-[#2FF801]/20">
+              <div className="flex items-center gap-3 mb-4 text-[#2FF801]">
+                <Camera size={20} />
+                <p className="text-xs font-black uppercase tracking-widest">Scanner Testen</p>
               </div>
+              
+              <div className="space-y-3 mb-5">
+                <div className="flex gap-3">
+                  <div className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center text-[10px] font-bold text-[#2FF801] border border-[#2FF801]/20">1</div>
+                  <p className="text-[10px] text-white/60 leading-tight">Öffne den Link unten auf einem <br /><strong className="text-white">ZWEITEN Gerät</strong> (PC/Laptop).</p>
+                </div>
+                <div className="flex gap-3">
+                  <div className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center text-[10px] font-bold text-[#2FF801] border border-[#2FF801]/20">2</div>
+                  <p className="text-[10px] text-white/60 leading-tight">Ziele mit diesem Handy-Scanner auf <br />eines der Etiketten am Bildschirm.</p>
+                </div>
+              </div>
+
+              <Link href="/scanner/test" target="_blank">
+                <button className="w-full py-3 bg-[#2FF801]/10 border border-[#2FF801]/30 rounded-xl text-[#2FF801] text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[#2FF801]/20 transition-all flex items-center justify-center gap-2">
+                  <Monitor size={14} /> Test-Zentrum öffnen
+                </button>
+              </Link>
             </Card>
-          </Link>
+          </div>
         </section>
 
         {/* Testing Section */}
