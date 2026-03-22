@@ -147,7 +147,7 @@ export default function StrainDetailPage() {
       if (rError) throw rError;
 
       // 3. Save to Personal Collection (Private)
-      await supabase.from(\"user_collection\").upsert({
+      await supabase.from("user_collection").upsert({
         user_id: user.id,
         strain_id: strain.id,
         batch_info: batchInfo,
@@ -167,21 +167,21 @@ export default function StrainDetailPage() {
       };
 
       // Condition: Genesis (First strain)
-      if (userCollection?.length === 1) await unlockBadge(\"Genesis\");
+      if (userCollection?.length === 1) await unlockBadge("Genesis");
 
       // Condition: High Flyer (>25% THC)
-      if (strain.thc_max && strain.thc_max > 25) await unlockBadge(\"High Flyer\");
+      if (strain.thc_max && strain.thc_max > 25) await unlockBadge("High Flyer");
 
       // Condition: Pharma Specialist (is_medical)
-      if (strain.is_medical) await unlockBadge(\"Pharma Specialist\");
+      if (strain.is_medical) await unlockBadge("Pharma Specialist");
 
       // Condition: Indica Knight (5 Indicas)
       const indicaCount = userCollection?.filter(item => item.strains?.type === 'indica').length || 0;
-      if (indicaCount >= 5) await unlockBadge(\"Indica Knight\");
+      if (indicaCount >= 5) await unlockBadge("Indica Knight");
 
       // Condition: Sativa Scout (5 Sativas)
       const sativaCount = userCollection?.filter(item => item.strains?.type === 'sativa').length || 0;
-      if (sativaCount >= 5) await unlockBadge(\"Sativa Scout\");
+      if (sativaCount >= 5) await unlockBadge("Sativa Scout");
 
       setHasCollected(true);
       setShowRatingModal(false);

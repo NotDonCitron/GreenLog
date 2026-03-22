@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Settings, FlaskConical, Palette, ExternalLink, Camera, Monitor, Leaf, Moon, Sun, Dna, Database, Heart } from "lucide-react";
+import { LogOut, Settings, FlaskConical, Palette, ExternalLink, Camera, Monitor, Leaf, Moon, Sun, Dna, Database, Heart, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -159,27 +159,27 @@ export default function ProfilePage() {
         )}
 
         {/* Badges Section */}
-        <section className=\"space-y-4\">
-          <div className=\"flex justify-between items-center px-2\">
-            <h3 className=\"text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]\">Erfolge (Badges)</h3>
-            <span className=\"text-[10px] font-black text-yellow-500\">{unlockedBadges.length} freigeschaltet</span>
+        <section className="space-y-4">
+          <div className="flex justify-between items-center px-2">
+            <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Erfolge (Badges)</h3>
+            <span className="text-[10px] font-black text-yellow-500">{unlockedBadges.length} freigeschaltet</span>
           </div>
-          <div className=\"grid grid-cols-2 gap-3\">
+          <div className="grid grid-cols-2 gap-3">
             {unlockedBadges.map((badge, idx) => {
               const IconComponent = IconMap[badge.icon_url] || Leaf;
               return (
-                <Card key={idx} className=\"p-4 bg-[#1a191b] border-yellow-500/20 bg-yellow-500/5 flex flex-col items-center gap-3 transition-all\">
-                  <div className=\"p-3 rounded-2xl bg-black/40 text-yellow-500\"><IconComponent size={20} /></div>
-                  <div className=\"text-center\">
-                    <p className=\"text-[10px] font-black uppercase tracking-widest leading-none\">{badge.name}</p>
-                    <p className=\"text-[8px] text-white/30 uppercase mt-1\">Unlocked</p>
+                <Card key={idx} className="p-4 bg-[#1a191b] border-yellow-500/20 bg-yellow-500/5 flex flex-col items-center gap-3 transition-all">
+                  <div className="p-3 rounded-2xl bg-black/40 text-yellow-500"><IconComponent size={20} /></div>
+                  <div className="text-center">
+                    <p className="text-[10px] font-black uppercase tracking-widest leading-none">{badge.name}</p>
+                    <p className="text-[8px] text-white/30 uppercase mt-1">Unlocked</p>
                   </div>
                 </Card>
               );
             })}
             {unlockedBadges.length === 0 && (
-              <div className=\"col-span-2 py-10 text-center border-2 border-dashed border-white/5 rounded-3xl\">
-                <p className=\"text-[10px] font-bold text-white/20 uppercase tracking-widest\">Noch keine Erfolge freigeschaltet</p>
+              <div className="col-span-2 py-10 text-center border-2 border-dashed border-white/5 rounded-3xl">
+                <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Noch keine Erfolge freigeschaltet</p>
               </div>
             )}
           </div>
