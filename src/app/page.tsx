@@ -52,7 +52,14 @@ export default function Home() {
         const userStrains = data
           .map(item => item.strain)
           .filter(Boolean) as unknown as Strain[];
-        setStrains(userStrains);
+        
+        // Ensure image URLs are correct in memory
+        const correctedStrains = userStrains.map(s => ({
+          ...s,
+          image_url: s.image_url || `/strains/${s.slug}.jpg`
+        }));
+        
+        setStrains(correctedStrains);
       }
       setLoading(false);
     }
