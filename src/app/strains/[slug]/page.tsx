@@ -55,12 +55,13 @@ export default function StrainDetailPage() {
           const { data: fav } = await supabase.from("user_strain_relations").select("is_favorite").eq("strain_id", data.id).eq("user_id", user.id).single();
           if (fav) setIsFavorite(fav.is_favorite);
 
-          // Fetch personal photo
-          const { data: collection } = await supabase.from("user_collection").select("user_image_url, batch_info, user_notes").eq("strain_id", data.id).eq("user_id", user.id).single();
+          // Fetch personal photo and notes
+          const { data: collection } = await supabase.from("user_collection").select("user_image_url, batch_info, user_notes").eq("strain_id", data.id).eq("user_id", user.id).maybeSingle();
           if (collection) {
+            console.log("Personal Log found:", collection);
             if (collection.user_image_url) setUserImageUrl(collection.user_image_url);
-            if (collection.batch_info) setBatchInfo(collection.batch_info);
-            if (collection.user_notes) setUserNotes(collection.user_notes);
+            setBatchInfo(collection.batch_info || "");
+            setUserNotes(collection.user_notes || "");
           }
         }
       } else if (isDemoMode) {
