@@ -171,10 +171,15 @@ export default function Home() {
                         <div>
                           <p className="text-[9px] text-white/40 uppercase mb-1 font-bold">Terpenes</p>
                           <div className="flex flex-wrap gap-1.5">
-                            {strain.terpenes?.map((t: any, i: number) => {
-                              const name = typeof t === 'string' ? t : t.name;
-                              return (<Badge key={i} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold">{name}</Badge>);
-                            })}
+                            {strain.terpenes && Array.isArray(strain.terpenes) && strain.terpenes.length > 0 ? (
+                              strain.terpenes.map((t: any, i: number) => {
+                                const name = typeof t === 'string' ? t : t?.name;
+                                if (!name) return null;
+                                return (<Badge key={i} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold">{name}</Badge>);
+                              })
+                            ) : (
+                              <span className="text-[8px] text-white/20 italic">Keine Daten</span>
+                            )}
                           </div>
                         </div>
 
