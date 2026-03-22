@@ -8,16 +8,17 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Search, SlidersHorizontal, Info, RefreshCw, Star, Loader2, Plus, FlaskConical } from "lucide-react";
 import Link from "next/link";
+import { Strain } from "@/lib/types";
 
-const DEMO_SIMULATION_DATA = [
-  { id: "sim-1", name: "Godfather OG", thc_max: "34.0", type: "indica", terpenes: ["Myrcene", "Limonene"], effects: ["Sleep"], image_url: "https://images.unsplash.com/photo-1536859355448-76f926813d1d?auto=format&fit=crop&q=80&w=800" },
-  { id: "sim-2", name: "Animal Face", thc_max: "30.0", type: "indica", terpenes: ["Caryophyllene"], effects: ["Relaxation"], image_url: "https://images.unsplash.com/photo-1603909223429-69bb7101f420?auto=format&fit=crop&q=80&w=800" },
-  { id: "sim-3", name: "GMO Cookies", thc_max: "33.0", type: "indica", terpenes: ["Myrcene"], effects: ["Euphoria"], image_url: "https://images.unsplash.com/photo-1599733589046-10c005739ef0?auto=format&fit=crop&q=80&w=800" }
+const DEMO_SIMULATION_DATA: Strain[] = [
+  { id: "sim-1", name: "Godfather OG", slug: "godfather-og", thc_max: 34, type: "indica", terpenes: ["Myrcene", "Limonene"], effects: ["Sleep"], image_url: "https://images.unsplash.com/photo-1536859355448-76f926813d1d?auto=format&fit=crop&q=80&w=800" },
+  { id: "sim-2", name: "Animal Face", slug: "animal-face", thc_max: 30, type: "indica", terpenes: ["Caryophyllene"], effects: ["Relaxation"], image_url: "https://images.unsplash.com/photo-1603909223429-69bb7101f420?auto=format&fit=crop&q=80&w=800" },
+  { id: "sim-3", name: "GMO Cookies", slug: "gmo-cookies", thc_max: 33, type: "indica", terpenes: ["Myrcene"], effects: ["Euphoria"], image_url: "https://images.unsplash.com/photo-1599733589046-10c005739ef0?auto=format&fit=crop&q=80&w=800" }
 ];
 
 export default function Home() {
   const { user, loading: authLoading, isDemoMode } = useAuth();
-  const [strains, setStrains] = useState<any[]>([]);
+  const [strains, setStrains] = useState<Strain[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -42,7 +43,11 @@ export default function Home() {
         .eq('user_id', user.id);
       
       if (data) {
-        setStrains(data.map(item => item.strains).filter(Boolean));
+        const userStrains = data
+          .map(item => item.strains)
+          .flat()
+          .filter(Boolean) as unknown as Strain[];
+        setStrains(userStrains);
       }
       setLoading(false);
     }

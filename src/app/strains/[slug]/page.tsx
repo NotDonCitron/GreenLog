@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, Share2, CheckCircle2, Camera, Upload, Download } from "lucide-react";
 import { toPng } from 'html-to-image';
+import { Strain } from "@/lib/types";
 
 export default function StrainDetailPage() {
   const { slug } = useParams();
@@ -18,7 +19,7 @@ export default function StrainDetailPage() {
   const cardRef = useRef<HTMLDivElement>(null);
   const hiddenCardRef = useRef<HTMLDivElement>(null);
   
-  const [strain, setStrain] = useState<any>(null);
+  const [strain, setStrain] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -37,7 +38,7 @@ export default function StrainDetailPage() {
 
       const { data } = await supabase.from("strains").select("*").eq("slug", slug).single();
       if (data) {
-        setStrain(data);
+        setStrain(data as Strain);
         if (user) {
           const { data: r } = await supabase.from("ratings").select("id").eq("strain_id", data.id).eq("user_id", user.id).single();
           if (r) setHasCollected(true);
@@ -107,9 +108,10 @@ export default function StrainDetailPage() {
       // Update UI
       setStrain({ ...strain, image_url: publicUrl });
       alert("Image updated successfully!");
-    } catch (err: any) {
-      console.error(err);
-      alert("Upload error: " + err.message);
+    } catch (err) {
+      const error = err as Error;
+      console.error(error);
+      alert("Upload error: " + error.message);
     } finally {
       setIsUploading(false);
     }

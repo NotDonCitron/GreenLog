@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Loader2, Database, CheckCircle2, RefreshCw, ShieldCheck, ChevronLeft, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { Strain } from "@/lib/types";
 
-const STRAIN_DATA = [
+const STRAIN_DATA: Partial<Strain>[] = [
   { name: "Godfather OG", slug: "godfather-og", type: "indica", thc_max: 34, image_url: "https://images.unsplash.com/photo-1603909223429-69bb7101f420?auto=format&fit=crop&w=600&q=80&v=1" },
   { name: "Animal Face", slug: "animal-face", type: "indica", thc_max: 30, image_url: "https://images.unsplash.com/photo-1536859355448-76f926813d1d?auto=format&fit=crop&w=600&q=80&v=2" },
   { name: "GMO Cookies", slug: "gmo-cookies", type: "indica", thc_max: 33, image_url: "https://images.unsplash.com/photo-1599733589046-10c005739ef0?auto=format&fit=crop&w=600&q=80&v=3" },
@@ -51,10 +52,11 @@ export default function AdminSeedPage() {
 
       setStatus("success");
       setMessage("SYNCHRONISATION ERFOLGREICH!");
-    } catch (err: any) {
-      console.error(err);
+    } catch (err) {
+      const error = err as Error;
+      console.error(error);
       setStatus("error");
-      setMessage(err.message || "Fehler beim Sync.");
+      setMessage(error.message || "Fehler beim Sync.");
     }
   };
 

@@ -8,10 +8,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, Loader2, Trophy, Lock } from "lucide-react";
 import Link from "next/link";
+import { Strain } from "@/lib/types";
 
 export default function StrainsPage() {
   const { user, isDemoMode, loading: authLoading } = useAuth();
-  const [strains, setStrains] = useState<any[]>([]);
+  const [strains, setStrains] = useState<Strain[]>([]);
   const [userCollection, setUserCollection] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

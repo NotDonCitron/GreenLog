@@ -26,13 +26,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("cannalog_demo_mode") === "true";
+    }
+    return false;
+  });
 
   useEffect(() => {
-    // Demo Mode aus LocalStorage laden
-    const savedDemo = localStorage.getItem("cannalog_demo_mode") === "true";
-    setIsDemoMode(savedDemo);
-
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);

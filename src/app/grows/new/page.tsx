@@ -25,16 +25,12 @@ import {
   Tag 
 } from "lucide-react";
 import Link from "next/link";
+import { Strain } from "@/lib/types";
 
 export default function NewGrowPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   
-  interface Strain {
-    id: string;
-    name: string;
-  }
-
   const [strains, setStrains] = useState<Strain[]>([]);
   const [loadingStrains, setLoadingStrains] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,10 +55,10 @@ export default function NewGrowPage() {
       try {
         const { data, error } = await supabase
           .from("strains")
-          .select("id, name")
+          .select("id, name, slug, type")
           .order("name");
 
-        if (data) setStrains(data);
+        if (data) setStrains(data as Strain[]);
         if (error) throw error;
       } catch (err) {
         console.error("Error fetching strains:", err);
@@ -112,9 +108,10 @@ export default function NewGrowPage() {
         router.push("/grows");
         router.refresh();
       }, 1500);
-    } catch (err: any) {
-      console.error("Error creating grow:", err);
-      setError(err.message || "Error creating grow.");
+    } catch (err) {
+      const error = err as Error;
+      console.error("Error creating grow:", error);
+      setError(error.message || "Error creating grow.");
     } finally {
       setIsSubmitting(false);
     }
@@ -175,7 +172,7 @@ export default function NewGrowPage() {
               <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <Sprout size={12} className="text-[#00F5FF]" /> Strain
               </label>
-              <Select value={strainId} onValueChange={setStrainId}>
+              <Select value={strainId} onValueChange={(val) => setStrainId(val ?? "")}>
                 <SelectTrigger className="w-full bg-white/5 border-white/10 text-white h-12 rounded-xl focus:border-[#00F5FF] transition-all">
                   <SelectValue placeholder="Select a strain" />
                 </SelectTrigger>
@@ -199,7 +196,7 @@ export default function NewGrowPage() {
               <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <Layout size={12} className="text-[#00F5FF]" /> Grow Type
               </label>
-              <Select value={growType} onValueChange={setGrowType}>
+              <Select value={growType} onValueChange={(val) => setGrowType(val ?? "indoor")}>
                 <SelectTrigger className="w-full bg-white/5 border-white/10 text-white h-12 rounded-xl focus:border-[#00F5FF] transition-all">
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
