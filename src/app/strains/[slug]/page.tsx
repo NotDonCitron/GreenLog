@@ -170,13 +170,13 @@ export default function StrainDetailPage() {
         strain_id: strain.id,
         batch_info: batchInfo,
         user_notes: userNotes,
-        user_thc_percent: strain.thc_max,
-        user_image_url: userImageUrl // Persist the personal photo URL
+        user_thc_percent: strain.avg_thc || strain.thc_max,
+        user_image_url: userImageUrl 
       }, { onConflict: 'user_id,strain_id' });
 
       // 4. Check & Unlock Badges
       const { data: allBadges } = await supabase.from('badges').select('*');
-      const { data: userCollection } = await supabase.from('user_collection').select('*, strains(*)').eq('user_id', user.id);
+      const { data: currentColl } = await supabase.from('user_collection').select('*, strain:strains(*)').eq('user_id', user.id);
 
       const unlockBadge = async (badgeName: string) => {
         const badge = allBadges?.find(b => b.name === badgeName);
@@ -186,20 +186,22 @@ export default function StrainDetailPage() {
       };
 
       // Condition: Genesis (First strain)
-      if (userCollection?.length === 1) await unlockBadge("Genesis");
+      if (currentColl?.length === 1) await unlockBadge("Genesis");
 
       // Condition: High Flyer (>25% THC)
-      if (strain.thc_max && strain.thc_max > 25) await unlockBadge("High Flyer");
+      if ((strain.avg_thc && strain.avg_thc > 25) || (strain.thc_max && strain.thc_max > 25)) {
+        await unlockBadge("High Flyer");
+      }
 
       // Condition: Pharma Specialist (is_medical)
       if (strain.is_medical) await unlockBadge("Pharma Specialist");
 
       // Condition: Indica Knight (5 Indicas)
-      const indicaCount = userCollection?.filter(item => item.strains?.type === 'indica').length || 0;
+      const indicaCount = currentColl?.filter(item => (item.strain as any)?.type === 'indica').length || 0;
       if (indicaCount >= 5) await unlockBadge("Indica Knight");
 
       // Condition: Sativa Scout (5 Sativas)
-      const sativaCount = userCollection?.filter(item => item.strains?.type === 'sativa').length || 0;
+      const sativaCount = currentColl?.filter(item => (item.strain as any)?.type === 'sativa').length || 0;
       if (sativaCount >= 5) await unlockBadge("Sativa Scout");
 
       setHasCollected(true);
