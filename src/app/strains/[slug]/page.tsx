@@ -26,12 +26,21 @@ export default function StrainDetailPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [hasCollected, setHasCollected] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
+  const [batchInfo, setBatchInfo] = useState("");
+  const [userNotes, setUserNotes] = useState("");
   
   const [ratings, setRatings] = useState({
-    taste: 5,
-    effect: 5,
-    look: 5
+    taste: 4.5,
+    effect: 4.5,
+    look: 4.5
   });
+
+  const handleStarClick = (key: keyof typeof ratings, value: number) => {
+    setRatings(prev => ({
+      ...prev,
+      [key]: prev[key] === value ? value - 0.5 : value
+    }));
+  };
 
   useEffect(() => {
     async function fetchStrain() {
@@ -43,6 +52,9 @@ export default function StrainDetailPage() {
         if (user) {
           const { data: r } = await supabase.from("ratings").select("id").eq("strain_id", data.id).eq("user_id", user.id).single();
           if (r) setHasCollected(true);
+
+          const { data: fav } = await supabase.from("user_strain_relations").select("is_favorite").eq("strain_id", data.id).eq("user_id", user.id).single();
+          if (fav) setIsFavorite(fav.is_favorite);
         }
       } else if (isDemoMode) {
         // Fallback for demo mode only if strain not found
@@ -97,6 +109,27 @@ export default function StrainDetailPage() {
     }
   };
 
+  const toggleFavorite = async () => {
+    if (isDemoMode) {
+      setIsFavorite(!isFavorited);
+      return;
+    }
+    if (!user || !strain) return;
+    
+    const nextState = !isFavorited;
+    setIsFavorite(nextState);
+    
+    try {
+      await supabase.from("user_strain_relations").upsert({
+        user_id: user.id,
+        strain_id: strain.id,
+        is_favorite: nextState
+      }, { onConflict: 'user_id,strain_id' });
+    } catch (err) {
+      console.error("Fav error:", err);
+    }
+  };
+
   const saveRating = async () => {
     if (isDemoMode) {
       setIsSaving(true);
@@ -115,38 +148,36 @@ export default function StrainDetailPage() {
 
     setIsSaving(true);
     try {
-      // Robust profile ensuring: use upsert on ID
+      // 1. Ensure Profile
       const username = user.email?.split("@")[0] || "user_" + Math.random().toString(36).slice(2, 7);
-      
-      const { error: profileError } = await supabase.from("profiles").upsert({ 
-        id: user.id, 
-        username: username, 
-        display_name: username 
-      }, { onConflict: 'id' });
-      
-      if (profileError && profileError.code !== '23505') {
-        console.error("Profile sync error:", profileError);
-      }
+      await supabase.from("profiles").upsert({ id: user.id, username, display_name: username }, { onConflict: 'id' });
 
-      const { error } = await supabase.from("ratings").upsert({
+      // 2. Save Rating (Public)
+      const { error: rError } = await supabase.from("ratings").upsert({
         strain_id: strain.id,
         user_id: user.id,
-        overall_rating: Math.round((ratings.taste + ratings.effect + ratings.look) / 3),
+        overall_rating: (ratings.taste + ratings.effect + ratings.look) / 3,
         taste_rating: ratings.taste,
         effect_rating: ratings.effect,
         look_rating: ratings.look
       }, { onConflict: 'strain_id,user_id' });
 
-      if (error) {
-        console.error("Rating upsert error:", error);
-        throw error;
-      }
+      if (rError) throw rError;
+
+      // 3. Save to Personal Collection (Private)
+      await supabase.from("user_collection").upsert({
+        user_id: user.id,
+        strain_id: strain.id,
+        batch_info: batchInfo,
+        user_notes: userNotes,
+        user_thc_percent: strain.thc_max 
+      }, { onConflict: 'user_id,strain_id' });
       
       setHasCollected(true);
       setShowRatingModal(false);
       router.refresh();
     } catch (err: any) {
-      alert("Error saving rating: " + (err.message || "Unknown error"));
+      alert("Error saving: " + (err.message || "Unknown error"));
     } finally {
       setIsSaving(false);
     }
@@ -179,7 +210,12 @@ export default function StrainDetailPage() {
         <div className="flex gap-2">
           {user && <button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="p-2 rounded-full bg-[#00F5FF]/10 text-[#00F5FF] border border-[#00F5FF]/20"><Upload size={20} /></button>}
           <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
-          <button className="p-2 rounded-full bg-white/5 text-red-500"><Heart size={20} /></button>
+          <button 
+            onClick={toggleFavorite}
+            className={`p-2 rounded-full border transition-all ${isFavorited ? 'bg-red-500/20 border-red-500/40 text-red-500' : 'bg-white/5 border-white/5 text-white/40'}`}
+          >
+            <Heart size={20} fill={isFavorited ? "currentColor" : "none"} />
+          </button>
         </div>
       </div>
 
@@ -309,13 +345,35 @@ export default function StrainDetailPage() {
                   </div>
                   <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <button key={star} onClick={() => setRatings({...ratings, [row.key as keyof typeof ratings]: star})} className={`flex-1 h-10 rounded-lg border transition-all ${(ratings as any)[row.key] >= star ? "bg-white/10 border-[#00F5FF]/50 text-[#00F5FF]" : "bg-black/40 border-white/5 text-white/10"}`}>
+                      <button key={star} onClick={() => handleStarClick(row.key as keyof typeof ratings, star)} className={`flex-1 h-10 rounded-lg border transition-all ${(ratings as any)[row.key] >= star ? "bg-white/10 border-[#00F5FF]/50 text-[#00F5FF]" : "bg-black/40 border-white/5 text-white/10"}`}>
                         <Star size={16} fill={(ratings as any)[row.key] >= star ? "currentColor" : "none"} className="mx-auto" />
                       </button>
                     ))}
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Batch / Apotheke</label>
+                <input 
+                  type="text" 
+                  placeholder="z.B. ABC-123 / Grünhorn"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-xs focus:outline-none focus:border-[#00F5FF]/50 transition-all"
+                  value={batchInfo}
+                  onChange={(e) => setBatchInfo(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Notizen</label>
+                <textarea 
+                  placeholder="Wie war die Wirkung? Geschmack?"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-xs focus:outline-none focus:border-[#00F5FF]/50 transition-all min-h-[80px]"
+                  value={userNotes}
+                  onChange={(e) => setUserNotes(e.target.value)}
+                />
+              </div>
             </div>
             <button onClick={saveRating} disabled={isSaving} className="w-full h-16 bg-[#00F5FF] text-black font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-[#00F5FF]/80 transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(0,245,255,0.3)]">
               {isSaving ? <Loader2 className="animate-spin" /> : "COMPLETE LOG +50 XP"}
