@@ -5,9 +5,9 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Loader2, Database, CheckCircle2, Trash2, ShieldAlert } from "lucide-react";
+import { Loader2, Database, CheckCircle2, Trash2, ShieldAlert, ChevronLeft } from "lucide-react";
+import Link from "next/link";
 
-// 20 VALIDIERTE BILDER MIT CACHE-KILLER PARAMETER
 const STRAIN_DATA = [
   { name: "Godfather OG", slug: "godfather-og", type: "indica", thc_max: 34, image_url: "https://images.unsplash.com/photo-1603909223429-69bb7101f420?auto=format&fit=crop&w=600&q=80&v=1" },
   { name: "Animal Face", slug: "animal-face", type: "indica", thc_max: 30, image_url: "https://images.unsplash.com/photo-1536859355448-76f926813d1d?auto=format&fit=crop&w=600&q=80&v=2" },
@@ -42,9 +42,7 @@ export default function AdminSeedPage() {
     setMessage("Starte ultimativen Cache-Kill & Bilder-Sync...");
 
     try {
-      // 1. Alle Strains löschen
       await supabase.from("strains").delete().neq("id", "00000000-0000-0000-0000-000000000000");
-      // 2. Neue Unikate mit Cache-Killer einfügen
       const { error } = await supabase.from("strains").insert(STRAIN_DATA);
       if (error) throw error;
 
@@ -57,17 +55,38 @@ export default function AdminSeedPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white flex flex-col items-center justify-center p-6">
+    <main className="min-h-screen bg-[#0e0e0f] text-white flex flex-col items-center justify-center p-6 relative">
+      {/* Zurück Button */}
+      <Link href="/profile" className="absolute top-8 left-8 p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
+        <ChevronLeft size={18} /> Profil
+      </Link>
+
       <Card className="max-w-md w-full p-8 bg-[#1a191b] border-white/10 text-center space-y-6 shadow-2xl">
         <ShieldAlert className="text-red-500 mx-auto animate-pulse" size={64} />
-        <h1 className="text-2xl font-black uppercase tracking-tighter italic text-white">Cache <span className="text-[#00F5FF]">Killer Sync</span></h1>
+        <h1 className="text-2xl font-black uppercase tracking-tighter italic text-white text-center">Cache <span className="text-[#00F5FF]">Killer Sync</span></h1>
         <p className="text-white/40 text-[10px] uppercase tracking-widest leading-relaxed">
           Dies erzwingt neue Bild-URLs in der Datenbank, um Browser-Caching-Fehler zu umgehen.
         </p>
-        <Button onClick={handleResetAndSeed} disabled={status === "loading" || !user} className="w-full h-16 bg-[#00F5FF] text-black font-black hover:bg-[#00F5FF]/80 transition-all text-lg uppercase tracking-widest gap-2 shadow-[0_0_30px_rgba(0,245,255,0.3)]">
-          {status === "loading" ? <Loader2 className="animate-spin" /> : "ALLE BILDER ERZWINGEN"}
-        </Button>
-        {status === "success" && <div className="p-4 bg-[#2FF801]/10 border border-[#2FF801]/20 rounded-xl text-[#2FF801] text-xs font-bold animate-in zoom-in">{message}</div>}
+        
+        <div className="space-y-4">
+          <Button onClick={handleResetAndSeed} disabled={status === "loading" || !user} className="w-full h-16 bg-[#00F5FF] text-black font-black hover:bg-[#00F5FF]/80 transition-all text-lg uppercase tracking-widest gap-2">
+            {status === "loading" ? <Loader2 className="animate-spin" /> : "ALLE BILDER ERZWINGEN"}
+          </Button>
+
+          {status === "success" && (
+            <div className="p-4 bg-[#2FF801]/10 border border-[#2FF801]/20 rounded-xl text-[#2FF801] text-xs font-bold flex flex-col items-center gap-2 animate-in zoom-in">
+              <CheckCircle2 size={32} />
+              <p>{message}</p>
+              <Link href="/strains" className="mt-2 text-white bg-[#2FF801]/20 px-4 py-2 rounded-lg hover:bg-[#2FF801]/40">Zum Album →</Link>
+            </div>
+          )}
+
+          {status === "error" && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-bold">
+              {message}
+            </div>
+          )}
+        </div>
       </Card>
     </main>
   );
