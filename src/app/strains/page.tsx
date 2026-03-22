@@ -18,28 +18,29 @@ export default function StrainsPage() {
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  // Debugging info
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "NOT_SET";
-  const isPlaceholder = supabaseUrl.includes("placeholder");
-
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
       setError(null);
-      try {
-        console.log("Fetching strains from:", supabaseUrl);
-        
-        if (isPlaceholder) {
-          throw new Error("Supabase URL is still using placeholder. Check Vercel Environment Variables.");
-        }
+      
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout: Supabase reagiert nicht (10s)")), 10000)
+      );
 
-        const { data: allStrains, error: strainError } = await supabase
+      try {
+        console.log("Starting fetch...");
+        
+        const fetchPromise = supabase
           .from("strains")
           .select("*")
           .order("name");
+
+        const { data: allStrains, error: strainError } = await Promise.race([
+          fetchPromise,
+          timeoutPromise
+        ]) as any;
         
         if (strainError) {
-          console.error("Supabase Error:", strainError);
           throw new Error(strainError.message);
         }
 
@@ -59,15 +60,15 @@ export default function StrainsPage() {
           setUserCollection(allStrains.slice(0, 3).map(s => s.id));
         }
       } catch (err: any) {
-        console.error("Data fetch error:", err);
-        setError(err.message || "Unbekannter Fehler beim Laden der Daten.");
+        console.error("Fetch error:", err);
+        setError(err.message || "Fehler beim Laden der Daten.");
       } finally {
         setLoading(false);
       }
     }
     
     fetchData();
-  }, [user, isDemoMode, supabaseUrl, isPlaceholder]);
+  }, [user, isDemoMode]);
 
   const filteredStrains = strains.filter(s => 
     s.name.toLowerCase().includes(search.toLowerCase())
@@ -102,22 +103,15 @@ export default function StrainsPage() {
       </header>
 
       <div className="p-6">
-        {isPlaceholder && (
-          <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl text-yellow-500 text-xs">
-            <p className="font-bold uppercase tracking-widest mb-1">Configuration Warning</p>
-            <p>Die App nutzt noch Platzhalter-Daten für Supabase. Bitte stelle sicher, dass die Environment Variables in Vercel gesetzt sind.</p>
-          </div>
-        )}
-
         {error ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4 text-red-500">
+          <div className="flex flex-col items-center justify-center py-20 gap-4 text-red-500 text-center">
             <AlertCircle size={48} />
-            <p className="text-sm font-bold uppercase tracking-widest text-center px-4">{error}</p>
+            <p className="text-sm font-black uppercase tracking-widest px-4">{error}</p>
             <button 
               onClick={() => window.location.reload()}
-              className="mt-4 px-6 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold uppercase hover:bg-white/10 transition-all"
+              className="mt-4 px-8 py-3 bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/20 transition-all"
             >
-              Neu laden
+              System Neustart
             </button>
           </div>
         ) : loading && strains.length === 0 ? (
