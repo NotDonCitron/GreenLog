@@ -30,16 +30,29 @@ export default function NewGrowPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   
-  const [strains, setStrains] = useState<any[]>([]);
+  interface Strain {
+    id: string;
+    name: string;
+  }
+
+  const [strains, setStrains] = useState<Strain[]>([]);
   const [loadingStrains, setLoadingStrains] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   // Form state
   const [title, setTitle] = useState("");
   const [strainId, setStrainId] = useState<string>("");
   const [growType, setGrowType] = useState<string>("indoor");
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // Auth redirect
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     async function fetchStrains() {
@@ -53,6 +66,7 @@ export default function NewGrowPage() {
         if (error) throw error;
       } catch (err) {
         console.error("Error fetching strains:", err);
+        setError("Failed to load strains. Please try again.");
       } finally {
         setLoadingStrains(false);
       }
@@ -64,12 +78,12 @@ export default function NewGrowPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      setError("Du musst eingeloggt sein, um einen Grow zu erstellen.");
+      setError("You must be logged in to create a grow.");
       return;
     }
 
     if (!title) {
-      setError("Bitte gib deinem Grow einen Namen.");
+      setError("Please give your grow a name.");
       return;
     }
 
@@ -93,11 +107,14 @@ export default function NewGrowPage() {
 
       if (insertError) throw insertError;
 
-      router.push("/grows");
-      router.refresh();
+      setSuccess(true);
+      setTimeout(() => {
+        router.push("/grows");
+        router.refresh();
+      }, 1500);
     } catch (err: any) {
       console.error("Error creating grow:", err);
-      setError(err.message || "Fehler beim Erstellen des Grows.");
+      setError(err.message || "Error creating grow.");
     } finally {
       setIsSubmitting(false);
     }
@@ -122,7 +139,7 @@ export default function NewGrowPage() {
           </Link>
           <div>
             <span className="text-[10px] text-[#00F5FF] font-black uppercase tracking-[0.4em]">Setup</span>
-            <h1 className="text-xl font-black italic tracking-tighter uppercase leading-none">Neuer Grow</h1>
+            <h1 className="text-xl font-black italic tracking-tighter uppercase leading-none">New Grow</h1>
           </div>
         </div>
       </header>
@@ -136,6 +153,12 @@ export default function NewGrowPage() {
               </div>
             )}
 
+            {success && (
+              <div className="p-3 bg-[#00F5FF]/10 border border-[#00F5FF]/20 rounded-xl text-[#00F5FF] text-xs font-bold uppercase tracking-wider text-center">
+                Grow created successfully! Redirecting...
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <Tag size={12} className="text-[#00F5FF]" /> Grow Name
@@ -143,18 +166,18 @@ export default function NewGrowPage() {
               <Input 
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="z.B. Mein Erster Grow"
+                placeholder="e.g. My First Grow"
                 className="bg-white/5 border-white/10 text-white placeholder:text-white/20 h-12 rounded-xl focus:border-[#00F5FF] transition-all"
               />
             </div>
 
             <div className="space-y-2">
               <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
-                <Sprout size={12} className="text-[#00F5FF]" /> Sorte (Strain)
+                <Sprout size={12} className="text-[#00F5FF]" /> Strain
               </label>
               <Select value={strainId} onValueChange={setStrainId}>
                 <SelectTrigger className="w-full bg-white/5 border-white/10 text-white h-12 rounded-xl focus:border-[#00F5FF] transition-all">
-                  <SelectValue placeholder="Wähle eine Sorte" />
+                  <SelectValue placeholder="Select a strain" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a191b] border-white/10 text-white">
                   {loadingStrains ? (
@@ -174,11 +197,11 @@ export default function NewGrowPage() {
 
             <div className="space-y-2">
               <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
-                <Layout size={12} className="text-[#00F5FF]" /> Grow Typ
+                <Layout size={12} className="text-[#00F5FF]" /> Grow Type
               </label>
               <Select value={growType} onValueChange={setGrowType}>
                 <SelectTrigger className="w-full bg-white/5 border-white/10 text-white h-12 rounded-xl focus:border-[#00F5FF] transition-all">
-                  <SelectValue placeholder="Wähle einen Typ" />
+                  <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a191b] border-white/10 text-white">
                   <SelectItem value="indoor">Indoor</SelectItem>
@@ -190,7 +213,7 @@ export default function NewGrowPage() {
 
             <div className="space-y-2">
               <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
-                <Calendar size={12} className="text-[#00F5FF]" /> Startdatum
+                <Calendar size={12} className="text-[#00F5FF]" /> Start Date
               </label>
               <Input 
                 type="date"
@@ -203,14 +226,14 @@ export default function NewGrowPage() {
             <div className="pt-4">
               <Button 
                 type="submit" 
-                disabled={isSubmitting}
+                disabled={isSubmitting || success}
                 className="w-full bg-[#00F5FF] hover:bg-[#00D5E0] text-black font-black uppercase tracking-widest py-6 rounded-2xl shadow-[0_0_20px_rgba(0,245,255,0.2)] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <Loader2 className="animate-spin" size={20} />
                 ) : (
                   <>
-                    <Save size={20} /> Grow Speichern
+                    <Save size={20} /> Save Grow
                   </>
                 )}
               </Button>
