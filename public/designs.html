@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cannalog - Das Konzept</title>
+    <title>CANNALOG - Alle 24 Design-Konzepte</title>
     <style>
         :root {
             --primary: #00F5FF;
@@ -22,7 +22,7 @@
             line-height: 1.6;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 40px 20px;
         }
@@ -38,20 +38,42 @@
             font-size: 2.5em;
             margin-bottom: 10px;
         }
-        .intro {
-            color: var(--text-dim);
-            font-size: 1.2em;
-            max-width: 800px;
-            margin: 0 auto 40px;
-        }
         .section-title {
             color: var(--secondary);
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-top: 60px;
+            margin-top: 80px;
             border-left: 4px solid var(--secondary);
             padding-left: 15px;
+            font-size: 1.8em;
         }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+            padding: 30px 0;
+        }
+        .gallery-item {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #333;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .gallery-item:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+        }
+        .gallery-item img {
+            width: 100%;
+            display: block;
+        }
+        .info {
+            padding: 15px;
+        }
+        .info h4 { margin: 0; color: var(--primary); font-size: 1.1em; }
+        .info p { margin: 5px 0 0; font-size: 0.85em; color: var(--text-dim); }
+
         .concept-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -63,51 +85,20 @@
             border-radius: 16px;
             padding: 30px;
             border: 1px solid #333;
-            display: flex;
-            flex-direction: column;
         }
-        .concept-card h3 {
-            color: var(--primary);
-            margin-top: 0;
-        }
-        .concept-card img {
-            width: 100%;
-            border-radius: 8px;
-            margin: 20px 0;
-            border: 1px solid #444;
-        }
-        .tag {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        .tag-verified { background: rgba(0, 245, 255, 0.1); color: var(--primary); border: 1px solid var(--primary); }
-        .tag-manual { background: rgba(47, 248, 1, 0.1); color: var(--secondary); border: 1px solid var(--secondary); }
-        
-        .gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-        .gallery-card {
-            background: var(--card-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #333;
-            font-size: 0.8em;
-        }
-        .gallery-card img {
-            width: 100%;
-            display: block;
-        }
-        .gallery-card-info { padding: 10px; }
+        .concept-card img { width: 100%; border-radius: 8px; margin: 20px 0; border: 1px solid #444; }
 
-        @media (max-width: 768px) {
-            .concept-grid { grid-template-columns: 1fr; }
+        .category-header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin-top: 60px;
+            font-weight: bold;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-size: 1em;
+            letter-spacing: 2px;
+            border-bottom: 2px solid var(--primary);
         }
     </style>
 </head>
@@ -115,82 +106,73 @@
 
 <div class="container">
     <header>
-        <h1>CANNALOG</h1>
-        <p class="intro">Unsere Vision für die ultimative digitale Sammelkarten-App für Cannabis-Liebhaber. Premium-Look meets Gamification.</p>
+        <h1>CANNALOG Pitch</h1>
+        <p>Vollständige Übersicht: 24 Designs für das neue Sammelerlebnis.</p>
     </header>
 
-    <h2 class="section-title">Konzept-Vergleich: Wie kommen neue Karten in die Sammlung?</h2>
-    
+    <h2 class="section-title">1. Die Kern-Konzepte</h2>
     <div class="concept-grid">
-        <!-- KONZEPT A -->
         <div class="concept-card">
-            <span class="tag tag-verified">Konzept A: Verified Hunter</span>
-            <h3>Der High-Tech Scanner</h3>
-            <p>Karten werden durch das Scannen von <strong>QR-Codes oder Seriennummern</strong> (z.B. auf Apotheken-Verpackungen) freigeschaltet. Dies garantiert die Echtheit deiner Sammlung.</p>
-            <ul>
-                <li>Sammlung hat einen realen Wert</li>
-                <li>Holografische Scan-Animationen</li>
-                <li>"Seltene" Karten nur durch echte Einkäufe</li>
-            </ul>
-            <img src="https://lh3.googleusercontent.com/aida/ADBb0uiFx-Emk-HlfFxGGOcxKrGF_0bhhNqfUpwtH7BFuMvo2d8sI5vAFTVW6rQhhtzNdoMkOfzunWZChkKCrjNT73qqr87f4-PAYNfSMKJQPqdMTrouwFPMIj2s6eF-NcCSXmhzBqMIAGZDnI5xEp_CEaDdAcy6ISxT_g-lRp5BPZ0JOhkldK5w0Y97BbvmmeadcE-nerp7cKM7oupXGU8AOi40TbiMzhRYlo5yHppeqgKib6XAf2W4w73LW5nB" alt="Konzept A Scanner">
-            <p><em>Idee: Ein futuristisches HUD-Interface mit Laser-Linie und Daten-Streams.</em></p>
+            <h3>Konzept A: Scanner</h3>
+            <p>Echtheit durch QR-Scan von Verpackungen.</p>
+            <img src="https://lh3.googleusercontent.com/aida/ADBb0uiFx-Emk-HlfFxGGOcxKrGF_0bhhNqfUpwtH7BFuMvo2d8sI5vAFTVW6rQhhtzNdoMkOfzunWZChkKCrjNT73qqr87f4-PAYNfSMKJQPqdMTrouwFPMIj2s6eF-NcCSXmhzBqMIAGZDnI5xEp_CEaDdAcy6ISxT_g-lRp5BPZ0JOhkldK5w0Y97BbvmmeadcE-nerp7cKM7oupXGU8AOi40TbiMzhRYlo5yHppeqgKib6XAf2W4w73LW5nB">
         </div>
-
-        <!-- KONZEPT B -->
         <div class="concept-card">
-            <span class="tag tag-manual">Konzept B: Manual Scout</span>
-            <h3>Das interaktive Tagebuch</h3>
-            <p>User können Strains manuell aus einer Datenbank auswählen. Um die Karte jedoch auf <strong>"Mastery Level"</strong> zu bringen, müssen eigene Daten hinzugefügt werden.</p>
-            <ul>
-                <li>Belohnung für Dokumentation</li>
-                <li>Eigene Fotos & Terpen-Notizen</li>
-                <li>Fortschrittsbalken motiviert zum Ausfüllen</li>
-            </ul>
-            <img src="https://lh3.googleusercontent.com/aida/ADBb0ugc1P_AByEHagEEC4ejh55C2NZE1jdqfL8XMpUp--LFWj5rORkM6tZGdF6VnBXnZ_uh632moJVxV6N4ub6N_83teUeYxpzQZVuWDuipW-c-CuBOmgiEhpzLi6CA2-hXVUuX7cT298dAbowQoi9W3FqpyqJsBoLHqPVO8EdYg_zilVppb1ze_frf4sUzRDNnuKTL4jVkPV8hKOKnGf2H3sRKebBwghNEV72Mu1H09SvaLgZQJpaGBDBb5MIv" alt="Konzept B Manual">
-            <p><em>Idee: "Missions-Ziele" wie "Foto hinzufügen (+20%)", um die Kartenqualität zu steigern.</em></p>
+            <h3>Konzept B: Mastery</h3>
+            <p>Logbuch mit Missions-Zielen (Foto/Review).</p>
+            <img src="https://lh3.googleusercontent.com/aida/ADBb0ugc1P_AByEHagEEC4ejh55C2NZE1jdqfL8XMpUp--LFWj5rORkM6tZGdF6VnBXnZ_uh632moJVxV6N4ub6N_83teUeYxpzQZVuWDuipW-c-CuBOmgiEhpzLi6CA2-hXVUuX7cT298dAbowQoi9W3FqpyqJsBoLHqPVO8EdYg_zilVppb1ze_frf4sUzRDNnuKTL4jVkPV8hKOKnGf2H3sRKebBwghNEV72Mu1H09SvaLgZQJpaGBDBb5MIv">
         </div>
     </div>
 
-    <h2 class="section-title">Design-Inspirationen (Trading Card Styles)</h2>
-    <p>Hier sind verschiedene visuelle Richtungen für die Karten selbst - von TCG-Klassikern bis hin zu Black Gold Ultra Rare.</p>
-
+    <div class="category-header">Basis-Designs & Stapel-Optik</div>
     <div class="gallery">
-        <!-- Batch 1 -->
-        <div class="gallery-card">
-            <img src="https://lh3.googleusercontent.com/aida/ADBb0uiY3ntFbMulH5jj4SHmykbOLWAoZ2Se-n6I_cTq9C-zUXsOjH2JujdjSgA1QyKBdiFq5yXDDS0N7HfSPt-erVwIlkvUF0kBRTgFVoSmRL-aDUtVuRQCRX-MSimAI6C7gYMPPNbRmsZelIUKfpvinneFrNSANdBHrmcYAXX-SM5iRojImAm-j5RF64_JmmHzoomZkmQMAK5zFPFJbD25Dn1CLWOyFU5285ZJ_-Ptb6n_sRW1cDKjTC3k8t1l">
-            <div class="gallery-card-info"><strong>Pokémon Style</strong></div>
+        <div class="gallery-item">
+            <img src="https://lh3.googleusercontent.com/aida/ADBb0uivUybpgqSsQQwnB_WLRDkPhVHZPB2-HJFJHtOgrsfTWjCK3LWSfx7qnaxl0JB89Z5rZoPJnUGswQQBGTumGfh6uHvWnhxLeATn9Ki2lU2ScNU1VzC8fjQEACaSj3mFzxPM_3y_4rQxqOr2RbwHkmTTHhmpAtV0UhrL2UtN7A6lcwVN_LQQbQQE8sYBKL12pp9zHypqBFlMVewVEjlU-VC03wfCeAWEo-nbqtS3whGieeZNU0n5ckLrcaw">
+            <div class="info"><h4>Collection View</h4><p>Stapel-Optik (AURORA)</p></div>
         </div>
-        <div class="gallery-card">
-            <img src="https://lh3.googleusercontent.com/aida/ADBb0ujIgg-MJ0tjuJmRc_PEYjfdjIrI_fcHx-zzwSuN5hKu7mv3TX_wb45QDO5Mz7hUbwN5ndEDJHB7lLlPyMoVJ9_fFH0v94KFS5zo833Bsl6glrwgfoalWa5Nc99mwVJR0NQKBpFI7xzd9tJHOzWGFoZPGiLMRYLBwF5VvKkBEZ7P3L8NafdE3x-p8SJ2nRcTuLd1NWqO2SUb1uSQivQAWyCzQNSXMz3OardJr18LyjIGMImLlUu9LbPToIw">
-            <div class="gallery-card-info"><strong>Magic: The Gathering</strong></div>
-        </div>
-        <div class="gallery-card">
-            <img src="https://lh3.googleusercontent.com/aida/ADBb0uglzGZDXEscVwSYyy1aGUlaCY8TEFN_jnFkRDQ50OrwesjZS4zxJvkO-RuynaA7NlanlUYCz1elViBdYYhxXGV_eRzmblRLvWVj8PHrmgL7yEB913-Gl3v6JFrOm9ScuEFOdHIShGFPJ389AdoXtxjvNInsublPSXOZW3kDDnncYeKECCooyYAn7_TQRRE-TnrmY-3yy9oZBTQJU2WthNESfcihnn48lw_hdFgf6tAD_q2Yuom0t1oaTEgu">
-            <div class="gallery-card-info"><strong>Black Gold Ultra Rare</strong></div>
-        </div>
-        <div class="gallery-card">
-            <img src="https://lh3.googleusercontent.com/aida/ADBb0uj_wdVDMr_RRvCJ6PNtJMlPnyfCKlv7hQOCnjMMOP_K0pmrkn1XTX4inUTHfF_uCvSHAM0yU-08qaHO9CpC3ZFctyeHMqIWh9mbt6pyPVbsXKzdA4x8evLaXg9C_9yGvVK0wULXe29LKiyVr1_zznXKITqYRaJepAvcwTGmjKE9ulJ9kGwbpSgl9V3TpKOD_ElvtGoCY3-nUP6h-MxYnclDXAN5A8mP_onLGVLFeDyqOz-wUhZltmR1PlA">
-            <div class="gallery-card-info"><strong>90s Panini Sticker</strong></div>
-        </div>
-        <div class="gallery-card">
-            <img src="https://lh3.googleusercontent.com/aida/ADBb0uh36wTkApdUjhc-Gb6kwD7decxcfz-v9VgIrbL8gM2xu9huymubXiirvewXdCpgSfshNURjk8YRm7D4hWxA6rFggEMPOfiIT0ls9XilN3XwoLPoxvDGZYfIOsXza0xc-YUP7qlz3OJycpbkcLmHH_J4N7zDrjMEClPyoTwis95ElHQi9ujnrqwye_nHpXmt1AyzuTWhuV2BuNQvWwqxe5p1krebk_WUYCqndixZqQMpUAfZA8YgHHlqb0tD">
-            <div class="gallery-card-info"><strong>Holographic Ghost</strong></div>
-        </div>
-        <div class="gallery-card">
-            <img src="https://lh3.googleusercontent.com/aida/ADBb0uiSegtlaN0rdAnRF3YNndU3_oyP0YtcsHEGV2r9Vs2NZGtnKVrw6ZbR0SG_pWTs9WmB0j2IiNu8gUxOXf-5KXxqfoT-4KclcIbA4z6wSHaSXeNXpX6kYbXiFTx2rhOq3laprZbo7UIpsyuBi6rZuxn1TS53RVrLMZU75dcTbCHne4AcHHOmTnLd79l06HQOvFGz9UcJKcRRh_HzhisSw_Zwrw9IEcP7TgpAJPaqSdD_Zi0hq0iAZ-BeBvgf">
-            <div class="gallery-card-info"><strong>Cyberpunk Data</strong></div>
-        </div>
-        <div class="gallery-card">
-            <img src="https://lh3.googleusercontent.com/aida/ADBb0uhA-fz-U6c6ntqHX1XC4oc0j_Y6yOZCeEpsTT__k0JslFmh9PaHhCdjCu8lPGct4BIDhSTZhZVuIpHHp1ar1w5pft7-pTS5wgoYNugddGWJYcekSWoj11vo1_XpzZPSDfXoUFvKcNzVmoH3-vZ4uEMn_jjLQ7TrqSJifZM12wB7OXH1iC1MAOpJobJP96jFkWNkjt0E-EoPCnIGkzsINIzZ1bqE5C5uncW_LgUkWEgZhq87o9n4Emz1ap2g">
-            <div class="gallery-card-info"><strong>Vintage Panini</strong></div>
-        </div>
-        <div class="gallery-card">
-            <img src="https://lh3.googleusercontent.com/aida/ADBb0ujBaKNl-To54jW3pwE6NIx_LA4QcdLbbU0gyEpHglte57aplRiuVMbJO4bcDNuL8pvJvlCKU4y7ExmrFBL8hXpi-FvvvBW7l5lnJzmFPLf01W6Dthuy3vFejeQFlIQoELyfQLXVi3dcsx0f7sRZEqqWnxKct0LU0pU-fH9P1hHzYeDsaE4kQHx3MXk-f-GABSOIQgXuPX8efAIuoaOKFF_DWayM0am7Wsb4bvLe-y5Uo29TVMjhWlkwdRk">
-            <div class="gallery-card-info"><strong>Data-Viz Heavy</strong></div>
+        <div class="gallery-item">
+            <img src="https://lh3.googleusercontent.com/aida/ADBb0uj6TcZgPb46T9BtzEVWK0FRvdvTx2B3rEKuh1536U_jdCireAXVckfwftb_NOTTedNiIZe3AvjvkXfYP0ddFPgwKP3nyof8PZzYyo4x3wlmX-gejSxWKovBatmaz5lcKd7yzElHeevfI0-KcB4a06N2ge3CQu7K8mYIveFb1pDjzp8BKGQokygPILIdcUEpYM_8-VfEva5nGrJDpoILSs1Y8gC9eMiUfW9V4w-00iQfR5-cjxCB_bm8xbcl">
+            <div class="info"><h4>Detail View</h4><p>Original Supernova Card</p></div>
         </div>
     </div>
-    
-    <p style="text-align: center; margin-top: 50px; color: var(--text-dim);">Entworfen mit CANNALOG AI & Stitch.</p>
+
+    <div class="category-header">Gruppe 1: Klassische TCG & Nostalgie</div>
+    <div class="gallery">
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0uiY3ntFbMulH5jj4SHmykbOLWAoZ2Se-n6I_cTq9C-zUXsOjH2JujdjSgA1QyKBdiFq5yXDDS0N7HfSPt-erVwIlkvUF0kBRTgFVoSmRL-aDUtVuRQCRX-MSimAI6C7gYMPPNbRmsZelIUKfpvinneFrNSANdBHrmcYAXX-SM5iRojImAm-j5RF64_JmmHzoomZkmQMAK5zFPFJbD25Dn1CLWOyFU5285ZJ_-Ptb6n_sRW1cDKjTC3k8t1l"><div class="info"><h4>Pokémon</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0ujIgg-MJ0tjuJmRc_PEYjfdjIrI_fcHx-zzwSuN5hKu7mv3TX_wb45QDO5Mz7hUbwN5ndEDJHB7lLlPyMoVJ9_fFH0v94KFS5zo833Bsl6glrwgfoalWa5Nc99mwVJR0NQKBpFI7xzd9tJHOzWGFoZPGiLMRYLBwF5VvKkBEZ7P3L8NafdE3x-p8SJ2nRcTuLd1NWqO2SUb1uSQivQAWyCzQNSXMz3OardJr18LyjIGMImLlUu9LbPToIw"><div class="info"><h4>Magic: The Gathering</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0uiSegtlaN0rdAnRF3YNndU3_oyP0YtcsHEGV2r9Vs2NZGtnKVrw6ZbR0SG_pWTs9WmB0j2IiNu8gUxOXf-5KXxqfoT-4KclcIbA4z6wSHaSXeNXpX6kYbXiFTx2rhOq3laprZbo7UIpsyuBi6rZuxn1TS53RVrLMZU75dcTbCHne4AcHHOmTnLd79l06HQOvFGz9UcJKcRRh_HzhisSw_Zwrw9IEcP7TgpAJPaqSdD_Zi0hq0iAZ-BeBvgf"><div class="info"><h4>Cyberpunk Data</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0uhN5vHAScJWzh6DNlwqTIN7lAlWpJFpZSB0rQ_8cIG68Mdso55hlaMh7NYvBwE53A8rSOgkL-LrWeMyzVACU67S-Y8KWeWwQgjaGoecnbuRp76szYA8bluY6bOoHHMOnMx2HqPFX3tKBY8e_XYGFvj8OuBwv8aU4UjskXEn26ZPkcRr-HR_lthhGPA-DPOco_h77T4VrrtzM8OGx9mqOaPoZhLt-DpnR9XbPKPJ2c6K9KWKdY8tv_A6npbl"><div class="info"><h4>Haute Botanique</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0uj_wdVDMr_RRvCJ6PNtJMlPnyfCKlv7hQOCnjMMOP_K0pmrkn1XTX4inUTHfF_uCvSHAM0yU-08qaHO9CpC3ZFctyeHMqIWh9mbt6pyPVbsXKzdA4x8evLaXg9C_9yGvVK0wULXe29LKiyVr1_zznXKITqYRaJepAvcwTGmjKE9ulJ9kGwbpSgl9V3TpKOD_ElvtGoCY3-nUP6h-MxYnclDXAN5A8mP_onLGVLFeDyqOz-wUhZltmR1PlA"><div class="info"><h4>90s Panini</h4></div></div>
+    </div>
+
+    <div class="category-header">Gruppe 2: Neon & Sci-Fi</div>
+    <div class="gallery">
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0uh36wTkApdUjhc-Gb6kwD7decxcfz-v9VgIrbL8gM2xu9huymubXiirvewXdCpgSfshNURjk8YRm7D4hWxA6rFggEMPOfiIT0ls9XilN3XwoLPoxvDGZYfIOsXza0xc-YUP7qlz3OJycpbkcLmHH_J4N7zDrjMEClPyoTwis95ElHQi9ujnrqwye_nHpXmt1AyzuTWhuV2BuNQvWwqxe5p1krebk_WUYCqndixZqQMpUAfZA8YgHHlqb0tD"><div class="info"><h4>Holographic Ghost</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0ujHtVc0ejvbmU22FwK0shQJRoTpGM9tWP85biuZpgWv0W3FJmMUWef_J7e7f4LRaBL3RBWdsmnBvQpXp6bmpltU3-ry8vUkEUf2NtYK8jQzG3ivyJYPSAzl-9795nkVJTavbmI8qhmwjJAgr5G-lOpI7RJ1Te9SurkrFoyCw6vWL5ViKnH3IMFdd7WFj6MhEoCGhiI5YsUHGy7fGtaaDh-p9c7gXzD9cEXkN2Kd5lEtnuQ8NUFWlalyZCM"><div class="info"><h4>Laboratory Report</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0ujn2HKiqm957_1rVrvLfF1r2RSnnQHWrkaDxA9a3UJe8S2vvOAtFEDAlMuQB_13pU_Pbuy09evenRC2LSFmDInmP7btLqcbyMiX0IhONODSsB7gqQUnCslibnutcI3_PWkpsmfv78vs-tslDUxVeByx1yVas2F-RPBWkGWoAgS7DFUM-z25bX6HsHLyDsA4ii7ILjoqX2ZfpU3-bW0e1VMVmN7xL-D149M24aPRgUbb2DOnRhCE1pfbuVUk"><div class="info"><h4>Bioluminescent</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0ui2lg_imZCSTpinxcfvr7NeZNzj7L40kOF9jNtxe9z0SvBbyEf1j2Oq02PxKScXc3FeDGO__R6gMNSKvmkUKEUS0LtlpXpZHcdhW7qJ-h1ayZlGr3olKVdOb4dh_Tg0C4BdECPjtx6XbBVi6Ua8f8_r-4zck269j-lJ8X9VO2jUNwTZ9Se0z2K-_rIZZhQkEG_8x6kltM3ZZgiOypC1o4jSJ2jvmpi2c6hzuiZ6AMilv5IZnv-HpdRMv4o"><div class="info"><h4>Liquid Metal</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0uh00HTQlLnEja8bfMGfjKO9JkGEBXOqCd8YG8MI0DSQGIfp1ZKF-4AjZCetrGULG5jm3JJmxMmVrhgL0nhRc040upqk3zXlvfByoXhUJzF7167G1Ndf_LOxRvmsZRzzJb2wFW-Sw93P820TdjxHg7VKUSSAE_vFyfS_nkPPHVr-LWf7nO_SneytLtUMLLCkzJqtCEktm0atr3Y_Ippsk8YLVtE7Ip2uYZ-w2AK2nqsAJXaefGlxJERoKRHS"><div class="info"><h4>Synthwave</h4></div></div>
+    </div>
+
+    <div class="category-header">Gruppe 3: Editorial & Design</div>
+    <div class="gallery">
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0uhVGtqPtavmkwprAoNGKXhjhwdDlJ4hRIrnl7mIm8xsR1aKDu-mN-QDu4F0_6nJQ7Fi0orzbgcOESE97Oq8-PLKiJZR1zntxHDCKb5ZmdXQQt9Ty5KnKDt3ZNgHgUaj3LqBee3jwmEsrRbItAjAz0u8QJvj9JXnQwLq4IPgVwU1_NeizIctqYW1BdaJ9V7AwuqOMNZ0bSAIchX4epM7Tvi3l0VbA_jnFX-DHVxDlxT8j6u88Zi4rWmPzhKv"><div class="info"><h4>Luxury Magazine</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0uhA-fz-U6c6ntqHX1XC4oc0j_Y6yOZCeEpsTT__k0JslFmh9PaHhCdjCu8lPGct4BIDhSTZhZVuIpHHp1ar1w5pft7-pTS5wgoYNugddGWJYcekSWoj11vo1_XpzZPSDfXoUFvKcNzVmoH3-vZ4uEMn_jjLQ7TrqSJifZM12wB7OXH1iC1MAOpJobJP96jFkWNkjt0E-EoPCnIGkzsINIzZ1bqE5C5uncW_LgUkWEgZhq87o9n4Emz1ap2g"><div class="info"><h4>Vintage Panini</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0uhKOa_um1yKauFZ_1TP4x4ix26nhoEcwO8E0CeskwMJHN2rxILD6PSnK88fj787JUZDlNX_senSokPzy9Ts5hvYriangeCJ-rN8-3_oIv3l2FPveBDSHUXtG8MV6EdeRXBibkhYtvLfqTH4mMq0Hrnu94W5Mb-S9FL6YcOaJBcS5giOXWpY_N0r8jI-blYKqUEHfH4KLHXQsFSnFoSNtkr9WFkNTdNPHLbGUYXXTCyktMsyP0sLTzVSQyM5"><div class="info"><h4>Zen Minimal</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0ug7LXGzKr_XIEGY4H8HMYV6bsyCiCSnHylD6WiZkturkTuFTBo87Xo9LAARE5ZlP2s8POd_IIM_tIH-nDZtJ1BE5gyK9MXcUyi3cSA1xiMC8PTmH4tFIXAD-X3crrIH-TqjhNDHXjYjAIisi3_FyguXvbT1XJXasNxAzhPu-H7XD6A1cFDSGMsYkrFwz4Kv78FyVqSegkqiEW1DdD01BuiWcOFJiCS_pMmQ53RG5BDTW01t-d2sFahx70U5"><div class="info"><h4>Streetwear</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0ujBaKNl-To54jW3pwE6NIx_LA4QcdLbbU0gyEpHglte57aplRiuVMbJO4bcDNuL8pvJvlCKU4y7ExmrFBL8hXpi-FvvvBW7l5lnJzmFPLf01W6Dthuy3vFejeQFlIQoELyfQLXVi3dcsx0f7sRZEqqWnxKct0LU0pU-fH9P1hHzYeDsaE4kQHx3MXk-f-GABSOIQgXuPX8efAIuoaOKFF_DWayM0am7Wsb4bvLe-y5Uo29TVMjhWlkwdRk"><div class="info"><h4>Data Viz</h4></div></div>
+    </div>
+
+    <div class="category-header">Gruppe 4: Ultra Rare & Spezial</div>
+    <div class="gallery">
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0uglzGZDXEscVwSYyy1aGUlaCY8TEFN_jnFkRDQ50OrwesjZS4zxJvkO-RuynaA7NlanlUYCz1elViBdYYhxXGV_eRzmblRLvWVj8PHrmgL7yEB913-Gl3v6JFrOm9ScuEFOdHIShGFPJ389AdoXtxjvNInsublPSXOZW3kDDnncYeKECCooyYAn7_TQRRE-TnrmY-3yy9oZBTQJU2WthNESfcihnn48lw_hdFgf6tAD_q2Yuom0t1oaTEgu"><div class="info"><h4>Black Gold Edition</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0ujDBCZwyoDk7ENqvFiyqW-8liG9bZu5YiWH2hN_0XNl-Pbtp_Jw5zxOQASojHkTDEgOlI4SySsb_87g_9pUoV2LXgcch5QPQOeTS1vJBV65b4YpXR3LNLiFKGkiV_EhmsHBSrFwoNPWsu1XNNF_RqWhtY8ROVZZOCLvEtxEoJJAjGxtmg_mEL3QxFSqfUlshaG393sHU9Wm1FIBpx1EyldFHrOYVPWiFLeeXRp4ixHm9NB0vmpbva3c-bQi"><div class="info"><h4>Shattered Glass</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0uhpMFBc7OxqX0tVAPLB295mAvFBE_drZmlt3ozr5YTiUBWiiAQJONLecRk70uD5iaQko9wdboyLIecljFJWdhK7wsqiSkBjXLgR7ucJd6SVtmgiyYXsYo45KWvqtAOtpFcn3VQ8C_vjg-VVHyDjhzkTTRnorbudBjKxczrZgyvqTZb9tSQaZ5XN-cc4DbtO7LbyxleB0bzYplqk2mp2N_fuqLaycRukfmIOOMMpcGmTH5gOao801ptsrX5G"><div class="info"><h4>AR Overlay</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0uiAzZANkOa7qQb5vgj35tTyG1StiKNCSl3aSmkQq9pPe5AP3zVLx6nNW4SJblAKgkHnwyxCX3Rbbr8hlk_GMJvQnFx2rZQuT5TNPk5cK92Hn8UdSLY0TDiQfBp28Rtx1QzRVmPqwjNOprrqnsfeiC0e-6fiQgbxMop4U5nKpWZabVGPkC0lDai8aqU17sLy2CmH35zgMWTvklalfy1NF5IJc7CIGmk75kD9HTsXXdQTkrq928ABI-Tiu_Z8"><div class="info"><h4>Blueprint</h4></div></div>
+        <div class="gallery-item"><img src="https://lh3.googleusercontent.com/aida/ADBb0ujodTWFff4rzCiNQD-bLTIFIPVXhxbJqIPj23wfBb1luraW-sgwa4SOpQWvB-N7_xrbdiLKf-13oEpLhCE1RxLD-fSmK2HtLpyD9WcVea2lGma7l_QjtaK0T9h7t07MdO6qeQBHHiELR-aRnsPR-USmYt9TUst5bzsKcJV-fCIUFuF4VjLwgJ3K68IxU3fyAv5BVdC8ACIKVnvJZAs5phhaxsSCXWh2jWgRyiuFwRk6l57_KOq2KHAhdhG2"><div class="info"><h4>Stained Glass</h4></div></div>
+    </div>
+
+    <p style="text-align: center; margin-top: 50px; color: var(--text-dim);">Entworfen von NotDonCitron & CANNALOG AI.</p>
 </div>
 
 </body>
