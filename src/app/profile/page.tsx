@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Settings, History, Heart, FlaskConical, ShieldCheck, Palette, ExternalLink, Camera, Monitor, Zap, Trophy, Leaf, Moon, Sun, Dna } from "lucide-react";
+import { LogOut, Settings, History, Heart, FlaskConical, ShieldCheck, Palette, ExternalLink, Camera, Monitor, Zap, Trophy, Leaf, Moon, Sun, Dna, Database } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -47,7 +47,6 @@ export default function ProfilePage() {
         return;
       }
 
-      // Echte Bewertungen inklusive Strain-Typ abrufen
       const { data: ratings, count } = await supabase
         .from('ratings')
         .select('*, strains(type)', { count: 'exact' })
@@ -58,7 +57,6 @@ export default function ProfilePage() {
       const currentLevel = Math.floor(totalXp / 100) + 1;
       const progress = totalXp % 100;
 
-      // Badge-Logik berechnen
       const types = ratings?.map(r => r.strains?.type) || [];
       const badgeList = [
         { id: 'b1', name: 'First Bud', icon: <Leaf size={20} />, unlocked: strainCount >= 1, color: 'text-green-500' },
@@ -101,12 +99,12 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <h2 className="text-2xl font-black italic tracking-tighter uppercase">{isDemoMode ? "Demo Operator" : (user?.email?.split("@")[0] || "Guest")}</h2>
+        <h2 className="text-2xl font-black italic tracking-tighter uppercase leading-none">{isDemoMode ? "Demo Operator" : (user?.email?.split("@")[0] || "Guest")}</h2>
         
         <div className="w-full max-w-[200px] mt-6 space-y-2">
           <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-white/40">
             <span>XP: {stats.xp}</span>
-            <span>Level Progress</span>
+            <span>Progress</span>
           </div>
           <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
             <div className={`h-full transition-all duration-1000 ${isDemoMode ? 'bg-[#2FF801]' : 'bg-[#00F5FF]'}`} style={{ width: `${stats.progressToNextLevel}%` }} />
@@ -121,13 +119,10 @@ export default function ProfilePage() {
             <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Erfolge (Badges)</h3>
             <span className="text-[10px] font-black text-yellow-500">{stats.badges.filter(b => b.unlocked).length} / {stats.badges.length}</span>
           </div>
-          
           <div className="grid grid-cols-2 gap-3">
             {stats.badges.map((badge) => (
               <Card key={badge.id} className={`p-4 bg-[#1a191b] border-white/5 flex flex-col items-center gap-3 transition-all ${badge.unlocked ? 'border-yellow-500/20 bg-yellow-500/5' : 'opacity-40 grayscale'}`}>
-                <div className={`p-3 rounded-2xl ${badge.unlocked ? 'bg-black/40 ' + badge.color : 'bg-white/5 text-white/20'}`}>
-                  {badge.icon}
-                </div>
+                <div className={`p-3 rounded-2xl ${badge.unlocked ? 'bg-black/40 ' + badge.color : 'bg-white/5 text-white/20'}`}>{badge.icon}</div>
                 <div className="text-center">
                   <p className="text-[10px] font-black uppercase tracking-widest leading-none">{badge.name}</p>
                   <p className="text-[8px] text-white/30 uppercase mt-1">{badge.unlocked ? 'Unlocked' : 'Locked'}</p>
@@ -159,9 +154,37 @@ export default function ProfilePage() {
           </div>
         </section>
 
+        {/* Dev Tools Section */}
+        <section className="space-y-3">
+          <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] px-2">Dev Tools & Admin</h3>
+          <div className="grid gap-3">
+            <Card className={`p-4 bg-[#1a191b] border-white/5 transition-all ${isDemoMode ? 'border-[#2FF801]/30 bg-[#2FF801]/5' : ''}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${isDemoMode ? 'bg-[#2FF801]/20 text-[#2FF801]' : 'bg-white/5 text-white/40'}`}><FlaskConical size={20} /></div>
+                  <div><p className="text-sm font-bold uppercase tracking-tight">Demo Modus</p><p className="text-[10px] text-white/40 uppercase">Simulierte Daten</p></div>
+                </div>
+                <button onClick={() => setDemoMode(!isDemoMode)} className={`w-12 h-6 rounded-full transition-all relative ${isDemoMode ? 'bg-[#2FF801]' : 'bg-white/10'}`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isDemoMode ? 'left-7' : 'left-1'}`} /></button>
+              </div>
+            </Card>
+
+            <Link href="/admin/seed">
+              <Card className="p-4 bg-[#1a191b] border-red-500/20 hover:border-red-500/50 transition-all cursor-pointer group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center text-red-500"><Database size={20} /></div>
+                    <div><p className="text-xs font-black uppercase tracking-widest text-white">Database Seed</p><p className="text-[9px] text-white/40 uppercase">Reset & Reload Legends</p></div>
+                  </div>
+                  <Database size={14} className="text-white/20 group-hover:text-red-500" />
+                </div>
+              </Card>
+            </Link>
+          </div>
+        </section>
+
         {/* Action List */}
         <div className="space-y-2">
-          <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] px-2 mb-2">Einstellungen</h3>
+          <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] px-2 mb-2">Account</h3>
           <button className="w-full flex items-center justify-between p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all"><div className="flex items-center gap-3"><Settings size={18} className="text-white/40" /><span className="text-sm font-medium">Account Settings</span></div><span className="text-xs text-white/20">→</span></button>
           {user && <button onClick={handleSignOut} className="w-full flex items-center justify-between p-4 rounded-xl bg-red-500/5 hover:bg-red-500/10 transition-all text-red-500 mt-4"><div className="flex items-center gap-3"><LogOut size={18} /><span className="text-sm font-medium uppercase font-bold tracking-widest text-[10px]">Logout Terminal</span></div></button>}
         </div>
