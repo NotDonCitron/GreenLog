@@ -7,19 +7,22 @@ import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, Share2, CheckCircle2, Camera, Upload } from "lucide-react";
+import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, Share2, CheckCircle2, Camera, Upload, Download } from "lucide-react";
+import { toPng } from 'html-to-image';
 
 export default function StrainDetailPage() {
   const { slug } = useParams();
   const { user, isDemoMode } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   
   const [strain, setStrain] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [hasCollected, setHasCollected] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
 
@@ -43,6 +46,35 @@ export default function StrainDetailPage() {
     }
     fetchStrain();
   }, [slug, user, isDemoMode]);
+
+  // IMAGE EXPORT FUNCTION
+  const handleExportImage = async () => {
+    if (!cardRef.current || !strain) return;
+    
+    setIsExporting(true);
+    try {
+      // Small delay to ensure any CSS transitions are finished if needed
+      // Capture the card with a slight scale-up for better quality
+      const dataUrl = await toPng(cardRef.current, {
+        cacheBust: true,
+        pixelRatio: 2, // High resolution
+        backgroundColor: '#0e0e0f',
+        style: {
+          borderRadius: '2.5rem',
+        }
+      });
+      
+      const link = document.createElement('a');
+      link.download = `greenlog-${strain.slug}-card.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // BILD-UPLOAD FUNKTION
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,7 +143,7 @@ export default function StrainDetailPage() {
 
       <div className="px-6 flex flex-col items-center">
         <div className="relative w-full max-w-[340px] aspect-[3/4.5] perspective-1000 mt-4 cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
-          <div className={`relative w-full h-full transition-all duration-700 preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
+          <div ref={cardRef} className={`relative w-full h-full transition-all duration-700 preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
             {/* Front Card */}
             <Card className="absolute inset-0 backface-hidden overflow-hidden border-2 rounded-[2.5rem] bg-[#1a191b] border-[#00F5FF] ring-8 ring-[#00F5FF]/10">
               <div className="h-3/5 relative">
@@ -142,9 +174,21 @@ export default function StrainDetailPage() {
           </div>
         </div>
 
-        <div className="w-full max-w-[340px] mt-10">
+        <div className="w-full max-w-[340px] mt-10 space-y-4">
           <button disabled={hasCollected} className={`w-full font-black py-5 rounded-2xl uppercase tracking-[0.2em] shadow-2xl flex items-center justify-center gap-3 ${hasCollected ? "bg-[#2FF801]/10 text-[#2FF801]" : "bg-white text-black"}`}>
             {hasCollected ? <><CheckCircle2 size={24} /> In der Sammlung</> : "Sammeln & Bewerten"}
+          </button>
+          
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleExportImage();
+            }}
+            disabled={isExporting}
+            className="w-full py-4 rounded-2xl border border-white/10 bg-white/5 text-white/60 font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-white/10 transition-colors"
+          >
+            {isExporting ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
+            {isExporting ? "Wird exportiert..." : "Download as Image"}
           </button>
         </div>
       </div>
