@@ -196,7 +196,8 @@ export default function ProfilePage() {
                   <div className="p-3 rounded-2xl bg-black/40 text-yellow-500"><IconComponent size={20} /></div>
                   <div className="text-center">
                     <p className="text-[10px] font-black uppercase tracking-widest leading-none">{badge.name}</p>
-                    <p className="text-[8px] text-white/30 uppercase mt-1">Unlocked</p>
+                    <p className="text-[8px] text-white/60 mt-1.5 leading-tight">{badge.description}</p>
+                    <p className="text-[7px] text-yellow-500/50 uppercase font-bold mt-2 tracking-tighter">Unlocked</p>
                   </div>
                 </Card>
               );

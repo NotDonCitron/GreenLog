@@ -18,6 +18,7 @@ export default function StrainDetailPage() {
   
   const [strain, setStrain] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userImageUrl, setUserImageUrl] = useState<string | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -53,6 +54,14 @@ export default function StrainDetailPage() {
 
           const { data: fav } = await supabase.from("user_strain_relations").select("is_favorite").eq("strain_id", data.id).eq("user_id", user.id).single();
           if (fav) setIsFavorite(fav.is_favorite);
+
+          // Fetch personal photo
+          const { data: collection } = await supabase.from("user_collection").select("user_image_url, batch_info, user_notes").eq("strain_id", data.id).eq("user_id", user.id).single();
+          if (collection) {
+            if (collection.user_image_url) setUserImageUrl(collection.user_image_url);
+            if (collection.batch_info) setBatchInfo(collection.batch_info);
+            if (collection.user_notes) setUserNotes(collection.user_notes);
+          }
         }
       } else if (isDemoMode) {
         // Fallback for demo mode only if strain not found
@@ -77,13 +86,21 @@ export default function StrainDetailPage() {
     setIsUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${strain.slug}-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${strain.slug}-${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage.from('strains').upload(fileName, file);
       if (uploadError) throw uploadError;
+      
       const { data: { publicUrl } } = supabase.storage.from('strains').getPublicUrl(fileName);
-      await supabase.from('strains').update({ image_url: publicUrl }).eq('id', strain.id);
-      setStrain({ ...strain, image_url: publicUrl });
-      alert("Image updated!");
+      
+      // Update local state immediately
+      setUserImageUrl(publicUrl);
+      
+      // If already collected, update DB immediately
+      if (hasCollected) {
+        await supabase.from('user_collection').update({ user_image_url: publicUrl }).eq('strain_id', strain.id).eq('user_id', user.id);
+      }
+      
+      alert("Foto hochgeladen! Klicke auf 'Complete Log' um es zu speichern.");
     } catch (err: any) {
       alert("Error: " + err.message);
     } finally {
@@ -152,7 +169,8 @@ export default function StrainDetailPage() {
         strain_id: strain.id,
         batch_info: batchInfo,
         user_notes: userNotes,
-        user_thc_percent: strain.thc_max 
+        user_thc_percent: strain.thc_max,
+        user_image_url: userImageUrl // Persist the personal photo URL
       }, { onConflict: 'user_id,strain_id' });
 
       // 4. Check & Unlock Badges
@@ -218,7 +236,9 @@ export default function StrainDetailPage() {
             <Card className="absolute inset-0 backface-hidden overflow-hidden border-2 rounded-[2.5rem] bg-[#1a191b] border-[#00F5FF] ring-8 ring-[#00F5FF]/10 shadow-[0_0_50px_rgba(0,245,255,0.2)]">
               <div className="absolute inset-0 card-holo opacity-50 pointer-events-none" />
               <div className="h-3/5 relative">
-                {strain.image_url ? (
+                {userImageUrl ? (
+                  <img src={userImageUrl} alt={strain.name} className="w-full h-full object-cover" />
+                ) : strain.image_url ? (
                   <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-[#1a191b] to-black flex items-center justify-center">
@@ -286,6 +306,30 @@ export default function StrainDetailPage() {
                     {strain.manufacturer && (
                       <div className="pt-2">
                         <p className="text-[8px] text-white/20 uppercase font-bold">Manufacturer: {strain.manufacturer}</p>
+                      </div>
+                    )}
+
+                    {/* PERSONAL LOG SECTION */}
+                    {(userNotes || batchInfo) && (
+                      <div className="pt-4 border-t border-white/10 mt-2 space-y-4">
+                        <div className="flex items-center gap-2 text-[#00F5FF]">
+                          <Database size={12} />
+                          <h4 className="text-[10px] font-black uppercase tracking-widest">Mein Journal</h4>
+                        </div>
+                        
+                        {batchInfo && (
+                          <div>
+                            <p className="text-[8px] text-white/30 uppercase font-black mb-1">Batch / Charge</p>
+                            <p className="text-[10px] font-bold text-white/90">{batchInfo}</p>
+                          </div>
+                        )}
+
+                        {userNotes && (
+                          <div>
+                            <p className="text-[8px] text-white/30 uppercase font-black mb-1">Persönliche Notizen</p>
+                            <p className="text-[10px] font-medium italic text-white/70 leading-relaxed bg-white/5 p-3 rounded-xl border border-white/5">{userNotes}</p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
