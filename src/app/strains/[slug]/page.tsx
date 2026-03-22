@@ -268,7 +268,11 @@ export default function StrainDetailPage() {
                 <div>
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-[#2FF801] font-bold tracking-widest text-xs uppercase">{strain.is_medical ? 'Medical Profile' : 'Strain Profile'}</h3>
-                    {strain.thc_max && <Badge variant="outline" className="border-[#2FF801]/30 text-[#2FF801] text-[10px] font-mono">THC: ~{strain.thc_max}%</Badge>}
+                    {(strain.avg_thc || strain.thc_max) && (
+                      <Badge variant="outline" className="border-[#2FF801]/30 text-[#2FF801] text-[10px] font-mono">
+                        THC: ~{strain.avg_thc || strain.thc_max}%
+                      </Badge>
+                    )}
                   </div>
                   
                   <div className="space-y-5">
@@ -298,9 +302,15 @@ export default function StrainDetailPage() {
                     <div>
                       <p className="text-[9px] text-white/30 uppercase font-black mb-2">Terpenes</p>
                       <div className="flex flex-wrap gap-1.5">
-                        {strain.terpenes?.map((t: string) => (
-                          <Badge key={t} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold">{t}</Badge>
-                        ))}
+                        {strain.terpenes?.map((t: any, i: number) => {
+                          const name = typeof t === 'string' ? t : t.name;
+                          const percent = typeof t === 'object' ? t.percent : null;
+                          return (
+                            <Badge key={i} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold">
+                              {name}{percent ? ` (${percent}%)` : ''}
+                            </Badge>
+                          );
+                        })}
                       </div>
                     </div>
 

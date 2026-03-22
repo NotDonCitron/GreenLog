@@ -1,18 +1,25 @@
+export interface Terpene {
+  name: string;
+  percent?: number;
+}
+
 export interface Strain {
   id: string;
   name: string;
   slug: string;
-  type: 'indica' | 'sativa' | 'hybrid';
+  type: 'indica' | 'sativa' | 'hybrid' | 'ruderalis';
   brand?: string;
   manufacturer?: string;
   irradiation?: string;
+  avg_thc?: number;
+  avg_cbd?: number;
   thc_min?: number;
   thc_max?: number;
   cbd_min?: number;
   cbd_max?: number;
   image_url?: string;
   description?: string;
-  terpenes?: string[];
+  terpenes?: (string | Terpene)[];
   effects?: string[];
   genetics?: string;
   indications?: string[];
