@@ -6,7 +6,7 @@ import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Search, SlidersHorizontal, Info, RefreshCw, Star, Loader2, Plus, FlaskConical } from "lucide-react";
+import { Search, SlidersHorizontal, Info, RefreshCw, Star, Loader2, Plus, FlaskConical, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { Strain } from "@/lib/types";
 
