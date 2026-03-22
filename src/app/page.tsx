@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Search, SlidersHorizontal, Info, RefreshCw, Star } from "lucide-react";
 
-// Mock-Daten für die Strains mit Rückseiten-Infos
+// Stabilere Bild-URLs für die Strains
 const MOCK_STRAINS = [
   {
     id: "1",
@@ -17,7 +17,7 @@ const MOCK_STRAINS = [
     lineage: "Afghan x Northern Lights",
     terpenes: ["Myrcen", "Limonen", "Caryophyllen"],
     effects: ["Schlaf", "Entspannung", "Appetit"],
-    image: "https://images.unsplash.com/photo-1603909223429-69bb7101f420?q=80&w=1000&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1536859355448-76f926813d1d?auto=format&fit=crop&q=80&w=800",
   },
   {
     id: "2",
@@ -28,7 +28,7 @@ const MOCK_STRAINS = [
     lineage: "OG Kush x Cosmic Haze",
     terpenes: ["Pinene", "Linalool", "Myrcen"],
     effects: ["Euphorie", "Kreativität", "Fokus"],
-    image: "https://images.unsplash.com/photo-1536859355448-76f926813d1d?q=80&w=1000&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1603909223429-69bb7101f420?auto=format&fit=crop&q=80&w=800",
   },
   {
     id: "3",
@@ -39,22 +39,39 @@ const MOCK_STRAINS = [
     lineage: "Blueberry x Haze",
     terpenes: ["Myrcen", "Pinene", "Limonen"],
     effects: ["Energie", "Glück", "Motivation"],
-    image: "https://images.unsplash.com/photo-1599733589046-10c005739ef0?q=80&w=1000&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1599733589046-10c005739ef0?auto=format&fit=crop&q=80&w=800",
   }
 ];
 
 export default function Home() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const touchStartX = useRef<number | null>(null);
 
-  const nextCard = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const nextCard = () => {
     setIsFlipped(false);
     setActiveIndex((prev) => (prev + 1) % MOCK_STRAINS.length);
   };
 
   const toggleFlip = () => {
     setIsFlipped(!isFlipped);
+  };
+
+  // Swipe-Handler
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX.current - touchEndX;
+
+    // Wenn mehr als 50px gewischt wurde
+    if (Math.abs(diff) > 50) {
+      nextCard();
+    }
+    touchStartX.current = null;
   };
 
   return (
@@ -76,13 +93,17 @@ export default function Home() {
       </header>
 
       {/* Card Stack Container */}
-      <div className="flex-1 flex flex-col items-center justify-center relative px-6 py-8">
+      <div 
+        className="flex-1 flex flex-col items-center justify-center relative px-6 py-8 select-none"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <div className="relative w-full max-w-[320px] aspect-[3/4.5] perspective-1000">
           {MOCK_STRAINS.map((strain, index) => {
             const relativeIndex = (index - activeIndex + MOCK_STRAINS.length) % MOCK_STRAINS.length;
             const isTop = relativeIndex === 0;
             
-            if (relativeIndex > 2) return null; // Nur die obersten 3 Karten rendern
+            if (relativeIndex > 2) return null;
 
             return (
               <div
@@ -188,23 +209,14 @@ export default function Home() {
           })}
         </div>
 
-        {/* Action Buttons */}
-        <div className="mt-8 flex gap-4 z-10">
-          <button 
-            onClick={nextCard}
-            className="px-8 py-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2 group"
-          >
-            <span className="text-xs font-bold tracking-widest uppercase text-white/60 group-hover:text-white">Next Strain</span>
-            <RefreshCw size={14} className="text-[#00F5FF]" />
-          </button>
-        </div>
-        
-        <div className="mt-6 flex flex-col items-center gap-2">
+        {/* Swipe Hint */}
+        <div className="mt-12 flex flex-col items-center gap-4">
           <div className="flex gap-2">
             {MOCK_STRAINS.map((_, i) => (
-              <div key={i} className={`h-1 rounded-full transition-all duration-300 ${activeIndex === i ? 'w-6 bg-[#00F5FF]' : 'w-1 bg-white/20'}`} />
+              <div key={i} className={`h-1 rounded-full transition-all duration-300 ${activeIndex === i ? 'w-8 bg-[#00F5FF]' : 'w-1.5 bg-white/20'}`} />
             ))}
           </div>
+          <p className="text-[10px] text-white/30 uppercase tracking-[0.4em] animate-pulse">Swipe to browse collection</p>
         </div>
       </div>
 
