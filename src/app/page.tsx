@@ -174,8 +174,13 @@ export default function Home() {
                             {strain.terpenes && Array.isArray(strain.terpenes) && strain.terpenes.length > 0 ? (
                               strain.terpenes.map((t: any, i: number) => {
                                 const name = typeof t === 'string' ? t : t?.name;
+                                const percent = typeof t === 'object' ? t?.percent : null;
                                 if (!name) return null;
-                                return (<Badge key={i} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold">{name}</Badge>);
+                                return (
+                                  <Badge key={i} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold">
+                                    {name}{percent ? ` (${percent}%)` : ''}
+                                  </Badge>
+                                );
                               })
                             ) : (
                               <span className="text-[8px] text-white/20 italic">Keine Daten</span>
