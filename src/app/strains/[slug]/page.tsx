@@ -108,9 +108,19 @@ export default function StrainDetailPage() {
 
     setIsSaving(true);
     try {
-      const { data: profile } = await supabase.from("profiles").select("id").eq("id", user.id).single();
+      const { data: profile, error: profileFetchError } = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle();
+      
       if (!profile) {
-        await supabase.from("profiles").insert({ id: user.id, username: user.email?.split("@")[0] || "user", display_name: user.email?.split("@")[0] });
+        const username = user.email?.split("@")[0] || "user_" + Math.random().toString(36).slice(2, 7);
+        const { error: profileInsertError } = await supabase.from("profiles").insert({ 
+          id: user.id, 
+          username: username, 
+          display_name: username 
+        });
+        if (profileInsertError) {
+          console.error("Profile creation error:", profileInsertError);
+          // Don't throw here, sometimes triggers/hooks create the profile automatically
+        }
       }
 
       const { error } = await supabase.from("ratings").upsert({
@@ -120,13 +130,16 @@ export default function StrainDetailPage() {
         taste_rating: ratings.taste,
         effect_rating: ratings.effect,
         look_rating: ratings.look
-      });
+      }, { onConflict: 'strain_id, user_id' });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Rating upsert error:", error);
+        throw error;
+      }
       setHasCollected(true);
       setShowRatingModal(false);
-    } catch (err) {
-      alert("Error saving rating.");
+    } catch (err: any) {
+      alert("Error saving rating: " + (err.message || "Unknown error"));
     } finally {
       setIsSaving(false);
     }
