@@ -40,6 +40,8 @@ export default function Home() {
       const { data, error } = await supabase
         .from('ratings')
         .select(`
+          user_notes,
+          batch_info,
           strain:strains (*)
         `)
         .eq('user_id', user.id);
@@ -50,7 +52,11 @@ export default function Home() {
       
       if (data) {
         const userStrains = data
-          .map(item => item.strain)
+          .map(item => ({
+            ...(item.strain as any),
+            user_notes: item.user_notes,
+            batch_info: item.batch_info
+          }))
           .filter(Boolean) as unknown as Strain[];
         
         // Ensure image URLs are correct in memory
@@ -154,12 +160,42 @@ export default function Home() {
                     </div>
                   </Card>
                   <Card className={`absolute inset-0 rotate-y-180 backface-hidden overflow-hidden border-2 rounded-3xl bg-[#1a191b] shadow-2xl border-[#2FF801] ring-4 ring-[#2FF801]/20`} onClick={() => isTop && setIsFlipped(!isFlipped)}>
-                    <div className="p-6 h-full flex flex-col justify-between relative text-left">
-                      <div><h3 className="text-[#2FF801] font-bold tracking-widest text-xs uppercase mb-6">Strain Profile</h3><div className="space-y-4"><div><p className="text-[10px] text-white/40 uppercase mb-1">Terpenes</p><div className="flex flex-wrap gap-2">{strain.terpenes?.map((t: any, i: number) => {
-                        const name = typeof t === 'string' ? t : t.name;
-                        return (<Badge key={i} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[10px]">{name}</Badge>);
-                      })}</div></div></div></div>
-                      <div className="pt-6 border-t border-white/5 flex justify-between items-center"><span className="text-[10px] text-[#2FF801] font-bold uppercase tracking-widest">Demo Member</span><Info size={16} className="text-white/20" /></div>
+                    <div className="p-6 h-full flex flex-col justify-between relative text-left overflow-y-auto no-scrollbar">
+                      <div className="space-y-4">
+                        <h3 className="text-[#2FF801] font-bold tracking-widest text-xs uppercase mb-2">Strain Profile</h3>
+                        
+                        <div>
+                          <p className="text-[9px] text-white/40 uppercase mb-1 font-bold">Terpenes</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {strain.terpenes?.map((t: any, i: number) => {
+                              const name = typeof t === 'string' ? t : t.name;
+                              return (<Badge key={i} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold">{name}</Badge>);
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Journal Section on Home Card */}
+                        {(strain.user_notes || (strain as any).batch_info) && (
+                          <div className="pt-3 border-t border-white/10 space-y-3">
+                            <p className="text-[9px] text-[#00F5FF] uppercase font-black tracking-widest">Mein Journal</p>
+                            {(strain as any).batch_info && (
+                              <div>
+                                <p className="text-[8px] text-white/30 uppercase">Batch</p>
+                                <p className="text-[10px] font-bold">{(strain as any).batch_info}</p>
+                              </div>
+                            )}
+                            {strain.user_notes && (
+                              <p className="text-[10px] italic text-white/60 leading-relaxed bg-white/5 p-2 rounded-lg">
+                                {strain.user_notes}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="pt-4 border-t border-white/5 flex justify-between items-center">
+                        <span className="text-[10px] text-[#2FF801] font-bold uppercase tracking-widest">Personal Log</span>
+                        <Info size={16} className="text-white/20" />
+                      </div>
                     </div>
                   </Card>
                 </div>
