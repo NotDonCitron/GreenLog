@@ -175,7 +175,7 @@ export default function Home() {
                         </div>
 
                         {/* Journal Section on Home Card */}
-                        {(strain.user_notes || (strain as any).batch_info) && (
+                        {((strain as any).user_notes || (strain as any).batch_info) && (
                           <div className="pt-3 border-t border-white/10 space-y-3">
                             <p className="text-[9px] text-[#00F5FF] uppercase font-black tracking-widest">Mein Journal</p>
                             {(strain as any).batch_info && (
@@ -184,9 +184,9 @@ export default function Home() {
                                 <p className="text-[10px] font-bold">{(strain as any).batch_info}</p>
                               </div>
                             )}
-                            {strain.user_notes && (
+                            {(strain as any).user_notes && (
                               <p className="text-[10px] italic text-white/60 leading-relaxed bg-white/5 p-2 rounded-lg">
-                                {strain.user_notes}
+                                {(strain as any).user_notes}
                               </p>
                             )}
                           </div>
