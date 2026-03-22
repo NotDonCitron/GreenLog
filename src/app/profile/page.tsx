@@ -6,9 +6,17 @@ import { supabase } from "@/lib/supabase";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Settings, History, Heart, FlaskConical, ShieldCheck, Palette, ExternalLink, Camera, Monitor, Zap, Trophy, Leaf, Moon, Sun, Dna, Database } from "lucide-react";
+import { LogOut, Settings, FlaskConical, Palette, ExternalLink, Camera, Monitor, Leaf, Moon, Sun, Dna, Database } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+
+interface Badge {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  unlocked: boolean;
+  color: string;
+}
 
 export default function ProfilePage() {
   const { user, signOut, loading, isDemoMode, setDemoMode } = useAuth();
@@ -16,18 +24,19 @@ export default function ProfilePage() {
   
   const [stats, setStats] = useState({
     totalStrains: 0,
+    totalGrows: 0,
     xp: 0,
     level: 1,
     progressToNextLevel: 0,
-    badges: [] as any[]
+    badges: [] as Badge[]
   });
-  const [fetchingStats, setFetchingStats] = useState(true);
 
   useEffect(() => {
     async function fetchStats() {
       if (isDemoMode) {
         setStats({
           totalStrains: 12,
+          totalGrows: 5,
           xp: 850,
           level: 4,
           progressToNextLevel: 65,
@@ -38,27 +47,33 @@ export default function ProfilePage() {
             { id: 'b4', name: 'Night Owl', icon: <Moon size={20} />, unlocked: true, color: 'text-blue-500' }
           ]
         });
-        setFetchingStats(false);
         return;
       }
 
       if (!user) {
-        setFetchingStats(false);
         return;
       }
 
+      // Fetch ratings (strains)
       const { data: ratings, count } = await supabase
         .from('ratings')
         .select('*, strains(type)', { count: 'exact' })
         .eq('user_id', user.id);
       
+      // Fetch grows
+      const { count: growCount } = await supabase
+        .from('grows')
+        .select('*', { count: 'exact' })
+        .eq('user_id', user.id);
+      
       const strainCount = count || 0;
-      const totalXp = strainCount * 50;
+      const totalGrows = growCount || 0;
+      const totalXp = (strainCount * 50) + (totalGrows * 100);
       const currentLevel = Math.floor(totalXp / 100) + 1;
       const progress = totalXp % 100;
 
       const types = ratings?.map(r => r.strains?.type) || [];
-      const badgeList = [
+      const badgeList: Badge[] = [
         { id: 'b1', name: 'First Bud', icon: <Leaf size={20} />, unlocked: strainCount >= 1, color: 'text-green-500' },
         { id: 'b2', name: 'Hybrid Hunter', icon: <Dna size={20} />, unlocked: types.filter(t => t === 'hybrid').length >= 3, color: 'text-purple-500' },
         { id: 'b3', name: 'Sativa Soul', icon: <Sun size={20} />, unlocked: types.includes('sativa'), color: 'text-yellow-500' },
@@ -67,12 +82,12 @@ export default function ProfilePage() {
 
       setStats({
         totalStrains: strainCount,
+        totalGrows: totalGrows,
         xp: totalXp,
         level: currentLevel,
         progressToNextLevel: progress,
         badges: badgeList
       });
-      setFetchingStats(false);
     }
     fetchStats();
   }, [user, isDemoMode]);
@@ -101,7 +116,18 @@ export default function ProfilePage() {
 
         <h2 className="text-2xl font-black italic tracking-tighter uppercase leading-none">{isDemoMode ? "Demo Operator" : (user?.email?.split("@")[0] || "Guest")}</h2>
         
-        <div className="w-full max-w-[200px] mt-6 space-y-2">
+        <div className="grid grid-cols-2 gap-4 mt-8 w-full max-w-[200px]">
+          <div className="text-center">
+            <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Strains</p>
+            <p className="text-lg font-black italic">{stats.totalStrains}</p>
+          </div>
+          <div className="text-center border-l border-white/5">
+            <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Grows</p>
+            <p className="text-lg font-black italic">{stats.totalGrows}</p>
+          </div>
+        </div>
+
+        <div className="w-full max-w-[200px] mt-8 space-y-2">
           <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-white/40">
             <span>XP: {stats.xp}</span>
             <span>Progress</span>
