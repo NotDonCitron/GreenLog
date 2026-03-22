@@ -204,6 +204,12 @@ export default function StrainDetailPage() {
 
       setHasCollected(true);
       setShowRatingModal(false);
+      
+      // Force immediate local update of notes so they appear on the card back
+      // before the router.refresh() kicks in
+      setUserNotes(userNotes);
+      setBatchInfo(batchInfo);
+      
       router.refresh();
     } catch (err: any) {
       alert("Error saving: " + (err.message || "Unknown error"));
