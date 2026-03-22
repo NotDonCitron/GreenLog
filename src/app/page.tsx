@@ -64,6 +64,9 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col bg-[#0e0e0f] text-white overflow-hidden pb-24">
+      <div className="bg-red-600 text-white text-[10px] font-black uppercase py-1 text-center tracking-[0.5em] z-[100]">
+        DEPLOYMENT SYNC TEST v1.2 - IF YOU SEE THIS, IT WORKS
+      </div>
       <header className="p-6 flex justify-between items-center border-b border-white/10 bg-[#0e0e0f]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="flex flex-col">
           <span className="text-[10px] text-[#00F5FF] tracking-[0.3em] font-bold uppercase">Cannalog</span>
