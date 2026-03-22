@@ -7,7 +7,7 @@ import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, Share2, CheckCircle2, Upload, Download, Flame, Wind, Eye } from "lucide-react";
+import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, Share2, CheckCircle2, Upload, Download, Flame, Wind, Eye, Leaf } from "lucide-react";
 import { toPng } from 'html-to-image';
 import { Strain } from "@/lib/types";
 
