@@ -6,30 +6,39 @@ import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Loader2, Trophy, Lock } from "lucide-react";
+import { Search, Loader2, Trophy, Lock, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { Strain } from "@/lib/types";
 
 export default function StrainsPage() {
-  const { user, isDemoMode, loading: authLoading } = useAuth();
+  const { user, isDemoMode } = useAuth();
   const [strains, setStrains] = useState<Strain[]>([]);
   const [userCollection, setUserCollection] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
+      setError(null);
       try {
-        // 1. Alle Strains laden (immer!)
+        console.log("Fetching strains...");
         const { data: allStrains, error: strainError } = await supabase
           .from("strains")
           .select("*")
           .order("name");
         
-        if (allStrains) setStrains(allStrains);
+        if (strainError) {
+          console.error("Supabase Error:", strainError);
+          throw new Error(strainError.message);
+        }
 
-        // 2. User Collection laden (wenn eingeloggt)
+        if (allStrains) {
+          console.log("Strains fetched:", allStrains.length);
+          setStrains(allStrains as Strain[]);
+        }
+
         if (user) {
           const { data: ratings } = await supabase
             .from("ratings")
@@ -41,14 +50,14 @@ export default function StrainsPage() {
         if (isDemoMode && allStrains) {
           setUserCollection(allStrains.slice(0, 3).map(s => s.id));
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Data fetch error:", err);
+        setError(err.message || "Unbekannter Fehler beim Laden der Daten.");
       } finally {
         setLoading(false);
       }
     }
     
-    // Wichtig: Wir warten NICHT auf authLoading, sondern laden die Strains sofort
     fetchData();
   }, [user, isDemoMode]);
 
@@ -85,7 +94,18 @@ export default function StrainsPage() {
       </header>
 
       <div className="p-6">
-        {loading && strains.length === 0 ? (
+        {error ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4 text-red-500">
+            <AlertCircle size={48} />
+            <p className="text-sm font-bold uppercase tracking-widest text-center">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-4 px-6 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold uppercase hover:bg-white/10 transition-all"
+            >
+              Neu laden
+            </button>
+          </div>
+        ) : loading && strains.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
             <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Initialisierung läuft...</p>
