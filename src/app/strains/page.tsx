@@ -24,29 +24,17 @@ export default function StrainsPage() {
       setError(null);
       
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout: Supabase reagiert nicht (10s)")), 10000)
+        setTimeout(() => reject(new Error("Timeout: Supabase is not responding")), 15000)
       );
 
       try {
-        console.log("Starting fetch...");
-        
-        const fetchPromise = supabase
-          .from("strains")
-          .select("*")
-          .order("name");
-
         const { data: allStrains, error: strainError } = await Promise.race([
-          fetchPromise,
+          supabase.from("strains").select("*").order("name"),
           timeoutPromise
         ]) as any;
         
-        if (strainError) {
-          throw new Error(strainError.message);
-        }
-
-        if (allStrains) {
-          setStrains(allStrains as Strain[]);
-        }
+        if (strainError) throw new Error(strainError.message);
+        if (allStrains) setStrains(allStrains as Strain[]);
 
         if (user) {
           const { data: ratings } = await supabase
@@ -60,8 +48,7 @@ export default function StrainsPage() {
           setUserCollection(allStrains.slice(0, 3).map(s => s.id));
         }
       } catch (err: any) {
-        console.error("Fetch error:", err);
-        setError(err.message || "Fehler beim Laden der Daten.");
+        setError(err.message || "Failed to load strains.");
       } finally {
         setLoading(false);
       }
@@ -94,7 +81,7 @@ export default function StrainsPage() {
           <Search className="absolute left-4 top-3.5 text-white/20" size={18} />
           <input 
             type="text" 
-            placeholder="Sorte im Album suchen..."
+            placeholder="Search strains..."
             className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:border-[#00F5FF]/50 transition-all shadow-inner"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -111,13 +98,13 @@ export default function StrainsPage() {
               onClick={() => window.location.reload()}
               className="mt-4 px-8 py-3 bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/20 transition-all"
             >
-              System Neustart
+              System Reset
             </button>
           </div>
         ) : loading && strains.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
-            <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Initialisierung läuft...</p>
+            <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Initializing system...</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-6">
