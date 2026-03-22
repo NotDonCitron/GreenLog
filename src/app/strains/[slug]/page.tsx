@@ -53,7 +53,7 @@ export default function StrainDetailPage() {
           type: "hybrid", 
           thc_max: 25, 
           description: "Simulation Mode: This is a placeholder description for the demo experience.", 
-          image_url: `https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20${slug}?width=600&height=800&seed=1` 
+          image_url: `/strains/${slug}.jpg` 
         });
       }
       setLoading(false);
