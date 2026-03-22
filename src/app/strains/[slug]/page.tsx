@@ -7,8 +7,7 @@ import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, Share2, CheckCircle2, Upload, Download, Flame, Wind, Eye, Leaf } from "lucide-react";
-import { toPng } from 'html-to-image';
+import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Flame, Wind, Eye, Leaf } from "lucide-react";
 import { Strain } from "@/lib/types";
 
 export default function StrainDetailPage() {
@@ -23,7 +22,6 @@ export default function StrainDetailPage() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
   const [isFavorited, setIsFavorite] = useState(false);
   const [hasCollected, setHasCollected] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
@@ -316,11 +314,6 @@ export default function StrainDetailPage() {
             }`}
           >
             {hasCollected ? <><CheckCircle2 size={24} /> In Collection</> : "Collect & Rate"}
-          </button>
-          
-          <button onClick={handleExportImage} disabled={isExporting} className="w-full py-4 rounded-2xl border border-white/10 bg-white/5 text-white/60 font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-white/10 transition-colors">
-            {isExporting ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
-            {isExporting ? "Exporting..." : "Download as Image"}
           </button>
         </div>
       </div>

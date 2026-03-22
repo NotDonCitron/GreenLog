@@ -31,6 +31,8 @@ export default function ProfilePage() {
     badges: [] as Badge[]
   });
 
+  const [favorites, setFavorites] = useState<any[]>([]);
+
   useEffect(() => {
     async function fetchStats() {
       if (isDemoMode) {
@@ -47,12 +49,26 @@ export default function ProfilePage() {
             { id: 'b4', name: 'Night Owl', icon: <Moon size={20} />, unlocked: true, color: 'text-blue-500' }
           ]
         });
+        setFavorites([
+          { strains: { name: 'Godfather OG', slug: 'godfather-og', image_url: '/strains/godfather-og.jpg' } },
+          { strains: { name: 'Animal Face', slug: 'animal-face', image_url: '/strains/animal-face.jpg' } }
+        ]);
         return;
       }
 
       if (!user) {
         return;
       }
+
+      // Fetch favorites
+      const { data: favs } = await supabase
+        .from('user_strain_relations')
+        .select('*, strains(*)')
+        .eq('user_id', user.id)
+        .eq('is_favorite', true)
+        .limit(5);
+      
+      if (favs) setFavorites(favs);
 
       // Fetch ratings (strains)
       const { data: ratings, count, error: ratingsError } = await supabase
@@ -143,6 +159,29 @@ export default function ProfilePage() {
       </div>
 
       <div className="p-6 space-y-8">
+        {/* Favorites Section */}
+        {favorites.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex justify-between items-center px-2">
+              <h3 className="text-[10px] font-bold text-[#00F5FF] uppercase tracking-[0.2em]">Top 5 Favoriten</h3>
+              <Heart size={12} className="text-red-500 animate-pulse" />
+            </div>
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+              {favorites.map((fav) => (
+                <Link key={fav.strains.id || fav.strains.slug} href={`/strains/${fav.strains.slug}`} className="flex-shrink-0">
+                  <Card className="w-32 bg-[#1a191b] border-white/5 overflow-hidden group active:scale-95 transition-all">
+                    <div className="aspect-square relative">
+                      <img src={fav.strains.image_url} alt={fav.strains.name} className="w-full h-full object-cover grayscale-[0.5] group-hover:grayscale-0 transition-all" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                      <p className="absolute bottom-2 left-2 right-2 text-[9px] font-black uppercase truncate">{fav.strains.name}</p>
+                    </div>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Badges Section */}
         <section className="space-y-4">
           <div className="flex justify-between items-center px-2">
