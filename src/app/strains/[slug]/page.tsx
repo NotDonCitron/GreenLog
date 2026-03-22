@@ -15,7 +15,6 @@ export default function StrainDetailPage() {
   const { user, isDemoMode } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const hiddenCardRef = useRef<HTMLDivElement>(null);
   
   const [strain, setStrain] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);

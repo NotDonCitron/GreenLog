@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Settings, FlaskConical, Palette, ExternalLink, Camera, Monitor, Leaf, Moon, Sun, Dna, Database } from "lucide-react";
+import { LogOut, Settings, FlaskConical, Palette, ExternalLink, Camera, Monitor, Leaf, Moon, Sun, Dna, Database, Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
