@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { BottomNav } from "@/components/bottom-nav";
 import { AuthProvider } from "@/components/auth-provider";
 
 const geistSans = Geist({
@@ -20,7 +19,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "GreenLog",
   },
 };
@@ -30,7 +29,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#16a34a",
+  themeColor: "#0e0e0f",
 };
 
 export default function RootLayout({
@@ -41,13 +40,13 @@ export default function RootLayout({
   return (
     <html
       lang="de"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      style={{ colorScheme: 'dark' }}
     >
-      <body className="h-full bg-background text-foreground">
+      <body className="h-full bg-[#0e0e0f] text-white">
         <AuthProvider>
           <div className="flex h-full flex-col">
-            <main className="flex-1 overflow-y-auto pb-20">{children}</main>
-            <BottomNav />
+            <main className="flex-1 overflow-y-auto">{children}</main>
           </div>
         </AuthProvider>
       </body>
