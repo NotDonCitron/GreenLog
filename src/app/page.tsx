@@ -11,9 +11,9 @@ import Link from "next/link";
 import { Strain } from "@/lib/types";
 
 const DEMO_SIMULATION_DATA: Strain[] = [
-  { id: "sim-1", name: "Godfather OG", slug: "godfather-og", thc_max: 34, type: "indica", terpenes: ["Myrcene", "Limonene"], effects: ["Sleep"], image_url: "https://images.unsplash.com/photo-1536859355448-76f926813d1d?auto=format&fit=crop&q=80&w=800" },
-  { id: "sim-2", name: "Animal Face", slug: "animal-face", thc_max: 30, type: "indica", terpenes: ["Caryophyllene"], effects: ["Relaxation"], image_url: "https://images.unsplash.com/photo-1603909223429-69bb7101f420?auto=format&fit=crop&q=80&w=800" },
-  { id: "sim-3", name: "GMO Cookies", slug: "gmo-cookies", thc_max: 33, type: "indica", terpenes: ["Myrcene"], effects: ["Euphoria"], image_url: "https://images.unsplash.com/photo-1599733589046-10c005739ef0?auto=format&fit=crop&q=80&w=800" }
+  { id: "sim-1", name: "Godfather OG", slug: "godfather-og", thc_max: 34, type: "indica", terpenes: ["Myrcene", "Limonene"], effects: ["Sleep"], image_url: "/strains/godfather-og.jpg" },
+  { id: "sim-2", name: "Animal Face", slug: "animal-face", thc_max: 30, type: "indica", terpenes: ["Caryophyllene"], effects: ["Relaxation"], image_url: "/strains/animal-face.jpg" },
+  { id: "sim-3", name: "GMO Cookies", slug: "gmo-cookies", thc_max: 33, type: "indica", terpenes: ["Myrcene"], effects: ["Euphoria"], image_url: "/strains/gmo-cookies.jpg" }
 ];
 
 export default function Home() {
