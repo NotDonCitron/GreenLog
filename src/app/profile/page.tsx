@@ -724,9 +724,7 @@ export default function ProfilePage() {
                 >
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/75">Profilsichtbarkeit</p>
-                    <p className="mt-1 text-sm text-white/45">
-                      {isPublic ? "Highlights und Fortschritt sind öffentlich sichtbar." : "Nur du siehst aktuell diese Profilansicht."}
-                    </p>
+                    <p className="mt-1 text-sm text-white/45">{isPublic ? "Öffentlich" : "Privat"}</p>
                   </div>
                   <div className={`rounded-full p-2 ${isPublic ? "bg-[#2FF801]/12 text-[#9eff7d]" : "bg-white/5 text-white/50"}`}>
                     {isPublic ? <Eye size={18} /> : <EyeOff size={18} />}
@@ -1010,8 +1008,8 @@ export default function ProfilePage() {
               <div className="space-y-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-2">
-                    <h3 className="text-xl font-semibold tracking-tight text-white">{preview.title}</h3>
-                    <p className="max-w-2xl text-sm leading-6 text-white/48">{preview.description}</p>
+                    <h3 className="text-xl font-semibold tracking-tight text-white">Öffentliches Profil</h3>
+                    <p className="max-w-2xl text-sm leading-6 text-white/48">So wirkt dein Profil für andere Nutzer.</p>
                   </div>
                   <div className={`rounded-2xl p-3 ${isPublic ? "bg-[#2FF801]/12 text-[#afff94]" : "bg-white/[0.05] text-white/55"}`}>
                     {isPublic ? <Globe2 size={18} /> : <Lock size={18} />}
@@ -1026,15 +1024,6 @@ export default function ProfilePage() {
                       {chip}
                     </span>
                   ))}
-                </div>
-                <div className="rounded-[1.5rem] border border-white/8 bg-black/20 p-5">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/40">Was öffentlich sichtbar bleibt</p>
-                  <ul className="mt-4 space-y-3 text-sm leading-6 text-white/48">
-                    <li>• Anzeigename, Handle und kuratierte Profilidentität</li>
-                    <li>• Aggregierte Fortschrittswerte statt sensible Rohdaten</li>
-                    <li>• Favoriten, Badges und hochwertige Collection-Highlights</li>
-                    <li>• Private Journal-Notizen oder sensible Bestandsinfos bleiben ausgeschlossen</li>
-                  </ul>
                 </div>
               </div>
             </Card>
