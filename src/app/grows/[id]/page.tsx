@@ -37,11 +37,15 @@ interface Grow {
 interface GrowEntry {
     id: string;
     grow_id: string;
-    entry_date: string;
-    stage: string;
-    height_cm?: number;
+    user_id: string;
+    day_number?: number;
+    title?: string;
     notes?: string;
-    photo_url?: string;
+    image_url?: string;
+    height_cm?: number;
+    temperature?: number;
+    humidity?: number;
+    ph_value?: number;
     created_at: string;
 }
 
@@ -62,8 +66,9 @@ export default function GrowDetailPage() {
     const [editStatus, setEditStatus] = useState("active");
 
     // New entry state
-    const [newEntryStage, setNewEntryStage] = useState("seedling");
+    const [newEntryTitle, setNewEntryTitle] = useState("");
     const [newEntryNotes, setNewEntryNotes] = useState("");
+    const [newEntryDayNumber, setNewEntryDayNumber] = useState<number>(1);
 
     useEffect(() => {
         async function fetchGrow() {
@@ -146,8 +151,9 @@ export default function GrowDetailPage() {
                 .from("grow_entries")
                 .insert({
                     grow_id: grow.id,
-                    entry_date: new Date().toISOString().split('T')[0],
-                    stage: newEntryStage,
+                    user_id: user.id,
+                    day_number: newEntryDayNumber,
+                    title: newEntryTitle,
                     notes: newEntryNotes
                 });
 
@@ -158,7 +164,7 @@ export default function GrowDetailPage() {
                 .from("grow_entries")
                 .select("*")
                 .eq("grow_id", grow.id)
-                .order("entry_date", { ascending: false });
+                .order("created_at", { ascending: false });
 
             if (data) setEntries(data);
             setIsAddingEntry(false);
@@ -335,19 +341,22 @@ export default function GrowDetailPage() {
                     {isAddingEntry && (
                         <Card className="bg-[#1a191b] border-white/5 p-5 space-y-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Stage</label>
-                                <div className="flex gap-2 flex-wrap">
-                                    {['seedling', 'vegetative', 'flowering', 'harvest', 'drying', 'curing'].map((stage) => (
-                                        <button
-                                            key={stage}
-                                            onClick={() => setNewEntryStage(stage)}
-                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${newEntryStage === stage ? 'bg-[#00F5FF] text-black' : 'bg-white/5 text-white/40'
-                                                }`}
-                                        >
-                                            {stage}
-                                        </button>
-                                    ))}
-                                </div>
+                                <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Titel</label>
+                                <Input
+                                    value={newEntryTitle}
+                                    onChange={(e) => setNewEntryTitle(e.target.value)}
+                                    placeholder="z.B. Tag 5 - Keimling"
+                                    className="bg-white/5 border-white/10 text-white"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Tag Nummer</label>
+                                <Input
+                                    type="number"
+                                    value={newEntryDayNumber}
+                                    onChange={(e) => setNewEntryDayNumber(parseInt(e.target.value) || 1)}
+                                    className="bg-white/5 border-white/10 text-white"
+                                />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Notizen</label>
@@ -374,9 +383,9 @@ export default function GrowDetailPage() {
                                 <Card key={entry.id} className="bg-[#1a191b] border-white/5 p-4">
                                     <div className="flex justify-between items-start mb-2">
                                         <Badge className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold uppercase">
-                                            {entry.stage}
+                                            {entry.title || `Tag ${entry.day_number}`}
                                         </Badge>
-                                        <span className="text-[10px] text-white/40 font-bold">{entry.entry_date}</span>
+                                        <span className="text-[10px] text-white/40 font-bold">Tag {entry.day_number}</span>
                                     </div>
                                     {entry.notes && (
                                         <p className="text-xs text-white/70 italic leading-relaxed">{entry.notes}</p>
