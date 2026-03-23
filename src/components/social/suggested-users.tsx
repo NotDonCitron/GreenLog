@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Loader2, RefreshCw, UserPlus } from "lucide-react";
 import { FollowButton } from "./follow-button";
-import { supabase } from "@/lib/supabase";
+import { supabase, getAuthenticatedClient } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import type { SuggestedUser } from "@/lib/types";
 
@@ -36,8 +36,16 @@ export function SuggestedUsers({
         else setIsLoading(true);
 
         try {
+            // Get session for authenticated requests
+            const { data: { session } } = await supabase.auth.getSession();
+
+            // Create authenticated supabase client with access token
+            const authClient = session?.access_token
+                ? getAuthenticatedClient(session.access_token)
+                : supabase;
+
             // Get users with similar strain ratings first
-            const { data: userRatings } = await supabase
+            const { data: userRatings } = await authClient
                 .from("ratings")
                 .select("strain_id")
                 .eq("user_id", user.id);
@@ -45,7 +53,7 @@ export function SuggestedUsers({
             const userStrainIds = userRatings?.map((r: { strain_id: string }) => r.strain_id) ?? [];
 
             // Get users already being followed
-            const { data: followingData } = await supabase
+            const { data: followingData } = await authClient
                 .from("follows")
                 .select("following_id")
                 .eq("follower_id", user.id);
@@ -53,7 +61,7 @@ export function SuggestedUsers({
             const followingIds = followingData?.map((f: { following_id: string }) => f.following_id) ?? [];
 
             // Get pending follow requests for private profiles
-            const { data: pendingRequests } = await supabase
+            const { data: pendingRequests } = await authClient
                 .from("follow_requests")
                 .select("target_id, status")
                 .eq("requester_id", user.id)
@@ -62,7 +70,7 @@ export function SuggestedUsers({
             const pendingRequestIds = pendingRequests?.map((r: { target_id: string }) => r.target_id) ?? [];
 
             // Build suggested users query - include both public profiles AND private profiles with pending requests
-            let query = supabase
+            let query = authClient
                 .from("profiles")
                 .select(`
                     id,

@@ -240,7 +240,7 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
                         <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">
                             Typ *
                         </Label>
-                        <Select value={type} onValueChange={(v: "indica" | "sativa" | "hybrid") => setType(v)}>
+                        <Select value={type} onValueChange={(v) => { if (v) setType(v as "indica" | "sativa" | "hybrid") }}>
                             <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-12">
                                 <SelectValue />
                             </SelectTrigger>
@@ -257,7 +257,7 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
                         <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">
                             Herkunft *
                         </Label>
-                        <Select value={source} onValueChange={(v: StrainSource) => setSource(v)}>
+                        <Select value={source} onValueChange={(v) => { if (v) setSource(v as StrainSource) }}>
                             <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-12">
                                 <SelectValue />
                             </SelectTrigger>
