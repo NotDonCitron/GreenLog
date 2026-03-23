@@ -17,6 +17,7 @@ import {
   Loader2,
   Lock,
   LogOut,
+  Pencil,
   Shield,
   Sparkles,
   Sprout,
@@ -29,6 +30,7 @@ import {
 
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
+import { FollowersListModal } from "@/components/social/followers-list-modal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
@@ -60,6 +62,7 @@ type ProfileRow = {
   display_name?: string | null;
   avatar_url?: string | null;
   profile_visibility?: "public" | "private" | null;
+  bio?: string | null;
 };
 
 type FavoriteQueryRow = {
@@ -271,6 +274,8 @@ function createFallbackViewModel(isDemoMode: boolean): ProfileViewModel {
       xp: 1140,
       level: 5,
       progressToNextLevel: 50,
+      followers: 42,
+      following: 28,
     }
     : {
       totalStrains: 0,
@@ -280,6 +285,8 @@ function createFallbackViewModel(isDemoMode: boolean): ProfileViewModel {
       xp: 0,
       level: 1,
       progressToNextLevel: 0,
+      followers: 0,
+      following: 0,
     };
 
   const favorites: ProfileFavorite[] = isDemoMode
@@ -340,6 +347,7 @@ function createFallbackViewModel(isDemoMode: boolean): ProfileViewModel {
     initials: isDemoMode ? "DC" : "GU",
     profileVisibility: isDemoMode ? "public" : "private",
     tagline: createTagline(stats, isDemoMode, false),
+    bio: null,
   };
 
   return {
@@ -386,6 +394,7 @@ function ProfileSkeleton() {
         <div className="h-52 rounded-[2rem] border border-white/8 bg-white/[0.03]" />
         <div className="h-44 rounded-[2rem] border border-white/8 bg-white/[0.03]" />
       </div>
+
       <BottomNav />
     </main>
   );
@@ -402,6 +411,10 @@ export default function ProfilePage() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [usernameInput, setUsernameInput] = useState("");
+  const [followersModal, setFollowersModal] = useState<{ isOpen: boolean; mode: "followers" | "following" }>({ isOpen: false, mode: "followers" });
+  const currentUserId = user?.id ?? viewModel.identity.email ?? "";
 
   useEffect(() => {
     if (loading) {
@@ -435,7 +448,7 @@ export default function ProfilePage() {
         const [profileResult, favoritesResult, badgesResult, strainCountResult, growCountResult] = await Promise.all([
           supabase
             .from("profiles")
-            .select("username, display_name, avatar_url, profile_visibility")
+            .select("username, display_name, avatar_url, profile_visibility, bio")
             .eq("id", user.id)
             .maybeSingle(),
           supabase
@@ -496,6 +509,17 @@ export default function ProfilePage() {
             return acc;
           }, []);
 
+        // Fetch follower and following counts
+        const { count: followersCount } = await supabase
+          .from("follows")
+          .select("*", { count: "exact", head: true })
+          .eq("following_id", user.id);
+
+        const { count: followingCount } = await supabase
+          .from("follows")
+          .select("*", { count: "exact", head: true })
+          .eq("follower_id", user.id);
+
         const stats: ProfileStats = {
           totalStrains: strainCountResult.count ?? 0,
           totalGrows: growCountResult.count ?? 0,
@@ -525,6 +549,8 @@ export default function ProfilePage() {
                 120) *
               100
             ),
+          followers: followersCount ?? 0,
+          following: followingCount ?? 0,
         };
 
         const profile = (profileResult.data ?? null) as ProfileRow | null;
@@ -540,6 +566,7 @@ export default function ProfilePage() {
           avatarUrl: profile?.avatar_url?.trim() || null,
           profileVisibility: profile?.profile_visibility === "public" ? "public" : "private",
           tagline: createTagline(stats, false, true),
+          bio: profile?.bio || null,
         };
 
         const nextViewModel: ProfileViewModel = {
@@ -616,6 +643,45 @@ export default function ProfilePage() {
       setStatusMessage("Die Sichtbarkeit konnte nicht gespeichert werden.");
     } finally {
       setIsUpdatingVisibility(false);
+    }
+  };
+
+  const handleSaveUsername = async (newUsername: string) => {
+    if (!user || isDemoMode || !newUsername.trim()) {
+      setIsEditingUsername(false);
+      return;
+    }
+
+    const previousViewModel = viewModel;
+    const cleanUsername = newUsername.trim().replace(/^@+/, "");
+
+    const nextIdentity: ProfileIdentity = {
+      ...viewModel.identity,
+      username: `@${cleanUsername}`,
+    };
+
+    const nextViewModel: ProfileViewModel = {
+      ...viewModel,
+      identity: nextIdentity,
+      activity: buildActivity(nextIdentity, viewModel.stats, viewModel.favorites, viewModel.badges),
+      preview: buildPublicPreview(nextIdentity, viewModel.stats, viewModel.favorites, viewModel.badges),
+    };
+
+    setViewModel(nextViewModel);
+    setIsEditingUsername(false);
+    setStatusMessage("Username aktualisiert.");
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ username: cleanUsername })
+        .eq("id", user.id);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Username error:", error);
+      setViewModel(previousViewModel);
+      setStatusMessage("Der Username konnte nicht gespeichert werden.");
     }
   };
 
@@ -758,9 +824,44 @@ export default function ProfilePage() {
 
                 <div className="max-w-xl space-y-3">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/55">
-                      {identity.username}
-                    </span>
+                    {isEditingUsername ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          defaultValue={identity.username.replace(/^@/, "")}
+                          onChange={(e) => setUsernameInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleSaveUsername(usernameInput || identity.username.replace(/^@/, ""));
+                            if (e.key === "Escape") setIsEditingUsername(false);
+                          }}
+                          className="rounded-full border border-[#00F5FF]/30 bg-[#101214] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/55 outline-none focus:border-[#00F5FF]"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleSaveUsername(usernameInput || identity.username.replace(/^@/, ""))}
+                          className="text-[#00F5FF] hover:text-white transition-colors"
+                        >
+                          <ArrowRight size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/55">
+                          {identity.username}
+                        </span>
+                        <button
+                          onClick={() => { setIsEditingUsername(true); setUsernameInput(identity.username.replace(/^@/, "")); }}
+                          className="text-white/40 hover:text-white/70 transition-colors"
+                        >
+                          <Pencil size={12} />
+                        </button>
+                      </>
+                    )}
+                    {user?.email === 'test@test.com' || user?.email === 'lars.fieber@gmx.de' || user?.email === 'fabian.gebert@hotmail.de' ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-[#FFD700]/30 bg-[#FFD700]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#FFD700]">
+                        <Shield size={10} /> Owner
+                      </span>
+                    ) : null}
                     <span
                       className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] ${isPublic
                         ? "border border-[#2FF801]/30 bg-[#2FF801]/10 text-[#baff9a]"
@@ -780,6 +881,14 @@ export default function ProfilePage() {
                   <div className="space-y-2">
                     <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">{identity.displayName}</h2>
                     <p className="max-w-2xl text-sm leading-7 text-white/55 sm:text-[15px]">{identity.tagline}</p>
+                    {identity.bio && (
+                      <div className="flex items-start gap-2 mt-2">
+                        <p className="max-w-xl text-sm leading-6 text-white/70">{identity.bio}</p>
+                        <button className="mt-0.5 text-white/40 hover:text-white/70 transition-colors">
+                          <Pencil size={14} />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap items-center gap-4 text-sm text-white/45">
@@ -787,6 +896,20 @@ export default function ProfilePage() {
                       <UserRound size={14} className="text-white/35" />
                       {identity.email ?? "Noch nicht angemeldet"}
                     </span>
+                    <button
+                      onClick={() => { setFollowersModal({ isOpen: true, mode: "followers" }); }}
+                      className="inline-flex items-center gap-2 hover:text-white transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/35"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                      <span className="text-white/70">{stats.followers} Followers</span>
+                    </button>
+                    <button
+                      onClick={() => { setFollowersModal({ isOpen: true, mode: "following" }); }}
+                      className="inline-flex items-center gap-2 hover:text-white transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/35"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                      <span className="text-white/70">{stats.following} Following</span>
+                    </button>
                     <span className="inline-flex items-center gap-2">
                       <Sparkles size={14} className="text-white/35" />
                       {stats.xp} XP gesammelt
@@ -1067,12 +1190,6 @@ export default function ProfilePage() {
                     Strains entdecken
                     <ArrowRight size={16} />
                   </Link>
-                  <Link
-                    href="/grows/new"
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-white/75 transition-colors hover:bg-white/[0.06]"
-                  >
-                    Grow anlegen
-                  </Link>
                 </div>
               </div>
             </Card>
@@ -1159,6 +1276,13 @@ export default function ProfilePage() {
           </div>
         </section>
       </div>
+
+      <FollowersListModal
+        isOpen={followersModal.isOpen}
+        onClose={() => setFollowersModal((prev) => ({ ...prev, isOpen: false }))}
+        mode={followersModal.mode}
+        userId={currentUserId}
+      />
 
       <BottomNav />
     </main>

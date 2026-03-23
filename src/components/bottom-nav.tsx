@@ -2,13 +2,13 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, Leaf, Sprout, User, ScanLine } from "lucide-react";
+import { Home, Leaf, Sprout, User, ScanLine, Users, ActivitySquare } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/strains", label: "Strains", icon: Leaf },
   { href: "/scanner", label: "Scanner", icon: ScanLine, isCenter: true },
-  { href: "/grows", label: "Grows", icon: Sprout },
+  { href: "/discover", label: "Discover", icon: Users },
   { href: "/profile", label: "Profil", icon: User },
 ];
 
@@ -29,8 +29,8 @@ export function BottomNav() {
                 className="flex flex-col items-center justify-center -mt-10"
               >
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${isActive
-                    ? "bg-[#00F5FF] text-black scale-110 shadow-[#00F5FF]/20"
-                    : "bg-[#1a191b] text-[#00F5FF] border border-white/10"
+                  ? "bg-[#00F5FF] text-black scale-110 shadow-[#00F5FF]/20"
+                  : "bg-[#1a191b] text-[#00F5FF] border border-white/10"
                   }`}>
                   <item.icon size={28} />
                 </div>

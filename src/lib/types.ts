@@ -49,6 +49,8 @@ export interface ProfileStats {
   xp: number;
   level: number;
   progressToNextLevel: number;
+  followers: number;
+  following: number;
 }
 
 export interface ProfileIdentity {
@@ -59,6 +61,7 @@ export interface ProfileIdentity {
   avatarUrl?: string | null;
   profileVisibility: 'public' | 'private';
   tagline: string;
+  bio?: string | null;
 }
 
 export interface ProfileFavorite {
@@ -136,6 +139,65 @@ export interface RatingRow {
   created_at: string;
 }
 
+// Social Features Types
+export interface Follow {
+  id: string;
+  follower_id: string;
+  following_id: string;
+  created_at: string;
+}
+
+export interface UserActivity {
+  id: string;
+  user_id: string;
+  activity_type: 'rating' | 'grow_started' | 'grow_completed' | 'badge_earned' | 'favorite_added';
+  target_id: string;
+  target_name: string;
+  target_image_url?: string;
+  metadata: Record<string, unknown>;
+  is_public: boolean;
+  created_at: string;
+  // Joined data
+  user?: ProfileRow;
+}
+
+export interface FollowRequest {
+  id: string;
+  requester_id: string;
+  target_id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+}
+
+export interface ProfileWithStats extends ProfileRow {
+  stats: ProfileStats;
+  followers_count: number;
+  following_count: number;
+  is_following?: boolean;
+  is_following_me?: boolean;
+}
+
+export interface SocialFeedItem {
+  activity: UserActivity;
+  user: ProfileRow;
+}
+
+export interface SuggestedUser {
+  id: string;
+  username: string;
+  display_name?: string;
+  avatar_url?: string;
+  bio?: string;
+  common_strains_count?: number;
+  followers_count?: number;
+}
+
+export interface FollowStatus {
+  is_following: boolean;
+  is_following_me: boolean;
+  has_pending_request: boolean;
+}
+
 export interface ProfileRow {
   id: string;
   username: string | null;
@@ -143,6 +205,9 @@ export interface ProfileRow {
   avatar_url: string | null;
   bio: string | null;
   profile_visibility: 'public' | 'private' | null;
+  location?: string | null;
+  website?: string | null;
+  social_links?: Record<string, unknown> | null;
   created_at: string;
 }
 
