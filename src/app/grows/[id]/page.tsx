@@ -1,0 +1,407 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/components/auth-provider";
+import { BottomNav } from "@/components/bottom-nav";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+    Loader2, ChevronLeft, Sprout, Calendar, Edit2, Trash2,
+    CheckCircle2, XCircle, Plus, Leaf, Droplets, Sun, Wind
+} from "lucide-react";
+import Link from "next/link";
+
+interface Grow {
+    id: string;
+    title: string;
+    grow_type: string;
+    medium?: string;
+    light_type?: string;
+    nutrients?: string;
+    start_date?: string;
+    harvest_date?: string;
+    yield_grams?: number;
+    status: string;
+    is_public: boolean;
+    strains?: {
+        id: string;
+        name: string;
+        slug: string;
+    };
+}
+
+interface GrowEntry {
+    id: string;
+    grow_id: string;
+    entry_date: string;
+    stage: string;
+    height_cm?: number;
+    notes?: string;
+    photo_url?: string;
+    created_at: string;
+}
+
+export default function GrowDetailPage() {
+    const { id } = useParams();
+    const { user, isDemoMode } = useAuth();
+    const router = useRouter();
+
+    const [grow, setGrow] = useState<Grow | null>(null);
+    const [entries, setEntries] = useState<GrowEntry[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
+    const [isAddingEntry, setIsAddingEntry] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Edit form state
+    const [editTitle, setEditTitle] = useState("");
+    const [editStatus, setEditStatus] = useState("active");
+
+    // New entry state
+    const [newEntryStage, setNewEntryStage] = useState("seedling");
+    const [newEntryNotes, setNewEntryNotes] = useState("");
+
+    useEffect(() => {
+        async function fetchGrow() {
+            if (!id) return;
+            setLoading(true);
+
+            try {
+                if (isDemoMode) {
+                    setGrow({
+                        id: id as string,
+                        title: "Demo Grow",
+                        grow_type: "indoor",
+                        status: "active",
+                        is_public: true,
+                        start_date: new Date().toISOString().split('T')[0],
+                        strains: { id: "1", name: "Gorilla Glue #4", slug: "gorilla-glue" }
+                    });
+                    setEntries([]);
+                } else if (user) {
+                    const { data: growData, error: growError } = await supabase
+                        .from("grows")
+                        .select("*, strains(id, name, slug)")
+                        .eq("id", id)
+                        .single();
+
+                    if (growError) throw growError;
+                    if (growData) {
+                        setGrow(growData);
+                        setEditTitle(growData.title);
+                        setEditStatus(growData.status);
+                    }
+
+                    // Fetch entries
+                    const { data: entriesData } = await supabase
+                        .from("grow_entries")
+                        .select("*")
+                        .eq("grow_id", id)
+                        .order("entry_date", { ascending: false });
+
+                    if (entriesData) setEntries(entriesData);
+                }
+            } catch (err) {
+                console.error("Error fetching grow:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchGrow();
+    }, [id, user, isDemoMode]);
+
+    const handleUpdateGrow = async () => {
+        if (!grow || !user) return;
+        setIsSaving(true);
+
+        try {
+            const { error } = await supabase
+                .from("grows")
+                .update({ title: editTitle, status: editStatus })
+                .eq("id", grow.id);
+
+            if (error) throw error;
+            setGrow({ ...grow, title: editTitle, status: editStatus });
+            setIsEditing(false);
+            router.refresh();
+        } catch (err) {
+            console.error("Error updating grow:", err);
+            alert("Fehler beim Aktualisieren");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleAddEntry = async () => {
+        if (!grow || !user) return;
+        setIsSaving(true);
+
+        try {
+            const { error } = await supabase
+                .from("grow_entries")
+                .insert({
+                    grow_id: grow.id,
+                    entry_date: new Date().toISOString().split('T')[0],
+                    stage: newEntryStage,
+                    notes: newEntryNotes
+                });
+
+            if (error) throw error;
+
+            // Refresh entries
+            const { data } = await supabase
+                .from("grow_entries")
+                .select("*")
+                .eq("grow_id", grow.id)
+                .order("entry_date", { ascending: false });
+
+            if (data) setEntries(data);
+            setIsAddingEntry(false);
+            setNewEntryNotes("");
+        } catch (err) {
+            console.error("Error adding entry:", err);
+            alert("Fehler beim Hinzufügen");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleDeleteGrow = async () => {
+        if (!grow || !user) return;
+        if (!confirm("Dieses Grow wirklich löschen?")) return;
+
+        try {
+            const { error } = await supabase.from("grows").delete().eq("id", grow.id);
+            if (error) throw error;
+            router.push("/grows");
+        } catch (err) {
+            console.error("Error deleting grow:", err);
+            alert("Fehler beim Löschen");
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#355E3B] flex items-center justify-center">
+                <Loader2 className="animate-spin text-[#00F5FF]" size={40} />
+            </div>
+        );
+    }
+
+    if (!grow) {
+        return (
+            <main className="min-h-screen bg-[#355E3B] text-white flex flex-col items-center justify-center gap-4">
+                <XCircle className="text-red-500" size={48} />
+                <p className="font-bold uppercase tracking-wider">Grow nicht gefunden</p>
+                <Link href="/grows">
+                    <Button className="bg-[#00F5FF] text-black">Zurück zu Grows</Button>
+                </Link>
+            </main>
+        );
+    }
+
+    return (
+        <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+            <header className="p-6 sticky top-0 bg-[#355E3B]/90 backdrop-blur-xl z-50 border-b border-white/5">
+                <div className="flex items-center gap-4">
+                    <Link href="/grows">
+                        <Button variant="ghost" size="icon" className="text-white/60 hover:text-white hover:bg-white/5 rounded-full">
+                            <ChevronLeft size={24} />
+                        </Button>
+                    </Link>
+                    <div className="flex-1">
+                        <span className="text-[10px] text-[#00F5FF] font-black uppercase tracking-[0.4em]">Grow Details</span>
+                        <h1 className="text-xl font-black italic tracking-tighter uppercase leading-none">{grow.title}</h1>
+                    </div>
+                    {!isEditing && (
+                        <div className="flex gap-2">
+                            <Button
+                                onClick={() => setIsEditing(true)}
+                                variant="ghost" size="icon" className="text-white/60 hover:text-[#00F5FF] rounded-full"
+                            >
+                                <Edit2 size={18} />
+                            </Button>
+                            <Button
+                                onClick={handleDeleteGrow}
+                                variant="ghost" size="icon" className="text-white/60 hover:text-red-500 rounded-full"
+                            >
+                                <Trash2 size={18} />
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            </header>
+
+            <div className="p-6 space-y-6">
+                {/* Status Card */}
+                <Card className="bg-[#1a191b] border-white/5 p-5">
+                    {isEditing ? (
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Titel</label>
+                                <Input
+                                    value={editTitle}
+                                    onChange={(e) => setEditTitle(e.target.value)}
+                                    className="bg-white/5 border-white/10 text-white"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Status</label>
+                                <div className="flex gap-2">
+                                    {['active', 'completed', 'abandoned'].map((s) => (
+                                        <button
+                                            key={s}
+                                            onClick={() => setEditStatus(s)}
+                                            className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${editStatus === s
+                                                ? s === 'active' ? 'bg-[#2FF801] text-black' : s === 'completed' ? 'bg-[#00F5FF] text-black' : 'bg-red-500 text-white'
+                                                : 'bg-white/5 text-white/40'
+                                                }`}
+                                        >
+                                            {s}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="flex gap-2 pt-2">
+                                <Button onClick={handleUpdateGrow} disabled={isSaving} className="flex-1 bg-[#00F5FF] text-black font-black">
+                                    {isSaving ? <Loader2 className="animate-spin" size={16} /> : "Speichern"}
+                                </Button>
+                                <Button onClick={() => setIsEditing(false)} variant="ghost" className="text-white/60">Abbrechen</Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <Badge className={grow.status === 'active' ? 'bg-[#2FF801] text-black border-none' : grow.status === 'completed' ? 'bg-[#00F5FF] text-black border-none' : 'bg-red-500 text-white border-none'}>
+                                    {grow.status.toUpperCase()}
+                                </Badge>
+                                <Badge variant="outline" className="border-white/10 text-white/40 text-[10px]">
+                                    {grow.grow_type.toUpperCase()}
+                                </Badge>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                {grow.strains && (
+                                    <Link href={`/strains/${grow.strains.slug}`} className="flex items-center gap-2 p-3 bg-white/5 rounded-xl">
+                                        <Leaf size={16} className="text-[#2FF801]" />
+                                        <span className="text-xs font-bold">{grow.strains.name}</span>
+                                    </Link>
+                                )}
+                                {grow.start_date && (
+                                    <div className="flex items-center gap-2 p-3 bg-white/5 rounded-xl">
+                                        <Calendar size={16} className="text-[#00F5FF]" />
+                                        <span className="text-xs font-bold">{grow.start_date}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {grow.medium && (
+                                <div className="flex items-center gap-2 text-white/60 text-xs">
+                                    <Droplets size={14} /> Medium: {grow.medium}
+                                </div>
+                            )}
+                            {grow.light_type && (
+                                <div className="flex items-center gap-2 text-white/60 text-xs">
+                                    <Sun size={14} /> Licht: {grow.light_type}
+                                </div>
+                            )}
+                            {grow.yield_grams && (
+                                <div className="flex items-center gap-2 text-white/60 text-xs">
+                                    <CheckCircle2 size={14} className="text-[#2FF801]" /> Ertrag: {grow.yield_grams}g
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </Card>
+
+                {/* Entries Section */}
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-sm font-black uppercase tracking-wider text-white/60">Grow Tagebuch</h2>
+                        <Button
+                            onClick={() => setIsAddingEntry(true)}
+                            size="sm"
+                            className="bg-[#2FF801] text-black font-black text-[10px]"
+                        >
+                            <Plus size={14} className="mr-1" /> Eintrag
+                        </Button>
+                    </div>
+
+                    {isAddingEntry && (
+                        <Card className="bg-[#1a191b] border-white/5 p-5 space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Stage</label>
+                                <div className="flex gap-2 flex-wrap">
+                                    {['seedling', 'vegetative', 'flowering', 'harvest', 'drying', 'curing'].map((stage) => (
+                                        <button
+                                            key={stage}
+                                            onClick={() => setNewEntryStage(stage)}
+                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${newEntryStage === stage ? 'bg-[#00F5FF] text-black' : 'bg-white/5 text-white/40'
+                                                }`}
+                                        >
+                                            {stage}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Notizen</label>
+                                <textarea
+                                    value={newEntryNotes}
+                                    onChange={(e) => setNewEntryNotes(e.target.value)}
+                                    placeholder="Wie entwickelt sich die Pflanze?"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#00F5FF]/50"
+                                    rows={3}
+                                />
+                            </div>
+                            <div className="flex gap-2">
+                                <Button onClick={handleAddEntry} disabled={isSaving} className="flex-1 bg-[#00F5FF] text-black font-black">
+                                    {isSaving ? <Loader2 className="animate-spin" size={16} /> : "Speichern"}
+                                </Button>
+                                <Button onClick={() => setIsAddingEntry(false)} variant="ghost" className="text-white/60">Abbrechen</Button>
+                            </div>
+                        </Card>
+                    )}
+
+                    {entries.length > 0 ? (
+                        <div className="space-y-3">
+                            {entries.map((entry) => (
+                                <Card key={entry.id} className="bg-[#1a191b] border-white/5 p-4">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <Badge className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold uppercase">
+                                            {entry.stage}
+                                        </Badge>
+                                        <span className="text-[10px] text-white/40 font-bold">{entry.entry_date}</span>
+                                    </div>
+                                    {entry.notes && (
+                                        <p className="text-xs text-white/70 italic leading-relaxed">{entry.notes}</p>
+                                    )}
+                                    {entry.height_cm && (
+                                        <div className="flex items-center gap-1 mt-2 text-[10px] text-white/40">
+                                            <Wind size={12} /> {entry.height_cm}cm
+                                        </div>
+                                    )}
+                                </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        !isAddingEntry && (
+                            <div className="text-center py-8 space-y-3">
+                                <Sprout className="mx-auto text-white/20" size={32} />
+                                <p className="text-white/40 text-xs font-bold uppercase tracking-wider">Noch keine Einträge</p>
+                                <p className="text-white/20 text-[10px]">Dokumentiere deinen Grow mit dem Tagebuch</p>
+                            </div>
+                        )
+                    )}
+                </div>
+            </div>
+
+            <BottomNav />
+        </main>
+    );
+}
