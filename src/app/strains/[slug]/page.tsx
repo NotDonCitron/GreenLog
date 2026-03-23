@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { toPng } from "html-to-image";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Flame, Wind, Eye, Leaf, Database } from "lucide-react";
+import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Flame, Wind, Eye, Leaf, Database, Sparkles, Share2, Download } from "lucide-react";
 import { Strain } from "@/lib/types";
 
 export default function StrainDetailPage() {
@@ -15,6 +16,7 @@ export default function StrainDetailPage() {
   const { user, isDemoMode } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const [strain, setStrain] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,6 +29,8 @@ export default function StrainDetailPage() {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [batchInfo, setBatchInfo] = useState("");
   const [userNotes, setUserNotes] = useState("");
+  const [badgeToast, setBadgeToast] = useState<{ name: string; rarity: string } | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
 
   const [ratings, setRatings] = useState({
     taste: 4.5,
@@ -110,23 +114,77 @@ export default function StrainDetailPage() {
   };
 
   const toggleFavorite = async () => {
+    console.log("toggleFavorite called, isDemoMode:", isDemoMode, "user:", !!user, "strain:", !!strain);
+
     if (isDemoMode) {
       setIsFavorite(!isFavorited);
+      console.log("Demo mode - toggled locally to:", !isFavorited);
       return;
     }
-    if (!user || !strain) return;
+    if (!user || !strain) {
+      console.log("No user or strain, returning");
+      return;
+    }
 
     const nextState = !isFavorited;
     setIsFavorite(nextState);
 
     try {
-      await supabase.from("user_strain_relations").upsert({
+      const { data, error } = await supabase.from("user_strain_relations").upsert({
         user_id: user.id,
         strain_id: strain.id,
         is_favorite: nextState
       }, { onConflict: 'user_id,strain_id' });
+
+      console.log("Fav toggle result:", { data, error, nextState });
     } catch (err) {
       console.error("Fav error:", err);
+    }
+  };
+
+  const handleShareCard = async () => {
+    if (!cardRef.current) return;
+    setIsSharing(true);
+    try {
+      // Temporarily flip to front for capture
+      const wasFlipped = isFlipped;
+      if (wasFlipped) setIsFlipped(false);
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const dataUrl = await toPng(cardRef.current, {
+        quality: 1,
+        pixelRatio: 2,
+        backgroundColor: '#1a191b',
+      });
+
+      // Try native share first
+      if (navigator.share && navigator.canShare) {
+        const blob = await (await fetch(dataUrl)).blob();
+        const file = new File([blob], `${strain.slug}-card.png`, { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: strain.name,
+            text: `Check out my ${strain.name} strain card from GreenLog!`,
+          });
+          if (wasFlipped) setIsFlipped(true);
+          setIsSharing(false);
+          return;
+        }
+      }
+
+      // Fallback to download
+      const link = document.createElement('a');
+      link.download = `${strain.slug}-card.png`;
+      link.href = dataUrl;
+      link.click();
+
+      if (wasFlipped) setIsFlipped(true);
+    } catch (err) {
+      console.error("Share error:", err);
+      alert("Could not share card. Try downloading instead.");
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -176,17 +234,20 @@ export default function StrainDetailPage() {
 
       // 4. Check & Unlock Badges
       const { data: allBadges } = await supabase.from('badges').select('*');
-      const { data: currentColl } = await supabase.from('user_collection').select('*, strain:strains(*)').eq('user_id', user.id);
+      const { data: currentRatings } = await supabase.from('ratings').select('*, strain:strains(*)').eq('user_id', user.id);
 
       const unlockBadge = async (badgeName: string) => {
         const badge = allBadges?.find(b => b.name === badgeName);
         if (badge) {
           await supabase.from('user_badges').upsert({ user_id: user.id, badge_id: badge.id }, { onConflict: 'user_id,badge_id' });
+          // Show toast notification
+          setBadgeToast({ name: badge.name, rarity: badge.rarity || 'common' });
+          setTimeout(() => setBadgeToast(null), 4000);
         }
       };
 
       // Condition: Genesis (First strain)
-      if (currentColl?.length === 1) await unlockBadge("Genesis");
+      if (currentRatings?.length === 1) await unlockBadge("Genesis");
 
       // Condition: High Flyer (>25% THC)
       if ((strain.avg_thc && strain.avg_thc > 25) || (strain.thc_max && strain.thc_max > 25)) {
@@ -197,11 +258,11 @@ export default function StrainDetailPage() {
       if (strain.is_medical) await unlockBadge("Pharma Specialist");
 
       // Condition: Indica Knight (5 Indicas)
-      const indicaCount = currentColl?.filter(item => (item.strain as any)?.type === 'indica').length || 0;
+      const indicaCount = currentRatings?.filter(item => (item.strain as any)?.type === 'indica').length || 0;
       if (indicaCount >= 5) await unlockBadge("Indica Knight");
 
       // Condition: Sativa Scout (5 Sativas)
-      const sativaCount = currentColl?.filter(item => (item.strain as any)?.type === 'sativa').length || 0;
+      const sativaCount = currentRatings?.filter(item => (item.strain as any)?.type === 'sativa').length || 0;
       if (sativaCount >= 5) await unlockBadge("Sativa Scout");
 
       setHasCollected(true);
@@ -225,9 +286,25 @@ export default function StrainDetailPage() {
 
   return (
     <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+      {/* Badge Unlock Toast */}
+      {badgeToast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-top-4 fade-in duration-300">
+          <div className="bg-gradient-to-r from-[#2FF801] to-[#00F5FF] text-black px-6 py-3 rounded-full font-bold flex items-center gap-3 shadow-lg shadow-[#2FF801]/20">
+            <Sparkles size={20} className="animate-pulse" />
+            <span>Badge Unlocked: {badgeToast.name}</span>
+            <Badge className={`${badgeToast.rarity === 'legendary' ? 'bg-yellow-500 text-black' : badgeToast.rarity === 'rare' ? 'bg-blue-500 text-white' : 'bg-white/20 text-white'} border-none text-[10px]`}>
+              {badgeToast.rarity}
+            </Badge>
+          </div>
+        </div>
+      )}
+
       <div className="p-6 flex justify-between items-center sticky top-0 z-50 bg-[#355E3B]/80 backdrop-blur-xl">
         <button onClick={() => router.back()} className="p-2 rounded-full bg-white/5"><ChevronLeft size={24} /></button>
         <div className="flex gap-2">
+          <button onClick={handleShareCard} disabled={isSharing} className="p-2 rounded-full bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/20">
+            {isSharing ? <Loader2 size={20} className="animate-spin" /> : <Share2 size={20} />}
+          </button>
           {user && <button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="p-2 rounded-full bg-[#00F5FF]/10 text-[#00F5FF] border border-[#00F5FF]/20"><Upload size={20} /></button>}
           <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
           <button
@@ -240,7 +317,7 @@ export default function StrainDetailPage() {
       </div>
 
       <div className="px-6 flex flex-col items-center">
-        <div className="relative w-full max-w-[340px] aspect-[3/4.5] perspective-1000 mt-4 cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
+        <div ref={cardRef} className="relative w-full max-w-[340px] aspect-[3/4.5] perspective-1000 mt-4 cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
           <div className={`relative w-full h-full transition-all duration-700 preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
             <Card className="absolute inset-0 backface-hidden overflow-hidden border-2 rounded-[2.5rem] bg-[#1a191b] border-[#00F5FF] ring-8 ring-[#00F5FF]/10 shadow-[0_0_50px_rgba(0,245,255,0.2)]">
               <div className="absolute inset-0 card-holo opacity-50 pointer-events-none" />
