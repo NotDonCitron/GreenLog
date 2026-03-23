@@ -363,19 +363,14 @@ function createFallbackViewModel(isDemoMode: boolean): ProfileViewModel {
 function SectionHeader({
   eyebrow,
   title,
-  description,
 }: {
   eyebrow: string;
   title: string;
-  description: string;
 }) {
   return (
     <div className="space-y-1 px-1">
       <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#A3E4D7]/70">{eyebrow}</p>
-      <div className="space-y-1">
-        <h2 className="text-lg font-semibold tracking-tight text-white">{title}</h2>
-        <p className="max-w-xl text-sm leading-6 text-white/45">{description}</p>
-      </div>
+      <h2 className="text-lg font-semibold tracking-tight text-white">{title}</h2>
     </div>
   );
 }
@@ -1063,9 +1058,6 @@ export default function ProfilePage() {
                 <div className="max-w-xl space-y-2">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/45">Noch keine Favoriten</p>
                   <h3 className="text-xl font-semibold tracking-tight text-white">Mach deine Collection sichtbar</h3>
-                  <p className="text-sm leading-6 text-white/45">
-                    Sobald du Favoriten markierst, entsteht hier eine kuratierte Front deiner Sammlung – ideal für Identität und Public Preview.
-                  </p>
                 </div>
                 <Link
                   href="/strains"
@@ -1083,7 +1075,6 @@ export default function ProfilePage() {
           <SectionHeader
             eyebrow="Activity"
             title="Aktivität und Momentum"
-            description="Statt leerer Flächen zeigt dein Profil, wie weit du schon bist und welche nächste Aktion den größten Qualitätsgewinn bringt."
           />
           <div className="grid gap-3 lg:grid-cols-2">
             {activity.map((item) => (
@@ -1092,7 +1083,6 @@ export default function ProfilePage() {
                   <div className="space-y-2">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-white/40">{item.title}</p>
                     <p className="text-base font-semibold tracking-tight text-white">{item.value}</p>
-                    <p className="text-sm leading-6 text-white/45">{item.detail}</p>
                   </div>
                   <div
                     className={`rounded-2xl p-3 ${item.tone === "success"
@@ -1115,7 +1105,6 @@ export default function ProfilePage() {
             <SectionHeader
               eyebrow="Progress"
               title="Badges und nächste Milestones"
-              description="Gamification bleibt bewusst reduziert: sichtbar, motivierend und sauber eingebettet in den Premium-Look des Profils."
             />
 
             {badges.length > 0 ? (
@@ -1159,7 +1148,6 @@ export default function ProfilePage() {
             <SectionHeader
               eyebrow="Next"
               title="Nächster sinnvoller Schritt"
-              description="Ein fokussierter Milestone verhindert, dass sich das Profil leer oder unfertig anfühlt."
             />
             <Card className="rounded-[2rem] border border-[#427249]/50 bg-[#2D5032] p-6">
               <div className="space-y-4">
@@ -1201,7 +1189,6 @@ export default function ProfilePage() {
             <SectionHeader
               eyebrow="Social"
               title="Public Preview & Privatsphäre"
-              description="Die Sichtbarkeit bekommt einen echten Produktnutzen: Du siehst sofort, wie dein Profil nach außen wirken würde."
             />
             <Card className="rounded-[2rem] border border-white/8 bg-white/[0.03] p-6 sm:p-7">
               <div className="space-y-5">
@@ -1232,7 +1219,6 @@ export default function ProfilePage() {
             <SectionHeader
               eyebrow="Account"
               title="Profilmodus & Zugang"
-              description="Ein kompakter Bereich für Vorschau, Sign-in und Sitzungsaktionen – ohne Testcenter oder Admin-Noise in der Hauptansicht."
             />
             <Card className="rounded-[2rem] border border-white/8 bg-white/[0.03] p-6">
               <div className="space-y-4">
