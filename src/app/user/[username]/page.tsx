@@ -219,7 +219,7 @@ export default function UserProfilePage() {
                 {/* Owner Badge Above Avatar */}
                 {(profile.username === 'fabian.gebert' || profile.username === 'lars.fieber' || profile.username === 'test') && (
                     <div className="flex justify-center mb-2">
-                        <span className="inline-flex items-center gap-1 rounded-full border border-[#FFD700]/30 bg-[#FFD700]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#FFD700]">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-[#F39C12]/30 bg-[#F39C12]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#F39C12]">
                             <Shield size={10} /> Owner
                         </span>
                     </div>
@@ -297,7 +297,7 @@ export default function UserProfilePage() {
                     <button
                         onClick={() => setActiveTab("activity")}
                         className={`pb-3 text-sm font-semibold transition-colors ${activeTab === "activity"
-                            ? "text-white border-b-2 border-white"
+                            ? "text-[#A3E4D7] border-b-2 border-[#A3E4D7]"
                             : "text-white/40"
                             }`}
                     >
@@ -306,7 +306,7 @@ export default function UserProfilePage() {
                     <button
                         onClick={() => setActiveTab("favorites")}
                         className={`pb-3 text-sm font-semibold transition-colors ${activeTab === "favorites"
-                            ? "text-white border-b-2 border-white"
+                            ? "text-[#A3E4D7] border-b-2 border-[#A3E4D7]"
                             : "text-white/40"
                             }`}
                     >
@@ -315,7 +315,7 @@ export default function UserProfilePage() {
                     <button
                         onClick={() => setActiveTab("grows")}
                         className={`pb-3 text-sm font-semibold transition-colors ${activeTab === "grows"
-                            ? "text-white border-b-2 border-white"
+                            ? "text-[#A3E4D7] border-b-2 border-[#A3E4D7]"
                             : "text-white/40"
                             }`}
                     >
@@ -327,7 +327,7 @@ export default function UserProfilePage() {
                 <div className="py-4">
                     {activeTab === "activity" && (
                         activities.length > 0 ? (
-                            <div className="bg-white/5 rounded-2xl overflow-hidden">
+                            <div className="bg-[#2D5032] border border-[#427249]/50 rounded-2xl overflow-hidden">
                                 {activities.map((activity) => (
                                     <ActivityItem
                                         key={activity.id}
@@ -348,7 +348,7 @@ export default function UserProfilePage() {
                             <div className="grid grid-cols-3 gap-2">
                                 {favorites.map((fav) => (
                                     <Link key={fav.id} href={`/strains/${fav.strains?.slug}`}>
-                                        <div className="aspect-square rounded-xl overflow-hidden bg-white/5 relative">
+                                        <div className="aspect-square rounded-xl overflow-hidden bg-[#2D5032] border border-[#427249]/50 relative">
                                             {fav.strains?.image_url && (
                                                 <img
                                                     src={fav.strains.image_url}
@@ -378,8 +378,8 @@ export default function UserProfilePage() {
                             <div className="space-y-3">
                                 {grows.map((grow) => (
                                     <Link key={grow.id} href={`/grows/${grow.id}`}>
-                                        <div className="bg-white/5 rounded-xl p-4 flex items-center gap-3">
-                                            <div className="bg-[#00F5FF]/20 w-10 h-10 rounded-full flex items-center justify-center">
+                                        <div className="bg-[#2D5032] border border-[#427249]/50 rounded-xl p-4 flex items-center gap-3">
+                                            <div className="bg-[#A3E4D7]/20 w-10 h-10 rounded-full flex items-center justify-center">
                                                 <span className="text-lg">🌱</span>
                                             </div>
                                             <div className="flex-1 min-w-0">

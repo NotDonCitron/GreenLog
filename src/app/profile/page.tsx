@@ -371,7 +371,7 @@ function SectionHeader({
 }) {
   return (
     <div className="space-y-1 px-1">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#00F5FF]/70">{eyebrow}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#A3E4D7]/70">{eyebrow}</p>
       <div className="space-y-1">
         <h2 className="text-lg font-semibold tracking-tight text-white">{title}</h2>
         <p className="max-w-xl text-sm leading-6 text-white/45">{description}</p>
@@ -764,7 +764,7 @@ export default function ProfilePage() {
       <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-8 px-5 py-6 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-[#00F5FF]/80">Cannalog</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-[#A3E4D7]/80">Cannalog</p>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">Profil</h1>
           </div>
           <div className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium text-white/60">
@@ -784,17 +784,17 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <Card className="overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-0 shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
+        <Card className="overflow-hidden rounded-[2rem] border border-[#427249]/50 bg-[#2D5032] p-0 shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
           <div className="flex flex-col gap-8 p-6 sm:p-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
                 <div className="relative">
-                  <div className="absolute inset-0 rounded-full bg-[#00F5FF]/20 blur-3xl" />
-                  <Avatar className="relative h-24 w-24 border border-white/15 bg-[#101214] p-1 sm:h-28 sm:w-28">
+                  <div className="absolute inset-0 rounded-full bg-[#A3E4D7]/20 blur-3xl" />
+                  <Avatar className="relative h-24 w-24 border border-[#427249]/50 bg-[#355E3B] p-1 sm:h-28 sm:w-28">
                     <AvatarImage
                       src={identity.avatarUrl || `https://api.dicebear.com/7.x/thumbs/svg?seed=${user?.email || identity.username || "guest"}`}
                     />
-                    <AvatarFallback className="bg-[#101214] text-lg font-semibold text-white/80">
+                    <AvatarFallback className="bg-[#355E3B] text-lg font-semibold text-white/80">
                       {identity.initials}
                     </AvatarFallback>
                   </Avatar>
@@ -810,14 +810,14 @@ export default function ProfilePage() {
                       type="button"
                       onClick={() => avatarInputRef.current?.click()}
                       disabled={isUploadingAvatar}
-                      className="absolute -top-1 -right-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-[#101214]/90 text-white/75 shadow-lg transition-colors hover:border-[#00F5FF]/35 hover:text-[#00F5FF] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="absolute -top-1 -right-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#427249]/50 bg-[#355E3B]/90 text-white/75 shadow-lg transition-colors hover:border-[#A3E4D7]/35 hover:text-[#A3E4D7] disabled:cursor-not-allowed disabled:opacity-60"
                       aria-label="Profilbild ändern"
                       title="Profilbild ändern"
                     >
                       {isUploadingAvatar ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
                     </button>
                   )}
-                  <div className="absolute -bottom-2 right-0 rounded-full border border-black/40 bg-[#00F5FF] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-black shadow-lg shadow-[#00F5FF]/25">
+                  <div className="absolute -bottom-2 right-0 rounded-full border border-black/40 bg-[#A3E4D7] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#2D5032] shadow-lg shadow-[#A3E4D7]/25">
                     Lvl {stats.level}
                   </div>
                 </div>
@@ -834,12 +834,12 @@ export default function ProfilePage() {
                             if (e.key === "Enter") handleSaveUsername(usernameInput || identity.username.replace(/^@/, ""));
                             if (e.key === "Escape") setIsEditingUsername(false);
                           }}
-                          className="rounded-full border border-[#00F5FF]/30 bg-[#101214] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/55 outline-none focus:border-[#00F5FF]"
+                          className="rounded-full border border-[#A3E4D7]/30 bg-[#355E3B] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/55 outline-none focus:border-[#A3E4D7]"
                           autoFocus
                         />
                         <button
                           onClick={() => handleSaveUsername(usernameInput || identity.username.replace(/^@/, ""))}
-                          className="text-[#00F5FF] hover:text-white transition-colors"
+                          className="text-[#A3E4D7] hover:text-white transition-colors"
                         >
                           <ArrowRight size={14} />
                         </button>
@@ -858,7 +858,7 @@ export default function ProfilePage() {
                       </>
                     )}
                     {user?.email === 'test@test.com' || user?.email === 'lars.fieber@gmx.de' || user?.email === 'fabian.gebert@hotmail.de' ? (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-[#FFD700]/30 bg-[#FFD700]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#FFD700]">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-[#F39C12]/30 bg-[#F39C12]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#F39C12]">
                         <Shield size={10} /> Owner
                       </span>
                     ) : null}
@@ -923,7 +923,7 @@ export default function ProfilePage() {
                   onClick={handleToggleVisibility}
                   disabled={!user || isDemoMode || isUpdatingVisibility}
                   className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all ${user && !isDemoMode
-                    ? "border-white/10 bg-white/[0.03] hover:border-[#00F5FF]/35 hover:bg-[#00F5FF]/8"
+                    ? "border-white/10 bg-white/[0.03] hover:border-[#A3E4D7]/35 hover:bg-[#A3E4D7]/8"
                     : "cursor-not-allowed border-white/8 bg-white/[0.02] opacity-70"
                     }`}
                 >
@@ -963,14 +963,14 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="space-y-3 rounded-[1.5rem] border border-white/8 bg-black/20 p-4 sm:p-5">
+            <div className="space-y-3 rounded-[1.5rem] border border-[#427249]/50 bg-[#355E3B] p-4 sm:p-5">
               <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.25em] text-white/45">
                 <span>Level Fortschritt</span>
                 <span>{stats.progressToNextLevel}% bis Level {stats.level + 1}</span>
               </div>
               <div className="h-3 overflow-hidden rounded-full bg-white/6">
                 <div
-                  className="h-full rounded-full bg-[linear-gradient(90deg,#00F5FF,#2FF801)] transition-all duration-700"
+                  className="h-full rounded-full bg-[linear-gradient(90deg,#A3E4D7,#F39C12)] transition-all duration-700"
                   style={{ width: `${progressWidth}%` }}
                 />
               </div>
@@ -1098,7 +1098,7 @@ export default function ProfilePage() {
                     className={`rounded-2xl p-3 ${item.tone === "success"
                       ? "bg-[#2FF801]/12 text-[#afff94]"
                       : item.tone === "accent"
-                        ? "bg-[#00F5FF]/10 text-[#9ff9ff]"
+                        ? "bg-[#A3E4D7]/10 text-[#A3E4D7]"
                         : "bg-white/[0.05] text-white/55"
                       }`}
                   >
@@ -1161,9 +1161,9 @@ export default function ProfilePage() {
               title="Nächster sinnvoller Schritt"
               description="Ein fokussierter Milestone verhindert, dass sich das Profil leer oder unfertig anfühlt."
             />
-            <Card className="rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(0,245,255,0.10),rgba(255,255,255,0.02))] p-6">
+            <Card className="rounded-[2rem] border border-[#427249]/50 bg-[#2D5032] p-6">
               <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#00F5FF]/20 bg-[#00F5FF]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#b9fbff]">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#A3E4D7]/20 bg-[#A3E4D7]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#A3E4D7]">
                   <Sparkles size={12} /> Empfehlung
                 </div>
                 <div className="space-y-2">
@@ -1177,7 +1177,7 @@ export default function ProfilePage() {
                   </div>
                   <div className="h-2.5 overflow-hidden rounded-full bg-white/8">
                     <div
-                      className="h-full rounded-full bg-[linear-gradient(90deg,#00F5FF,#2FF801)]"
+                      className="h-full rounded-full bg-[linear-gradient(90deg,#A3E4D7,#F39C12)]"
                       style={{ width: `${Math.max(6, nextMilestone.progress)}%` }}
                     />
                   </div>
@@ -1239,7 +1239,7 @@ export default function ProfilePage() {
                 <button
                   onClick={handleDemoToggle}
                   className={`flex w-full items-center justify-between rounded-2xl border px-4 py-4 text-left transition-all ${isDemoMode
-                    ? "border-[#00F5FF]/25 bg-[#00F5FF]/10"
+                    ? "border-[#A3E4D7]/25 bg-[#A3E4D7]/10"
                     : "border-white/10 bg-white/[0.03] hover:bg-white/[0.05]"
                     }`}
                 >
@@ -1249,7 +1249,7 @@ export default function ProfilePage() {
                       Schaltet beispielhafte Collection-, Activity- und Badge-Inhalte frei, ohne echte Nutzerdaten zu verändern.
                     </p>
                   </div>
-                  <div className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] ${isDemoMode ? "bg-[#00F5FF] text-black" : "bg-white/8 text-white/55"}`}>
+                  <div className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] ${isDemoMode ? "bg-[#A3E4D7] text-[#2D5032]" : "bg-white/8 text-white/55"}`}>
                     {isDemoMode ? "Aktiv" : "Aus"}
                   </div>
                 </button>
