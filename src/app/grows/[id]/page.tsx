@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
     Loader2, ChevronLeft, Sprout, Calendar, Edit2, Trash2,
-    CheckCircle2, XCircle, Plus, Leaf, Droplets, Sun, Wind
+    CheckCircle2, XCircle, Plus, Leaf, Droplets, Sun, Wind, Upload, Image as ImageIcon
 } from "lucide-react";
 import Link from "next/link";
 
@@ -60,6 +60,9 @@ export default function GrowDetailPage() {
     const [isEditing, setIsEditing] = useState(false);
     const [isAddingEntry, setIsAddingEntry] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     // Edit form state
     const [editTitle, setEditTitle] = useState("");
@@ -154,7 +157,8 @@ export default function GrowDetailPage() {
                     user_id: user.id,
                     day_number: newEntryDayNumber,
                     title: newEntryTitle,
-                    notes: newEntryNotes
+                    notes: newEntryNotes,
+                    image_url: previewImage
                 });
 
             if (error) throw error;
@@ -169,11 +173,32 @@ export default function GrowDetailPage() {
             if (data) setEntries(data);
             setIsAddingEntry(false);
             setNewEntryNotes("");
+            setNewEntryTitle("");
+            setPreviewImage(null);
         } catch (err) {
             console.error("Error adding entry:", err);
             alert("Fehler beim Hinzufügen");
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !grow || !user) return;
+        setIsUploading(true);
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}/${grow.id}/${Date.now()}.${fileExt}`;
+            const { error: uploadError } = await supabase.storage.from('grows').upload(fileName, file);
+            if (uploadError) throw uploadError;
+            const { data: { publicUrl } } = supabase.storage.from('grows').getPublicUrl(fileName);
+            setPreviewImage(publicUrl);
+        } catch (err) {
+            console.error("Upload error:", err);
+            alert("Upload fehlgeschlagen");
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -359,6 +384,39 @@ export default function GrowDetailPage() {
                                 />
                             </div>
                             <div className="space-y-2">
+                                <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Foto</label>
+                                <div className="flex gap-3 items-center">
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        className="hidden"
+                                    />
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isUploading}
+                                        className="w-20 h-20 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center text-white/40 hover:bg-white/10 transition-all"
+                                    >
+                                        {isUploading ? (
+                                            <Loader2 className="animate-spin" size={20} />
+                                        ) : previewImage ? (
+                                            <img src={previewImage} alt="Preview" className="w-full h-full object-cover rounded-xl" />
+                                        ) : (
+                                            <Upload size={20} />
+                                        )}
+                                    </button>
+                                    {previewImage && (
+                                        <button
+                                            onClick={() => setPreviewImage(null)}
+                                            className="text-red-500 text-[10px] font-bold uppercase"
+                                        >
+                                            Entfernen
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="space-y-2">
                                 <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Notizen</label>
                                 <textarea
                                     value={newEntryNotes}
@@ -372,7 +430,7 @@ export default function GrowDetailPage() {
                                 <Button onClick={handleAddEntry} disabled={isSaving} className="flex-1 bg-[#00F5FF] text-black font-black">
                                     {isSaving ? <Loader2 className="animate-spin" size={16} /> : "Speichern"}
                                 </Button>
-                                <Button onClick={() => setIsAddingEntry(false)} variant="ghost" className="text-white/60">Abbrechen</Button>
+                                <Button onClick={() => { setIsAddingEntry(false); setPreviewImage(null); }} variant="ghost" className="text-white/60">Abbrechen</Button>
                             </div>
                         </Card>
                     )}
@@ -381,6 +439,13 @@ export default function GrowDetailPage() {
                         <div className="space-y-3">
                             {entries.map((entry) => (
                                 <Card key={entry.id} className="bg-[#1a191b] border-white/5 p-4">
+                                    {entry.image_url && (
+                                        <img
+                                            src={entry.image_url}
+                                            alt={`Tag ${entry.day_number}`}
+                                            className="w-full h-40 object-cover rounded-xl mb-3"
+                                        />
+                                    )}
                                     <div className="flex justify-between items-start mb-2">
                                         <Badge className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold uppercase">
                                             {entry.title || `Tag ${entry.day_number}`}
