@@ -875,7 +875,6 @@ export default function ProfilePage() {
 
                   <div className="space-y-2">
                     <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">{identity.displayName}</h2>
-                    <p className="max-w-2xl text-sm leading-7 text-white/55 sm:text-[15px]">{identity.tagline}</p>
                     {identity.bio && (
                       <div className="flex items-start gap-2 mt-2">
                         <p className="max-w-xl text-sm leading-6 text-white/70">{identity.bio}</p>
@@ -977,7 +976,6 @@ export default function ProfilePage() {
           <SectionHeader
             eyebrow="Overview"
             title="Das Wesentliche auf einen Blick"
-            description="Eine ruhige Zusammenfassung deiner Sammlung, Aktivität und Profilsubstanz – ohne Dev-Lärm und ohne leere Utility-Flächen."
           />
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {[
@@ -1005,7 +1003,6 @@ export default function ProfilePage() {
           <SectionHeader
             eyebrow="Collection"
             title="Kuratierte Highlights"
-            description="Favoriten und Sammlungshighlights verleihen deinem Profil Persönlichkeit und machen sofort sichtbar, wofür du stehst."
           />
 
           {favorites.length > 0 ? (
@@ -1124,7 +1121,6 @@ export default function ProfilePage() {
                               {badge.rarity}
                             </span>
                           </div>
-                          <p className="text-sm leading-6 text-white/45">{badge.description}</p>
                         </div>
                       </div>
                     </Card>
@@ -1136,9 +1132,6 @@ export default function ProfilePage() {
                 <div className="space-y-3">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/45">Noch keine Badges</p>
                   <h3 className="text-xl font-semibold tracking-tight text-white">Dein Fortschritt startet mit echter Aktivität</h3>
-                  <p className="max-w-xl text-sm leading-6 text-white/45">
-                    Sobald du Strains loggst, Favoriten kuratierst oder Grows dokumentierst, wird dieser Bereich zum sichtbaren Social Proof deines Profils.
-                  </p>
                 </div>
               </Card>
             )}
@@ -1156,7 +1149,6 @@ export default function ProfilePage() {
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-xl font-semibold tracking-tight text-white">{nextMilestone.title}</h3>
-                  <p className="text-sm leading-6 text-white/50">{nextMilestone.description}</p>
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.22em] text-white/40">
@@ -1195,7 +1187,6 @@ export default function ProfilePage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-2">
                     <h3 className="text-xl font-semibold tracking-tight text-white">Öffentliches Profil</h3>
-                    <p className="max-w-2xl text-sm leading-6 text-white/48">So wirkt dein Profil für andere Nutzer.</p>
                   </div>
                   <div className={`rounded-2xl p-3 ${isPublic ? "bg-[#2FF801]/12 text-[#afff94]" : "bg-white/[0.05] text-white/55"}`}>
                     {isPublic ? <Globe2 size={18} /> : <Lock size={18} />}
@@ -1231,9 +1222,6 @@ export default function ProfilePage() {
                 >
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/75">Vorschaumodus</p>
-                    <p className="mt-1 text-sm text-white/45">
-                      Schaltet beispielhafte Collection-, Activity- und Badge-Inhalte frei, ohne echte Nutzerdaten zu verändern.
-                    </p>
                   </div>
                   <div className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] ${isDemoMode ? "bg-[#A3E4D7] text-[#2D5032]" : "bg-white/8 text-white/55"}`}>
                     {isDemoMode ? "Aktiv" : "Aus"}
