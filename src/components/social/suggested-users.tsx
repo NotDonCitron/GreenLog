@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Loader2, RefreshCw, UserPlus } from "lucide-react";
 import { FollowButton } from "./follow-button";
-import { supabase, getAuthenticatedClient } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import type { SuggestedUser } from "@/lib/types";
 
@@ -36,13 +36,7 @@ export function SuggestedUsers({
         else setIsLoading(true);
 
         try {
-            // Get session for authenticated requests
-            const { data: { session } } = await supabase.auth.getSession();
-
-            // Create authenticated supabase client with access token
-            const authClient = session?.access_token
-                ? getAuthenticatedClient(session.access_token)
-                : supabase;
+            const authClient = supabase;
 
             // Get users with similar strain ratings first
             const { data: userRatings } = await authClient

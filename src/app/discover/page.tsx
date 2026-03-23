@@ -24,35 +24,12 @@ export default function DiscoverPage() {
         const fetchBrowseUsers = async () => {
             setIsLoading(true);
             try {
-                // Get pending and accepted (following) requests if user is logged in
-                let visibleRequestIds: string[] = [];
-                if (user) {
-                    const { data: requestsData } = await supabase
-                        .from("follow_requests")
-                        .select("target_id, status")
-                        .eq("requester_id", user.id);
-
-                    // Include both pending requests and accepted follows
-                    visibleRequestIds = requestsData
-                        ?.filter(r => r.status === "pending" || r.status === "accepted")
-                        .map(r => r.target_id) ?? [];
-                }
-
-                // Build query for: public profiles OR profiles user has follow relationship with
+                // Browse should show all profiles, including private ones.
                 let query = supabase
                     .from("profiles")
                     .select("*")
                     .order("created_at", { ascending: false })
                     .limit(30);
-
-                // Apply visibility filter
-                if (visibleRequestIds.length > 0) {
-                    query = query.or(
-                        `profile_visibility.eq.public,id.in.(${visibleRequestIds.join(",")})`
-                    );
-                } else {
-                    query = query.eq("profile_visibility", "public");
-                }
 
                 if (user) {
                     query = query.neq("id", user.id);
@@ -264,29 +241,29 @@ export default function DiscoverPage() {
                                             <h2 className="text-sm font-semibold text-white/80">Recent Members</h2>
                                             <span className="text-xs text-white/40">{browseUsers.length} users</span>
                                         </div>
-                                        <div className="grid grid-cols-3 gap-1">
+                                        <div className="grid grid-cols-2 gap-3">
                                             {browseUsers.map((profile) => (
                                                 <Link key={profile.id} href={`/user/${profile.username}`}>
-                                                    <div className="aspect-square relative rounded-xl overflow-hidden bg-white/5">
-                                                        {profile.avatar_url ? (
-                                                            <img
-                                                                src={profile.avatar_url}
-                                                                alt={profile.username ?? ""}
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        ) : (
-                                                            <div className="w-full h-full flex items-center justify-center bg-white/10">
-                                                                <span className="text-2xl font-bold text-white/30">
+                                                    <div className="rounded-2xl border border-white/10 bg-white/5 p-3 hover:bg-white/10 transition-colors">
+                                                        <div className="aspect-square rounded-xl overflow-hidden bg-white/10 mb-3 flex items-center justify-center">
+                                                            {profile.avatar_url ? (
+                                                                <img
+                                                                    src={profile.avatar_url}
+                                                                    alt={profile.username ?? ""}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <span className="text-3xl font-bold text-white/30">
                                                                     {profile.username?.[0]?.toUpperCase() || "?"}
                                                                 </span>
-                                                            </div>
-                                                        )}
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
-                                                        <div className="absolute bottom-2 left-2 right-2 opacity-0 hover:opacity-100 transition-opacity">
-                                                            <p className="text-xs font-semibold text-white truncate">
-                                                                {profile.display_name || profile.username}
-                                                            </p>
+                                                            )}
                                                         </div>
+                                                        <p className="text-sm font-semibold text-white truncate">
+                                                            {profile.display_name || profile.username}
+                                                        </p>
+                                                        <p className="text-xs text-white/50 truncate">
+                                                            @{profile.username}
+                                                        </p>
                                                     </div>
                                                 </Link>
                                             ))}
