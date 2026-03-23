@@ -81,11 +81,11 @@ export default function CollectionPage() {
     return typeof value === "number" ? `${value}%` : "—";
   };
 
-  if (loading || authLoading) return <div className="min-h-screen bg-[#1a191b] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
+  if (loading || authLoading) return <div className="min-h-screen bg-[#355E3B] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
 
   return (
-    <main className="min-h-screen bg-[#1a191b] text-white pb-32">
-      <header className="p-6 sticky top-0 bg-[#1a191b]/90 backdrop-blur-xl z-50 border-b border-white/5">
+    <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+      <header className="p-6 sticky top-0 bg-[#355E3B]/90 backdrop-blur-xl z-50 border-b border-white/5">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-4">
             <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition">

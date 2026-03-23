@@ -109,7 +109,7 @@ export default function GrowDetailPage() {
                         .from("grow_entries")
                         .select("*")
                         .eq("grow_id", id)
-                        .order("entry_date", { ascending: false });
+                        .order("created_at", { ascending: false });
 
                     if (entriesData) setEntries(entriesData);
                 }
@@ -396,12 +396,12 @@ export default function GrowDetailPage() {
                                     <button
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={isUploading}
-                                        className="w-20 h-20 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center text-white/40 hover:bg-white/10 transition-all"
+                                        className="w-20 h-20 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center text-white/40 hover:bg-white/10 transition-all overflow-hidden"
                                     >
                                         {isUploading ? (
                                             <Loader2 className="animate-spin" size={20} />
                                         ) : previewImage ? (
-                                            <img src={previewImage} alt="Preview" className="w-full h-full object-cover rounded-xl" />
+                                            <img src={previewImage} alt="Preview" className="w-full h-full object-contain" />
                                         ) : (
                                             <Upload size={20} />
                                         )}
@@ -440,16 +440,23 @@ export default function GrowDetailPage() {
                             {entries.map((entry) => (
                                 <Card key={entry.id} className="bg-[#1a191b] border-white/5 p-4">
                                     {entry.image_url && (
-                                        <img
-                                            src={entry.image_url}
-                                            alt={`Tag ${entry.day_number}`}
-                                            className="w-full h-40 object-cover rounded-xl mb-3"
-                                        />
+                                        <div className="-mx-4 mb-3 overflow-hidden bg-[#0a0a0b] flex items-center justify-center" style={{ height: '200px' }}>
+                                            <img
+                                                src={entry.image_url}
+                                                alt={`Tag ${entry.day_number}`}
+                                                className="max-w-full max-h-full object-contain"
+                                            />
+                                        </div>
                                     )}
                                     <div className="flex justify-between items-start mb-2">
-                                        <Badge className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold uppercase">
-                                            {entry.title || `Tag ${entry.day_number}`}
-                                        </Badge>
+                                        <div className="flex flex-col gap-1">
+                                            <Badge className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold uppercase">
+                                                {entry.title || `Tag ${entry.day_number}`}
+                                            </Badge>
+                                            <span className="text-[10px] text-white/40">
+                                                {new Date(entry.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                            </span>
+                                        </div>
                                         <span className="text-[10px] text-white/40 font-bold">Tag {entry.day_number}</span>
                                     </div>
                                     {entry.notes && (
