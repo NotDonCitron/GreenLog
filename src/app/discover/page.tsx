@@ -24,12 +24,35 @@ export default function DiscoverPage() {
         const fetchBrowseUsers = async () => {
             setIsLoading(true);
             try {
+                // Get pending and accepted (following) requests if user is logged in
+                let visibleRequestIds: string[] = [];
+                if (user) {
+                    const { data: requestsData } = await supabase
+                        .from("follow_requests")
+                        .select("target_id, status")
+                        .eq("requester_id", user.id);
+
+                    // Include both pending requests and accepted follows
+                    visibleRequestIds = requestsData
+                        ?.filter(r => r.status === "pending" || r.status === "accepted")
+                        .map(r => r.target_id) ?? [];
+                }
+
+                // Build query for: public profiles OR profiles user has follow relationship with
                 let query = supabase
                     .from("profiles")
                     .select("*")
-                    .eq("profile_visibility", "public")
                     .order("created_at", { ascending: false })
                     .limit(30);
+
+                // Apply visibility filter
+                if (visibleRequestIds.length > 0) {
+                    query = query.or(
+                        `profile_visibility.eq.public,id.in.(${visibleRequestIds.join(",")})`
+                    );
+                } else {
+                    query = query.eq("profile_visibility", "public");
+                }
 
                 if (user) {
                     query = query.neq("id", user.id);
@@ -57,11 +80,11 @@ export default function DiscoverPage() {
 
         setIsSearching(true);
         try {
+            // Search: all profiles by username or display_name
             const { data, error } = await supabase
                 .from("profiles")
                 .select("*")
-                .ilike("username", `%${searchQuery}%`)
-                .eq("profile_visibility", "public")
+                .or(`username.ilike.%${searchQuery}%,display_name.ilike.%${searchQuery}%`)
                 .limit(20);
 
             if (error) throw error;

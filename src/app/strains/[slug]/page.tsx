@@ -281,6 +281,29 @@ export default function StrainDetailPage() {
     }
   };
 
+  const typeStr = (strain?.type || '').toLowerCase();
+  let themeClass = 'theme-cyan';
+  let imageFilter = '';
+  let badgeClasses = 'border-[#00FFFF] text-[#00FFFF]';
+  let underlineBg = 'bg-[#00FFFF]';
+
+  if (typeStr.includes('sativa')) {
+    themeClass = 'theme-gold';
+    imageFilter = 'saturate-50 contrast-125';
+    badgeClasses = 'border-yellow-500 text-yellow-500';
+    underlineBg = 'bg-[#fbbf24]';
+  } else if (typeStr.includes('indica')) {
+    themeClass = 'theme-emerald';
+    imageFilter = 'grayscale-[0.2]';
+    badgeClasses = 'border-emerald-400 text-emerald-400';
+    underlineBg = 'bg-[#10b981]';
+  }
+
+  const thcDisplay = strain?.avg_thc ?? strain?.thc_max ? `${strain.avg_thc ?? strain.thc_max}%` : '—';
+  const cbdDisplay = strain?.avg_cbd ?? strain?.cbd_max ? `${strain.avg_cbd ?? strain.cbd_max}%` : '< 1%';
+  const effectDisplay = strain?.effects?.[0] || strain?.indications?.[0] || (strain?.is_medical ? "Medical" : "Euphorie");
+  const tasteDisplay = strain?.terpenes?.slice(0, 2).map((t: any) => typeof t === 'string' ? t : t?.name).join(' · ') || 'Zitrus, Erdig';
+
   if (loading) return <div className="min-h-screen bg-[#355E3B] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
   if (!strain) return <div className="text-white text-center py-20 uppercase font-bold">Strain not found</div>;
 
@@ -319,36 +342,65 @@ export default function StrainDetailPage() {
       <div className="px-6 flex flex-col items-center">
         <div ref={cardRef} className="relative w-full max-w-[340px] aspect-[3/4.5] perspective-1000 mt-4 cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
           <div className={`relative w-full h-full transition-all duration-700 preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
-            <Card className="absolute inset-0 backface-hidden overflow-hidden border-2 rounded-[2.5rem] bg-[#1a191b] border-[#00F5FF] ring-8 ring-[#00F5FF]/10 shadow-[0_0_50px_rgba(0,245,255,0.2)]">
-              <div className="absolute inset-0 card-holo opacity-50 pointer-events-none" />
-              <div className="h-3/5 relative">
-                {userImageUrl ? (
-                  <img src={userImageUrl} alt={strain.name} className="w-full h-full object-cover" />
-                ) : strain.image_url ? (
-                  <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#1a191b] to-black flex items-center justify-center">
-                    <Leaf className="text-white/5" size={80} />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1a191b] via-transparent to-transparent" />
-                {isUploading && <div className="absolute inset-0 bg-black/60 flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>}
+            <Card className={`absolute inset-0 backface-hidden overflow-hidden rounded-[2.5rem] premium-card ${themeClass} flex flex-col w-full h-full p-0 border-0 ${hasCollected ? (themeClass === 'theme-cyan' ? 'ring-[3px] ring-[#00FFFF]/60 shadow-[0_0_40px_rgba(0,255,255,0.4)]' : themeClass === 'theme-gold' ? 'ring-[3px] ring-yellow-500/60 shadow-[0_0_40px_rgba(251,191,36,0.4)]' : 'ring-[3px] ring-emerald-500/60 shadow-[0_0_40px_rgba(16,185,129,0.4)]') : ''} transition-opacity duration-300 ${isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+              <div className="absolute inset-0 card-holo opacity-40 pointer-events-none z-10" />
+              <div className="p-6 pb-4 z-20">
+                    <h2 className="title-font italic text-3xl text-white font-bold leading-tight uppercase drop-shadow-lg line-clamp-2">
+                      {strain.name}
+                    </h2>
+                    <div className={`w-12 h-1 mt-3 opacity-70 ${underlineBg}`}></div>
               </div>
-              <div className="p-8 flex flex-col h-2/5 justify-between">
-                <div>
-                  <div className="flex justify-between items-start mb-2">
-                    <Badge className="bg-[#2FF801]/10 text-[#2FF801] border-none px-3 py-1 text-[10px] font-bold uppercase">{strain.type}</Badge>
-                    {strain.is_medical && (
-                      <Badge className="bg-[#00F5FF]/10 text-[#00F5FF] border-none px-2 py-1 text-[8px] font-black uppercase tracking-tighter">Medical Grade</Badge>
-                    )}
+
+              <div className="px-5 w-full shrink-0 z-20">
+                <div className="relative w-full h-[220px] rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg">
+                  {userImageUrl ? (
+                    <img src={userImageUrl} alt={strain.name} className={`w-full h-full object-cover ${imageFilter}`} />
+                  ) : strain.image_url ? (
+                    <img src={strain.image_url} alt={strain.name} className={`w-full h-full object-cover ${imageFilter}`} />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#1a191b] to-black flex items-center justify-center">
+                      <Leaf className="text-white/5" size={80} />
+                    </div>
+                  )}
+                  {isUploading && <div className="absolute inset-0 bg-black/60 flex items-center justify-center"><Loader2 className="animate-spin text-white" size={40} /></div>}
+                  <div className={`absolute bottom-3 left-3 border bg-black/95 uppercase text-[11px] px-2.5 py-1 rounded-sm tracking-wider font-bold shadow-md ${badgeClasses}`}>
+                    {strain.type || 'HYBRID'}
                   </div>
-                  <h1 className="text-4xl font-black italic tracking-tighter uppercase leading-none">{strain.name}</h1>
-                  {strain.brand && <p className="text-[10px] font-bold text-[#00F5FF] uppercase tracking-widest mt-1">{strain.brand}</p>}
                 </div>
-                <div className="text-[10px] font-bold text-white/40 tracking-widest uppercase">Tap to Flip</div>
               </div>
+
+              <div className="px-5 mt-5 w-full flex-grow flex flex-col justify-end pb-6 z-20">
+                <div className="bg-[#1a191b]/95 border border-white/10 rounded-2xl p-4 shadow-inner shadow-lg">
+                    {/* Row 1: THC & Geschmack */}
+                    <div className="grid grid-cols-2 gap-3 border-b border-white/5 pb-3 mb-3">
+                        <div className="flex items-center justify-between">
+                            <span className="text-gray-500 text-[11px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
+                            <span className="accent-text text-[15px] font-bold tracking-wide">{thcDisplay}</span>
+                        </div>
+                        <div className="flex items-center justify-end border-l border-white/5 pl-3 w-full">
+                            <span className="text-gray-100 text-xs font-medium tracking-wide leading-tight text-right text-balance">{tasteDisplay}</span>
+                        </div>
+                    </div>
+                    {/* Row 2: CBD & Wirkung */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="flex items-center justify-between">
+                            <span className="text-gray-500 text-[11px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
+                            <span className="accent-text text-[15px] font-bold tracking-wide">{cbdDisplay}</span>
+                        </div>
+                        <div className="flex items-center justify-end border-l border-white/5 pl-3 w-full">
+                            <span className="text-gray-100 text-xs font-medium tracking-wide leading-tight text-right text-balance">{effectDisplay}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex justify-between items-end mt-6 px-1">
+                    <div className="text-[11px] font-bold text-white/50 uppercase tracking-widest animate-pulse">
+                        TAP TO FLIP →
+                    </div>
+                </div>
+              </div>              
             </Card>
-            <Card className="absolute inset-0 rotate-y-180 backface-hidden overflow-hidden border-2 rounded-[2.5rem] bg-[#1a191b] border-[#2FF801] ring-8 ring-[#2FF801]/10 shadow-[0_0_50px_rgba(47,248,1,0.15)]">
+            <Card className={`absolute inset-0 rotate-y-180 backface-hidden overflow-hidden border-2 rounded-[2.5rem] bg-[#1a191b] border-[#2FF801] ring-8 ring-[#2FF801]/10 shadow-[0_0_50px_rgba(47,248,1,0.15)] transition-opacity duration-300 ${isFlipped ? 'opacity-100 delay-200' : 'opacity-0 pointer-events-none delay-0'}`}>
               <div className="p-8 h-full flex flex-col justify-between overflow-y-auto custom-scrollbar">
                 <div>
                   <div className="flex justify-between items-center mb-6">

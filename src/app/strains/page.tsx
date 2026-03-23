@@ -6,17 +6,30 @@ import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Loader2, Trophy, Lock, AlertCircle, Leaf } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Loader2, Trophy, Lock, AlertCircle, Leaf, Plus, User } from "lucide-react";
 import Link from "next/link";
-import { Strain } from "@/lib/types";
+import { useRouter } from "next/navigation";
+import { Strain, StrainSource } from "@/lib/types";
+import { CreateStrainModal } from "@/components/strains/create-strain-modal";
+import { StrainCard } from "@/components/strains/strain-card";
 
 export default function StrainsPage() {
   const { user, isDemoMode } = useAuth();
+  const router = useRouter();
   const [strains, setStrains] = useState<Strain[]>([]);
   const [userCollection, setUserCollection] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [sourceFilter, setSourceFilter] = useState<StrainSource | "all" | "mine">("all");
   const [error, setError] = useState<string | null>(null);
+
+  const handleStrainCreated = (strainId: string, slug: string) => {
+    // Refresh the strains list
+    window.location.reload();
+    // Navigate to the new strain
+    router.push(`/strains/${slug}`);
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -64,9 +77,19 @@ export default function StrainsPage() {
     fetchData();
   }, [user, isDemoMode]);
 
-  const filteredStrains = strains.filter(s =>
-    s.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredStrains = strains.filter(s => {
+    // Search filter
+    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
+
+    // Source filter
+    if (sourceFilter === "mine") {
+      return matchesSearch && s.is_custom && s.created_by === user?.id;
+    }
+    if (sourceFilter === "all") {
+      return matchesSearch;
+    }
+    return matchesSearch && s.source === sourceFilter;
+  });
 
   return (
     <main className="min-h-screen bg-[#355E3B] text-white pb-32">
@@ -92,6 +115,63 @@ export default function StrainsPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+
+        {/* Source Filter Tabs */}
+        <div className="flex gap-2 mt-4 overflow-x-auto pb-1 -mx-1 px-1">
+          <Button
+            size="sm"
+            variant={sourceFilter === "all" ? "default" : "outline"}
+            onClick={() => setSourceFilter("all")}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "all" ? "bg-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
+          >
+            Alle
+          </Button>
+          <Button
+            size="sm"
+            variant={sourceFilter === "pharmacy" ? "default" : "outline"}
+            onClick={() => setSourceFilter("pharmacy")}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "pharmacy" ? "bg-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
+          >
+            🧪 Apotheke
+          </Button>
+          <Button
+            size="sm"
+            variant={sourceFilter === "street" ? "default" : "outline"}
+            onClick={() => setSourceFilter("street")}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "street" ? "bg-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
+          >
+            📦 Street
+          </Button>
+          <Button
+            size="sm"
+            variant={sourceFilter === "grow" ? "default" : "outline"}
+            onClick={() => setSourceFilter("grow")}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "grow" ? "bg-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
+          >
+            🌱 Eigenanbau
+          </Button>
+          {user && (
+            <Button
+              size="sm"
+              variant={sourceFilter === "mine" ? "default" : "outline"}
+              onClick={() => setSourceFilter("mine")}
+              className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "mine" ? "bg-[#00F5FF] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
+            >
+              <User size={12} className="mr-1" />
+              Meine
+            </Button>
+          )}
+          <div className="flex-1" />
+          <CreateStrainModal
+            onSuccess={handleStrainCreated}
+            trigger={
+              <Button size="sm" className="rounded-xl text-[10px] font-bold bg-[#2FF801] hover:bg-[#2FF801]/90 text-black whitespace-nowrap">
+                <Plus size={14} className="mr-1" />
+                Eigen
+              </Button>
+            }
+          />
+        </div>
       </header>
 
       <div className="p-6">
@@ -108,44 +188,10 @@ export default function StrainsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-6">
-            {filteredStrains.map((strain) => {
+            {filteredStrains.map((strain, i) => {
               const isCollected = userCollection.includes(strain.id);
               return (
-                <Link key={strain.id} href={`/strains/${strain.slug}`}>
-                  <Card className={`relative bg-[#1a191b] overflow-hidden transition-all duration-500 group active:scale-95 ${isCollected
-                      ? 'border-[#00F5FF]/50 shadow-[0_0_20px_rgba(0,245,255,0.15)]'
-                      : 'border-white/5 opacity-60'
-                    }`}>
-                    {!isCollected && (
-                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-grayscale">
-                        <Lock className="text-white/20" size={24} />
-                      </div>
-                    )}
-
-                    <div className={`aspect-[4/5] relative ${!isCollected ? 'grayscale brightness-50' : ''}`}>
-                      {strain.image_url ? (
-                        <img src={strain.image_url} alt={strain.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-[#1a191b] to-black flex items-center justify-center">
-                          <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
-                          <Leaf className="text-white/5" size={64} />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#1a191b] via-transparent to-transparent" />
-                      {isCollected && <div className="absolute inset-0 card-holo opacity-30 animate-pulse" />}
-                    </div>
-
-                    <div className="p-3 relative bg-[#1a191b]">
-                      <h3 className={`font-black text-[11px] uppercase tracking-tight truncate ${isCollected ? 'text-white' : 'text-white/40'}`}>
-                        {strain.name}
-                      </h3>
-                      <div className="flex justify-between items-center mt-1">
-                        <span className="text-[8px] text-white/30 font-mono">#{strain.id.toString().slice(0, 4)}</span>
-                        {isCollected && <Trophy size={10} className="text-[#2FF801]" />}
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
+                <StrainCard key={strain.id} strain={strain} index={i} isCollected={isCollected} />
               );
             })}
           </div>

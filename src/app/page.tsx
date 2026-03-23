@@ -220,33 +220,77 @@ export default function Home() {
               const isTop = relativeIndex === 0;
               const thcDisplay = getCannabinoidDisplay(strain.avg_thc, strain.thc_max);
               if (relativeIndex > 2) return null;
+              
+              const typeStr = (strain.type || '').toLowerCase();
+              let themeClass = 'theme-cyan';
+              let imageFilter = '';
+              let badgeClasses = 'border-[#00FFFF] text-[#00FFFF]';
+              let underlineBg = 'bg-[#00FFFF]';
+              
+              if (typeStr.includes('sativa')) {
+                themeClass = 'theme-gold';
+                imageFilter = 'saturate-50 contrast-125';
+                badgeClasses = 'border-yellow-500 text-yellow-500';
+                underlineBg = 'bg-[#fbbf24]';
+              } else if (typeStr.includes('indica')) {
+                themeClass = 'theme-emerald';
+                imageFilter = 'grayscale-[0.2]';
+                badgeClasses = 'border-emerald-400 text-emerald-400';
+                underlineBg = 'bg-[#10b981]';
+              }
+
+              const cbdValue = strain.avg_cbd ?? strain.cbd_max;
+              const cbdDisplay = typeof cbdValue === 'number' ? `${cbdValue}%` : '< 1%';
+              const effectDisplay = getEffectDisplay(strain);
+              const tasteDisplay = getTasteDisplay(strain);
+
               return (
                 <div key={strain.id} className={`absolute inset-0 transition-all duration-700 ease-in-out-expo preserve-3d ${isTop && isFlipped ? 'rotate-y-180' : ''}`} style={{ transform: isTop && isFlipped ? `rotateY(180deg)` : `translateY(${relativeIndex * -12}px) translateX(${relativeIndex * 12}px) scale(${1 - relativeIndex * 0.05}) rotate(${relativeIndex * 2}deg)`, zIndex: strains.length - relativeIndex }}>
-                  <Card onClick={() => isTop && setIsFlipped(!isFlipped)} className={`absolute inset-0 backface-hidden overflow-hidden border-2 rounded-3xl bg-[#1a191b] shadow-2xl transition-all duration-300 ${isTop ? 'border-[#00F5FF] ring-4 ring-[#00F5FF]/20 shadow-[0_0_30px_rgba(0,245,255,0.2)]' : 'border-white/10'}`}>
-                    <div className="absolute inset-0 card-holo opacity-40 pointer-events-none" />
-                    <div className="h-2/3 relative">
-                      <img
-                        src={getPrimaryImageUrl(strain)}
-                        alt={strain.name}
-                        className="w-full h-full object-cover"
-                        onError={(event) => handleCardImageError(event, strain)}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#1a191b] via-transparent to-transparent" />
-                      <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-[#00F5FF]/30 rounded-full w-12 h-12 flex items-center justify-center text-[10px] font-bold">
-                        {thcDisplay}
+                  <Card onClick={() => isTop && setIsFlipped(!isFlipped)} className={`absolute inset-0 backface-hidden overflow-hidden rounded-3xl premium-card ${themeClass} flex flex-col w-full h-full p-0 border-0 ${isTop ? (themeClass === 'theme-cyan' ? 'ring-[3px] ring-[#00FFFF]/60 shadow-[0_0_40px_rgba(0,255,255,0.4)]' : themeClass === 'theme-gold' ? 'ring-[3px] ring-yellow-500/60 shadow-[0_0_40px_rgba(251,191,36,0.4)]' : 'ring-[3px] ring-emerald-500/60 shadow-[0_0_40px_rgba(16,185,129,0.4)]') : ''} transition-opacity duration-300 ${isTop && isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                    <div className="absolute inset-0 card-holo opacity-40 pointer-events-none z-10" />
+                    
+                    <div className="p-4 pb-2 z-20 shrink-0">
+                      <h2 className="title-font italic text-[22px] text-white font-bold leading-tight uppercase drop-shadow-lg line-clamp-2">
+                        {strain.name}
+                      </h2>
+                      <div className={`w-10 h-0.5 mt-1.5 opacity-70 ${underlineBg}`}></div>
+                    </div>
+
+                    <div className="px-4 w-full flex-1 z-20 min-h-0">
+                      <div className="relative w-full h-full rounded-xl overflow-hidden border border-white/10 shadow-lg">
+                        <img src={getPrimaryImageUrl(strain)} alt={strain.name} className={`absolute inset-0 w-full h-full object-cover ${imageFilter}`} onError={(e) => handleCardImageError(e, strain)} />
+                        <div className={`absolute bottom-2 left-2 border bg-black/95 uppercase text-[10px] px-2 py-1 rounded-sm tracking-wider font-bold shadow-md ${badgeClasses}`}>
+                          {strain.type || 'HYBRID'}
+                        </div>
                       </div>
                     </div>
-                    <div className="p-5 flex flex-col h-1/3 justify-between">
-                      <div>
-                        <div className="flex justify-between items-start mb-1 gap-3">
-                          <Badge variant="outline" className="text-[10px] border-[#2FF801]/30 text-[#2FF801] uppercase">{strain.type}</Badge>
-                          <span className="text-[10px] text-white/40 font-mono">#{String(strain.id).slice(0, 4)}</span>
+
+                    <div className="px-4 mt-3 w-full shrink-0 flex flex-col justify-end pb-4 z-20">
+                      <div className="bg-[#1a191b]/95 border border-white/10 rounded-xl p-3 shadow-inner shadow-lg">
+                        {/* Row 1: THC & Geschmack */}
+                        <div className="grid grid-cols-2 gap-2 border-b border-white/5 pb-2 mb-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-gray-500 text-[10px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
+                                <span className="accent-text text-[13px] font-bold tracking-wide">{thcDisplay}</span>
+                            </div>
+                            <div className="flex items-center justify-end border-l border-white/5 pl-2 w-full">
+                                <span className="text-gray-100 text-[10px] sm:text-[11px] font-medium tracking-wide leading-tight text-right text-balance">{tasteDisplay}</span>
+                            </div>
                         </div>
-                        <h2 className="text-2xl font-black italic tracking-tighter uppercase leading-none mb-1 line-clamp-2">{strain.name}</h2>
-                        <p className="text-xs text-white/50 font-medium uppercase tracking-widest">PERSONAL COLLECTION</p>
+                        {/* Row 2: CBD & Wirkung */}
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-gray-500 text-[10px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
+                                <span className="accent-text text-[13px] font-bold tracking-wide">{cbdDisplay}</span>
+                            </div>
+                            <div className="flex items-center justify-end border-l border-white/5 pl-2 w-full">
+                                <span className="text-gray-100 text-[10px] sm:text-[11px] font-medium tracking-wide leading-tight text-right text-balance">{effectDisplay}</span>
+                            </div>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-end gap-3">
-                        <div className="text-[10px] font-bold text-[#00F5FF]/80 animate-pulse">
+                      
+                      <div className="flex justify-between items-end mt-3 px-1">
+                        <div className="text-[10px] font-bold text-white/50 uppercase tracking-widest animate-pulse">
                           {isTop ? 'TAP TO FLIP →' : 'BROWSE STACK'}
                         </div>
                         <div className="text-[10px] text-white/35 font-mono">
@@ -255,7 +299,7 @@ export default function Home() {
                       </div>
                     </div>
                   </Card>
-                  <Card className={`absolute inset-0 rotate-y-180 backface-hidden overflow-hidden border-2 rounded-3xl bg-[#1a191b] shadow-2xl border-[#2FF801] ring-4 ring-[#2FF801]/20`} onClick={() => isTop && setIsFlipped(!isFlipped)}>
+                  <Card className={`absolute inset-0 rotate-y-180 backface-hidden overflow-hidden border-2 rounded-3xl bg-[#1a191b] shadow-2xl border-[#2FF801] ring-4 ring-[#2FF801]/20 transition-opacity duration-300 ${isTop && isFlipped ? 'opacity-100 delay-200' : 'opacity-0 pointer-events-none delay-0'}`} onClick={() => isTop && setIsFlipped(!isFlipped)}>
                     <div className="p-6 h-full flex flex-col justify-between relative text-left overflow-y-auto no-scrollbar">
                       <div>
                         <div className="flex justify-between items-center mb-5">

@@ -200,3 +200,55 @@
     @apply font-sans;
   }
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600;1,700;1,800&display=swap');
+
+@layer components {
+  .title-font {
+    font-family: 'Playfair Display', serif;
+  }
+
+  .premium-card {
+    padding-bottom: 12px;
+    background-color: #121212;
+    border-radius: 16px;
+    position: relative;
+    box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.7);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .premium-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  /* Theme Colors */
+  .theme-cyan {
+    border: 1px solid #00FFFF;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2), inset 0 0 8px rgba(0, 255, 255, 0.1);
+  }
+  .theme-cyan .accent-text { color: #00FFFF; }
+
+  .theme-gold {
+    border: 1px solid #fbbf24;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.2), inset 0 0 8px rgba(251, 191, 36, 0.1);
+  }
+  .theme-gold .accent-text { color: #fbbf24; }
+
+  .theme-emerald {
+    border: 1px solid #10b981;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2), inset 0 0 8px rgba(16, 185, 129, 0.1);
+  }
+  .theme-emerald .accent-text { color: #10b981; }
+
+  .theme-purple {
+    border: 1px solid #c084fc;
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.2), inset 0 0 8px rgba(192, 132, 252, 0.1);
+  }
+  .theme-purple .accent-text { color: #c084fc; }
+
+  .theme-crimson {
+    border: 1px solid #f43f5e;
+    box-shadow: 0 0 10px rgba(244, 63, 94, 0.2), inset 0 0 8px rgba(244, 63, 94, 0.1);
+  }
+  .theme-crimson .accent-text { color: #f43f5e; }
+}

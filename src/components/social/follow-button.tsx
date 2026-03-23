@@ -9,6 +9,7 @@ import type { FollowStatus } from "@/lib/types";
 
 interface FollowButtonProps {
     userId: string;
+    profileVisibility?: "public" | "private" | null;
     initialStatus?: FollowStatus;
     size?: "default" | "sm" | "lg";
     onFollowChange?: () => void;
@@ -17,6 +18,7 @@ interface FollowButtonProps {
 
 export function FollowButton({
     userId,
+    profileVisibility,
     initialStatus,
     size = "default",
     onFollowChange,
@@ -29,6 +31,7 @@ export function FollowButton({
     );
     const [isLoading, setIsLoading] = useState(false);
     const [isInitialized, setIsInitialized] = useState(!!initialStatus);
+    const [isPrivate, setIsPrivate] = useState(profileVisibility === "private");
 
     // Update status when initialStatus changes
     useEffect(() => {
@@ -38,27 +41,59 @@ export function FollowButton({
         }
     }, [initialStatus]);
 
-    // Fetch follow status if not provided
+    // Fetch follow status and profile visibility if not provided
     useEffect(() => {
-        if (!user || initialStatus) {
+        if (!user) {
             setIsInitialized(true);
             return;
         }
 
         const fetchStatus = async () => {
-            const { data } = await supabase
+            // Fetch profile visibility if not provided
+            if (profileVisibility === undefined) {
+                const { data: profile } = await supabase
+                    .from("profiles")
+                    .select("profile_visibility")
+                    .eq("id", userId)
+                    .single();
+
+                if (profile) {
+                    setIsPrivate(profile.profile_visibility === "private");
+                }
+            }
+
+            // Fetch follow status
+            const { data: followData } = await supabase
                 .from("follows")
                 .select("id")
                 .eq("follower_id", user.id)
                 .eq("following_id", userId)
                 .single();
 
-            setStatus({ is_following: !!data, is_following_me: false, has_pending_request: false });
+            // Fetch pending request if profile is private
+            let hasPending = false;
+            if (isPrivate || profileVisibility === "private") {
+                const { data: requestData } = await supabase
+                    .from("follow_requests")
+                    .select("id, status")
+                    .eq("requester_id", user.id)
+                    .eq("target_id", userId)
+                    .eq("status", "pending")
+                    .single();
+
+                hasPending = !!requestData;
+            }
+
+            setStatus({
+                is_following: !!followData,
+                is_following_me: false,
+                has_pending_request: hasPending
+            });
             setIsInitialized(true);
         };
 
         fetchStatus();
-    }, [user, userId, initialStatus]);
+    }, [user, userId, initialStatus, profileVisibility, isPrivate]);
 
     const isOwnProfile = user?.id === userId;
 
@@ -83,14 +118,42 @@ export function FollowButton({
                     onFollowChange?.();
                     router.refresh();
                 }
-            } else {
-                // Follow
+            } else if (status.has_pending_request) {
+                // Cancel follow request
                 const { error } = await supabase
-                    .from("follows")
-                    .insert({ follower_id: user.id, following_id: userId });
+                    .from("follow_requests")
+                    .delete()
+                    .eq("requester_id", user.id)
+                    .eq("target_id", userId)
+                    .eq("status", "pending");
 
                 if (!error) {
-                    setStatus((prev) => ({ ...prev, is_following: true }));
+                    setStatus((prev) => ({ ...prev, has_pending_request: false }));
+                    onFollowChange?.();
+                    router.refresh();
+                }
+            } else {
+                // Follow or send request - get session for auth
+                const { data: { session } } = await supabase.auth.getSession();
+                const accessToken = session?.access_token;
+
+                const endpoint = `/api/follow-request/${userId}`;
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(accessToken && { "Authorization": `Bearer ${accessToken}` })
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    if (result.action === "followed") {
+                        setStatus((prev) => ({ ...prev, is_following: true }));
+                    } else if (result.action === "request_sent") {
+                        setStatus((prev) => ({ ...prev, has_pending_request: true }));
+                    }
                     onFollowChange?.();
                     router.refresh();
                 }
@@ -129,6 +192,22 @@ export function FollowButton({
         );
     }
 
+    if (hasPendingRequest) {
+        return (
+            <button
+                onClick={handleFollow}
+                disabled={isLoading}
+                className={`${sizeClasses} rounded-full font-semibold transition-all bg-white/10 text-white border border-white/20 hover:bg-white/20 disabled:opacity-50 ${className}`}
+            >
+                {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin inline" />
+                ) : (
+                    "Requested"
+                )}
+            </button>
+        );
+    }
+
     return (
         <button
             onClick={handleFollow}
@@ -138,7 +217,7 @@ export function FollowButton({
             {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin inline" />
             ) : (
-                "Follow"
+                isPrivate ? "Follow" : "Follow"
             )}
         </button>
     );

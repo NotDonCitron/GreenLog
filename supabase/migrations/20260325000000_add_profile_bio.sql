@@ -9,11 +9,17 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS bio TEXT;
 -- RLS POLICIES
 -- =============================================
 
--- Users can view bio if profile is public or they are the owner
-CREATE POLICY "Bio is viewable if profile is public"
+-- Users can view bio if profile is public, they are the owner, or they have a follow relationship
+CREATE POLICY "Bio is viewable with follow relationship"
   ON profiles FOR SELECT USING (
     profile_visibility = 'public'
     OR auth.uid() = id
+    OR EXISTS (
+      SELECT 1 FROM follow_requests
+      WHERE follow_requests.requester_id = auth.uid()
+      AND follow_requests.target_id = profiles.id
+      AND follow_requests.status IN ('pending', 'accepted')
+    )
   );
 
 -- Users can update their own bio

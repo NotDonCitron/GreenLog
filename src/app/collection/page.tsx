@@ -8,6 +8,7 @@ import { Strain } from "@/lib/types";
 import { Loader2, ChevronLeft, LayoutGrid, List as ListIcon, Search, Star } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { StrainCard } from "@/components/strains/strain-card";
 
 const DEMO_SIMULATION_DATA: Strain[] = [
   { id: "sim-1" as any, name: "Aurora Ghost Train Haze", brand: "Aurora", slug: "godfather-og", thc_max: 34, type: "sativa", terpenes: ["Terpinolene", "Myrcene", "Limonene"], effects: ["Energy"], image_url: "/strains/godfather-og.jpg", is_medical: true },
@@ -137,24 +138,7 @@ export default function CollectionPage() {
             /* COMPACT GRID VIEW */
             <div className="grid grid-cols-2 gap-4">
               {filteredStrains.map((strain, i) => (
-                <Link href={`/strains/${strain.slug}`} key={strain.id} className="bg-[#121212] rounded-xl border border-white/10 overflow-hidden relative shadow-lg hover:border-[#00FFFF]/50 transition-colors animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 0.05}s`, animationFillMode: 'both' }}>
-                  <div className="h-32 w-full relative">
-                    <img src={strain.image_url || "/strains/placeholder-1.svg"} alt={strain.name} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent"></div>
-                    <div className="absolute bottom-2 left-2 right-2 flex justify-between">
-                      <span className={`text-[8px] px-1.5 py-0.5 rounded-sm uppercase tracking-widest font-bold border ${strain.type === 'sativa' ? 'border-yellow-500 text-yellow-500' : strain.type === 'indica' ? 'border-emerald-500 text-emerald-500' : 'border-[#00FFFF] text-[#00FFFF]'}`}>
-                        {strain.type || 'Hybrid'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-3">
-                    <h3 className="font-serif italic font-bold text-sm leading-tight line-clamp-1">{strain.name}</h3>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-white/40 text-[9px] uppercase font-bold tracking-widest">THC</span>
-                      <span className="text-[#00FFFF] text-xs font-bold">{getCannabinoidDisplay(strain.avg_thc, strain.thc_max)}</span>
-                    </div>
-                  </div>
-                </Link>
+                <StrainCard key={strain.id} strain={strain} index={i} />
               ))}
             </div>
           ) : (

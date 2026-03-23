@@ -24,7 +24,13 @@ export interface Strain {
   genetics?: string;
   indications?: string[];
   is_medical?: boolean;
+  // Custom strain fields
+  is_custom?: boolean;
+  source?: 'pharmacy' | 'street' | 'grow';
+  created_by?: string;
 }
+
+export type StrainSource = 'pharmacy' | 'street' | 'grow';
 
 export interface Grow {
   id: string;
@@ -190,6 +196,11 @@ export interface SuggestedUser {
   bio?: string;
   common_strains_count?: number;
   followers_count?: number;
+  profile_visibility?: 'public' | 'private';
+  // Follow request status for private profiles
+  is_following?: boolean;
+  has_pending_request?: boolean;
+  request_status?: 'pending' | 'approved' | 'rejected' | null;
 }
 
 export interface FollowStatus {

@@ -42,7 +42,7 @@ export function SuggestedUsers({
                 .select("strain_id")
                 .eq("user_id", user.id);
 
-            const userStrainIds = userRatings?.map((r) => r.strain_id) ?? [];
+            const userStrainIds = userRatings?.map((r: { strain_id: string }) => r.strain_id) ?? [];
 
             // Get users already being followed
             const { data: followingData } = await supabase
@@ -50,24 +50,38 @@ export function SuggestedUsers({
                 .select("following_id")
                 .eq("follower_id", user.id);
 
-            const followingIds = followingData?.map((f) => f.following_id) ?? [];
+            const followingIds = followingData?.map((f: { following_id: string }) => f.following_id) ?? [];
 
-            // Build suggested users query
+            // Get pending follow requests for private profiles
+            const { data: pendingRequests } = await supabase
+                .from("follow_requests")
+                .select("target_id, status")
+                .eq("requester_id", user.id)
+                .eq("status", "pending");
+
+            const pendingRequestIds = pendingRequests?.map((r: { target_id: string }) => r.target_id) ?? [];
+
+            // Build suggested users query - include both public profiles AND private profiles with pending requests
             let query = supabase
                 .from("profiles")
                 .select(`
-          id,
-          username,
-          display_name,
-          avatar_url,
-          bio,
-          profile_visibility
-        `)
-                .eq("profile_visibility", "public")
-                .neq("id", user.id)
-                .limit(limit * 3);
+                    id,
+                    username,
+                    display_name,
+                    avatar_url,
+                    bio,
+                    profile_visibility
+                `)
+                .neq("id", user.id);
 
-            const { data, error } = await query;
+            // Add visibility filter if we have any pending requests
+            if (pendingRequestIds.length > 0) {
+                query = query.or(`profile_visibility.eq.public,id.in.(${pendingRequestIds.join(",")})`);
+            } else {
+                query = query.eq("profile_visibility", "public");
+            }
+
+            const { data, error } = await query.limit(limit * 3);
 
             if (error) throw error;
 
@@ -91,6 +105,8 @@ export function SuggestedUsers({
                         commonStrainsCount = otherRatings?.length ?? 0;
                     }
 
+                    const hasPending = pendingRequestIds.includes(profile.id);
+
                     return {
                         id: profile.id,
                         username: profile.username ?? "",
@@ -98,13 +114,21 @@ export function SuggestedUsers({
                         avatar_url: profile.avatar_url ?? undefined,
                         bio: profile.bio ?? undefined,
                         common_strains_count: commonStrainsCount,
+                        profile_visibility: profile.profile_visibility,
+                        has_pending_request: hasPending,
+                        is_following: followingIds.includes(profile.id),
                     };
                 })
             );
 
-            // Sort by common strains count
+            // Sort by common strains count, then put pending requests at the end
             usersWithCommonStrains.sort(
-                (a, b) => (b.common_strains_count ?? 0) - (a.common_strains_count ?? 0)
+                (a, b) => {
+                    // Pending requests go to the end
+                    if (a.has_pending_request && !b.has_pending_request) return 1;
+                    if (!a.has_pending_request && b.has_pending_request) return -1;
+                    return (b.common_strains_count ?? 0) - (a.common_strains_count ?? 0);
+                }
             );
 
             setUsers(usersWithCommonStrains.slice(0, limit));
@@ -146,8 +170,11 @@ export function SuggestedUsers({
                         {/* Avatar Circle */}
                         <Link href={`/user/${suggestedUser.username}`} className="block">
                             <div className="relative mb-2 mx-auto w-20 h-20">
-                                {/* Ring */}
-                                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#FCB045]" />
+                                {/* Ring - different color for private profiles with pending request */}
+                                <div className={`absolute inset-0 rounded-full ${suggestedUser.has_pending_request
+                                    ? "bg-gradient-to-tr from-yellow-400 via-orange-500 to-red-500"
+                                    : "bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#FCB045]"
+                                    }`} />
                                 {/* Inner Circle */}
                                 <div className="absolute inset-[3px] rounded-full bg-[#355E3B] flex items-center justify-center overflow-hidden">
                                     {suggestedUser.avatar_url ? (
@@ -162,9 +189,16 @@ export function SuggestedUsers({
                                         </span>
                                     )}
                                 </div>
-                                {/* Add Button */}
-                                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#00F5FF] rounded-full flex items-center justify-center border-2 border-[#355E3B]">
-                                    <span className="text-black text-xs font-bold">+</span>
+                                {/* Add Button or Pending indicator */}
+                                <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-[#355E3B] ${suggestedUser.has_pending_request
+                                    ? "bg-yellow-400"
+                                    : "bg-[#00F5FF]"
+                                    }`}>
+                                    {suggestedUser.has_pending_request ? (
+                                        <span className="text-black text-xs">...</span>
+                                    ) : (
+                                        <span className="text-black text-xs font-bold">+</span>
+                                    )}
                                 </div>
                             </div>
 

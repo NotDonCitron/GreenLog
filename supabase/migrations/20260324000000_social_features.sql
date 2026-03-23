@@ -77,9 +77,21 @@ CREATE POLICY "Follows are viewable if profile is public"
 CREATE POLICY "Users can create own follows"
   ON follows FOR INSERT WITH CHECK (auth.uid() = follower_id);
 
+-- Profile owners can create follows when someone follows them (for approved requests)
+CREATE POLICY "Profile owners can create follows for requesters"
+  ON follows FOR INSERT WITH CHECK (auth.uid() = following_id);
+
 -- Users can delete their own follows
 CREATE POLICY "Users can delete own follows"
   ON follows FOR DELETE USING (auth.uid() = follower_id);
+
+-- Users can view their own follows
+CREATE POLICY "Users can view own follows"
+  ON follows FOR SELECT USING (auth.uid() = follower_id);
+
+-- Users can view who follows them
+CREATE POLICY "Users can view their followers"
+  ON follows FOR SELECT USING (auth.uid() = following_id);
 
 -- User Activities: View own, public activities, or activities from followed users
 CREATE POLICY "Users can view own activities"
@@ -111,6 +123,18 @@ CREATE POLICY "Users can view own requests"
 -- Users can create follow requests for themselves
 CREATE POLICY "Users can create own follow requests"
   ON follow_requests FOR INSERT WITH CHECK (auth.uid() = requester_id);
+
+-- Users can view their own sent requests
+CREATE POLICY "Users can view own sent requests"
+  ON follow_requests FOR SELECT USING (auth.uid() = requester_id);
+
+-- Users can view requests sent to them
+CREATE POLICY "Users can view requests sent to them"
+  ON follow_requests FOR SELECT USING (auth.uid() = target_id);
+
+-- Users can update their own requests (status changes)
+CREATE POLICY "Users can update own requests"
+  ON follow_requests FOR UPDATE USING (auth.uid() = target_id);
 
 -- Users can update (approve/reject) requests targeting them
 CREATE POLICY "Users can update requests targeting them"
