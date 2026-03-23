@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staggered Fade-In Animation Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #1f2937;
+            background-image: radial-gradient(circle at 50% 50%, #1f2937 0%, #030712 100%);
+            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .title-font {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* ------------------------------------------
+           THE ANIMATION MAGIC
+           ------------------------------------------ */
+        
+        /* Definieren des Keyframes für das elastische "Reindroppen" */
+        @keyframes slideUpFadeSpring {
+            0% { 
+                opacity: 0; 
+                transform: translateY(60px) scale(0.95); 
+            }
+            60% { 
+                opacity: 1; 
+                /* Ein leichtes Überschwingen nach oben */
+                transform: translateY(-8px) scale(1.02); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+
+        .animate-spring-drop {
+            opacity: 0; /* Starte im Unsichtbaren */
+            /* cubic-bezier macht es knackig und leicht bounchend */
+            animation: slideUpFadeSpring 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.25) forwards;
+        }
+
+        /* Stagger Delays - Die Verzögerungen pro Karte */
+        .delay-1 { animation-delay: 0.1s; border-color: #00FFFF; shadow-color: rgba(0,255,255,0.3); }
+        .delay-2 { animation-delay: 0.25s; border-color: #10b981; shadow-color: rgba(16,185,129,0.3); }
+        .delay-3 { animation-delay: 0.4s; border-color: #fbbf24; shadow-color: rgba(251,191,36,0.3); }
+        .delay-4 { animation-delay: 0.55s; border-color: #c084fc; shadow-color: rgba(192,132,252,0.3); }
+
+        /* ------------------------------------------ */
+
+        .premium-card {
+            width: 320px;
+            padding-bottom: 20px;
+            background-color: #121212;
+            border-radius: 20px;
+            position: relative;
+            /* Basis Box-Shadow */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--border-color, #00ffff);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .premium-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px -10px rgba(0,0,0,0.9), 0 0 20px var(--shadow-color, rgba(0,255,255,0.4));
+        }
+        
+    </style>
+</head>
+<body class="p-10 text-white flex flex-col items-center">
+
+    <h1 class="text-4xl text-center mb-4 title-font italic font-bold">Staggered Fade-In Animation</h1>
+    <p class="text-center text-gray-400 mb-8 tracking-widest uppercase text-sm">
+        Die Karten ploppen nacheinander sanft und elastisch ins Bild.
+    </p>
+
+    <!-- Ein Replay-Button zum Testen der Animation -->
+    <button onclick="replayAnimation()" class="mb-12 px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-full shadow-[0_0_15px_rgba(0,255,255,0.5)] hover:scale-105 transition-transform flex items-center justify-center">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        Replay Animation
+    </button>
+    
+    <!-- Container für die Karten, dem wir beim Button-Klick eine neue Klasse geben, um ihn zurückzusetzen -->
+    <div id="cards-container" class="flex flex-wrap justify-center gap-10 max-w-7xl w-full">
+
+        <!-- Karte 1 (Delay 0.1s) -->
+        <div class="premium-card animate-spring-drop delay-1 flex flex-col" style="--border-color: #00FFFF; --shadow-color: rgba(0,255,255,0.3);">
+            <div class="p-6 pb-4">
+                <h2 class="title-font italic text-2xl text-white font-bold leading-tight uppercase line-clamp-1">420 Pharma</h2>
+                <div class="w-12 h-0.5 bg-[#00FFFF] mt-2 opacity-70"></div>
+            </div>
+            <div class="px-5 w-full">
+                <div class="relative w-full h-[220px] rounded-xl overflow-hidden shadow-lg border border-white/10">
+                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover">
+                    <div class="absolute bottom-2 left-2 border border-green-500/80 bg-black/70 text-green-400 uppercase text-[9px] px-2 py-1 tracking-wider font-bold">HYBRID</div>
+                </div>
+            </div>
+            <div class="px-5 mt-5 w-full">
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+                    <div class="flex justify-between items-center"><span class="text-gray-500 text-[10px] uppercase">THC</span><span class="text-[#00FFFF] font-bold">29%</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Karte 2 (Delay 0.25s) -->
+        <div class="premium-card animate-spring-drop delay-2 flex flex-col" style="--border-color: #10b981; --shadow-color: rgba(16,185,129,0.3);">
+            <div class="p-6 pb-4">
+                <h2 class="title-font italic text-2xl text-white font-bold leading-tight uppercase line-clamp-1">Sensi Star</h2>
+                <div class="w-12 h-0.5 bg-[#10b981] mt-2 opacity-70"></div>
+            </div>
+            <div class="px-5 w-full">
+                <div class="relative w-full h-[220px] rounded-xl overflow-hidden shadow-lg border border-white/10">
+                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover grayscale-[0.3]">
+                    <div class="absolute bottom-2 left-2 border border-emerald-500/80 bg-black/70 text-emerald-400 uppercase text-[9px] px-2 py-1 tracking-wider font-bold">INDICA</div>
+                </div>
+            </div>
+            <div class="px-5 mt-5 w-full">
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+                    <div class="flex justify-between items-center"><span class="text-gray-500 text-[10px] uppercase">THC</span><span class="text-[#10b981] font-bold">22%</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Karte 3 (Delay 0.4s) -->
+        <div class="premium-card animate-spring-drop delay-3 flex flex-col" style="--border-color: #fbbf24; --shadow-color: rgba(251,191,36,0.3);">
+            <div class="p-6 pb-4">
+                <h2 class="title-font italic text-2xl text-white font-bold leading-tight uppercase line-clamp-1">Acapulco Gold</h2>
+                <div class="w-12 h-0.5 bg-[#fbbf24] mt-2 opacity-70"></div>
+            </div>
+            <div class="px-5 w-full">
+                <div class="relative w-full h-[220px] rounded-xl overflow-hidden shadow-lg border border-white/10">
+                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover saturate-50 contrast-125">
+                    <div class="absolute bottom-2 left-2 border border-yellow-500/80 bg-black/70 text-yellow-500 uppercase text-[9px] px-2 py-1 tracking-wider font-bold">SATIVA</div>
+                </div>
+            </div>
+            <div class="px-5 mt-5 w-full">
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+                    <div class="flex justify-between items-center"><span class="text-gray-500 text-[10px] uppercase">THC</span><span class="text-[#fbbf24] font-bold">25%</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Karte 4 (Delay 0.55s) -->
+        <div class="premium-card animate-spring-drop delay-4 flex flex-col" style="--border-color: #c084fc; --shadow-color: rgba(192,132,252,0.3);">
+            <div class="p-6 pb-4">
+                <h2 class="title-font italic text-2xl text-white font-bold leading-tight uppercase line-clamp-1">Amnesia Haze</h2>
+                <div class="w-12 h-0.5 bg-[#c084fc] mt-2 opacity-70"></div>
+            </div>
+            <div class="px-5 w-full">
+                <div class="relative w-full h-[220px] rounded-xl overflow-hidden shadow-lg border border-white/10">
+                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover hue-rotate-180 brightness-90">
+                    <div class="absolute bottom-2 left-2 border border-purple-500/80 bg-black/70 text-purple-400 uppercase text-[9px] px-2 py-1 tracking-wider font-bold">SATIVA</div>
+                </div>
+            </div>
+            <div class="px-5 mt-5 w-full">
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+                    <div class="flex justify-between items-center"><span class="text-gray-500 text-[10px] uppercase">THC</span><span class="text-[#c084fc] font-bold">28%</span></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Kleines Script für den Replay-Button -->
+    <script>
+        function replayAnimation() {
+            const container = document.getElementById('cards-container');
+            // Element kurz aus dem DOM nehmen und wieder einsetzen um CSS-Animationen zurückzusetzen
+            container.style.display = 'none';
+            container.offsetHeight; // trigger reflow
+            container.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

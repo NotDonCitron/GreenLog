@@ -37,28 +37,40 @@ export default function Home() {
         return;
       }
 
+      // Query ratings table instead of non-existent user_collection
       const { data, error } = await supabase
-        .from('user_collection')
+        .from('ratings')
         .select(`
-          user_notes,
-          batch_info,
+          review,
+          consumption_method,
+          overall_rating,
+          taste_rating,
+          effect_rating,
+          look_rating,
+          created_at,
           strain:strains (*)
         `)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error("Error fetching collection:", error);
       }
 
-      if (data) {
+      if (data && data.length > 0) {
         const userStrains = data
           .map(item => {
             const s = item.strain as any;
             if (!s) return null;
             return {
               ...s,
-              user_notes: item.user_notes,
-              batch_info: item.batch_info
+              user_review: item.review,
+              user_consumption_method: item.consumption_method,
+              user_overall_rating: item.overall_rating,
+              user_taste_rating: item.taste_rating,
+              user_effect_rating: item.effect_rating,
+              user_look_rating: item.look_rating,
+              user_rating_date: item.created_at
             };
           })
           .filter(Boolean) as unknown as Strain[];
@@ -70,6 +82,9 @@ export default function Home() {
         }));
 
         setStrains(correctedStrains);
+      } else {
+        // No ratings yet - show empty state or prompt to add
+        setStrains([]);
       }
       setLoading(false);
     }
@@ -155,11 +170,16 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col bg-[#355E3B] text-white overflow-hidden pb-24">
-      <header className="p-6 flex justify-between items-center border-b border-white/10 bg-[#355E3B]/80 backdrop-blur-md sticky top-0 z-50">
+      <header className="p-6 flex justify-between items-end border-b border-white/10 bg-[#355E3B]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="flex flex-col">
           <span className="text-[10px] text-[#00F5FF] tracking-[0.3em] font-bold uppercase">Cannalog</span>
-          <h1 className="text-xl font-bold tracking-tight uppercase">Meine Collection</h1>
+          <h1 className="text-xl font-bold tracking-tight uppercase">Zuletzt <br/> Hinzugefügt</h1>
         </div>
+        <Link href="/collection">
+          <button className="text-[9px] text-white/60 hover:text-[#00F5FF] uppercase font-bold tracking-widest bg-white/5 px-3 py-1.5 rounded-full border border-white/10 flex items-center transition-colors">
+            Alle zeigen <ChevronLeft size={12} className="rotate-180 ml-1" />
+          </button>
+        </Link>
       </header>
 
       <div

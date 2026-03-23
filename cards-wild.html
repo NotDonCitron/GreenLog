@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wilde Strain Card Variationen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- We want diverse fonts for diverse wild themes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #0f1115;
+            background-image: radial-gradient(circle at 50% -20%, #1f2937, #000 70%);
+            min-height: 100vh;
+        }
+
+        /* 1. Holographic Foil */
+        .theme-holo {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0));
+            backdrop-filter: blur(10px);
+            border: 1px solid transparent;
+            border-image: linear-gradient(to bottom right, #b827fc 0%, #2c90fc 25%, #b8fd33 50%, #fec837 75%, #fd1892 100%);
+            border-image-slice: 1;
+            box-shadow: 0 0 30px rgba(184,39,252,0.3), inset 0 0 20px rgba(44,144,252,0.1);
+            font-family: 'Montserrat', sans-serif;
+        }
+        .holo-text {
+            background: -webkit-linear-gradient(45deg, #b827fc, #2c90fc, #b8fd33);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* 2. Medical Minimalist */
+        .theme-medical {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);    
+            font-family: 'Montserrat', sans-serif;
+            color: #1a202c;
+            border: 1px solid #edf2f7;
+        }
+
+        /* 3. Cyberpunk Terminal */
+        .theme-cyber {
+            background-color: #050505;
+            border: 4px solid #00ff00;
+            box-shadow: 5px 5px 0px #00ff00, -5px -5px 0px #ff00ff;
+            font-family: 'Space Mono', monospace;
+            border-radius: 0;
+            color: #00ff00;
+        }
+
+        /* 4. Brutalist Pop */
+        .theme-brutalist {
+            background-color: #fbbf24; /* Bold yellow */
+            border: 6px solid #000;
+            box-shadow: 12px 12px 0px #000;
+            border-radius: 2px;
+            font-family: 'Bebas Neue', cursive;
+            color: #000;
+        }
+
+        /* 5. Natural Organic */
+        .theme-organic {
+            background: linear-gradient(180deg, #2b3a2a 0%, #171b15 100%);
+            border-radius: 30px;
+            box-shadow: 0 30px 60px -10px rgba(5,15,5,1);
+            border: 1px solid #4a5c43;
+            font-family: 'Cormorant Garamond', serif;
+            color: #e2e8f0;
+        }
+
+        /* Shared layout */
+        .card-base {
+            width: 320px;
+            padding-bottom: 20px;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-base:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body class="p-10 text-white flex flex-col items-center">
+
+    <h1 class="text-5xl text-center mb-4 font-['Playfair_Display'] italic font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Wild Collection</h1>
+    <p class="text-center text-gray-400 mb-16 tracking-widest uppercase text-sm font-['Montserrat']">
+        Eine wilde Reise durch Design-Konzepte: Gleiche Struktur, völlig andere Welten.
+    </p>
+    
+    <div class="flex flex-wrap justify-center gap-14 max-w-7xl w-full">
+
+        <!-- ==========================================
+             VARIATION 1: HOLOGRAPHIC (RARE SUPER-CARD)
+             ========================================== -->
+        <div class="card-base theme-holo flex flex-col items-center pt-2 px-2">
+            <div class="p-4 pb-2 w-full text-center">
+                <h2 class="font-black italic text-2xl uppercase holo-text tracking-tighter line-clamp-1 drop-shadow-md">
+                    GALACTIC HAZE
+                </h2>
+                <div class="w-1/3 h-0.5 mx-auto bg-gradient-to-r from-[#b827fc] to-[#2c90fc] mt-1 opacity-70"></div>
+            </div>
+
+            <div class="px-3 w-full">
+                <div class="relative w-full h-[220px] overflow-hidden border border-white/20 shadow-lg">
+                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop" alt="Strain" class="w-full h-full object-cover hue-rotate-90 saturate-150">
+                    <div class="absolute bottom-2 left-2 border border-blue-400/80 bg-black/50 backdrop-blur-md text-blue-300 uppercase text-[10px] px-2 py-1 tracking-widest font-black shadow-[0_0_10px_rgba(44,144,252,0.5)]">
+                        SATIVA EXOTIC
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-3 mt-4 w-full">
+                <div class="bg-white/5 border border-white/20 p-3 shadow-inner backdrop-blur-md grid grid-cols-2 gap-4">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-1 mb-1">
+                        <span class="text-white/60 text-[9px] uppercase tracking-widest font-bold">THC</span>
+                        <span class="text-[#fec837] text-sm font-bold tracking-wide">33%</span>
+                    </div>
+                    <div class="flex items-center justify-between border-b border-white/10 pb-1 mb-1 border-l border-white/10 pl-3">
+                        <span class="text-white/60 text-[9px] uppercase tracking-widest font-bold">Taste</span>
+                        <span class="text-white text-[10px] font-medium truncate">Candy, Space</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/60 text-[9px] uppercase tracking-widest font-bold">CBD</span>
+                        <span class="text-[#2c90fc] text-sm font-bold tracking-wide">0.2%</span>
+                    </div>
+                    <div class="flex items-center justify-between border-l border-white/10 pl-3">
+                        <span class="text-white/60 text-[9px] uppercase tracking-widest font-bold">Effect</span>
+                        <span class="text-white text-[10px] font-medium truncate">Warp</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             VARIATION 2: CLEAN MEDICAL (APPLE HEALTH VIBE)
+             ========================================== -->
+        <div class="card-base theme-medical flex flex-col pt-3 px-1">
+            <div class="p-5 pb-3">
+                <h2 class="font-bold text-2xl tracking-tight leading-tight line-clamp-1 text-gray-800">
+                    Sensi Star Rx
+                </h2>
+                <div class="flex items-center gap-2 mt-1">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Verified Medical</p>
+                </div>
+            </div>
+
+            <div class="px-5 w-full">
+                <div class="relative w-full h-[220px] rounded-2xl overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)]">
+                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop" alt="Strain" class="w-full h-full object-cover grayscale-[0.3]">
+                    <div class="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm text-emerald-600 uppercase text-[10px] px-3 py-1 rounded-full tracking-wider font-bold shadow-sm">
+                        Indica · Pain Relief
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-5 mt-5 w-full">
+                <div class="bg-gray-50 rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div class="grid grid-cols-2 gap-4 border-b border-gray-200 pb-2 mb-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-400 text-[10px] uppercase font-semibold">THC</span>
+                            <span class="text-emerald-600 text-[15px] font-black tracking-tight">18%</span>
+                        </div>
+                        <div class="flex items-center justify-between border-l border-gray-200 pl-4">
+                            <span class="text-gray-400 text-[10px] uppercase font-semibold">Taste</span>
+                            <span class="text-gray-700 text-[11px] font-semibold truncate">Pine, Earth</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-400 text-[10px] uppercase font-semibold">CBD</span>
+                            <span class="text-emerald-600 text-[15px] font-black tracking-tight">12%</span>
+                        </div>
+                        <div class="flex items-center justify-between border-l border-gray-200 pl-4">
+                            <span class="text-gray-400 text-[10px] uppercase font-semibold">Effekt</span>
+                            <span class="text-gray-700 text-[11px] font-semibold truncate">Calm</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             VARIATION 3: CYBERPUNK TERMINAL
+             ========================================== -->
+        <div class="card-base theme-cyber flex flex-col pt-2 px-1 relative">
+            <!-- Glitch decoration -->
+            <div class="absolute -top-1 right-2 bg-black px-2 text-[10px] tracking-widest border border-[#00ff00]">SEC_LVL_4</div>
+            
+            <div class="p-6 pb-2">
+                <h2 class="font-bold text-xl uppercase tracking-tighter line-clamp-1">
+                    > SYS.OVERLOAD
+                </h2>
+                <p class="text-[9px] opacity-70 mt-1">DATA_HASH: 0x98fB4...</p>
+            </div>
+
+            <div class="px-4 w-full mt-2">
+                <div class="relative w-full h-[200px] border-2 border-[#00ff00] overflow-hidden" style="background: repeating-linear-gradient(0deg, rgba(0,255,0,0.1) 0px, transparent 1px, transparent 4px);">
+                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop" alt="Strain" class="w-full h-full object-cover contrast-150 brightness-75 mix-blend-luminosity opacity-80" style="filter: sepia(1) hue-rotate(80deg) saturate(3);">
+                    <div class="absolute bottom-2 left-2 bg-black border border-[#00ff00] text-[#00ff00] uppercase text-[9px] px-2 py-0.5 tracking-widest font-bold">
+                        CLASS: SATIVA
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-4 mt-4 w-full">
+                <div class="border border-[#00ff00]/50 p-3 bg-[#00ff00]/5">
+                    <div class="grid grid-cols-2 gap-2 border-b border-[#00ff00]/30 pb-2 mb-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#00ff00]/60 text-[9px] uppercase">THC_LVL</span>
+                            <span class="text-white text-sm font-bold">29.0%</span>
+                        </div>
+                        <div class="flex items-center justify-between border-l border-[#00ff00]/30 pl-2">
+                            <span class="text-[#00ff00]/60 text-[9px] uppercase">FLAVR</span>
+                            <span class="text-white text-[10px] truncate">DIESEL_LIMO</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#00ff00]/60 text-[9px] uppercase">CBD_LVL</span>
+                            <span class="text-white text-sm font-bold">ERR%</span>
+                        </div>
+                        <div class="flex items-center justify-between border-l border-[#00ff00]/30 pl-2">
+                            <span class="text-[#00ff00]/60 text-[9px] uppercase">STATE</span>
+                            <span class="text-white text-[10px] truncate">HACKED</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             VARIATION 4: BRUTALIST LOUD 
+             ========================================== -->
+        <div class="card-base theme-brutalist flex flex-col p-4 relative overflow-hidden">
+            <!-- Giant background word -->
+            <div class="absolute text-[120px] text-black/5 leading-none -rotate-12 -left-4 top-10 pointer-events-none">LOUD</div>
+
+            <div class="w-full text-center border-b-4 border-black pb-1 mb-3">
+                <h2 class="text-5xl uppercase tracking-wider line-clamp-1 leading-none mt-2">
+                    GELATO 33
+                </h2>
+            </div>
+
+            <div class="w-full h-[220px] border-4 border-black shadow-[4px_4px_0px_#000] relative bg-white">
+                <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop" alt="Strain" class="w-full h-full object-cover grayscale mix-blend-multiply">
+                <div class="absolute -bottom-3 -left-3 bg-[#ff00ff] border-4 border-black text-white uppercase text-xl px-4 py-1 skew-x-[-10deg] shadow-[4px_4px_0px_#000]">
+                    HYBRID
+                </div>
+            </div>
+
+            <div class="mt-6 w-full border-4 border-black bg-white shadow-[4px_4px_0px_#000]">
+                <div class="grid grid-cols-2 divide-x-4 divide-black border-b-4 border-black">
+                    <div class="p-2 flex flex-col justify-center items-center bg-[#4287f5]">
+                        <span class="text-black text-[12px] uppercase">THC</span>
+                        <span class="text-white text-3xl leading-none">26%</span>
+                    </div>
+                    <div class="p-2 flex flex-col justify-center items-center">
+                        <span class="text-black text-[12px] uppercase">TASTE</span>
+                        <span class="text-black text-xl leading-none truncate w-full text-center">SWEET</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 divide-x-4 divide-black">
+                    <div class="p-2 flex flex-col justify-center items-center">
+                        <span class="text-black text-[12px] uppercase">CBD</span>
+                        <span class="text-black text-2xl leading-none inline-block skew-x-12">0%</span>
+                    </div>
+                    <div class="p-2 flex flex-col justify-center items-center bg-[#00ff00]">
+                        <span class="text-black text-[12px] uppercase">EFFECT</span>
+                        <span class="text-black text-xl leading-none">ENERGY</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             VARIATION 5: NATURAL ORGANIC / EARTH
+             ========================================== -->
+        <div class="card-base theme-organic flex flex-col pt-3 px-1">
+            <div class="p-6 pb-4 text-center">
+                <h2 class="font-bold italic text-3xl tracking-wide leading-tight line-clamp-1 text-[#d4d4b8]">
+                    Northern Lights
+                </h2>
+                <div class="flex justify-center mt-2">
+                    <svg class="w-4 h-4 text-[#8a9e82]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+                </div>
+            </div>
+
+            <div class="px-6 w-full">
+                <div class="relative w-full h-[220px] rounded-[30px_5px_30px_5px] overflow-hidden shadow-[0_10px_20px_rgba(0,0,0,0.5)] border border-[#4a5c43]">
+                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop" alt="Strain" class="w-full h-full object-cover">
+                    <!-- Genetik pill styling very soft -->
+                    <div class="absolute bottom-0 left-0 bg-[#4a5c43]/90 backdrop-blur-sm text-[#d4d4b8] uppercase text-[10px] px-4 py-2 rounded-tr-2xl tracking-widest font-bold">
+                        Pure Indica
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 mt-6 w-full">
+                <div class="p-1 px-2 font-['Montserrat']">
+                    <div class="grid grid-cols-2 gap-4 border-b border-[#4a5c43] pb-3 mb-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#8a9e82] text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
+                            <span class="text-[#d4d4b8] text-sm font-bold tracking-wide">19%</span>
+                        </div>
+                        <div class="flex items-center justify-between pl-2">
+                            <span class="text-[#8a9e82] text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">Taste</span>
+                            <span class="text-[#e2e8f0] text-[11px] font-medium tracking-wide truncate">Erdig, Holz</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[#8a9e82] text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
+                            <span class="text-[#d4d4b8] text-sm font-bold tracking-wide">1%</span>
+                        </div>
+                        <div class="flex items-center justify-between pl-2">
+                            <span class="text-[#8a9e82] text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">Effekt</span>
+                            <span class="text-[#e2e8f0] text-[11px] font-medium tracking-wide truncate">Schlaf</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

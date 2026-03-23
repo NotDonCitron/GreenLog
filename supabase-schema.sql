@@ -9,6 +9,7 @@ CREATE TABLE profiles (
   display_name TEXT,
   avatar_url TEXT,
   bio TEXT,
+  profile_visibility TEXT DEFAULT 'private' CHECK (profile_visibility IN ('public', 'private')),
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -176,3 +177,89 @@ CREATE INDEX idx_grows_strain ON grows(strain_id);
 CREATE INDEX idx_grow_entries_grow ON grow_entries(grow_id);
 CREATE INDEX idx_strains_slug ON strains(slug);
 CREATE INDEX idx_strains_type ON strains(type);
+
+
+-- 7. USER STRAIN RELATIONS (Favorites/Wishlist)
+CREATE TABLE user_strain_relations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  strain_id UUID REFERENCES strains(id) ON DELETE CASCADE NOT NULL,
+  is_favorite BOOLEAN DEFAULT false,
+  is_wishlist BOOLEAN DEFAULT false,
+  favorite_rank SMALLINT CHECK (favorite_rank BETWEEN 1 AND 5),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id, strain_id)
+);
+
+ALTER TABLE user_strain_relations ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own relations"
+  ON user_strain_relations FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own relations"
+  ON user_strain_relations FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own relations"
+  ON user_strain_relations FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own relations"
+  ON user_strain_relations FOR DELETE USING (auth.uid() = user_id);
+
+CREATE INDEX idx_user_strain_relations_user ON user_strain_relations(user_id);
+CREATE INDEX idx_user_strain_relations_strain ON user_strain_relations(strain_id);
+
+
+-- 8. USER BADGES
+CREATE TABLE user_badges (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  badge_id TEXT NOT NULL,
+  unlocked_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id, badge_id)
+);
+
+ALTER TABLE user_badges ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own badges"
+  ON user_badges FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own badges"
+  ON user_badges FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own badges"
+  ON user_badges FOR DELETE USING (auth.uid() = user_id);
+
+CREATE INDEX idx_user_badges_user ON user_badges(user_id);
+
+
+-- 9. USER COLLECTION (Private notes, batch info, personal data)
+CREATE TABLE user_collection (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  strain_id UUID REFERENCES strains(id) ON DELETE CASCADE NOT NULL,
+  user_notes TEXT,
+  batch_info TEXT,
+  user_image_url TEXT,
+  user_thc_percent DECIMAL(4,1),
+  user_cbd_percent DECIMAL(4,1),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id, strain_id)
+);
+
+ALTER TABLE user_collection ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own collection"
+  ON user_collection FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own collection"
+  ON user_collection FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own collection"
+  ON user_collection FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own collection"
+  ON user_collection FOR DELETE USING (auth.uid() = user_id);
+
+CREATE INDEX idx_user_collection_user ON user_collection(user_id);
+CREATE INDEX idx_user_collection_strain ON user_collection(strain_id);

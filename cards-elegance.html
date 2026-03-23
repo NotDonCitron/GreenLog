@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elegante Strain Card Variationen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Cinzel:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #1f2937;
+            background-image: radial-gradient(circle at 50% 50%, #1f2937 0%, #080b12 100%);
+            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+            color: white;
+        }
+
+        .title-font { font-family: 'Playfair Display', serif; }
+        .cinzel-font { font-family: 'Cinzel', serif; }
+
+        .card-base {
+            width: 320px;
+            padding-bottom: 20px;
+            border-radius: 20px;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-base:hover { transform: translateY(-5px); }
+
+        /* V1: Neon Outline (Original) */
+        .style-neon {
+            background-color: #121212;
+            border: 2px solid #00FFFF;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7), 0 0 15px rgba(0,255,255,0.3), inset 0 0 10px rgba(0,255,255,0.1);
+        }
+
+        /* V2: Frosted Dark Glass */
+        .style-glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+
+        /* V3: Metallic Obsidian (Deep subtle gradients) */
+        .style-obsidian {
+            background: linear-gradient(145deg, #1f2228 0%, #0d0f12 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 10px 10px 30px rgba(0,0,0,0.8), -5px -5px 15px rgba(255,255,255,0.02);
+            border-top: 1px solid rgba(255, 255, 255, 0.15); /* light reflection */
+        }
+
+        /* V4: Accent Strip (No full border, just a thick colored edge) */
+        .style-strip {
+            background-color: #16181d;
+            border-left: 4px solid #10b981; /* Emerald green strip */
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            border-radius: 12px; /* Slightly sharper */
+        }
+
+        /* V5: Floating Minimal (No border, heavy soft shadow) */
+        .style-floating {
+            background-color: #121316;
+            box-shadow: 0 40px 80px -20px rgba(0,0,0,0.9);
+            border: 1px solid transparent;
+        }
+
+    </style>
+</head>
+<body class="p-10 flex flex-col items-center">
+
+    <h1 class="text-4xl text-center mb-4 title-font italic font-bold">Die elegante Premium-Linie</h1>
+    <p class="text-center text-gray-400 mb-12 tracking-widest uppercase text-xs">
+        Feine Variationen des "Dark Elegance" Stils.
+    </p>
+    
+    <div class="flex flex-wrap justify-center gap-10 max-w-7xl w-full">
+
+        <!-- ==========================================
+             V1: NEON OUTLINE (Das bewährte Original)
+             ========================================== -->
+        <div class="card-base style-neon flex flex-col pt-2">
+            <div class="p-6 pb-4">
+                <h2 class="title-font italic text-2xl font-bold leading-tight uppercase drop-shadow-lg line-clamp-1">
+                    420 Pharma
+                </h2>
+                <div class="w-12 h-0.5 bg-[#00FFFF] mt-2 opacity-70"></div>
+            </div>
+
+            <div class="px-5 w-full">
+                <div class="relative w-full h-[220px] rounded-xl overflow-hidden shadow-lg border border-white/10">
+                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover">
+                    <div class="absolute bottom-2 left-2 border border-green-500/80 bg-black/70 text-green-400 uppercase text-[9px] px-2 py-1 rounded-sm tracking-widest font-bold">
+                        HYBRID
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-5 mt-5 w-full">
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+                    <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-2 mb-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold mr-1">THC</span>
+                            <span class="text-[#00FFFF] text-sm font-bold">29%</span>
+                        </div>
+                        <div class="flex items-center justify-between border-l border-white/5 pl-4">
+                            <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold mr-1">Taste</span>
+                            <span class="text-[10px] font-medium truncate">Zitrus</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold mr-1">CBD</span>
+                            <span class="text-[#00FFFF] text-sm font-bold">&lt; 1%</span>
+                        </div>
+                        <div class="flex items-center justify-between border-l border-white/5 pl-4">
+                            <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold mr-1">Effekt</span>
+                            <span class="text-[10px] font-medium truncate">Euphorie</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             V2: FROSTED GLASS (Transparent und weicher)
+             ========================================== -->
+        <div class="card-base style-glass flex flex-col pt-2">
+            <div class="p-6 pb-4 flex justify-between items-start">
+                <div>
+                    <h2 class="title-font italic text-2xl font-bold leading-tight uppercase line-clamp-1 drop-shadow-md text-emerald-100">
+                        Acapulco Gold
+                    </h2>
+                    <p class="text-[9px] text-emerald-500 tracking-[0.3em] font-semibold mt-1 uppercase">Exotic Strain</p>
+                </div>
+            </div>
+
+            <div class="px-5 w-full">
+                <!-- Image goes full width of the padding block -->
+                <div class="relative w-full h-[220px] rounded-[16px_16px_4px_4px] overflow-hidden shadow-[0_10px_20px_rgba(0,0,0,0.3)]">
+                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover">
+                    <div class="absolute bottom-2 left-2 bg-emerald-500/90 text-white uppercase text-[9px] px-3 py-1 rounded-full tracking-widest font-bold shadow-md">
+                        SATIVA
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-5 mt-4 w-full">
+                <div class="bg-black/20 rounded-[4px_4px_16px_16px] p-4 backdrop-blur-sm border border-white/5">
+                    <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-2 mb-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-400 text-[9px] uppercase tracking-widest font-semibold mr-1">THC</span>
+                            <span class="text-emerald-400 text-sm font-bold">25%</span>
+                        </div>
+                        <div class="flex items-center justify-between border-l border-white/5 pl-4">
+                            <span class="text-gray-400 text-[9px] uppercase tracking-widest font-semibold mr-1">Taste</span>
+                            <span class="text-[10px] font-medium truncate">Süß</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-400 text-[9px] uppercase tracking-widest font-semibold mr-1">CBD</span>
+                            <span class="text-emerald-400 text-sm font-bold">&lt; 1%</span>
+                        </div>
+                        <div class="flex items-center justify-between border-l border-white/5 pl-4">
+                            <span class="text-gray-400 text-[9px] uppercase tracking-widest font-semibold mr-1">Effekt</span>
+                            <span class="text-[10px] font-medium truncate">Kreativ</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             V3: METALLIC OBSIDIAN (Extrem edel, Metall-Look)
+             ========================================== -->
+        <div class="card-base style-obsidian flex flex-col">
+            <div class="p-6 pb-3 text-center">
+                <!-- Cinzel is a very premium sharp serif font -->
+                <h2 class="cinzel-font text-2xl font-bold uppercase tracking-widest text-[#d4af37] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                    White Widow
+                </h2>
+                <div class="w-16 h-[1px] bg-gradient-to-r from-transparent via-[#d4af37] to-transparent mx-auto mt-2"></div>
+            </div>
+
+            <div class="px-4 w-full">
+                <div class="relative w-full h-[220px] rounded-sm overflow-hidden border border-[#d4af37]/30 shadow-inner">
+                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover grayscale-[0.5] saturate-[0.8]">
+                    <div class="absolute bottom-2 left-2 border border-[#d4af37]/80 bg-black/80 text-[#d4af37] uppercase text-[9px] px-2 py-0.5 tracking-[0.2em] font-medium">
+                        INDICA
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-4 mt-5 w-full">
+                <div class="border-t border-[#d4af37]/20 pt-3">
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-3 px-2">
+                        <div class="flex items-end justify-between border-b border-white/5 pb-1">
+                            <span class="text-[#8a8d93] text-[9px] uppercase tracking-[0.2em]">THC</span>
+                            <span class="text-white text-sm font-['Cinzel'] tracking-wider">20%</span>
+                        </div>
+                        <div class="flex items-end justify-between border-b border-white/5 pb-1">
+                            <span class="text-[#8a8d93] text-[9px] uppercase tracking-[0.2em]">Taste</span>
+                            <span class="text-gray-300 text-[10px] tracking-wide truncate ml-2">Kiefer</span>
+                        </div>
+                        <div class="flex items-end justify-between">
+                            <span class="text-[#8a8d93] text-[9px] uppercase tracking-[0.2em]">CBD</span>
+                            <span class="text-white text-sm font-['Cinzel'] tracking-wider">3%</span>
+                        </div>
+                        <div class="flex items-end justify-between">
+                            <span class="text-[#8a8d93] text-[9px] uppercase tracking-[0.2em]">Effekt</span>
+                            <span class="text-gray-300 text-[10px] tracking-wide truncate ml-2">Calm</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             V4: ACCENT STRIP (Modern Corporate/Minimal)
+             ========================================== -->
+        <div class="card-base style-strip flex flex-col pt-2">
+            <div class="p-6 pb-4 relative">
+                <h2 class="title-font italic text-2xl font-bold leading-tight uppercase line-clamp-1">
+                    Strawberry
+                </h2>
+                <!-- Minimal ID -->
+                <span class="absolute top-7 right-6 text-gray-600 text-[10px] tracking-widest font-mono">#66R9</span>
+            </div>
+
+            <div class="px-5 w-full">
+                <!-- Flush sides, no rounded corners on the image container inside -->
+                <div class="relative w-full h-[220px] shadow-sm">
+                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover">
+                    <div class="absolute bottom-0 left-0 bg-[#10b981] text-black uppercase text-[9px] px-3 py-1 font-bold tracking-widest">
+                        HYBRID
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-5 mt-5 w-full">
+                <div class="bg-[#1a1c23] p-4 rounded-b-lg border border-white/5">
+                    <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-2 mb-2">
+                        <div class="flex flex-col">
+                            <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold">THC</span>
+                            <span class="text-white text-sm font-bold">31%</span>
+                        </div>
+                        <div class="flex flex-col border-l border-white/5 pl-4">
+                            <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold">Taste</span>
+                            <span class="text-gray-300 text-[11px] font-medium truncate">Erdbeer</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex flex-col">
+                            <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold">CBD</span>
+                            <span class="text-white text-sm font-bold">&lt; 0.5%</span>
+                        </div>
+                        <div class="flex flex-col border-l border-white/5 pl-4">
+                            <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold">Effekt</span>
+                            <span class="text-gray-300 text-[11px] font-medium truncate">Heavy</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             V5: FLOATING MINIMAL (Clean, No Borders)
+             ========================================== -->
+        <div class="card-base style-floating flex flex-col pt-2 px-1">
+            <div class="p-5 pb-3">
+                <h2 class="font-bold text-2xl tracking-normal leading-tight line-clamp-1 text-gray-100">
+                    Amnesia Haze
+                </h2>
+                <div class="flex gap-2 mt-2">
+                    <span class="bg-gray-800 text-gray-300 text-[9px] px-2 py-0.5 rounded-full tracking-widest uppercase">Sativa</span>
+                    <span class="bg-gray-800 text-gray-300 text-[9px] px-2 py-0.5 rounded-full tracking-widest uppercase">Premium</span>
+                </div>
+            </div>
+
+            <div class="px-4 w-full mt-1">
+                <div class="relative w-full h-[200px] rounded-2xl overflow-hidden shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
+                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover opacity-90">
+                    <!-- Subtle gradient overlay on image -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                    
+                    <!-- Stats inside the image to save space and look ultra-minimal -->
+                    <div class="absolute bottom-3 left-4 right-4 grid grid-cols-4 gap-2 text-center text-white">
+                        <div>
+                            <span class="block text-[8px] text-gray-400 uppercase tracking-widest">THC</span>
+                            <span class="block text-sm font-bold">28%</span>
+                        </div>
+                        <div>
+                            <span class="block text-[8px] text-gray-400 uppercase tracking-widest">CBD</span>
+                            <span class="block text-sm font-bold">1%</span>
+                        </div>
+                        <div class="col-span-2 text-right self-end">
+                            <span class="block text-[8px] text-gray-400 uppercase tracking-widest text-right">Taste</span>
+                            <span class="block text-xs font-medium truncate">Beere, Süß</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Removed the bottom box completely for this minimal design, stats are inside the image! -->
+        </div>
+
+    </div>
+</body>
+</html>

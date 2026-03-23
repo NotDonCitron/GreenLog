@@ -102,3 +102,59 @@ export interface ProfileViewModel {
   activity: ProfileActivityItem[];
   preview: PublicProfilePreview;
 }
+
+// Database row types for Supabase
+export interface UserStrainRelation {
+  id: string;
+  user_id: string;
+  strain_id: string;
+  is_favorite: boolean;
+  is_wishlist: boolean;
+  favorite_rank: number | null;
+  created_at: string;
+}
+
+export interface UserBadge {
+  id: string;
+  user_id: string;
+  badge_id: string;
+  unlocked_at: string;
+}
+
+export interface RatingRow {
+  id: string;
+  strain_id: string;
+  user_id: string;
+  overall_rating: number;
+  taste_rating: number | null;
+  effect_rating: number | null;
+  look_rating: number | null;
+  review: string | null;
+  consumption_method: string | null;
+  location: string | null;
+  image_url: string | null;
+  created_at: string;
+}
+
+export interface ProfileRow {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  profile_visibility: 'public' | 'private' | null;
+  created_at: string;
+}
+
+export interface UserCollection {
+  id: string;
+  user_id: string;
+  strain_id: string;
+  user_notes: string | null;
+  batch_info: string | null;
+  user_image_url: string | null;
+  user_thc_percent: number | null;
+  user_cbd_percent: number | null;
+  created_at: string;
+  updated_at: string;
+}
