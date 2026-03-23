@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GreenLog Color Review</title>
+    <style>
+        body {
+            background-color: #355E3B;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .design-board {
+            flex: 1;
+            min-width: 320px;
+            max-width: 400px;
+            padding: 24px;
+            border-radius: 16px;
+            box-sizing: border-box;
+            background-color: transparent;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .description {
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+
+        /* Mock UI Elements */
+        .card {
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #111; 
+        }
+
+        .status {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .text-primary { font-size: 1.1rem; font-weight: 600; margin: 0 0 4px 0; }
+        .text-secondary { font-size: 0.95rem; margin: 0 0 12px 0; }
+        .text-muted { font-size: 0.85rem; margin: 0 0 16px 0; }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            color: #111;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .swatches {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .swatch {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        /* --- DESIGN 1: Natural Elegance --- */
+        .d1 { border: 1px solid #427249; color: #F8F9F9; }
+        .d1 .description { color: #BDC3C7; }
+        .d1 .card { background-color: #2D5032; border: 1px solid #427249; }
+        .d1 .text-primary { color: #F8F9F9; }
+        .d1 .text-secondary { color: #BDC3C7; }
+        .d1 .text-muted { color: #7F8C8D; }
+        .d1 .badge { background-color: #F39C12; }
+        .d1 .status { color: #A3E4D7; }
+        .d1 button { background-color: #A3E4D7; }
+
+        /* --- DESIGN 2: Modern Botanics --- */
+        .d2 { border: 1px solid rgba(0, 210, 138, 0.3); color: #FFFFFF; }
+        .d2 .description { color: #E2E8F0; }
+        .d2 .card { background-color: #223C26; border: 1px solid rgba(0, 210, 138, 0.2); }
+        .d2 .text-primary { color: #FFFFFF; }
+        .d2 .text-secondary { color: #E2E8F0; }
+        .d2 .text-muted { color: #94A3B8; }
+        .d2 .badge { background-color: #B967FF; color: white; }
+        .d2 .status { color: #00D28A; }
+        .d2 button { background-color: #00D28A; }
+
+        /* --- DESIGN 3: Harvest Sunset --- */
+        .d3 { border: 1px solid #477C4E; color: #FEF9E7; }
+        .d3 .description { color: #D5D8DC; }
+        .d3 .card { background-color: #3F6E46; border: 1px solid #477C4E; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .d3 .text-primary { color: #FEF9E7; }
+        .d3 .text-secondary { color: #D5D8DC; }
+        .d3 .text-muted { color: #A6ACAF; }
+        .d3 .badge { background-color: #F1C40F; }
+        .d3 .status { color: #E67E22; }
+        .d3 button { background-color: #E67E22; color: white; }
+
+        @media (max-width: 800px) {
+            body { padding: 20px; flex-direction: column; }
+            .design-board { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Design 1 -->
+    <div class="design-board d1">
+        <h2>Natural Elegance</h2>
+        <p class="description">Fokus auf Premium, sanftere Töne und einen sehr organischen, erwachsenen Look.</p>
+        
+        <div class="card">
+            <div class="card-header">
+                <span class="badge">OWNER</span>
+                <span class="status">● Active Grow</span>
+            </div>
+            <p class="text-primary">Northern Lights #1</p>
+            <p class="text-secondary">Woche 5 • Blütephase</p>
+            <p class="text-muted">Zuletzt aktualisiert: vor 2 Stunden</p>
+            <button>Eintrag hinzufügen</button>
+        </div>
+
+        <div class="swatches">
+            <div class="swatch" style="background-color: #A3E4D7;" title="Primary: #A3E4D7"></div>
+            <div class="swatch" style="background-color: #F39C12;" title="Secondary: #F39C12"></div>
+            <div class="swatch" style="background-color: #2D5032;" title="Card: #2D5032"></div>
+        </div>
+    </div>
+
+    <!-- Design 2 -->
+    <div class="design-board d2">
+        <h2>Modern Botanics</h2>
+        <p class="description">Poppig, digital, extrem starker Kontrast. Wirkt energetisch und modern.</p>
+        
+        <div class="card">
+            <div class="card-header">
+                <span class="badge">OWNER</span>
+                <span class="status">● Active Grow</span>
+            </div>
+            <p class="text-primary">Northern Lights #1</p>
+            <p class="text-secondary">Woche 5 • Blütephase</p>
+            <p class="text-muted">Zuletzt aktualisiert: vor 2 Stunden</p>
+            <button>Eintrag hinzufügen</button>
+        </div>
+
+        <div class="swatches">
+            <div class="swatch" style="background-color: #00D28A;" title="Primary: #00D28A"></div>
+            <div class="swatch" style="background-color: #B967FF;" title="Secondary: #B967FF"></div>
+            <div class="swatch" style="background-color: #223C26;" title="Card: #223C26"></div>
+        </div>
+    </div>
+
+    <!-- Design 3 -->
+    <div class="design-board d3">
+        <h2>Harvest Sunset</h2>
+        <p class="description">Warme Erdtöne, einladend und sozial. Wirkt "sonniger" und weniger technisch.</p>
+        
+        <div class="card">
+            <div class="card-header">
+                <span class="badge">OWNER</span>
+                <span class="status">● Active Grow</span>
+            </div>
+            <p class="text-primary">Northern Lights #1</p>
+            <p class="text-secondary">Woche 5 • Blütephase</p>
+            <p class="text-muted">Zuletzt aktualisiert: vor 2 Stunden</p>
+            <button>Eintrag hinzufügen</button>
+        </div>
+
+        <div class="swatches">
+            <div class="swatch" style="background-color: #E67E22;" title="Primary: #E67E22"></div>
+            <div class="swatch" style="background-color: #F1C40F;" title="Secondary: #F1C40F"></div>
+            <div class="swatch" style="background-color: #3F6E46;" title="Card: #3F6E46"></div>
+        </div>
+    </div>
+
+</body>
+</html>

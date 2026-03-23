@@ -146,6 +146,8 @@ export default function UserProfilePage() {
                 xp: 0,
                 level: 1,
                 progressToNextLevel: 0,
+                followers: 0,
+                following: 0,
             });
 
             setFavorites(favoritesData ?? []);
