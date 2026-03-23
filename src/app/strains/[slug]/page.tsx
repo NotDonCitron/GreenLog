@@ -143,7 +143,7 @@ export default function StrainDetailPage() {
   };
 
   const handleShareCard = async () => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || !strain) return;
     setIsSharing(true);
     try {
       // Temporarily flip to front for capture
