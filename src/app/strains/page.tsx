@@ -221,7 +221,7 @@ export default function StrainsPage() {
             onClick={() => setSourceFilter("grow")}
             className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "grow" ? "bg-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
           >
-            🌱 Selbstanbau
+            🌱 Eigenanbau
           </Button>
           <Button
             size="sm"

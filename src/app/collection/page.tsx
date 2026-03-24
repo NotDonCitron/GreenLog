@@ -73,7 +73,9 @@ export default function CollectionPage() {
 
   const filteredStrains = strains.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
-    const matchesFilter = sourceFilter === "all" || s.source === sourceFilter;
+    // Filter-Logik: 'other' schließt 'street' mit ein
+    const matchesFilter = sourceFilter === "all" || 
+                         (sourceFilter === "other" ? (s.source === "other" || s.source === "street") : s.source === sourceFilter);
     return matchesSearch && matchesFilter;
   });
 
@@ -111,9 +113,9 @@ export default function CollectionPage() {
           {[
             { id: "all", label: "Alle" },
             { id: "pharmacy", label: "🧪 Apotheke" },
-            { id: "street", label: "📦 Street" },
-            { id: "grow", label: "🌱 Eigen" },
-            { id: "csc", label: "🏢 CSC" }
+            { id: "grow", label: "🌱 Eigenanbau" },
+            { id: "csc", label: "🏢 CSC" },
+            { id: "other", label: "📦 Sonstiges" }
           ].map((f) => (
             <Button
               key={f.id}
