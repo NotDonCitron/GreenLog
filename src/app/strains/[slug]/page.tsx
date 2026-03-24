@@ -372,7 +372,7 @@ export default function StrainDetailPage() {
               style={{ borderColor: themeColor }}
             >
               <div className="flex-1 space-y-6">
-                <h3 className="font-serif italic text-xl font-bold uppercase text-white">Sorte Profil</h3>
+                <h3 className="font-serif italic text-xl font-bold uppercase text-white">Sorten Profil</h3>
                 <div className="space-y-4">
                   <div>
                     <p className="text-[9px] font-black uppercase text-white/30 mb-1">Beschreibung</p>
