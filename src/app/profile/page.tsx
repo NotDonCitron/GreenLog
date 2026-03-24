@@ -126,6 +126,14 @@ export default function ProfilePage() {
         supabase.from("user_badges").select("badges(*)").eq("user_id", user?.id)
       ]);
 
+      // Zusätzlicher Fetch für Custom-Bilder in der Collection für diese Favoriten
+      const favoriteIds = (favsRes.data || []).map(f => (f.strains as any)?.id).filter(Boolean);
+      const { data: collectionData } = await supabase
+        .from("user_collection")
+        .select("strain_id, user_image_url")
+        .eq("user_id", user?.id)
+        .in("strain_id", favoriteIds);
+
       const stats: ProfileStats = {
         totalStrains: collCount.count ?? 0,
         totalGrows: 0,
@@ -141,11 +149,15 @@ export default function ProfilePage() {
       const favorites: ProfileFavorite[] = (favsRes.data || []).map(f => {
         const s = f.strains as any;
         if (!s) return null;
+        
+        // Prüfen ob es ein User-eigenes Bild gibt
+        const customImage = collectionData?.find(c => c.strain_id === s.id)?.user_image_url;
+
         return {
           id: s.id,
           name: s.name,
           slug: s.slug,
-          imageUrl: s.image_url,
+          imageUrl: customImage || s.image_url,
           type: s.type,
           thcDisplay: formatThcDisplay(s),
           favoriteRank: f.favorite_rank
