@@ -119,6 +119,9 @@ export default function ScannerPage() {
     // Screenshot vom Video-Feed machen
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
+    
+    // Bildverbesserung für OCR
+    context.filter = 'contrast(1.4) grayscale(1)';
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     setStatus("processing");
@@ -210,13 +213,13 @@ export default function ScannerPage() {
       </div>
 
       {/* Bottom Instructions */}
-      <div className="p-12 pb-32 flex flex-col items-center gap-6 bg-gradient-to-t from-black via-black/80 to-transparent z-10">
+      <div className="p-8 pb-40 flex flex-col items-center gap-6 bg-gradient-to-t from-black via-black/80 to-transparent z-10">
         <div className="text-center space-y-2">
           <h2 className="text-sm font-bold tracking-[0.3em] uppercase text-[#00F5FF]">
             {status === "processing" ? "Analysiere Text..." : "Smart Scanner"}
           </h2>
-          <p className="text-xs text-white/40 uppercase tracking-widest leading-relaxed">
-            {status === "error" ? result : "Scanne das Etikett deiner Sorte"}
+          <p className="text-[10px] text-white/40 uppercase tracking-widest leading-relaxed max-w-[200px]">
+            {status === "error" ? result : "Ziele auf den Namen der Sorte"}
           </p>
         </div>
 
