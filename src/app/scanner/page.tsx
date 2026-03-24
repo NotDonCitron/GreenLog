@@ -65,8 +65,8 @@ export default function ScannerPage() {
     let highestScore = 0;
 
     for (const strain of strains) {
-      const name = strain.name.toLowerCase();
-      const nameWords = name.split(/[\s,.\-\n]+/).filter(w => w.length > 2);
+      const name = (strain.name as string).toLowerCase();
+      const nameWords = name.split(/[\s,.\-\n]+/).filter((w: string) => w.length > 2);
       
       let score = 0;
       
