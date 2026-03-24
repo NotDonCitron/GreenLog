@@ -91,15 +91,31 @@ export default function StrainDetailPage() {
 
     setIsDeleting(true);
     try {
-      await supabase.from("user_strain_relations").delete().eq("strain_id", strain.id);
-      await supabase.from("user_collection").delete().eq("strain_id", strain.id);
-      await supabase.from("ratings").delete().eq("strain_id", strain.id);
-      await supabase.from("user_activities").delete().eq("target_id", String(strain.id));
+      console.log("Starting deletion process for strain:", strain.id);
+      
+      // Lösche alle Referenzen
+      const r1 = await supabase.from("user_strain_relations").delete().eq("strain_id", strain.id);
+      if (r1.error) console.warn("Rel delete error:", r1.error);
+      
+      const r2 = await supabase.from("user_collection").delete().eq("strain_id", strain.id);
+      if (r2.error) console.warn("Coll delete error:", r2.error);
+      
+      const r3 = await supabase.from("ratings").delete().eq("strain_id", strain.id);
+      if (r3.error) console.warn("Rating delete error:", r3.error);
+      
+      const r4 = await supabase.from("user_activities").delete().eq("target_id", String(strain.id));
+      if (r4.error) console.warn("Activity delete error:", r4.error);
 
+      // Haupt-Eintrag löschen
       const { error: mainError } = await supabase.from("strains").delete().eq("id", strain.id);
-      if (mainError) throw mainError;
+      
+      if (mainError) {
+        throw new Error(`Konnte Strain nicht aus Haupttabelle löschen: ${mainError.message}`);
+      }
 
-      window.location.href = "/strains";
+      console.log("Deletion successful, redirecting...");
+      router.push("/strains");
+      router.refresh();
     } catch (err: any) {
       console.error("Delete failure:", err);
       alert(err.message);
