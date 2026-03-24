@@ -8,7 +8,7 @@ import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Flame, Wind, Eye, Leaf, Database, Sparkles, Share2, Download, Trash2, Pencil } from "lucide-react";
+import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Flame, Wind, Eye, Leaf, Database, Sparkles, Share2, Download, Trash2, Pencil, Lock } from "lucide-react";
 import { Strain } from "@/lib/types";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 
