@@ -41,7 +41,7 @@ export function CreateStrainModal({ onSuccess, trigger }: CreateStrainModalProps
     const [importedImageUrl, setImportedImageUrl] = useState<string | null>(null);
 
     const TASTE_OPTIONS = ["Erdig", "Süß", "Zitrone", "Kiefer", "Beeren", "Würzig", "Fruchtig", "Diesel"];
-    const EFFECT_OPTIONS = ["Entspannt", "Kreativ", "Hungrig", "Fokussiert", "Euphörisch", "Schläfrig", "Energisch"];
+    const EFFECT_OPTIONS = ["Entspannt", "Kreativ", "Glücklich", "Fokussiert", "Euphörisch", "Schläfrig", "Energisch"];
 
     const toggleItem = (item: string, list: string[], setList: (items: string[]) => void) => {
         if (list.includes(item)) {
@@ -88,33 +88,32 @@ export function CreateStrainModal({ onSuccess, trigger }: CreateStrainModalProps
             if (data.name) setName(data.name);
             if (data.type) setType(data.type === "hybrid" || data.type === "sativa" || data.type === "indica" ? data.type : "hybrid");
             
-            // Fix THC/CBD Mapping
             if (data.thc !== undefined && data.thc !== null) setThcEstimate(data.thc.toString());
             if (data.cbd !== undefined && data.cbd !== null) setCbdEstimate(data.cbd.toString());
             
             if (data.description) setDescription(data.description.replace(/<[^>]*>/g, '').slice(0, 500));
             if (data.image_url) setImportedImageUrl(data.image_url);
             
-            // Improved Mapping for Terpenes & Effects with Keyword Dictionary
+            // Extensive Mapping Dictionary
             const TASTE_MAP: Record<string, string[]> = {
-                "Erdig": ["earthy", "wood", "pine"],
-                "Süß": ["sweet", "candy", "sugar", "vanilla"],
-                "Zitrone": ["citrus", "lemon", "lime", "orange", "grapefruit", "zest"],
-                "Kiefer": ["pine", "pinene", "forest"],
-                "Beeren": ["berry", "blueberry", "grape", "strawberry", "cherry"],
-                "Würzig": ["spicy", "pepper", "clove", "herbal"],
-                "Fruchtig": ["fruity", "tropical", "mango", "pineapple", "apple"],
-                "Diesel": ["diesel", "gas", "chemical", "skunk"]
+                "Erdig": ["earthy", "wood", "pine", "soil", "musty"],
+                "Süß": ["sweet", "candy", "sugar", "vanilla", "honey", "caramel"],
+                "Zitrone": ["citrus", "lemon", "lime", "orange", "grapefruit", "zest", "sour"],
+                "Kiefer": ["pine", "pinene", "forest", "wood"],
+                "Beeren": ["berry", "blueberry", "grape", "strawberry", "cherry", "raspberry"],
+                "Würzig": ["spicy", "pepper", "clove", "herbal", "mint", "sage"],
+                "Fruchtig": ["fruity", "tropical", "mango", "pineapple", "apple", "peach", "pear"],
+                "Diesel": ["diesel", "gas", "chemical", "skunk", "pungent", "fuel"]
             };
 
             const EFFECT_MAP: Record<string, string[]> = {
-                "Entspannt": ["relaxed", "calm", "sleepy", "couch-lock"],
-                "Kreativ": ["creative", "inspired"],
-                "Hungrig": ["hungry", "munchies"],
-                "Fokussiert": ["focused", "clear-headed"],
-                "Euphörisch": ["euphoric", "happy", "giggly", "uplifted"],
-                "Schläfrig": ["sleepy", "tired", "insomnia"],
-                "Energisch": ["energetic", "talkative", "active"]
+                "Entspannt": ["relaxed", "calm", "couch-lock", "soothing", "body high"],
+                "Kreativ": ["creative", "inspired", "artistic", "abstract"],
+                "Glücklich": ["happy", "giggly", "cheerful", "content"],
+                "Fokussiert": ["focused", "clear-headed", "attentive", "productive"],
+                "Euphörisch": ["euphoric", "uplifted", "blissful", "exhilarated"],
+                "Schläfrig": ["sleepy", "tired", "insomnia", "sedated", "drowsy"],
+                "Energisch": ["energetic", "talkative", "active", "aroused", "motivated"]
             };
 
             if (Array.isArray(data.terpenes)) {

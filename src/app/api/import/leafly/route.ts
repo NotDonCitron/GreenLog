@@ -6,6 +6,7 @@ const extractNames = (items: unknown): string[] => {
     if (typeof item === "string") return item.trim();
     if (item && typeof item === "object") {
       if ("name" in item && typeof item.name === "string") return item.name.trim();
+      if ("displayName" in item && typeof item.displayName === "string") return item.displayName.trim();
       if ("label" in item && typeof item.label === "string") return item.label.trim();
     }
     return "";
@@ -32,25 +33,28 @@ export async function POST(req: NextRequest) {
     if (nextDataMatch) {
       try {
         const fullData = JSON.parse(nextDataMatch[1]);
-        const strainData = fullData.props?.pageProps?.strain || fullData.props?.pageProps?.strainData || {};
+        const strainData = fullData.props?.pageProps?.strain || fullData.props?.pageProps?.strainData || fullData.props?.pageProps?.initialStrain || {};
 
         const getVal = (val: any) => {
           if (typeof val === 'number') return val;
           if (typeof val === 'string') return parseFloat(val.replace('%', ''));
-          if (val && typeof val === 'object') return val.avg || val.value || null;
+          if (val && typeof val === 'object') return val.avg || val.value || val.average || null;
           return null;
         };
 
-        // Sammle alle Geschmäcker (Terpene + Flavors)
+        // Sammle wirklich alles was nach Geschmack aussieht
         const allTastes = [
-          ...extractNames(strainData.topTerpenes || strainData.terpenes || []),
-          ...extractNames(strainData.flavors || [])
+          ...extractNames(strainData.topTerpenes || []),
+          ...extractNames(strainData.terpenes || []),
+          ...extractNames(strainData.flavors || []),
+          ...extractNames(strainData.flavorProfiles || [])
         ];
 
-        // Sammle alle positiven Effekte (Feelings + Effects)
+        // Sammle wirklich alles was nach Wirkung aussieht
         const allEffects = [
           ...extractNames(strainData.feelings || []),
-          ...extractNames(strainData.effects || [])
+          ...extractNames(strainData.effects || []),
+          ...extractNames(strainData.topEffects || [])
         ];
 
         scrapedData = {
@@ -59,7 +63,7 @@ export async function POST(req: NextRequest) {
           description: strainData.description || "",
           thc: getVal(strainData.thc),
           cbd: getVal(strainData.cbd),
-          terpenes: Array.from(new Set(allTastes)), // Duplikate entfernen
+          terpenes: Array.from(new Set(allTastes)),
           effects: Array.from(new Set(allEffects)),
           image_url: strainData.imageUrl || strainData.heroImage || null,
         };
@@ -68,7 +72,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Fallback Meta-Tags
     if (!scrapedData.name) {
       const titleMatch = html.match(/<title>(.*?)<\/title>/i);
       scrapedData.name = titleMatch ? titleMatch[1].split("|")[0].replace("Strain Information", "").trim() : "";
