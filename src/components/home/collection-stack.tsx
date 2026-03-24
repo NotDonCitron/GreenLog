@@ -5,7 +5,12 @@ import { Card } from "@/components/ui/card";
 import { RefreshCw } from "lucide-react";
 
 interface CollectionStackProps {
-  strains: Strain[];
+  strains: (Strain & {
+    user_review?: string | null;
+    user_overall_rating?: number | null;
+    user_consumption_method?: string | null;
+    user_rating_date?: string | null;
+  })[];
   activeIndex: number;
   isFlipped: boolean;
   setIsFlipped: (flipped: boolean) => void;
