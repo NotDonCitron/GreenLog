@@ -209,9 +209,6 @@ export default function StrainDetailPage() {
     if (!user || !strain || isDemoMode) return;
     setIsSaving(true);
     try {
-      const username = user.email?.split("@")[0] || "user_" + Math.random().toString(36).slice(2, 7);
-      await supabase.from("profiles").upsert({ id: user.id, username, display_name: username }, { onConflict: 'id' });
-
       const { error: rError } = await supabase.from("ratings").upsert({
         strain_id: strain.id,
         user_id: user.id,
