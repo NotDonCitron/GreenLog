@@ -85,7 +85,6 @@ export default function Home() {
                 user_review: rating?.review || item.user_notes,
                 user_consumption_method: rating?.consumption_method,
                 user_overall_rating: rating?.overall_rating,
-                user_rating_date: item.created_at,
                 avg_thc: item.user_thc_percent || s.avg_thc,
                 avg_cbd: item.user_cbd_percent || s.avg_cbd,
                 source: item.batch_info || s.source || 'pharmacy'
