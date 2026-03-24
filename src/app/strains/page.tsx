@@ -71,6 +71,10 @@ export default function StrainsPage() {
       return true;
     }
 
+    if (sourceFilter === "other") {
+      return strain.source === "other" || strain.source === "street";
+    }
+
     return strain.source === sourceFilter;
   };
 
@@ -208,14 +212,6 @@ export default function StrainsPage() {
             className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "pharmacy" ? "bg-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
           >
             🧪 Apotheke
-          </Button>
-          <Button
-            size="sm"
-            variant={sourceFilter === "street" ? "default" : "outline"}
-            onClick={() => setSourceFilter("street")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "street" ? "bg-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
-          >
-            📦 Street
           </Button>
           <Button
             size="sm"
