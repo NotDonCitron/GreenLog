@@ -136,24 +136,30 @@ export default function ProfilePage() {
         following: followingRes.count ?? 0
       };
 
-      const favorites: ProfileFavorite[] = (favsRes.data || []).map(f => ({
-        id: f.strains.id,
-        name: f.strains.name,
-        slug: f.strains.slug,
-        imageUrl: f.strains.image_url,
-        type: f.strains.type,
-        thcDisplay: formatThcDisplay(f.strains),
-        favoriteRank: f.favorite_rank
-      }));
+      const favorites: ProfileFavorite[] = (favsRes.data || []).map(f => {
+        const s = f.strains as any;
+        if (!s) return null;
+        return {
+          id: s.id,
+          name: s.name,
+          slug: s.slug,
+          imageUrl: s.image_url,
+          type: s.type,
+          thcDisplay: formatThcDisplay(s),
+          favoriteRank: f.favorite_rank
+        };
+      }).filter((f): f is ProfileFavorite => !!f);
 
-      const badges: ProfileBadge[] = (badgesRes.data || []).map(b => ({
-        id: b.badges.id,
-        name: b.badges.name,
-        description: b.badges.description,
-        iconKey: b.badges.icon_url || "starter",
-        rarity: b.badges.rarity || "common"
-      }));
-
+      const badges: ProfileBadge[] = (badgesRes.data || []).map(b => {
+        const badge = (b as any).badges;
+        return {
+          id: badge.id,
+          name: badge.name,
+          description: badge.description,
+          iconKey: badge.icon_url || "starter",
+          rarity: badge.rarity || "common"
+        };
+      });
       const identity: ProfileIdentity = {
         email: user?.email ?? null,
         username: `@${profileRes.data?.username || "user"}`,
