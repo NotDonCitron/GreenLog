@@ -315,18 +315,18 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex-1 pt-2">
-              <div className="flex justify-between items-center mb-4">
-                <button onClick={() => setFollowersModal({ isOpen: true, mode: "followers" })} className="text-center">
-                  <p className="text-xl font-black">{stats.followers}</p>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-white/40">Follower</p>
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                <button onClick={() => setFollowersModal({ isOpen: true, mode: "followers" })} className="text-center px-1">
+                  <p className="text-lg font-black leading-none">{stats.followers}</p>
+                  <p className="text-[7px] font-black uppercase tracking-wider text-white/40 mt-1">Follower</p>
                 </button>
-                <button onClick={() => setFollowersModal({ isOpen: true, mode: "following" })} className="text-center">
-                  <p className="text-xl font-black">{stats.following}</p>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-white/40">Following</p>
+                <button onClick={() => setFollowersModal({ isOpen: true, mode: "following" })} className="text-center px-1 border-x border-white/5">
+                  <p className="text-lg font-black leading-none">{stats.following}</p>
+                  <p className="text-[7px] font-black uppercase tracking-wider text-white/40 mt-1">Following</p>
                 </button>
-                <div className="text-center">
-                  <p className="text-xl font-black">{stats.totalStrains}</p>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-white/40">Strains</p>
+                <div className="text-center px-1">
+                  <p className="text-lg font-black leading-none">{stats.totalStrains}</p>
+                  <p className="text-[7px] font-black uppercase tracking-wider text-white/40 mt-1">Strains</p>
                 </div>
               </div>
               
