@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     const html = await response.text();
     let scrapedData: any = { terpenes: [], effects: [] };
 
-    // 1. Primär: Next.js JSON Block
+    // 1. Primär: Next.js JSON Block (Am sichersten)
     const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
     if (nextDataMatch) {
       try {
@@ -59,39 +59,30 @@ export async function POST(req: NextRequest) {
       } catch (e) {}
     }
 
-    // 2. Sekundär: Aggressives Full-Text Scraping (Falls JSON lückenhaft)
-    
-    // Name aus Title
-    if (!scrapedData.name) {
+    // 2. Sekundär: Meta-Tags & Regex Fallback (Gezielte Suche)
+    if (!scrapedData.name || !scrapedData.thc) {
       const titleMatch = html.match(/<title>(.*?)<\/title>/i);
-      scrapedData.name = titleMatch ? titleMatch[1].split("|")[0].replace("Strain Information", "").trim() : "";
-    }
+      const descMatch = html.match(/<meta name="description" content="(.*?)"/i);
+      const imageMatch = html.match(/<meta property="og:image" content="(.*?)"/i);
+      
+      if (!scrapedData.name) scrapedData.name = titleMatch ? titleMatch[1].split("|")[0].replace("Strain Information", "").trim() : "";
+      if (!scrapedData.description) scrapedData.description = descMatch ? descMatch[1] : "";
+      if (!scrapedData.image_url) scrapedData.image_url = imageMatch ? imageMatch[1] : null;
 
-    // THC/CBD aus dem HTML Text extrahieren
-    if (!scrapedData.thc) {
-      const thcMatch = html.match(/(\d+(?:\.\d+)?)\s*%\s*thc/i);
-      if (thcMatch) scrapedData.thc = parseFloat(thcMatch[1]);
-    }
-    if (!scrapedData.cbd) {
-      const cbdMatch = html.match(/(\d+(?:\.\d+)?)\s*%\s*cbd/i);
-      if (cbdMatch) scrapedData.cbd = parseFloat(cbdMatch[1]);
-    }
-
-    // Terpene/Flavors aus HTML finden (Suche nach Begriffen in Listen oder Buttons)
-    const TASTE_KEYWORDS = ["earthy", "sweet", "citrus", "lemon", "pine", "berry", "spicy", "fruity", "diesel", "skunk", "pepper", "grape", "tropical"];
-    TASTE_KEYWORDS.forEach(keyword => {
-      if (html.toLowerCase().includes(`>${keyword}<`) || html.toLowerCase().includes(`"${keyword}"`)) {
-        if (!scrapedData.terpenes.includes(keyword)) scrapedData.terpenes.push(keyword);
+      if (!scrapedData.thc && scrapedData.description) {
+        const thcMatch = scrapedData.description.match(/(\d+(?:\.\d+)?)\s*%\s*thc/i);
+        if (thcMatch) scrapedData.thc = parseFloat(thcMatch[1]);
       }
-    });
+    }
 
-    // Effekte aus HTML finden
-    const EFFECT_KEYWORDS = ["relaxed", "happy", "euphoric", "uplifted", "creative", "sleepy", "hungry", "focused", "energetic", "calm"];
-    EFFECT_KEYWORDS.forEach(keyword => {
-      if (html.toLowerCase().includes(`>${keyword}<`) || html.toLowerCase().includes(`"${keyword}"`)) {
-        if (!scrapedData.effects.includes(keyword)) scrapedData.effects.push(keyword);
-      }
-    });
+    // 3. Keyword-Erkennung nur, wenn JSON unvollständig war (Vorsichtige Suche)
+    if (scrapedData.effects.length === 0) {
+        const EFFECT_KEYWORDS = ["relaxed", "happy", "euphoric", "uplifted", "creative", "sleepy", "hungry", "focused", "energetic", "calm"];
+        EFFECT_KEYWORDS.forEach(kw => {
+            // Wir suchen nach dem Wort in Anführungszeichen (wie im JSON) oder in speziellen Containern
+            if (html.includes(`"${kw}"`)) scrapedData.effects.push(kw);
+        });
+    }
 
     return NextResponse.json(scrapedData);
   } catch (error: any) {

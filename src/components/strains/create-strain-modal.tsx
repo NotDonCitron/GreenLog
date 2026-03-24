@@ -40,8 +40,18 @@ export function CreateStrainModal({ onSuccess, trigger }: CreateStrainModalProps
     const [leaflyUrl, setLeaflyUrl] = useState("");
     const [importedImageUrl, setImportedImageUrl] = useState<string | null>(null);
 
-    const TASTE_OPTIONS = ["Erdig", "Süß", "Zitrone", "Kiefer", "Beeren", "Würzig", "Fruchtig", "Diesel"];
-    const EFFECT_OPTIONS = ["Entspannt", "Kreativ", "Glücklich", "Fokussiert", "Euphörisch", "Schläfrig", "Energisch"];
+    // Erweiterte Optionen
+    const TASTE_OPTIONS = [
+        "Erdig", "Süß", "Zitrone", "Kiefer", "Beeren", "Würzig", "Fruchtig", "Diesel", 
+        "Skunk", "Minze", "Kaffee", "Nussig", "Vanille", "Blumig", "Käse", "Grapefruit", 
+        "Tropisch", "Honig", "Chemisch", "Menthol"
+    ];
+    
+    const EFFECT_OPTIONS = [
+        "Entspannt", "Kreativ", "Glücklich", "Fokussiert", "Euphörisch", "Schläfrig", 
+        "Energisch", "Gesprächig", "Hungrig", "Kichernd", "Beruhigend", "Prickelnd", 
+        "Motiviert", "Klar"
+    ];
 
     const toggleItem = (item: string, list: string[], setList: (items: string[]) => void) => {
         if (list.includes(item)) {
@@ -103,17 +113,36 @@ export function CreateStrainModal({ onSuccess, trigger }: CreateStrainModalProps
                 "Beeren": ["berry", "blueberry", "grape", "strawberry", "cherry", "raspberry"],
                 "Würzig": ["spicy", "pepper", "clove", "herbal", "mint", "sage"],
                 "Fruchtig": ["fruity", "tropical", "mango", "pineapple", "apple", "peach", "pear"],
-                "Diesel": ["diesel", "gas", "chemical", "skunk", "pungent", "fuel"]
+                "Diesel": ["diesel", "gas", "chemical", "skunk", "pungent", "fuel"],
+                "Skunk": ["skunk", "pungent"],
+                "Minze": ["mint", "menthol", "peppermint"],
+                "Kaffee": ["coffee", "roasted", "dark"],
+                "Nussig": ["nutty", "chestnut", "almond"],
+                "Vanille": ["vanilla", "cream"],
+                "Blumig": ["flowery", "floral", "lavender", "rose", "violet"],
+                "Käse": ["cheese", "blue cheese", "pungent"],
+                "Grapefruit": ["grapefruit", "citrus"],
+                "Tropisch": ["tropical", "pineapple", "mango", "exotic"],
+                "Honig": ["honey", "syrup"],
+                "Chemisch": ["chemical", "ammonia", "bleach"],
+                "Menthol": ["menthol", "cooling"]
             };
 
             const EFFECT_MAP: Record<string, string[]> = {
                 "Entspannt": ["relaxed", "calm", "couch-lock", "soothing", "body high"],
                 "Kreativ": ["creative", "inspired", "artistic", "abstract"],
-                "Glücklich": ["happy", "giggly", "cheerful", "content"],
+                "Glücklich": ["happy", "cheerful", "content"],
                 "Fokussiert": ["focused", "clear-headed", "attentive", "productive"],
                 "Euphörisch": ["euphoric", "uplifted", "blissful", "exhilarated"],
                 "Schläfrig": ["sleepy", "tired", "insomnia", "sedated", "drowsy"],
-                "Energisch": ["energetic", "talkative", "active", "aroused", "motivated"]
+                "Energisch": ["energetic", "active", "aroused", "motivated"],
+                "Gesprächig": ["talkative", "social", "chatty"],
+                "Hungrig": ["hungry", "munchies", "appetite"],
+                "Kichernd": ["giggly", "laughing"],
+                "Beruhigend": ["calming", "soothing", "anxiety", "relief"],
+                "Prickelnd": ["tingly", "body-buzz"],
+                "Motiviert": ["motivated", "productive"],
+                "Klar": ["clear", "mental clarity"]
             };
 
             if (Array.isArray(data.terpenes)) {
