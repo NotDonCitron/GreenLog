@@ -80,7 +80,8 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
               <span className="text-gray-500 text-[7px] uppercase font-semibold">THC</span>
               <span className="text-[10px] font-bold" style={{ color: themeColor }}>{thcDisplay}</span>
             </div>
-            <div className="flex items-center justify-end border-l border-white/5 pl-2 w-full">
+            {/* HIER WAR DER FEHLER: KEIN LABEL "TERPENE" MEHR */}
+            <div className="flex items-center justify-end border-l border-white/5 pl-2 w-full text-right">
               <span className="text-gray-100 text-[8px] font-medium truncate">{tasteDisplay}</span>
             </div>
           </div>
@@ -89,7 +90,7 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
               <span className="text-gray-500 text-[7px] uppercase font-semibold">CBD</span>
               <span className="text-[10px] font-bold" style={{ color: themeColor }}>{cbdDisplay}</span>
             </div>
-            <div className="flex items-center justify-end border-l border-white/5 pl-2 w-full">
+            <div className="flex items-center justify-end border-l border-white/5 pl-2 w-full text-right">
               <span className="text-gray-100 text-[8px] font-medium truncate">{effectDisplay}</span>
             </div>
           </div>
