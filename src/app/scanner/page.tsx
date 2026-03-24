@@ -138,8 +138,8 @@ export default function ScannerPage() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white relative overflow-hidden flex flex-col">
-      <div className="flex-1 relative bg-black flex items-center justify-center">
+    <main className="h-[100dvh] bg-black text-white relative overflow-hidden flex flex-col">
+      <div className="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
         <video ref={videoRef} autoPlay playsInline className={`w-full h-full object-cover transition-opacity duration-1000 ${cameraActive ? "opacity-100" : "opacity-0"}`} />
         
         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-none">
@@ -166,31 +166,33 @@ export default function ScannerPage() {
         </div>
       </div>
 
-      <div className="p-8 pb-44 flex flex-col items-center gap-6 bg-gradient-to-t from-black via-black/90 to-transparent z-10">
-        <div className="text-center space-y-2">
-          <h2 className="text-sm font-black tracking-[0.3em] uppercase text-[#00F5FF]">
+      <div className="p-6 pb-6 flex flex-col items-center gap-4 bg-gradient-to-t from-black via-black/90 to-transparent z-10">
+        <div className="text-center space-y-1">
+          <h2 className="text-xs font-black tracking-[0.3em] uppercase text-[#00F5FF]">
             {status === "processing" ? "Analysiere..." : "Smart Scanner"}
           </h2>
-          <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
+          <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">
             {status === "error" ? result : "Ziele auf den Namen der Sorte"}
           </p>
           {debugText && (
-            <p className="text-[8px] text-red-400 font-mono mt-2 bg-black/40 px-2 py-1 rounded">Gelesen: {debugText}</p>
+            <p className="text-[8px] text-red-400 font-mono mt-1 bg-black/40 px-2 py-0.5 rounded">Gelesen: {debugText}</p>
           )}
         </div>
 
         <button 
           onClick={captureAndRecognize}
           disabled={status === "processing" || status === "success"}
-          className={`w-20 h-20 rounded-full border-4 border-white/10 p-1 bg-white/5 transition-all active:scale-95 ${status === "processing" ? "opacity-20" : "opacity-100"}`}
+          className={`w-16 h-16 rounded-full border-4 border-white/10 p-1 bg-white/5 transition-all active:scale-95 ${status === "processing" ? "opacity-20" : "opacity-100"}`}
         >
-          <div className="w-full h-full rounded-full bg-white flex items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.3)]">
-            <Camera size={32} className="text-black" />
+          <div className="w-full h-full rounded-full bg-white flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+            <Camera size={28} className="text-black" />
           </div>
         </button>
       </div>
 
-      <BottomNav />
+      <div className="shrink-0">
+        <BottomNav />
+      </div>
     </main>
   );
 }
