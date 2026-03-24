@@ -50,11 +50,9 @@ export default function Home() {
       
       <div className="relative mx-auto max-w-lg px-6 pt-12 flex flex-col gap-10">
         <div className="flex justify-between items-center border-b border-white/10 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 relative overflow-hidden rounded-xl bg-white flex items-center justify-center p-1">
-              <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain mix-blend-multiply" />
-            </div>
-            <h1 className="text-2xl font-black tracking-widest uppercase italic">CannaLog</h1>
+          <h1 className="text-2xl font-black tracking-widest uppercase italic">CannaLog</h1>
+          <div className="w-12 h-12 relative">
+            <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
           </div>
         </div>
 

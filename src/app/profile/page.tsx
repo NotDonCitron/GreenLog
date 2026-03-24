@@ -232,20 +232,21 @@ export default function ProfilePage() {
     return (
       <main className="min-h-screen bg-[#355E3B] text-white pb-32">
         <header className="p-8 pb-4">
-                  <div className="flex justify-between items-center mb-8">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 relative overflow-hidden rounded-lg bg-white flex items-center justify-center p-0.5">
-                        <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain mix-blend-multiply" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">My Profile</p>
-                        <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">CannaLog</h1>
-                      </div>
-                    </div>
-                    <Link href="/login" className="px-6 py-2 bg-[#2FF801] text-black rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                      <LogIn size={14} /> Login
-                    </Link>
-                  </div>
+                          <div className="flex justify-between items-center mb-8">
+                            <div>
+                              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">My Profile</p>
+                              <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">CannaLog</h1>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 relative">
+                                <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
+                              </div>
+                              <Link href="/login" className="px-6 py-2 bg-[#2FF801] text-black rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                <LogIn size={14} /> Login
+                              </Link>
+                            </div>
+                          </div>
+                  
                     <div className="bg-[#1e3a24] rounded-[2.5rem] p-8 border border-white/10 shadow-2xl relative overflow-hidden text-center">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,245,255,0.05),transparent_50%)]" />
             
@@ -293,20 +294,20 @@ export default function ProfilePage() {
     <main className="min-h-screen bg-[#355E3B] text-white pb-32">
       <header className="p-8 pb-4">
         <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 relative overflow-hidden rounded-lg bg-white flex items-center justify-center p-0.5">
-              <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain mix-blend-multiply" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">My Profile</p>
-              <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">CannaLog</h1>
-            </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">My Profile</p>
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">CannaLog</h1>
           </div>
-          <Link href="/profile/settings">
-            <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-[#00F5FF] transition-colors">
-              <Settings size={18} />
-            </button>
-          </Link>
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 relative">
+              <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
+            </div>
+            <Link href="/profile/settings">
+              <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-[#00F5FF] transition-colors">
+                <Settings size={18} />
+              </button>
+            </Link>
+          </div>
         </div>
 
         <div className="bg-[#1e3a24] rounded-[2.5rem] p-6 border border-white/10 shadow-2xl relative overflow-hidden">
