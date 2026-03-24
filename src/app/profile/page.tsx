@@ -20,6 +20,7 @@ import {
   LogIn,
   Pencil,
   Shield,
+  Settings,
   Sparkles,
   Sprout,
   Star,
@@ -292,9 +293,11 @@ export default function ProfilePage() {
             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">My Profile</p>
             <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">CannaLog</h1>
           </div>
-          <button onClick={() => signOut()} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-red-400">
-            <LogOut size={18} />
-          </button>
+          <Link href="/profile/settings">
+            <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-[#00F5FF] transition-colors">
+              <Settings size={18} />
+            </button>
+          </Link>
         </div>
 
         <div className="bg-[#1e3a24] rounded-[2.5rem] p-6 border border-white/10 shadow-2xl relative overflow-hidden">
@@ -469,6 +472,15 @@ export default function ProfilePage() {
               {isPublic ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
           </div>
+        </section>
+
+        <section className="pb-10">
+          <button 
+            onClick={() => signOut()}
+            className="w-full py-4 bg-red-500/5 border border-red-500/10 rounded-2xl flex items-center justify-center gap-2 text-red-400 text-xs font-black uppercase tracking-[0.2em] hover:bg-red-500/10 transition-all"
+          >
+            <LogOut size={16} /> Terminal Abmelden
+          </button>
         </section>
       </div>
 
