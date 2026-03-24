@@ -12,17 +12,72 @@ import {
   AlertTriangle, 
   Loader2, 
   CheckCircle2,
-  Lock
+  Lock,
+  UserRound
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { useEffect } from "react";
 
 export default function SettingsPage() {
   const { user, signOut, isDemoMode } = useAuth();
   const router = useRouter();
   
+  const [displayName, setDisplayName] = useState("");
+  const [username, setUsername] = useState("");
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+  const [profileStatus, setProfileStatus] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
+
+  useEffect(() => {
+    async function getProfile() {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('display_name, username')
+        .eq('id', user.id)
+        .single();
+      
+      if (data) {
+        setDisplayName(data.display_name || "");
+        setUsername(data.username || "");
+      }
+    }
+    getProfile();
+  }, [user]);
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || isDemoMode) return;
+    
+    setIsUpdatingProfile(true);
+    setProfileStatus(null);
+    
+    try {
+      const cleanUsername = username.trim().toLowerCase().replace(/\s+/g, "_");
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          display_name: displayName.trim(),
+          username: cleanUsername
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        if (error.message.includes("unique")) throw new Error("Dieser Benutzername ist bereits vergeben.");
+        throw error;
+      }
+      
+      setProfileStatus({ type: 'success', msg: "Profil erfolgreich aktualisiert." });
+    } catch (err: any) {
+      setProfileStatus({ type: 'error', msg: err.message });
+    } finally {
+      setIsUpdatingProfile(false);
+    }
+  };
+
   const [newEmail, setNewEmail] = useState("");
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const [emailStatus, setEmailStatus] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
@@ -138,6 +193,55 @@ export default function SettingsPage() {
       </header>
 
       <div className="px-8 space-y-8 mt-6">
+        {/* Profil bearbeiten */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 px-1">
+            <UserRound size={16} className="text-[#2FF801]" />
+            <h2 className="text-xs font-black uppercase tracking-widest">Profil-Informationen</h2>
+          </div>
+          
+          <Card className="bg-[#1e3a24] border-white/10 p-6 rounded-[2rem] space-y-4">
+            <form onSubmit={handleUpdateProfile} className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">Anzeigename</Label>
+                <Input 
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="z.B. Pascal"
+                  className="bg-black/20 border-white/5 rounded-xl h-12 focus:border-[#2FF801]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">Benutzername (@)</Label>
+                <Input 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="benutzername"
+                  className="bg-black/20 border-white/5 rounded-xl h-12 focus:border-[#2FF801] font-mono text-sm"
+                />
+              </div>
+
+              {profileStatus && (
+                <div className={`p-3 rounded-xl flex items-start gap-2 text-xs font-bold border ${
+                  profileStatus.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'
+                }`}>
+                  {profileStatus.type === 'success' ? <CheckCircle2 size={14} className="shrink-0" /> : <AlertTriangle size={14} className="shrink-0" />}
+                  <span>{profileStatus.msg}</span>
+                </div>
+              )}
+
+              <Button 
+                type="submit" 
+                disabled={isUpdatingProfile || isDemoMode}
+                className="w-full h-12 bg-[#2FF801] text-black font-black uppercase tracking-widest rounded-xl"
+              >
+                {isUpdatingProfile ? <Loader2 className="animate-spin" size={18} /> : "Profil speichern"}
+              </Button>
+            </form>
+          </Card>
+        </section>
+
         {/* Email ändern */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
