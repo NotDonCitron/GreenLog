@@ -63,12 +63,13 @@ export default function StrainsPage() {
   };
 
   const matchesSourceFilter = (strain: Strain) => {
-    if (sourceFilter === "mine") {
-      return !!user && strain.created_by === user.id;
-    }
-
     if (sourceFilter === "all") {
       return true;
+    }
+
+    if (sourceFilter === "grow") {
+      // Zeige Eigenanbau ODER vom User selbst erstellte Sorten
+      return strain.source === "grow" || (!!user && strain.created_by === user.id);
     }
 
     if (sourceFilter === "other") {
@@ -237,17 +238,6 @@ export default function StrainsPage() {
           >
             📦 Sonstiges
           </Button>
-          {user && (
-            <Button
-              size="sm"
-              variant={sourceFilter === "mine" ? "default" : "outline"}
-              onClick={() => setSourceFilter("mine")}
-              className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "mine" ? "bg-[#00F5FF] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
-            >
-              <User size={12} className="mr-1" />
-              Meine
-            </Button>
-          )}
         </div>
       </header>
 
