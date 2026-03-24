@@ -239,6 +239,13 @@ export default function StrainDetailPage() {
 
   const normalizedEffects = Array.isArray(strain?.effects) ? strain.effects.map(e => extractDisplayName(e)).filter(Boolean) : [];
   const normalizedFlavors = Array.isArray(strain?.flavors) ? strain.flavors.map(f => extractDisplayName(f)).filter(Boolean) : [];
+  const normalizedTerpenes = Array.isArray(strain?.terpenes) ? strain.terpenes.map(t => {
+    if (typeof t === 'string') return t;
+    if (t && typeof t === 'object' && 'name' in t) {
+      return (t as any).percent ? `${(t as any).name} (${(t as any).percent}%)` : (t as any).name;
+    }
+    return null;
+  }).filter(Boolean) : [];
 
   const thcDisplay = (strain?.avg_thc ?? strain?.thc_max) ? `${strain?.avg_thc ?? strain?.thc_max}%` : '—';
   const cbdDisplay = (strain?.avg_cbd ?? strain?.cbd_max) ? `${strain?.avg_cbd ?? strain?.cbd_max}%` : '< 1%';
@@ -333,6 +340,16 @@ export default function StrainDetailPage() {
                       <p className="text-[10px] font-bold text-white/90 truncate">{effectDisplay}</p>
                     </div>
                   </div>
+                  {normalizedTerpenes.length > 0 && (
+                    <div className="pt-4 border-t border-white/5">
+                      <p className="text-[9px] font-black uppercase text-white/30 mb-2">Terpen Profil</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {normalizedTerpenes.slice(0, 6).map((t, i) => (
+                          <span key={i} className="text-[8px] font-bold px-2 py-1 bg-white/5 rounded-md text-white/60 border border-white/5">{t}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 {(userNotes || batchInfo) && (
                   <div className="pt-4 border-t border-white/5 space-y-4">

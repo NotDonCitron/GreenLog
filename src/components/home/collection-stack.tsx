@@ -50,6 +50,14 @@ export function CollectionStack({
     return strain.is_medical ? "Medical" : "Euphorie";
   };
 
+  const normalizedTerpenes = Array.isArray(currentStrain.terpenes) ? currentStrain.terpenes.map(t => {
+    if (typeof t === 'string') return t;
+    if (t && typeof t === 'object' && 'name' in t) {
+      return (t as any).percent ? `${(t as any).name} (${(t as any).percent}%)` : (t as any).name;
+    }
+    return null;
+  }).filter(Boolean) : [];
+
   const typeDisplay = (extractDisplayName(currentStrain.type) || "Hybrid").toUpperCase();
 
   // Color Mapping
@@ -132,7 +140,19 @@ export function CollectionStack({
         >
           <div className="flex-1 space-y-6">
             <h3 className="font-serif italic text-xl font-bold uppercase text-white">Journal Notes</h3>
-            <p className="text-sm text-white/70 italic leading-relaxed line-clamp-6">{currentStrain.user_review || "Noch keine Notizen hinterlegt."}</p>
+            <p className="text-sm text-white/70 italic leading-relaxed line-clamp-4">{currentStrain.user_review || "Noch keine Notizen hinterlegt."}</p>
+            
+            {normalizedTerpenes.length > 0 && (
+              <div className="pt-4 border-t border-white/5">
+                <p className="text-[9px] font-black uppercase text-white/30 mb-2">Terpene Profile</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {normalizedTerpenes.slice(0, 6).map((t, i) => (
+                    <span key={i} className="text-[8px] font-bold px-2 py-1 bg-white/5 rounded-md text-white/60 border border-white/5">{t}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
               <div>
                 <p className="text-[9px] font-black uppercase text-white/30">Method</p>
