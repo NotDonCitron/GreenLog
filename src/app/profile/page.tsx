@@ -479,7 +479,7 @@ export default function ProfilePage() {
             onClick={() => signOut()}
             className="w-full py-4 bg-red-500/5 border border-red-500/10 rounded-2xl flex items-center justify-center gap-2 text-red-400 text-xs font-black uppercase tracking-[0.2em] hover:bg-red-500/10 transition-all"
           >
-            <LogOut size={16} /> Terminal Abmelden
+            <LogOut size={16} /> Ausloggen
           </button>
         </section>
       </div>
