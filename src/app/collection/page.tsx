@@ -46,7 +46,7 @@ export default function CollectionPage() {
             user_thc_percent,
             user_cbd_percent,
             user_image_url,
-            created_at,
+            date_added,
             strain:strains (*)
           `)
           .eq('user_id', user.id);
@@ -71,7 +71,7 @@ export default function CollectionPage() {
                 avg_thc: item.user_thc_percent || s.avg_thc,
                 avg_cbd: item.user_cbd_percent || s.avg_cbd,
                 user_notes: item.user_notes,
-                collected_at: item.created_at
+                collected_at: item.date_added
               };
             })
             .filter(Boolean);
