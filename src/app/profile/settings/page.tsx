@@ -49,7 +49,14 @@ export default function SettingsPage() {
       // Session kurz auffrischen
       await supabase.auth.refreshSession();
 
-      const { error } = await supabase.auth.updateUser({ email: emailToSubmit });
+      // Dynamische Redirect URL (Vercel oder Localhost)
+      const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/profile` : undefined;
+
+      const { error } = await supabase.auth.updateUser(
+        { email: emailToSubmit },
+        { emailRedirectTo: redirectUrl }
+      );
+      
       if (error) {
         if (error.message.includes("invalid") && user?.email?.includes("test.com")) {
            throw new Error("Fehler beim Versand an die ALTE E-Mail (test.com). Klicke trotzdem auf den Link in deiner NEUEN E-Mail!");
