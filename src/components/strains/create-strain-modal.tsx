@@ -13,20 +13,24 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus, Globe, Wand2, Check } from "lucide-react";
-import { StrainSource } from "@/lib/types";
+import { Plus, Globe, Wand2, Check, Pencil } from "lucide-react";
+import { Strain, StrainSource } from "@/lib/types";
+import { useEffect } from "react";
 
-interface CreateStrainModalProps {
+interface StrainFormModalProps {
+    strain?: Strain; // Optional: If provided, we are in EDIT mode
     onSuccess?: (id: string, slug: string, source: StrainSource, usedSourceFallback: boolean) => void;
     trigger: React.ReactNode;
 }
 
-export function CreateStrainModal({ onSuccess, trigger }: CreateStrainModalProps) {
+export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModalProps) {
     const { user } = useAuth();
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const isEditMode = !!strain;
 
     // Form State
     const [name, setName] = useState("");
@@ -39,6 +43,25 @@ export function CreateStrainModal({ onSuccess, trigger }: CreateStrainModalProps
     const [description, setDescription] = useState("");
     const [leaflyUrl, setLeaflyUrl] = useState("");
     const [importedImageUrl, setImportedImageUrl] = useState<string | null>(null);
+
+    // Effect to populate fields in edit mode
+    useEffect(() => {
+        if (strain && open) {
+            setName(strain.name || "");
+            setType(strain.type === "sativa" || strain.type === "indica" || strain.type === "hybrid" ? strain.type : "hybrid");
+            setSource(strain.source || "street");
+            setThcEstimate(strain.avg_thc?.toString() || strain.thc_max?.toString() || "");
+            setCbdEstimate(strain.avg_cbd?.toString() || strain.cbd_max?.toString() || "");
+            
+            // Extract display names for terpenes and effects
+            const extractNames = (items: any[]) => items.map(item => typeof item === 'string' ? item : item.name).filter(Boolean);
+            setSelectedTerpenes(Array.isArray(strain.terpenes) ? extractNames(strain.terpenes) : []);
+            setSelectedEffects(Array.isArray(strain.effects) ? extractNames(strain.effects) : []);
+            
+            setDescription(strain.description || "");
+            setImportedImageUrl(strain.image_url || null);
+        }
+    }, [strain, open]);
 
     // Erweiterte Optionen
     const TASTE_OPTIONS = [
@@ -189,85 +212,107 @@ export function CreateStrainModal({ onSuccess, trigger }: CreateStrainModalProps
         setError(null);
 
         try {
-            const slug = name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            const slug = isEditMode ? strain.slug : name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
             
-            const basePayload = {
+            const basePayload: any = {
                 name: name.trim(),
-                slug,
                 type,
-                created_by: user.id,
                 thc_max: thcEstimate ? parseFloat(thcEstimate) : null,
+                avg_thc: thcEstimate ? parseFloat(thcEstimate) : null,
                 cbd_max: cbdEstimate ? parseFloat(cbdEstimate) : null,
+                avg_cbd: cbdEstimate ? parseFloat(cbdEstimate) : null,
                 description: description.trim() || null,
                 terpenes: selectedTerpenes.length > 0 ? selectedTerpenes : null,
                 effects: selectedEffects.length > 0 ? selectedEffects : null,
-                image_url: importedImageUrl || null
+                image_url: importedImageUrl || (isEditMode ? strain.image_url : null)
             };
 
-            const { data, error: insertError } = await supabase
-                .from("strains")
-                .insert([basePayload])
-                .select()
-                .single();
+            if (!isEditMode) {
+                basePayload.slug = slug;
+                basePayload.created_by = user.id;
+            }
 
-            if (insertError) throw insertError;
+            let resultData;
+
+            if (isEditMode) {
+                const { data, error: updateError } = await supabase
+                    .from("strains")
+                    .update(basePayload)
+                    .eq("id", strain.id)
+                    .select()
+                    .single();
+                if (updateError) throw updateError;
+                resultData = data;
+            } else {
+                const { data, error: insertError } = await supabase
+                    .from("strains")
+                    .insert([basePayload])
+                    .select()
+                    .single();
+                if (insertError) throw insertError;
+                resultData = data;
+            }
 
             // Save source & metadata to user_collection
             await supabase.from("user_collection").upsert({
                 user_id: user.id,
-                strain_id: data.id,
+                strain_id: resultData.id,
                 batch_info: source,
                 user_thc_percent: thcEstimate ? parseFloat(thcEstimate) : null,
                 user_notes: description.trim() || null,
-                user_image_url: importedImageUrl || null
+                user_image_url: importedImageUrl || (isEditMode ? strain.image_url : null)
             }, { onConflict: 'user_id,strain_id' });
 
-            resetForm();
+            if (!isEditMode) resetForm();
             setOpen(false);
-            onSuccess?.(data.id, data.slug, source, false);
+            onSuccess?.(resultData.id, resultData.slug, source, false);
 
         } catch (err: any) {
-            console.error("Creation error:", err);
-            setError(err.message || "Fehler beim Erstellen.");
+            console.error("Submission error:", err);
+            setError(err.message || "Fehler beim Speichern.");
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
+        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v && !isEditMode) resetForm(); }}>
             <div onClick={() => setOpen(true)}>{trigger}</div>
             <DialogContent className="max-w-md bg-[#1a191b] border-white/10 text-white rounded-[2.5rem] p-8 overflow-y-auto max-h-[90vh] no-scrollbar">
                 <DialogHeader className="mb-6">
-                    <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-[#00F5FF]">Neue Sorte</DialogTitle>
+                    <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-[#00F5FF]">
+                        {isEditMode ? "Sorte bearbeiten" : "Neue Sorte"}
+                    </DialogTitle>
                     <DialogDescription className="text-white/40 text-xs font-bold uppercase tracking-widest">
-                        Eigene Entdeckung im Katalog verewigen
+                        {isEditMode ? "Passe die Details deiner Entdeckung an" : "Eigene Entdeckung im Katalog verewigen"}
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
-                    {/* Leafly Quick Import */}
-                    <div className="space-y-3 bg-[#00F5FF]/5 p-4 rounded-3xl border border-[#00F5FF]/20">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-[#00F5FF] flex items-center gap-2">
-                            <Globe size={12} /> Leafly Quick Import
-                        </Label>
-                        <div className="flex gap-2">
-                            <Input
-                                value={leaflyUrl}
-                                onChange={(e) => setLeaflyUrl(e.target.value)}
-                                placeholder="https://www.leafly.com/strains/..."
-                                className="bg-black/20 border-white/10 rounded-xl text-xs h-10 flex-1 focus:border-[#00F5FF]"
-                            />
-                            <Button 
-                                type="button" 
-                                onClick={handleImportFromLeafly}
-                                disabled={isImporting || !leaflyUrl}
-                                className="h-10 px-4 bg-[#00F5FF] text-black font-black uppercase text-[10px] rounded-xl hover:bg-[#00F5FF]/80 transition-all"
-                            >
-                                {isImporting ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
-                            </Button>
+                    {/* Leafly Quick Import - Only show in CREATE mode */}
+                    {!isEditMode && (
+                        <div className="space-y-3 bg-[#00F5FF]/5 p-4 rounded-3xl border border-[#00F5FF]/20">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-[#00F5FF] flex items-center gap-2">
+                                <Globe size={12} /> Leafly Quick Import
+                            </Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    value={leaflyUrl}
+                                    onChange={(e) => setLeaflyUrl(e.target.value)}
+                                    placeholder="https://www.leafly.com/strains/..."
+                                    className="bg-black/20 border-white/10 rounded-xl text-xs h-10 flex-1 focus:border-[#00F5FF]"
+                                />
+                                <Button 
+                                    type="button" 
+                                    onClick={handleImportFromLeafly}
+                                    disabled={isImporting || !leaflyUrl}
+                                    className="h-10 px-4 bg-[#00F5FF] text-black font-black uppercase text-[10px] rounded-xl hover:bg-[#00F5FF]/80 transition-all"
+                                >
+                                    {isImporting ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
+                                </Button>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div className="space-y-4">
                         <div className="space-y-2">
@@ -332,7 +377,9 @@ export function CreateStrainModal({ onSuccess, trigger }: CreateStrainModalProps
                     {error && <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-xs font-bold uppercase tracking-widest">{error}</div>}
 
                     <Button type="submit" disabled={isLoading} className="w-full h-16 bg-white text-black hover:bg-[#2FF801] font-black uppercase tracking-[0.2em] rounded-2xl transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-                        {isLoading ? <Loader2 className="animate-spin" /> : <><Plus className="mr-2" /> Strain erstellen</>}
+                        {isLoading ? <Loader2 className="animate-spin" /> : (
+                            isEditMode ? <><Check className="mr-2" /> Änderungen speichern</> : <><Plus className="mr-2" /> Strain erstellen</>
+                        )}
                     </Button>
                 </form>
             </DialogContent>

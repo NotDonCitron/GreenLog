@@ -8,8 +8,9 @@ import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Flame, Wind, Eye, Leaf, Database, Sparkles, Share2, Download, Trash2 } from "lucide-react";
+import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Flame, Wind, Eye, Leaf, Database, Sparkles, Share2, Download, Trash2, Pencil } from "lucide-react";
 import { Strain } from "@/lib/types";
+import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 
 export default function StrainDetailPage() {
   const { slug } = useParams();
@@ -266,9 +267,20 @@ export default function StrainDetailPage() {
             <Heart size={20} fill={isFavorited ? "currentColor" : "none"} />
           </button>
           {user && strain?.created_by === user.id && (
-            <button onClick={handleDelete} disabled={isDeleting} className="p-2 rounded-full border border-red-500/20 bg-red-500/10 text-red-500">
-              {isDeleting ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
-            </button>
+            <>
+              <CreateStrainModal 
+                strain={strain} 
+                onSuccess={() => window.location.reload()} 
+                trigger={
+                  <button className="p-2 rounded-full border border-[#00F5FF]/20 bg-[#00F5FF]/10 text-[#00F5FF]">
+                    <Pencil size={20} />
+                  </button>
+                } 
+              />
+              <button onClick={handleDelete} disabled={isDeleting} className="p-2 rounded-full border border-red-500/20 bg-red-500/10 text-red-500">
+                {isDeleting ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
+              </button>
+            </>
           )}
         </div>
       </div>
