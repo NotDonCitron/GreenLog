@@ -70,18 +70,22 @@ export default function ScannerPage() {
       
       let score = 0;
       
-      // 1. Bonus für exakten kompletten Treffer
-      if (lowerText.includes(name)) score += 10;
+      // 1. Bonus für exakten kompletten Treffer (nur als Wortgruppe)
+      const fullRegex = new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      if (fullRegex.test(lowerText)) {
+        score += 15;
+      }
 
-      // 2. Punkte für jedes Wort des Namens, das im Text vorkommt
+      // 2. Punkte für jedes Wort des Namens, das als eigenständiges Wort vorkommt
       for (const word of nameWords) {
-        if (lowerText.includes(word)) {
-          score += 2;
+        const wordRegex = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        if (wordRegex.test(lowerText)) {
+          score += 5;
         }
       }
 
       // 3. Nur Strains mit einer Mindest-Relevanz nehmen
-      if (score > highestScore && score >= 2) {
+      if (score > highestScore && score >= 5) {
         highestScore = score;
         bestStrain = strain;
       }
@@ -104,7 +108,7 @@ export default function ScannerPage() {
     canvas.height = video.videoHeight;
     
     // Bildverbesserung (Kontrast & Schärfe)
-    context.filter = 'contrast(1.2) brightness(1.1)';
+    context.filter = 'contrast(1.3) brightness(1.1)';
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     setStatus("processing");
@@ -127,8 +131,8 @@ export default function ScannerPage() {
       } else {
         setStatus("error");
         setResult("Nicht gefunden");
-        setDebugText(text.slice(0, 50) + "..."); // Zeige was erkannt wurde für Debugging
-        setTimeout(() => { setStatus("idle"); setDebugText(null); }, 4000);
+        setDebugText(text.slice(0, 60).replace(/\n/g, ' ') + "..."); 
+        setTimeout(() => { setStatus("idle"); setDebugText(null); }, 5000);
       }
     } catch (err) {
       setStatus("error");
@@ -166,7 +170,7 @@ export default function ScannerPage() {
         </div>
       </div>
 
-      <div className="p-6 pb-6 flex flex-col items-center gap-4 bg-gradient-to-t from-black via-black/90 to-transparent z-10">
+      <div className="p-6 pb-28 flex flex-col items-center gap-4 bg-gradient-to-t from-black via-black/90 to-transparent z-10 shrink-0">
         <div className="text-center space-y-1">
           <h2 className="text-xs font-black tracking-[0.3em] uppercase text-[#00F5FF]">
             {status === "processing" ? "Analysiere..." : "Smart Scanner"}
@@ -190,9 +194,7 @@ export default function ScannerPage() {
         </button>
       </div>
 
-      <div className="shrink-0">
-        <BottomNav />
-      </div>
+      <BottomNav />
     </main>
   );
 }
