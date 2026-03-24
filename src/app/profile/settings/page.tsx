@@ -50,15 +50,20 @@ export default function SettingsPage() {
       await supabase.auth.refreshSession();
 
       const { error } = await supabase.auth.updateUser({ email: emailToSubmit });
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("invalid") && user?.email?.includes("test.com")) {
+           throw new Error("Fehler beim Versand an die ALTE E-Mail (test.com). Klicke trotzdem auf den Link in deiner NEUEN E-Mail!");
+        }
+        throw error;
+      }
       
       setEmailStatus({ 
         type: 'success', 
-        msg: `Anfrage für ${emailToSubmit} gesendet! Checke BEIDE Postfächer (alt & neu) für die Bestätigungs-Links.` 
+        msg: `Anfrage für ${emailToSubmit} gesendet! Checke dein Gmail-Postfach.` 
       });
       setNewEmail("");
     } catch (err: any) {
-      setEmailStatus({ type: 'error', msg: `Supabase-Fehler: ${err.message}` });
+      setEmailStatus({ type: 'error', msg: `${err.message}` });
     } finally {
       setIsUpdatingEmail(false);
     }
