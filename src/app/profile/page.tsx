@@ -150,14 +150,14 @@ export default function ProfilePage() {
         const s = f.strains as any;
         if (!s) return null;
         
-        // Prüfen ob es ein User-eigenes Bild gibt
+        // Prüfen ob es ein User-eigenes Bild in der user_collection gibt
         const customImage = collectionData?.find(c => c.strain_id === s.id)?.user_image_url;
 
         return {
           id: s.id,
           name: s.name,
           slug: s.slug,
-          imageUrl: customImage || s.image_url,
+          imageUrl: customImage || s.image_url || null,
           type: s.type,
           thcDisplay: formatThcDisplay(s),
           favoriteRank: f.favorite_rank
@@ -465,7 +465,11 @@ export default function ProfilePage() {
                 <Link key={favorite.id} href={`/strains/${favorite.slug}`} className="min-w-[220px] flex-shrink-0">
                   <Card className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#1e3a24] p-0 shadow-lg hover:border-[#00F5FF]/30 transition-all">
                     <div className="relative h-40 w-full">
-                      <Image src={favorite.imageUrl || "/strains/placeholder-1.svg"} alt={favorite.name} fill className="object-cover opacity-80" />
+                      <img 
+                        src={favorite.imageUrl || "/strains/placeholder-1.svg"} 
+                        alt={favorite.name} 
+                        className="w-full h-full object-cover opacity-80" 
+                      />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#1e3a24] to-transparent" />
                       <div className="absolute bottom-4 left-4 right-4">
                         <p className="text-sm font-black uppercase tracking-tight truncate">{favorite.name}</p>
