@@ -46,11 +46,16 @@ export default function CollectionPage() {
             .map(item => {
               const s = item.strain as any;
               if (!s) return null;
+              
+              // Normalisiere die Herkunft für die Filterung
+              let normalizedSource = item.batch_info || s.source || 'pharmacy';
+              if (normalizedSource === 'apotheke') normalizedSource = 'pharmacy';
+              if (normalizedSource === 'street') normalizedSource = 'other';
+
               return {
                 ...s,
-                // Persönliches Bild überschreibt globales Bild
                 image_url: item.user_image_url || s.image_url,
-                source: item.batch_info || s.source || 'pharmacy',
+                source: normalizedSource,
                 avg_thc: item.user_thc_percent || s.avg_thc,
                 avg_cbd: item.user_cbd_percent || s.avg_cbd,
                 user_notes: item.user_notes
@@ -73,10 +78,16 @@ export default function CollectionPage() {
 
   const filteredStrains = strains.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
-    // Filter-Logik: 'other' schließt 'street' mit ein
-    const matchesFilter = sourceFilter === "all" || 
-                         (sourceFilter === "other" ? (s.source === "other" || s.source === "street") : s.source === sourceFilter);
-    return matchesSearch && matchesFilter;
+    
+    if (sourceFilter === "all") return matchesSearch;
+
+    // Filter Logik: Eigenanbau zeigt auch alles was vom User erstellt wurde
+    if (sourceFilter === "grow") {
+      const isGrow = s.source === "grow" || (user && (s as any).created_by === user.id);
+      return matchesSearch && isGrow;
+    }
+
+    return matchesSearch && s.source === sourceFilter;
   });
 
   return (
