@@ -87,23 +87,26 @@ export function CreateStrainModal({ onSuccess, trigger }: CreateStrainModalProps
 
             if (data.name) setName(data.name);
             if (data.type) setType(data.type === "hybrid" || data.type === "sativa" || data.type === "indica" ? data.type : "hybrid");
-            if (data.thc) setThcEstimate(data.thc.toString());
-            if (data.cbd) setCbdEstimate(data.cbd.toString());
-            if (data.description) setDescription(data.description.slice(0, 500));
+            
+            // Fix THC/CBD Mapping
+            if (data.thc !== undefined && data.thc !== null) setThcEstimate(data.thc.toString());
+            if (data.cbd !== undefined && data.cbd !== null) setCbdEstimate(data.cbd.toString());
+            
+            if (data.description) setDescription(data.description.replace(/<[^>]*>/g, '').slice(0, 500));
             if (data.image_url) setImportedImageUrl(data.image_url);
             
-            // Map terpenes & effects to our options
+            // Improved Mapping for Terpenes & Effects
             if (Array.isArray(data.terpenes)) {
-                const found = TASTE_OPTIONS.filter(opt => 
-                    data.terpenes.some((t: string) => t.toLowerCase().includes(opt.toLowerCase()))
+                const matchedTerpenes = TASTE_OPTIONS.filter(opt => 
+                    data.terpenes.some((t: string) => t.toLowerCase().includes(opt.toLowerCase()) || opt.toLowerCase().includes(t.toLowerCase()))
                 );
-                setSelectedTerpenes(found);
+                setSelectedTerpenes(matchedTerpenes);
             }
             if (Array.isArray(data.effects)) {
-                const found = EFFECT_OPTIONS.filter(opt => 
-                    data.effects.some((e: string) => e.toLowerCase().includes(opt.toLowerCase()))
+                const matchedEffects = EFFECT_OPTIONS.filter(opt => 
+                    data.effects.some((e: string) => e.toLowerCase().includes(opt.toLowerCase()) || opt.toLowerCase().includes(e.toLowerCase()))
                 );
-                setSelectedEffects(found);
+                setSelectedEffects(matchedEffects);
             }
 
         } catch (err) {
