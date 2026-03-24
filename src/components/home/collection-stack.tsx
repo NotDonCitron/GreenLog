@@ -144,7 +144,7 @@ export function CollectionStack({
             
             {normalizedTerpenes.length > 0 && (
               <div className="pt-4 border-t border-white/5">
-                <p className="text-[9px] font-black uppercase text-white/30 mb-2">Terpene Profile</p>
+                <p className="text-[9px] font-black uppercase text-white/30 mb-2">Terpene</p>
                 <div className="flex flex-wrap gap-1.5">
                   {normalizedTerpenes.slice(0, 6).map((t, i) => (
                     <span key={i} className="text-[8px] font-bold px-2 py-1 bg-white/5 rounded-md text-white/60 border border-white/5">{t}</span>
