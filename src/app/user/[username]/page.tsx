@@ -3,13 +3,45 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Loader2, MapPin, Calendar, ArrowLeft, Shield, Lock } from "lucide-react";
+import { 
+    Loader2, 
+    MapPin, 
+    Calendar, 
+    ArrowLeft, 
+    Shield, 
+    Lock, 
+    Sprout, 
+    Trophy, 
+    Zap, 
+    Leaf, 
+    Sparkles, 
+    Users 
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { FollowButton } from "@/components/social/follow-button";
 import { ActivityItem } from "@/components/social/activity-item";
 import { useAuth } from "@/components/auth-provider";
 import { supabase } from "@/lib/supabase";
 import type { ProfileRow, ProfileStats, UserActivity, FollowStatus } from "@/lib/types";
+
+const BADGE_ICONS: Record<string, LucideIcon> = {
+    starter: Sprout,
+    connoisseur: Trophy,
+    highflyer: Zap,
+    leaf: Leaf,
+    dna: Sparkles,
+    moon: Sparkles,
+    sun: Sparkles,
+    grower: Leaf,
+    social: Users,
+};
+
+function resolveBadgeIcon(iconKey: string) {
+    const normalized = iconKey.toLowerCase();
+    const matchedKey = Object.keys(BADGE_ICONS).find((key) => normalized.includes(key));
+    return matchedKey ? BADGE_ICONS[matchedKey] : Trophy;
+}
 
 function formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -33,6 +65,7 @@ export default function UserProfilePage() {
     const [activities, setActivities] = useState<UserActivity[]>([]);
     const [favorites, setFavorites] = useState<any[]>([]);
     const [grows, setGrows] = useState<any[]>([]);
+    const [userBadges, setUserBadges] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState<"activity" | "favorites" | "grows">("activity");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -139,11 +172,17 @@ export default function UserProfilePage() {
                 .order("created_at", { ascending: false })
                 .limit(20);
 
+            // Fetch badges
+            const { data: badgesData } = await supabase
+                .from("user_badges")
+                .select("*, badges(*)")
+                .eq("user_id", profileData.id);
+
             setStats({
                 totalStrains: ratingsCount ?? 0,
                 totalGrows: growsCount ?? 0,
                 favoriteCount: favoritesData?.length ?? 0,
-                unlockedBadgeCount: 0,
+                unlockedBadgeCount: badgesData?.length ?? 0,
                 xp: 0,
                 level: 1,
                 progressToNextLevel: 0,
@@ -154,6 +193,7 @@ export default function UserProfilePage() {
             setFavorites(favoritesData ?? []);
             setGrows(growsData ?? []);
             setActivities(activitiesData ?? []);
+            setUserBadges(badgesData ?? []);
         } catch (err) {
             console.error("Error fetching profile:", err);
             setError("User not found");
@@ -290,6 +330,34 @@ export default function UserProfilePage() {
                         Joined {formatDate(profile.created_at)}
                     </span>
                 </div>
+
+                {/* Badges Display */}
+                {!isPrivateAndNotFollowing && userBadges.length > 0 && (
+                    <div className="mt-6">
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#2FF801] mb-3 px-1">Achievements</p>
+                        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+                            {userBadges.map((ub) => {
+                                const badge = ub.badges;
+                                if (!badge) return null;
+                                const Icon = resolveBadgeIcon(badge.icon_url || "starter");
+                                
+                                return (
+                                    <div 
+                                        key={ub.id} 
+                                        className="flex flex-col items-center gap-1.5 min-w-[70px] bg-white/5 border border-white/10 rounded-2xl p-2.5 shadow-lg"
+                                    >
+                                        <div className="w-10 h-10 rounded-xl bg-[#2FF801]/10 flex items-center justify-center text-[#ffd700]">
+                                            <Icon size={24} />
+                                        </div>
+                                        <p className="text-[8px] font-black uppercase tracking-tighter text-white truncate w-full text-center">
+                                            {badge.name}
+                                        </p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Tabs & Content */}
