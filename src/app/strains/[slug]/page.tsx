@@ -406,6 +406,29 @@ export default function StrainDetailPage() {
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowRatingModal(false)} />
           <Card className="relative w-full max-w-md bg-[#1a191b] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl p-8 space-y-8 shadow-2xl animate-in slide-in-from-bottom duration-300">
             <h2 className="text-2xl font-black italic uppercase text-[#00F5FF] text-center">Tasting Log</h2>
+            
+            <div className="space-y-6">
+              {(['taste', 'effect', 'look'] as const).map((key) => (
+                <div key={key} className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{key}</span>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button 
+                        key={star} 
+                        onClick={() => handleStarClick(key, star)}
+                        className="transition-transform active:scale-90"
+                      >
+                        <Star 
+                          size={24} 
+                          className={ratings[key] >= star ? "text-[#ffd700] fill-[#ffd700]" : "text-white/10"} 
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
             <div className="space-y-4">
               <input type="text" placeholder="Batch / Apotheke" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-xs text-white outline-none focus:border-[#00F5FF]" value={batchInfo} onChange={(e) => setBatchInfo(e.target.value)} />
               <textarea placeholder="Deine Notizen..." className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-xs text-white min-h-[100px] outline-none focus:border-[#00F5FF]" value={userNotes} onChange={(e) => setUserNotes(e.target.value)} />
