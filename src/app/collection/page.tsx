@@ -94,8 +94,8 @@ export default function CollectionPage() {
     
     let matchesSource = true;
     if (sourceFilter === "grow") {
-      const isGrow = s.source === "grow" || (user && (s as any).created_by === user.id);
-      matchesSource = isGrow;
+      const isGrow = s.source === "grow" || (!!user && (s as any).created_by === user.id);
+      matchesSource = !!isGrow;
     } else if (sourceFilter !== "all") {
       matchesSource = s.source === sourceFilter;
     }
