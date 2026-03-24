@@ -10,6 +10,7 @@ export interface Strain {
   type: 'indica' | 'sativa' | 'hybrid' | 'ruderalis';
   brand?: string;
   manufacturer?: string;
+  farmer?: string;
   irradiation?: string;
   avg_thc?: number;
   avg_cbd?: number;

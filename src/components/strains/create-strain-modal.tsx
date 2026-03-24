@@ -9,13 +9,116 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Plus, Globe, Wand2, Check, Pencil, Loader2 } from "lucide-react";
+import { Plus, Globe, Wand2, Check, Loader2 } from "lucide-react";
 import { Strain, StrainSource } from "@/lib/types";
 import { useEffect } from "react";
+
+type NamedItem = string | { name?: string | null };
+
+type SlugRow = { slug: string };
+type OptionalSchemaColumn = "source" | "avg_thc" | "avg_cbd" | "is_custom";
+
+type StrainPayload = {
+    name: string;
+    farmer: string;
+    type: "indica" | "sativa" | "hybrid";
+    source?: StrainSource;
+    thc_max: number | null;
+    avg_thc?: number | null;
+    cbd_max: number | null;
+    avg_cbd?: number | null;
+    description: string | null;
+    terpenes: string[] | null;
+    effects: string[] | null;
+    image_url: string | null;
+    slug?: string;
+    created_by?: string;
+    is_custom?: boolean;
+};
+
+const OPTIONAL_SCHEMA_COLUMNS = new Set<OptionalSchemaColumn>([
+    "source",
+    "avg_thc",
+    "avg_cbd",
+    "is_custom",
+]);
+
+function createBaseSlug(value: string) {
+    const baseSlug = value
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+
+    return baseSlug || `strain-${Date.now()}`;
+}
+
+function getMissingStrainsColumn(err: unknown) {
+    if (!err || typeof err !== "object") {
+        return null;
+    }
+
+    const errorRecord = err as Record<string, unknown>;
+    const rawMessage = [errorRecord.message, errorRecord.details, errorRecord.hint]
+        .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+        .join(" ");
+
+    const match = rawMessage.match(/could not find the ['"]([^'"]+)['"] column of ['"]strains['"] in the schema cache/i);
+    return match?.[1] ?? null;
+}
+
+function removeUnsupportedColumn(payload: StrainPayload, column: OptionalSchemaColumn) {
+    const nextPayload = { ...payload };
+    delete nextPayload[column];
+    return nextPayload;
+}
+
+function getSubmissionErrorMessage(err: unknown) {
+    if (err instanceof Error && err.message.trim()) {
+        return err.message;
+    }
+
+    if (err && typeof err === "object") {
+        const errorRecord = err as Record<string, unknown>;
+        const message = [errorRecord.message, errorRecord.details, errorRecord.hint]
+            .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+            .join(" | ");
+
+        const code = typeof errorRecord.code === "string" ? errorRecord.code : "";
+        const normalizedMessage = `${message} ${code}`.toLowerCase();
+
+        if (code === "23505" || normalizedMessage.includes("duplicate key")) {
+            return "Es existiert bereits eine Sorte mit diesem Slug. Bitte ändere den Namen leicht oder bearbeite den vorhandenen Eintrag.";
+        }
+
+        if (normalizedMessage.includes("row-level security")) {
+            return "Speichern fehlgeschlagen: Für diesen Datensatz fehlen Berechtigungen in Supabase (RLS).";
+        }
+
+        const missingColumn = getMissingStrainsColumn(err);
+
+        if (missingColumn === "farmer") {
+            return "Speichern fehlgeschlagen: Die Datenbank kennt das Feld Farmer noch nicht. Bitte führe die aktuelle Supabase-Migration aus.";
+        }
+
+        if (missingColumn) {
+            return `Speichern fehlgeschlagen: Die Datenbank kennt das Feld "${missingColumn}" in der Tabelle strains noch nicht.`;
+        }
+
+        if (message) {
+            return message;
+        }
+    }
+
+    return "Fehler beim Speichern.";
+}
 
 interface StrainFormModalProps {
     strain?: Strain; // Optional: If provided, we are in EDIT mode
@@ -34,6 +137,7 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
 
     // Form State
     const [name, setName] = useState("");
+    const [farmer, setFarmer] = useState("");
     const [type, setType] = useState<"indica" | "sativa" | "hybrid">("hybrid");
     const [source, setSource] = useState<StrainSource>("street");
     const [thcEstimate, setThcEstimate] = useState("");
@@ -48,16 +152,19 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
     useEffect(() => {
         if (strain && open) {
             setName(strain.name || "");
+            setFarmer(strain.farmer || "");
             setType(strain.type === "sativa" || strain.type === "indica" || strain.type === "hybrid" ? strain.type : "hybrid");
             setSource(strain.source || "street");
             setThcEstimate(strain.avg_thc?.toString() || strain.thc_max?.toString() || "");
             setCbdEstimate(strain.avg_cbd?.toString() || strain.cbd_max?.toString() || "");
-            
+
             // Extract display names for terpenes and effects
-            const extractNames = (items: any[]) => items.map(item => typeof item === 'string' ? item : item.name).filter(Boolean);
-            setSelectedTerpenes(Array.isArray(strain.terpenes) ? extractNames(strain.terpenes) : []);
-            setSelectedEffects(Array.isArray(strain.effects) ? extractNames(strain.effects) : []);
-            
+            const extractNames = (items: NamedItem[]) => items
+                .map((item) => typeof item === 'string' ? item : item.name)
+                .filter((value): value is string => Boolean(value));
+            setSelectedTerpenes(Array.isArray(strain.terpenes) ? extractNames(strain.terpenes as NamedItem[]) : []);
+            setSelectedEffects(Array.isArray(strain.effects) ? extractNames(strain.effects as NamedItem[]) : []);
+
             setDescription(strain.description || "");
             setImportedImageUrl(strain.image_url || null);
         }
@@ -65,14 +172,14 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
 
     // Erweiterte Optionen
     const TASTE_OPTIONS = [
-        "Erdig", "Süß", "Zitrone", "Kiefer", "Beeren", "Würzig", "Fruchtig", "Diesel", 
-        "Skunk", "Minze", "Kaffee", "Nussig", "Vanille", "Blumig", "Käse", "Grapefruit", 
+        "Erdig", "Süß", "Zitrone", "Kiefer", "Beeren", "Würzig", "Fruchtig", "Diesel",
+        "Skunk", "Minze", "Kaffee", "Nussig", "Vanille", "Blumig", "Käse", "Grapefruit",
         "Tropisch", "Honig", "Chemisch", "Menthol"
     ];
-    
+
     const EFFECT_OPTIONS = [
-        "Entspannt", "Kreativ", "Glücklich", "Fokussiert", "Euphörisch", "Schläfrig", 
-        "Energisch", "Gesprächig", "Hungrig", "Kichernd", "Beruhigend", "Prickelnd", 
+        "Entspannt", "Kreativ", "Glücklich", "Fokussiert", "Euphörisch", "Schläfrig",
+        "Energisch", "Gesprächig", "Hungrig", "Kichernd", "Beruhigend", "Prickelnd",
         "Motiviert", "Klar"
     ];
 
@@ -86,6 +193,7 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
 
     const resetForm = () => {
         setName("");
+        setFarmer("");
         setType("hybrid");
         setSource("street");
         setThcEstimate("");
@@ -96,6 +204,84 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
         setLeaflyUrl("");
         setImportedImageUrl(null);
         setError(null);
+    };
+
+    const generateUniqueSlug = async (strainName: string, userId: string) => {
+        const fallbackBaseSlug = createBaseSlug(strainName);
+
+        const { data: generatedSlug, error: slugRpcError } = await supabase.rpc("generate_custom_strain_slug", {
+            name: strainName,
+            user_id: userId,
+        });
+
+        if (!slugRpcError && typeof generatedSlug === "string" && generatedSlug.trim()) {
+            return generatedSlug.trim();
+        }
+
+        const { data: existingSlugs, error: slugQueryError } = await supabase
+            .from("strains")
+            .select("slug")
+            .ilike("slug", `${fallbackBaseSlug}%`);
+
+        if (slugQueryError) {
+            throw slugQueryError;
+        }
+
+        const takenSlugs = new Set((existingSlugs as SlugRow[] | null)?.map((item) => item.slug) ?? []);
+
+        if (!takenSlugs.has(fallbackBaseSlug)) {
+            return fallbackBaseSlug;
+        }
+
+        let counter = 1;
+        let candidate = `${fallbackBaseSlug}-${counter}`;
+
+        while (takenSlugs.has(candidate)) {
+            counter += 1;
+            candidate = `${fallbackBaseSlug}-${counter}`;
+        }
+
+        return candidate;
+    };
+
+    const saveStrain = async (payload: StrainPayload) => {
+        let payloadToSave = { ...payload };
+
+        while (true) {
+            const response = isEditMode && strain
+                ? await supabase
+                    .from("strains")
+                    .update(payloadToSave)
+                    .eq("id", strain.id)
+                    .select()
+                    .maybeSingle()
+                : await supabase
+                    .from("strains")
+                    .insert([payloadToSave])
+                    .select()
+                    .maybeSingle();
+
+            if (!response.error) {
+                if (!response.data) {
+                    throw new Error(isEditMode ? "Sorte konnte nicht aktualisiert werden. (Eventuell keine Berechtigung?)" : "Sorte konnte nicht erstellt werden.");
+                }
+
+                return response.data;
+            }
+
+            const missingColumn = getMissingStrainsColumn(response.error);
+
+            if (
+                missingColumn &&
+                OPTIONAL_SCHEMA_COLUMNS.has(missingColumn as OptionalSchemaColumn) &&
+                missingColumn in payloadToSave
+            ) {
+                payloadToSave = removeUnsupportedColumn(payloadToSave, missingColumn as OptionalSchemaColumn);
+                continue;
+            }
+
+            throw response.error;
+        }
     };
 
     const handleImportFromLeafly = async () => {
@@ -120,13 +306,13 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
 
             if (data.name) setName(data.name);
             if (data.type) setType(data.type === "hybrid" || data.type === "sativa" || data.type === "indica" ? data.type : "hybrid");
-            
+
             if (data.thc !== undefined && data.thc !== null) setThcEstimate(data.thc.toString());
             if (data.cbd !== undefined && data.cbd !== null) setCbdEstimate(data.cbd.toString());
-            
+
             if (data.description) setDescription(data.description.replace(/<[^>]*>/g, '').slice(0, 500));
             if (data.image_url) setImportedImageUrl(data.image_url);
-            
+
             // Extensive Mapping Dictionary
             const TASTE_MAP: Record<string, string[]> = {
                 "Erdig": ["earthy", "wood", "pine", "soil", "musty"],
@@ -172,8 +358,8 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
                 const foundTastes = TASTE_OPTIONS.filter(opt => {
                     const keywords = TASTE_MAP[opt] || [];
                     const normalizedImported = data.terpenes.map((t: string) => t.toLowerCase());
-                    return normalizedImported.some((t: string) => 
-                        t.includes(opt.toLowerCase()) || 
+                    return normalizedImported.some((t: string) =>
+                        t.includes(opt.toLowerCase()) ||
                         keywords.some(k => t.includes(k))
                     );
                 });
@@ -184,8 +370,8 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
                 const foundEffects = EFFECT_OPTIONS.filter(opt => {
                     const keywords = EFFECT_MAP[opt] || [];
                     const normalizedImported = data.effects.map((e: string) => e.toLowerCase());
-                    return normalizedImported.some((e: string) => 
-                        e.includes(opt.toLowerCase()) || 
+                    return normalizedImported.some((e: string) =>
+                        e.includes(opt.toLowerCase()) ||
                         keywords.some(k => e.includes(k))
                     );
                 });
@@ -207,16 +393,22 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
             setError("Bitte gib einen Namen ein.");
             return;
         }
+        if (!farmer.trim()) {
+            setError("Bitte gib einen Farmer ein.");
+            return;
+        }
 
         setIsLoading(true);
         setError(null);
 
         try {
-            const slug = isEditMode ? strain.slug : name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-            
-            const basePayload: any = {
+            const slug = isEditMode && strain ? strain.slug : await generateUniqueSlug(name.trim(), user.id);
+
+            const basePayload: StrainPayload = {
                 name: name.trim(),
+                farmer: farmer.trim(),
                 type,
+                source,
                 thc_max: thcEstimate ? parseFloat(thcEstimate) : null,
                 avg_thc: thcEstimate ? parseFloat(thcEstimate) : null,
                 cbd_max: cbdEstimate ? parseFloat(cbdEstimate) : null,
@@ -224,56 +416,36 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
                 description: description.trim() || null,
                 terpenes: selectedTerpenes.length > 0 ? selectedTerpenes : null,
                 effects: selectedEffects.length > 0 ? selectedEffects : null,
-                image_url: importedImageUrl || (isEditMode ? strain.image_url : null)
+                image_url: importedImageUrl || (isEditMode ? strain.image_url ?? null : null)
             };
 
             if (!isEditMode) {
                 basePayload.slug = slug;
                 basePayload.created_by = user.id;
+                basePayload.is_custom = true;
             }
 
-            let resultData;
-
-            if (isEditMode && strain) {
-                const { data, error: updateError } = await supabase
-                    .from("strains")
-                    .update(basePayload)
-                    .eq("id", strain.id)
-                    .select()
-                    .maybeSingle();
-                
-                if (updateError) throw updateError;
-                if (!data) throw new Error("Sorte konnte nicht aktualisiert werden. (Eventuell keine Berechtigung?)");
-                resultData = data;
-            } else {
-                const { data, error: insertError } = await supabase
-                    .from("strains")
-                    .insert([basePayload])
-                    .select()
-                    .maybeSingle();
-                
-                if (insertError) throw insertError;
-                if (!data) throw new Error("Sorte konnte nicht erstellt werden.");
-                resultData = data;
-            }
+            const resultData = await saveStrain(basePayload);
 
             // Save source & metadata to user_collection
-            await supabase.from("user_collection").upsert({
+            const { error: collectionError } = await supabase.from("user_collection").upsert({
                 user_id: user.id,
                 strain_id: resultData.id,
                 batch_info: source,
                 user_thc_percent: thcEstimate ? parseFloat(thcEstimate) : null,
                 user_notes: description.trim() || null,
-                user_image_url: importedImageUrl || (isEditMode ? strain.image_url : null)
+                user_image_url: importedImageUrl || (isEditMode ? strain.image_url ?? null : null)
             }, { onConflict: 'user_id,strain_id' });
+
+            if (collectionError) throw collectionError;
 
             if (!isEditMode) resetForm();
             setOpen(false);
             onSuccess?.(resultData.id, resultData.slug, source, false);
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Submission error:", err);
-            setError(err.message || "Fehler beim Speichern.");
+            setError(getSubmissionErrorMessage(err));
         } finally {
             setIsLoading(false);
         }
@@ -281,7 +453,9 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
 
     return (
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v && !isEditMode) resetForm(); }}>
-            <div onClick={() => setOpen(true)}>{trigger}</div>
+            <DialogTrigger asChild>
+                {trigger}
+            </DialogTrigger>
             <DialogContent className="max-w-md bg-[#1a191b] border-white/10 text-white rounded-[2.5rem] p-8 overflow-y-auto max-h-[90vh] no-scrollbar">
                 <DialogHeader className="mb-6">
                     <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-[#00F5FF]">
@@ -306,8 +480,8 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
                                     placeholder="https://www.leafly.com/strains/..."
                                     className="bg-black/20 border-white/10 rounded-xl text-xs h-10 flex-1 focus:border-[#00F5FF]"
                                 />
-                                <Button 
-                                    type="button" 
+                                <Button
+                                    type="button"
                                     onClick={handleImportFromLeafly}
                                     disabled={isImporting || !leaflyUrl}
                                     className="h-10 px-4 bg-[#00F5FF] text-black font-black uppercase text-[10px] rounded-xl hover:bg-[#00F5FF]/80 transition-all"
@@ -322,6 +496,11 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
                         <div className="space-y-2">
                             <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-white/60">Name *</Label>
                             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="z.B. Super Silver Haze" className="bg-white/5 border-white/10 rounded-xl h-12 text-lg font-bold focus:border-[#2FF801]" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="farmer" className="text-[10px] font-black uppercase tracking-widest text-white/60">Farmer *</Label>
+                            <Input id="farmer" value={farmer} onChange={(e) => setFarmer(e.target.value)} placeholder="z.B. Green Valley Farm" className="bg-white/5 border-white/10 rounded-xl h-12 text-base font-semibold focus:border-[#2FF801]" />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">

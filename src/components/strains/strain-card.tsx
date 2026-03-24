@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Strain } from '@/lib/types';
-import { Lock } from 'lucide-react';
+import { Lock, UserRound } from 'lucide-react';
 
 interface StrainCardProps {
   strain: Strain;
@@ -24,39 +24,48 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
     underlineBg = 'bg-[#10b981]';
   }
 
-  const thcValue = strain.avg_thc ?? strain.thc_max;
-  const thcDisplay = typeof thcValue === 'number' ? `${thcValue}%` : '—';
-  const cbdDisplay = strain.avg_cbd ? `${strain.avg_cbd}%` : '< 1%';
+  const farmerDisplay = strain.farmer?.trim() || strain.manufacturer?.trim() || strain.brand?.trim() || 'Unbekannter Farmer';
 
-  const extractDisplayName = (value: unknown) => {
-    if (typeof value === 'string') return value;
-    if (!value || typeof value !== 'object') return null;
-    if ('name' in value) return (value as any).name;
-    if ('label' in value) return (value as any).label;
-    return null;
-  };
+  const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const normalizedStrainName = (() => {
+    const rawName = strain.name?.trim() || '';
 
-  const normalizedEffects = Array.isArray(strain.effects) ? strain.effects.map(e => extractDisplayName(e)).filter(Boolean) : [];
-  const normalizedFlavors = Array.isArray(strain.flavors) ? strain.flavors.map(f => extractDisplayName(f)).filter(Boolean) : [];
+    if (!rawName || farmerDisplay === 'Unbekannter Farmer') {
+      return rawName;
+    }
 
-  const effectDisplay = normalizedEffects.length > 0 ? normalizedEffects[0] : 'Euphorie';
-  const tasteDisplay = normalizedFlavors.length > 0 ? normalizedFlavors.slice(0, 2).join(', ') : 'Zitrus, Erdig';
+    const withoutFarmerPrefix = rawName.replace(
+      new RegExp(`^${escapeRegExp(farmerDisplay)}[\s:/-]*`, 'i'),
+      ''
+    ).trim();
+
+    return withoutFarmerPrefix || rawName;
+  })();
 
   return (
     <Link
       href={`/strains/${strain.slug}`}
       className={`premium-card ${themeClass} ${!isCollected ? 'opacity-70 grayscale-[0.8]' : ''} flex flex-col w-full h-full border-2 rounded-[20px] bg-[#121212] overflow-hidden`}
-      style={{ 
+      style={{
         borderColor: isCollected ? themeColor : '#333',
-        animationDelay: `${index * 0.05}s`, 
-        animationFillMode: 'both' 
+        animationDelay: `${index * 0.05}s`,
+        animationFillMode: 'both'
       }}
     >
       <div className="p-3 pb-2">
-        <h2 className="title-font italic text-sm font-bold leading-tight uppercase text-white line-clamp-1">
-          {strain.name}
-        </h2>
-        <div className={`w-8 h-0.5 mt-1 opacity-70 ${underlineBg}`}></div>
+        <div className="flex items-start gap-2 min-w-0">
+          <UserRound className="mt-0.5 shrink-0 text-white/55" size={12} />
+          <div className="min-w-0 flex-1">
+            <p className="text-[8px] font-black uppercase tracking-[0.22em] text-white/40">Farmer</p>
+            <h2 className="text-sm font-black leading-tight text-white break-words line-clamp-2">
+              {farmerDisplay}
+            </h2>
+          </div>
+        </div>
+        <div className={`w-8 h-0.5 mt-2 opacity-70 ${underlineBg}`}></div>
+        <p className="mt-2 text-xs font-medium leading-snug text-white/82 break-words line-clamp-2">
+          {normalizedStrainName}
+        </p>
       </div>
 
       <div className="px-2.5 w-full shrink-0">
@@ -74,27 +83,11 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
       </div>
 
       <div className="px-2.5 mt-2.5 w-full flex-grow flex flex-col justify-end pb-3">
-        <div className="bg-white/5 border border-white/10 rounded-xl p-2 shadow-inner backdrop-blur-sm shadow-md">
-          {/* Row 1: THC & Geschmack */}
-          <div className="grid grid-cols-2 gap-2 border-b border-white/5 pb-1.5 mb-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-500 text-[7px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
-              <span className="text-[10px] font-bold tracking-wide" style={{ color: themeColor }}>{thcDisplay}</span>
-            </div>
-            <div className="flex items-center justify-end border-l border-white/5 pl-2 w-full text-right">
-              <span className="text-gray-100 text-[8px] font-medium tracking-wide truncate">{tasteDisplay}</span>
-            </div>
-          </div>
-          {/* Row 2: CBD & Wirkung */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-500 text-[7px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
-              <span className="text-[10px] font-bold tracking-wide" style={{ color: themeColor }}>{cbdDisplay}</span>
-            </div>
-            <div className="flex items-center justify-end border-l border-white/5 pl-2 w-full text-right">
-              <span className="text-gray-100 text-[8px] font-medium tracking-wide truncate">{effectDisplay}</span>
-            </div>
-          </div>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 shadow-inner backdrop-blur-sm shadow-md min-h-[84px] flex flex-col justify-center">
+          <p className="text-[8px] font-black uppercase tracking-[0.22em] text-white/40">Sorte</p>
+          <p className="mt-1 text-sm font-semibold leading-snug text-white break-words line-clamp-3">
+            {normalizedStrainName}
+          </p>
         </div>
       </div>
     </Link>
