@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Plus, Globe, Wand2, Check, Pencil } from "lucide-react";
+import { Plus, Globe, Wand2, Check, Pencil, Loader2 } from "lucide-react";
 import { Strain, StrainSource } from "@/lib/types";
 import { useEffect } from "react";
 
