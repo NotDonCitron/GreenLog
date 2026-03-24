@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Collection View Variationen</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+        rel="stylesheet">
+
     <style>
         body {
             background-color: #1a191b;
@@ -14,28 +17,47 @@
             color: white;
             padding-bottom: 100px;
         }
-        .title-font { font-family: 'Playfair Display', serif; }
+
+        .title-font {
+            font-family: 'Playfair Display', serif;
+        }
 
         /* Animation für Grid-Eintritt */
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .animate-fade-up {
             animation: fadeUp 0.5s ease forwards;
             opacity: 0;
         }
 
         /* Verstecke Scrollbars für sauberes UI */
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
+
 <body class="p-6 max-w-lg mx-auto border-x border-white/5 min-h-screen">
     <!-- Simulierter Mobile-Screen / Collection Page -->
-    
+
     <div class="mb-8 mt-4 text-center">
-        <h1 class="text-3xl font-black italic title-font text-[#00FFFF] drop-shadow-[0_0_10px_rgba(0,255,255,0.3)]">My Collection</h1>
+        <h1 class="text-3xl font-black italic title-font text-[#00FFFF] drop-shadow-[0_0_10px_rgba(0,255,255,0.3)]">My
+            Collection</h1>
         <p class="text-[10px] text-white/40 uppercase tracking-widest mt-1">12 Strains entdeckt</p>
     </div>
 
@@ -44,16 +66,20 @@
          Perfekt für viele Karten auf einen Blick
          ========================================== -->
     <div class="mb-12">
-        <h2 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-4 border-b border-white/10 pb-2">1. Compact Grid View</h2>
-        
+        <h2 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-4 border-b border-white/10 pb-2">1.
+            Compact Grid View</h2>
+
         <div class="grid grid-cols-2 gap-4">
             <!-- Kompakte Karte 1 -->
-            <div class="animate-fade-up bg-[#121212] rounded-xl border border-white/10 overflow-hidden relative shadow-lg hover:border-[#00FFFF]/50 transition-colors" style="animation-delay: 0.1s;">
+            <div class="animate-fade-up bg-[#121212] rounded-xl border border-white/10 overflow-hidden relative shadow-lg hover:border-[#00FFFF]/50 transition-colors"
+                style="animation-delay: 0.1s;">
                 <div class="h-32 w-full relative">
-                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop" class="w-full h-full object-cover">
+                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop"
+                        class="w-full h-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent"></div>
                     <div class="absolute bottom-2 left-2 right-2">
-                        <span class="text-[8px] border border-green-500 text-green-400 px-1.5 py-0.5 rounded-sm uppercase tracking-widest font-bold">Hybrid</span>
+                        <span
+                            class="text-[8px] border border-green-500 text-green-400 px-1.5 py-0.5 rounded-sm uppercase tracking-widest font-bold">Hybrid</span>
                     </div>
                 </div>
                 <div class="p-3">
@@ -66,12 +92,15 @@
             </div>
 
             <!-- Kompakte Karte 2 -->
-            <div class="animate-fade-up bg-[#121212] rounded-xl border border-white/10 overflow-hidden relative shadow-lg hover:border-[#10b981]/50 transition-colors" style="animation-delay: 0.2s;">
+            <div class="animate-fade-up bg-[#121212] rounded-xl border border-white/10 overflow-hidden relative shadow-lg hover:border-[#10b981]/50 transition-colors"
+                style="animation-delay: 0.2s;">
                 <div class="h-32 w-full relative">
-                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop" class="w-full h-full object-cover saturate-50">
+                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop"
+                        class="w-full h-full object-cover saturate-50">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent"></div>
                     <div class="absolute bottom-2 left-2 right-2">
-                        <span class="text-[8px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-sm uppercase tracking-widest font-bold">Indica</span>
+                        <span
+                            class="text-[8px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-sm uppercase tracking-widest font-bold">Indica</span>
                     </div>
                 </div>
                 <div class="p-3">
@@ -82,14 +111,17 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Kompakte Karte 3 -->
-            <div class="animate-fade-up bg-[#121212] rounded-xl border border-white/10 overflow-hidden relative shadow-lg hover:border-[#fbbf24]/50 transition-colors" style="animation-delay: 0.3s;">
+            <div class="animate-fade-up bg-[#121212] rounded-xl border border-white/10 overflow-hidden relative shadow-lg hover:border-[#fbbf24]/50 transition-colors"
+                style="animation-delay: 0.3s;">
                 <div class="h-32 w-full relative">
-                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop" class="w-full h-full object-cover sepia-[0.3]">
+                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop"
+                        class="w-full h-full object-cover sepia-[0.3]">
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent"></div>
                     <div class="absolute bottom-2 left-2 right-2">
-                        <span class="text-[8px] border border-yellow-500 text-yellow-400 px-1.5 py-0.5 rounded-sm uppercase tracking-widest font-bold">Sativa</span>
+                        <span
+                            class="text-[8px] border border-yellow-500 text-yellow-400 px-1.5 py-0.5 rounded-sm uppercase tracking-widest font-bold">Sativa</span>
                     </div>
                 </div>
                 <div class="p-3">
@@ -109,13 +141,16 @@
          Perfekt für schnelles Scrollen und Suchen
          ========================================== -->
     <div class="mb-12">
-        <h2 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-4 border-b border-white/10 pb-2">2. Horizontal List View</h2>
-        
+        <h2 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-4 border-b border-white/10 pb-2">2.
+            Horizontal List View</h2>
+
         <div class="flex flex-col gap-3">
             <!-- List Item 1 -->
-            <div class="animate-fade-up bg-[#121212] border border-white/5 rounded-2xl p-2 flex items-center gap-4 hover:bg-white/5 transition-colors" style="animation-delay: 0.4s;">
+            <div class="animate-fade-up bg-[#121212] border border-white/5 rounded-2xl p-2 flex items-center gap-4 hover:bg-white/5 transition-colors"
+                style="animation-delay: 0.4s;">
                 <div class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 relative">
-                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop" class="w-full h-full object-cover">
+                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop"
+                        class="w-full h-full object-cover">
                 </div>
                 <div class="flex-1 min-w-0">
                     <h3 class="title-font italic font-bold text-base leading-tight truncate">420 Pharma Bling</h3>
@@ -126,14 +161,18 @@
                     </div>
                 </div>
                 <div class="pr-2 text-white/20">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
                 </div>
             </div>
 
             <!-- List Item 2 -->
-            <div class="animate-fade-up bg-[#121212] border border-white/5 rounded-2xl p-2 flex items-center gap-4 hover:bg-white/5 transition-colors" style="animation-delay: 0.5s;">
+            <div class="animate-fade-up bg-[#121212] border border-white/5 rounded-2xl p-2 flex items-center gap-4 hover:bg-white/5 transition-colors"
+                style="animation-delay: 0.5s;">
                 <div class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 relative">
-                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop" class="w-full h-full object-cover grayscale-[0.3]">
+                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop"
+                        class="w-full h-full object-cover grayscale-[0.3]">
                 </div>
                 <div class="flex-1 min-w-0">
                     <h3 class="title-font italic font-bold text-base leading-tight truncate">White Widow</h3>
@@ -144,7 +183,9 @@
                     </div>
                 </div>
                 <div class="pr-2 text-white/20">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
                 </div>
             </div>
         </div>
@@ -156,35 +197,44 @@
          Perfekt für "Zuletzt hinzugefügt" oder Favoriten
          ========================================== -->
     <div>
-        <h2 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-4 border-b border-white/10 pb-2">3. Cover Scroll (Horizontal)</h2>
-        
+        <h2 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-4 border-b border-white/10 pb-2">3.
+            Cover Scroll (Horizontal)</h2>
+
         <div class="flex overflow-x-auto gap-4 pb-6 hide-scrollbar snap-x">
-            
+
             <!-- Scroll Item 1 -->
-            <div class="animate-fade-up snap-center flex-shrink-0 w-48 relative rounded-2xl overflow-hidden group shadow-lg" style="animation-delay: 0.6s;">
+            <div class="animate-fade-up snap-center flex-shrink-0 w-48 relative rounded-2xl overflow-hidden group shadow-lg"
+                style="animation-delay: 0.6s;">
                 <div class="h-60 w-full bg-black">
-                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500">
+                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop"
+                        class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500">
                 </div>
                 <!-- Glassmorphism Overlay am unteren Rand -->
-                <div class="absolute bottom-0 left-0 right-0 p-4 pt-10 bg-gradient-to-t from-black via-black/80 to-transparent">
+                <div
+                    class="absolute bottom-0 left-0 right-0 p-4 pt-10 bg-gradient-to-t from-black via-black/80 to-transparent">
                     <span class="text-[#c084fc] text-[8px] uppercase font-bold tracking-widest block mb-1">Sativa</span>
                     <h3 class="title-font italic font-bold text-lg leading-tight truncate">Amnesia Haze</h3>
                 </div>
-                <div class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+                <div
+                    class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center">
                     <span class="text-[9px] font-bold">28%</span>
                 </div>
             </div>
 
             <!-- Scroll Item 2 -->
-            <div class="animate-fade-up snap-center flex-shrink-0 w-48 relative rounded-2xl overflow-hidden group shadow-lg" style="animation-delay: 0.7s;">
+            <div class="animate-fade-up snap-center flex-shrink-0 w-48 relative rounded-2xl overflow-hidden group shadow-lg"
+                style="animation-delay: 0.7s;">
                 <div class="h-60 w-full bg-black">
-                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop" class="w-full h-full object-cover saturate-50 opacity-80 group-hover:scale-105 transition-transform duration-500">
+                    <img src="https://images.unsplash.com/photo-1595858602715-4122d08a5a4d?q=80&w=400&h=400&fit=crop"
+                        class="w-full h-full object-cover saturate-50 opacity-80 group-hover:scale-105 transition-transform duration-500">
                 </div>
-                <div class="absolute bottom-0 left-0 right-0 p-4 pt-10 bg-gradient-to-t from-black via-black/80 to-transparent">
+                <div
+                    class="absolute bottom-0 left-0 right-0 p-4 pt-10 bg-gradient-to-t from-black via-black/80 to-transparent">
                     <span class="text-[#fbbf24] text-[8px] uppercase font-bold tracking-widest block mb-1">Exotic</span>
                     <h3 class="title-font italic font-bold text-lg leading-tight truncate">Acapulco Gold</h3>
                 </div>
-                <div class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-yellow-500/50 flex items-center justify-center text-yellow-400">
+                <div
+                    class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-yellow-500/50 flex items-center justify-center text-yellow-400">
                     <span class="text-[9px] font-bold">25%</span>
                 </div>
             </div>
@@ -193,4 +243,5 @@
     </div>
 
 </body>
+
 </html>

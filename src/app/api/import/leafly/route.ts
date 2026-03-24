@@ -1,5 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const extractNames = (items: unknown): string[] => {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items
+    .map((item) => {
+      if (typeof item === "string") {
+        return item.trim();
+      }
+
+      if (item && typeof item === "object") {
+        if ("name" in item && typeof item.name === "string") {
+          return item.name.trim();
+        }
+
+        if ("label" in item && typeof item.label === "string") {
+          return item.label.trim();
+        }
+      }
+
+      return "";
+    })
+    .filter(Boolean);
+};
+
 export async function POST(req: NextRequest) {
   try {
     const { url } = await req.json();
@@ -24,28 +50,34 @@ export async function POST(req: NextRequest) {
 
     const html = await response.text();
 
-    // Extrahiere Daten via Regex (einfacher als Cheerio für den Anfang)
-    // Leafly nutzt oft "__NEXT_DATA__" für den State
-    const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/);
-    
-    let scrapedData: any = {};
-    
+    // Extract data from Next.js page payload when available.
+    const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+
+    let scrapedData: Record<string, unknown> = {};
+
     if (nextDataMatch) {
       const fullData = JSON.parse(nextDataMatch[1]);
-      const strainData = fullData.props?.pageProps?.strain || {};
-      
+      const strainData = fullData.props?.pageProps?.strain || fullData.props?.pageProps?.strainData || {};
+
       scrapedData = {
-        name: strainData.name || "",
-        type: (strainData.category || "hybrid").toLowerCase(),
-        description: strainData.description || "",
-        thc: strainData.thc?.avg || "",
-        terpenes: strainData.topTerpenes?.map((t: any) => t.name) || [],
-        effects: strainData.effects?.map((e: any) => e.name) || [],
+        name: typeof strainData.name === "string" ? strainData.name : "",
+        type: typeof strainData.category === "string" ? strainData.category.toLowerCase() : "hybrid",
+        description: typeof strainData.description === "string" ? strainData.description : "",
+        thc: strainData.thc?.avg ?? strainData.thc ?? "",
+        cbd: strainData.cbd?.avg ?? strainData.cbd ?? "",
+        terpenes: extractNames(strainData.topTerpenes ?? strainData.terpenes),
+        effects: extractNames(strainData.effects),
+        indications: extractNames(strainData.conditions ?? strainData.indications),
+        source: "street",
       };
     } else {
-      // Fallback: Einfaches Titel-Scraping
-      const titleMatch = html.match(/<title>(.*?)<\/title>/);
-      scrapedData.name = titleMatch ? titleMatch[1].split("|")[0].trim() : "";
+      // Fallback: simple title scraping
+      const titleMatch = html.match(/<title>(.*?)<\/title>/i);
+      scrapedData = {
+        name: titleMatch ? titleMatch[1].split("|")[0].trim() : "",
+        type: "hybrid",
+        source: "street",
+      };
     }
 
     return NextResponse.json(scrapedData);

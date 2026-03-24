@@ -2,287 +2,219 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Loader2, Search, Plus, UserPlus } from "lucide-react";
-import { UserSearch } from "@/components/social/user-search";
-import { UserCard } from "@/components/social/user-card";
-import { SuggestedUsers } from "@/components/social/suggested-users";
+import { Loader2, Search, UserPlus, Users } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { useAuth } from "@/components/auth-provider";
 import { supabase } from "@/lib/supabase";
 import type { ProfileRow } from "@/lib/types";
 
+interface FriendProfile extends ProfileRow {
+    strainCount: number;
+    topStrains: any[];
+}
+
 export default function DiscoverPage() {
     const { user } = useAuth();
+    const [friends, setFriends] = useState<FriendProfile[]>([]);
     const [browseUsers, setBrowseUsers] = useState<ProfileRow[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchResults, setSearchResults] = useState<ProfileRow[]>([]);
-    const [isSearching, setIsSearching] = useState(false);
-    const [activeTab, setActiveTab] = useState<"for-you" | "browse">("for-you");
+    const [activeTab, setActiveTab] = useState<"friends" | "browse">("friends");
 
     useEffect(() => {
-        const fetchBrowseUsers = async () => {
+        const fetchData = async () => {
+            if (!user) return;
             setIsLoading(true);
             try {
-                // Browse should show all profiles, including private ones.
-                let query = supabase
-                    .from("profiles")
-                    .select("*")
-                    .order("created_at", { ascending: false })
-                    .limit(30);
+                // 1. Freunde finden (Leute denen ich folge)
+                const { data: follows } = await supabase
+                    .from("follows")
+                    .select("following_id")
+                    .eq("follower_id", user.id);
 
-                if (user) {
-                    query = query.neq("id", user.id);
+                if (follows && follows.length > 0) {
+                    const friendIds = follows.map(f => f.following_id);
+                    
+                    // 2. Profile laden
+                    const { data: profiles } = await supabase
+                        .from("profiles")
+                        .select("*")
+                        .in("id", friendIds);
+                    
+                    if (profiles) {
+                        const friendsWithStats = await Promise.all(profiles.map(async (p) => {
+                            // Zähle Strains über 'ratings' (da 'user_collection' private RLS hat)
+                            const { count } = await supabase
+                                .from("ratings")
+                                .select("*", { count: "exact", head: true })
+                                .eq("user_id", p.id);
+
+                            // Top Strains holen
+                            let { data: topData } = await supabase
+                                .from("user_strain_relations")
+                                .select("strains(*)")
+                                .eq("user_id", p.id)
+                                .eq("is_favorite", true)
+                                .limit(5);
+
+                            if (!topData || topData.length === 0) {
+                                const { data: ratedData } = await supabase
+                                    .from("ratings")
+                                    .select("strains(*)")
+                                    .eq("user_id", p.id)
+                                    .order("created_at", { ascending: false })
+                                    .limit(5);
+                                topData = ratedData;
+                            }
+
+                            const topStrains = (topData || [])
+                                .map(entry => (entry as any).strains)
+                                .filter(Boolean);
+
+                            return { 
+                                ...p, 
+                                strainCount: count || 0, 
+                                topStrains: topStrains 
+                            };
+                        }));
+                        setFriends(friendsWithStats as FriendProfile[]);
+                    }
                 }
 
-                const { data, error } = await query;
+                // 3. Entdecken (Andere User)
+                const { data: allUsers } = await supabase
+                    .from("profiles")
+                    .select("*")
+                    .neq("id", user.id)
+                    .limit(20);
+                setBrowseUsers(allUsers || []);
 
-                if (error) throw error;
-                setBrowseUsers(data ?? []);
-            } catch (err) {
-                console.error("Error fetching browse users:", err);
-            } finally {
-                setIsLoading(false);
+            } catch (err) { 
+                console.error("Social data fetch error:", err); 
+            } finally { 
+                setIsLoading(false); 
             }
         };
-
-        fetchBrowseUsers();
+        fetchData();
     }, [user]);
-
-    const handleSearch = async () => {
-        if (searchQuery.length < 2) {
-            setSearchResults([]);
-            return;
-        }
-
-        setIsSearching(true);
-        try {
-            // Search: all profiles by username or display_name
-            const { data, error } = await supabase
-                .from("profiles")
-                .select("*")
-                .or(`username.ilike.%${searchQuery}%,display_name.ilike.%${searchQuery}%`)
-                .limit(20);
-
-            if (error) throw error;
-            setSearchResults(data ?? []);
-        } catch (err) {
-            console.error("Error searching users:", err);
-        } finally {
-            setIsSearching(false);
-        }
-    };
-
-    const clearSearch = () => {
-        setSearchQuery("");
-        setSearchResults([]);
-    };
 
     return (
         <div className="min-h-screen bg-[#355E3B] pb-24">
-            {/* Header - Instagram Style */}
             <div className="sticky top-0 z-20 bg-[#355E3B]/95 backdrop-blur-md border-b border-white/10">
-                <div className="max-w-lg mx-auto px-4 py-4">
-                    {/* Title Row */}
-                    <div className="flex items-center justify-between mb-4">
-                        <h1 className="text-xl font-black text-white tracking-tight">Discover</h1>
-                        <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-                            <Plus size={20} className="text-white" />
+                <div className="max-w-lg mx-auto px-6 py-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h1 className="text-2xl font-black text-white italic uppercase tracking-tight">Social</h1>
+                        <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/10">
+                            <UserPlus size={20} className="text-[#00F5FF]" />
                         </button>
                     </div>
 
-                    {/* Search Bar */}
-                    <div className="relative">
-                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/40" />
-                        <input
-                            type="text"
-                            placeholder="Search users..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                            className="w-full bg-white/10 rounded-xl px-12 py-3 text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-[#00F5FF]/50"
-                        />
-                        {searchQuery && (
-                            <button
-                                onClick={clearSearch}
-                                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white"
-                            >
-                                ✕
-                            </button>
-                        )}
+                    <div className="flex gap-6 border-b border-white/10 -mb-6">
+                        <button 
+                            onClick={() => setActiveTab("friends")} 
+                            className={`pb-3 text-xs font-black uppercase tracking-widest transition-all ${activeTab === "friends" ? "text-[#2FF801] border-b-2 border-[#2FF801]" : "text-white/40"}`}
+                        >
+                            Deine Freunde
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab("browse")} 
+                            className={`pb-3 text-xs font-black uppercase tracking-widest transition-all ${activeTab === "browse" ? "text-[#2FF801] border-b-2 border-[#2FF801]" : "text-white/40"}`}
+                        >
+                            Entdecken
+                        </button>
                     </div>
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="max-w-lg mx-auto">
-                {searchQuery.length >= 2 ? (
-                    /* Search Results - Instagram Grid Style */
-                    <div className="px-4 py-4">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-sm font-semibold text-white/80">
-                                {isSearching ? (
-                                    <span className="flex items-center gap-2">
-                                        <Loader2 className="h-4 w-4 animate-spin" /> Searching...
-                                    </span>
-                                ) : (
-                                    `${searchResults.length} results`
-                                )}
-                            </h2>
-                        </div>
-
-                        {searchResults.length > 0 ? (
-                            <div className="grid grid-cols-3 gap-1">
-                                {searchResults.map((profile) => (
-                                    <Link key={profile.id} href={`/user/${profile.username}`}>
-                                        <div className="aspect-square relative rounded-xl overflow-hidden bg-white/5">
-                                            {profile.avatar_url ? (
-                                                <img
-                                                    src={profile.avatar_url}
-                                                    alt={profile.username ?? ""}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-white/10">
-                                                    <span className="text-2xl font-bold text-white/30">
-                                                        {profile.username?.[0]?.toUpperCase() || "?"}
-                                                    </span>
+            <div className="max-w-lg mx-auto px-6 py-10">
+                {isLoading ? (
+                    <div className="flex flex-col items-center justify-center py-20 gap-4">
+                        <Loader2 className="h-10 w-10 animate-spin text-[#00F5FF]" />
+                        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Lade Social Data...</p>
+                    </div>
+                ) : activeTab === "friends" ? (
+                    friends.length > 0 ? (
+                        <div className="space-y-4">
+                            {friends.map((friend) => (
+                                <Link key={friend.id} href={`/user/${friend.username}`}>
+                                    <div className="bg-[#1e3a24] border border-white/10 rounded-[2rem] p-5 flex flex-col gap-4 shadow-xl hover:border-[#00F5FF]/30 transition-all">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="flex items-center gap-4 min-w-0">
+                                                {/* Profilbild links */}
+                                                <div className="w-16 h-16 rounded-full overflow-hidden bg-black/20 border-2 border-white/10 flex-shrink-0 flex items-center justify-center">
+                                                    {friend.avatar_url ? (
+                                                        <img src={friend.avatar_url} alt={friend.username} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <span className="text-xl font-bold text-white/20">{friend.username?.[0]?.toUpperCase()}</span>
+                                                    )}
                                                 </div>
-                                            )}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
-                                            <div className="absolute bottom-2 left-2 right-2 opacity-0 hover:opacity-100 transition-opacity">
-                                                <p className="text-xs font-semibold text-white truncate">
-                                                    {profile.display_name || profile.username}
-                                                </p>
+                                                
+                                                {/* Name */}
+                                                <div className="min-w-0">
+                                                    <h3 className="font-black text-white uppercase tracking-tight truncate text-xl leading-none">
+                                                        {friend.display_name || friend.username}
+                                                    </h3>
+                                                </div>
+                                            </div>
+
+                                            {/* Großer Counter rechts */}
+                                            <div className="text-right flex-shrink-0 flex flex-col items-center justify-center bg-black/20 px-4 py-2 rounded-2xl border border-white/5">
+                                                <span className="text-3xl font-black text-[#2FF801] leading-none italic">{friend.strainCount}</span>
+                                                <p className="text-[7px] text-white/40 font-black uppercase tracking-tighter mt-1 whitespace-nowrap">strains in der sammlung</p>
                                             </div>
                                         </div>
-                                    </Link>
-                                ))}
-                            </div>
-                        ) : !isSearching ? (
-                            <div className="text-center py-16">
-                                <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Search size={24} className="text-white/40" />
-                                </div>
-                                <p className="text-white/60 text-sm">No users found for "{searchQuery}"</p>
-                            </div>
-                        ) : null}
-
-                        <button
-                            onClick={clearSearch}
-                            className="w-full mt-6 py-3 text-sm font-semibold text-white/60 hover:text-white bg-white/5 rounded-xl"
-                        >
-                            Clear Search
-                        </button>
-                    </div>
-                ) : (
-                    /* Main Content - Tab Style like Instagram */
-                    <div className="px-4 py-4">
-                        {/* Tab Bar */}
-                        <div className="flex gap-6 border-b border-white/10 mb-6">
-                            <button
-                                onClick={() => setActiveTab("for-you")}
-                                className={`pb-3 text-sm font-semibold transition-colors ${activeTab === "for-you"
-                                    ? "text-white border-b-2 border-white"
-                                    : "text-white/40"
-                                    }`}
-                            >
-                                For You
-                            </button>
-                            <button
-                                onClick={() => setActiveTab("browse")}
-                                className={`pb-3 text-sm font-semibold transition-colors ${activeTab === "browse"
-                                    ? "text-white border-b-2 border-white"
-                                    : "text-white/40"
-                                    }`}
-                            >
-                                Browse All
-                            </button>
-                        </div>
-
-                        {activeTab === "for-you" ? (
-                            /* Suggested Users - Instagram Reels Style */
-                            <div>
-                                {user ? (
-                                    <>
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h2 className="text-sm font-semibold text-white/80">Suggested for you</h2>
-                                            <button className="text-xs font-semibold text-[#00F5FF]">See All</button>
-                                        </div>
-                                        <SuggestedUsers limit={8} showViewAll={false} />
-                                    </>
-                                ) : (
-                                    <div className="text-center py-12">
-                                        <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <UserPlus size={24} className="text-white/40" />
-                                        </div>
-                                        <h3 className="text-lg font-bold text-white mb-2">Sign in to see suggestions</h3>
-                                        <p className="text-white/60 text-sm mb-6">
-                                            Get personalized user recommendations based on your ratings and grows.
-                                        </p>
-                                        <Link href="/login">
-                                            <button className="px-8 py-3 bg-[#00F5FF] text-black font-bold rounded-xl text-sm">
-                                                Sign In
-                                            </button>
-                                        </Link>
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            /* Browse All - Instagram Grid Style */
-                            <div>
-                                {isLoading ? (
-                                    <div className="flex items-center justify-center py-16">
-                                        <Loader2 className="h-8 w-8 animate-spin text-white/40" />
-                                    </div>
-                                ) : browseUsers.length > 0 ? (
-                                    <>
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h2 className="text-sm font-semibold text-white/80">Recent Members</h2>
-                                            <span className="text-xs text-white/40">{browseUsers.length} users</span>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {browseUsers.map((profile) => (
-                                                <Link key={profile.id} href={`/user/${profile.username}`}>
-                                                    <div className="rounded-2xl border border-white/10 bg-white/5 p-3 hover:bg-white/10 transition-colors">
-                                                        <div className="aspect-square rounded-xl overflow-hidden bg-white/10 mb-3 flex items-center justify-center">
-                                                            {profile.avatar_url ? (
-                                                                <img
-                                                                    src={profile.avatar_url}
-                                                                    alt={profile.username ?? ""}
-                                                                    className="w-full h-full object-cover"
-                                                                />
-                                                            ) : (
-                                                                <span className="text-3xl font-bold text-white/30">
-                                                                    {profile.username?.[0]?.toUpperCase() || "?"}
-                                                                </span>
-                                                            )}
+                                        
+                                        <div className="bg-black/20 rounded-2xl p-3 flex flex-col gap-2">
+                                            <p className="text-[8px] font-black text-white/30 uppercase tracking-[0.2em]">Top Strains</p>
+                                            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+                                                {friend.topStrains.map((s, idx) => (
+                                                    <div key={idx} className="flex flex-col items-center gap-1.5 w-14 flex-shrink-0">
+                                                        <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 bg-white/5 shadow-inner">
+                                                            <img 
+                                                                src={s.image_url || "/strains/placeholder-1.svg"} 
+                                                                alt={s.name} 
+                                                                className="w-full h-full object-cover opacity-80" 
+                                                            />
                                                         </div>
-                                                        <p className="text-sm font-semibold text-white truncate">
-                                                            {profile.display_name || profile.username}
-                                                        </p>
-                                                        <p className="text-xs text-white/50 truncate">
-                                                            @{profile.username}
+                                                        <p className="text-[7px] text-white/40 font-black uppercase tracking-tighter truncate w-full text-center leading-none">
+                                                            {s.name}
                                                         </p>
                                                     </div>
-                                                </Link>
-                                            ))}
+                                                ))}
+                                                {friend.topStrains.length === 0 && (
+                                                    <p className="text-[8px] text-white/10 italic">Noch keine Sorten bewertet</p>
+                                                )}
+                                            </div>
                                         </div>
-                                    </>
-                                ) : (
-                                    <div className="text-center py-16">
-                                        <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <Search size={24} className="text-white/40" />
-                                        </div>
-                                        <p className="text-white/60 text-sm">No public profiles found</p>
                                     </div>
-                                )}
-                            </div>
-                        )}
+                                </Link>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-20 bg-white/5 rounded-[2.5rem] border border-dashed border-white/10 text-white/20 text-[10px] font-bold uppercase tracking-widest px-10">
+                            Noch keine Freunde hinzugefügt.
+                        </div>
+                    )
+                ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                        {browseUsers.map((profile) => (
+                            <Link key={profile.id} href={`/user/${profile.username}`}>
+                                <div className="bg-[#1e3a24] border border-white/10 rounded-2xl p-4 flex flex-col items-center text-center gap-3 hover:border-[#00F5FF]/30 transition-all">
+                                    <div className="w-16 h-16 rounded-full overflow-hidden border border-white/10 bg-black/20 flex items-center justify-center">
+                                        {profile.avatar_url ? (
+                                            <img src={profile.avatar_url} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span className="text-xl font-bold text-white/20">{profile.username?.[0]?.toUpperCase()}</span>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-black text-white uppercase truncate max-w-[120px]">{profile.display_name || profile.username}</p>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
                     </div>
                 )}
             </div>
-
             <BottomNav />
         </div>
     );

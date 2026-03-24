@@ -1,171 +1,158 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { BottomNav } from "@/components/bottom-nav";
+import { Search, CalendarDays, Loader2, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
-import { BottomNav } from "@/components/bottom-nav";
-import { Strain } from "@/lib/types";
-import { Loader2, ChevronLeft, LayoutGrid, List as ListIcon, Search, Star } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { Strain, StrainSource } from "@/lib/types";
 import { StrainCard } from "@/components/strains/strain-card";
 
-const DEMO_SIMULATION_DATA: Strain[] = [
-  { id: "sim-1" as any, name: "Aurora Ghost Train Haze", brand: "Aurora", slug: "godfather-og", thc_max: 34, type: "sativa", terpenes: ["Terpinolene", "Myrcene", "Limonene"], effects: ["Energy"], image_url: "/strains/godfather-og.jpg", is_medical: true },
-  { id: "sim-2" as any, name: "420 Pharma Kush Mint", brand: "420 Pharma", slug: "animal-face", thc_max: 30, type: "hybrid", terpenes: ["Limonene", "Caryophyllene"], effects: ["Relaxation"], image_url: "/strains/animal-face.jpg", is_medical: true },
-  { id: "sim-3" as any, name: "Tilray Master Kush", brand: "Tilray", slug: "gmo-cookies", thc_max: 33, type: "indica", terpenes: ["Myrcene", "Limonene"], effects: ["Sleep"], image_url: "/strains/gmo-cookies.jpg", is_medical: true },
-  { id: "sim-4" as any, name: "Gorilla Glue #4", brand: "DNA Genetics", slug: "gorilla-glue-4", thc_max: 28, type: "hybrid", image_url: "/strains/placeholder-1.svg", is_medical: true },
-  { id: "sim-5" as any, name: "Amnesia Haze", brand: "Sensi Seeds", slug: "amnesia-haze", thc_max: 22, type: "sativa", image_url: "/strains/placeholder-1.svg", is_medical: false }
-];
-
 export default function CollectionPage() {
-  const { user, loading: authLoading, isDemoMode } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [strains, setStrains] = useState<Strain[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [searchQuery, setSearchQuery] = useState("");
-  const router = useRouter();
+  const [search, setSearch] = useState("");
+  const [sourceFilter, setSourceFilter] = useState<StrainSource | "all">("all");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchUserCollection() {
-      if (isDemoMode) {
-        setStrains(DEMO_SIMULATION_DATA);
-        setLoading(false);
-        return;
-      }
+    async function fetchCollection() {
       if (!user) {
         setLoading(false);
         return;
       }
 
-      const { data, error } = await supabase
-        .from('ratings')
-        .select(`
-          review,
-          overall_rating,
-          created_at,
-          strain:strains (*)
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      try {
+        setLoading(true);
+        // Wir holen alle Sorten inkl. user_image_url
+        const { data, error: fetchError } = await supabase
+          .from('user_collection')
+          .select(`
+            batch_info,
+            user_notes,
+            user_thc_percent,
+            user_cbd_percent,
+            user_image_url,
+            strain:strains (*)
+          `)
+          .eq('user_id', user.id);
 
-      if (error) console.error("Error fetching collection:", error);
+        if (fetchError) throw fetchError;
 
-      if (data && data.length > 0) {
-        const userStrains = data
-          .map(item => {
-            const s = item.strain as any;
-            if (!s) return null;
-            return {
-              ...s,
-              image_url: s.image_url || `/strains/${s.slug}.jpg`
-            };
-          })
-          .filter(Boolean) as unknown as Strain[];
-        
-        setStrains(userStrains);
-      } else {
-        setStrains([]);
+        if (data) {
+          const userStrains = data
+            .map(item => {
+              const s = item.strain as any;
+              if (!s) return null;
+              return {
+                ...s,
+                // Persönliches Bild überschreibt globales Bild
+                image_url: item.user_image_url || s.image_url,
+                source: item.batch_info || s.source || 'pharmacy',
+                avg_thc: item.user_thc_percent || s.avg_thc,
+                avg_cbd: item.user_cbd_percent || s.avg_cbd,
+                user_notes: item.user_notes
+              };
+            })
+            .filter(Boolean) as unknown as Strain[];
+
+          setStrains(userStrains);
+        }
+      } catch (err: any) {
+        console.error("Collection fetch error:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
-    if (!authLoading) fetchUserCollection();
-  }, [user, authLoading, isDemoMode]);
 
-  const filteredStrains = strains.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (s.brand && s.brand.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+    if (!authLoading) fetchCollection();
+  }, [user, authLoading]);
 
-  const getCannabinoidDisplay = (primary?: number, secondary?: number) => {
-    const value = primary ?? secondary;
-    return typeof value === "number" ? `${value}%` : "—";
-  };
-
-  if (loading || authLoading) return <div className="min-h-screen bg-[#355E3B] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
+  const filteredStrains = strains.filter(s => {
+    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
+    const matchesFilter = sourceFilter === "all" || s.source === sourceFilter;
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     <main className="min-h-screen bg-[#355E3B] text-white pb-32">
-      <header className="p-6 sticky top-0 bg-[#355E3B]/90 backdrop-blur-xl z-50 border-b border-white/5">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition">
-              <ChevronLeft size={20} />
-            </button>
-            <div>
-              <span className="text-[10px] text-[#00FFFF] font-black uppercase tracking-[0.4em]">My Vault</span>
-              <h1 className="text-xl font-black italic tracking-tighter uppercase leading-none font-serif">Gesamte Collection</h1>
-            </div>
+      <header className="p-8 sticky top-0 bg-[#355E3B]/90 backdrop-blur-xl z-50 border-b border-white/5">
+        <div className="flex justify-between items-end mb-6">
+          <div>
+            <span className="text-[10px] text-[#00F5FF] font-black uppercase tracking-[0.4em]">Archiv</span>
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">Deine Sammlung</h1>
           </div>
-          <div className="flex gap-2">
-            <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-[#00FFFF]/20 text-[#00FFFF]' : 'text-white/40'}`}>
-              <LayoutGrid size={20} />
-            </button>
-            <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-[#00FFFF]/20 text-[#00FFFF]' : 'text-white/40'}`}>
-              <ListIcon size={20} />
-            </button>
+          <div className="text-right">
+            <p className="text-[10px] text-white/40 uppercase font-bold">Anzahl</p>
+            <p className="text-xl font-black text-[#2FF801]">{strains.length}</p>
           </div>
         </div>
 
-        <div className="relative mt-2">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40" size={16} />
-          <input 
-            type="text" 
-            placeholder="Suchen (z.B. Indica, Pharma...)" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#121212] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-xs text-white placeholder:text-white/40 focus:outline-none focus:border-[#00FFFF]/50 shadow-inner"
-          />
+        <div className="flex gap-3 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-3.5 text-white/20" size={18} />
+            <input
+              type="text"
+              placeholder="In Sammlung suchen..."
+              className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:border-[#00F5FF]/50 transition-all shadow-inner"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <Button variant="outline" className="h-12 w-12 rounded-2xl bg-white/5 border-white/10 shrink-0">
+             <CalendarDays className="text-[#00F5FF]" size={20} />
+          </Button>
+        </div>
+
+        <div className="flex gap-2 mt-2 overflow-x-auto pb-1 -mx-1 px-1">
+          {[
+            { id: "all", label: "Alle" },
+            { id: "pharmacy", label: "🧪 Apotheke" },
+            { id: "street", label: "📦 Street" },
+            { id: "grow", label: "🌱 Eigen" },
+            { id: "csc", label: "🏢 CSC" }
+          ].map((f) => (
+            <Button
+              key={f.id}
+              size="sm"
+              variant={sourceFilter === f.id ? "default" : "outline"}
+              onClick={() => setSourceFilter(f.id as any)}
+              className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${
+                sourceFilter === f.id 
+                ? "bg-[#2FF801] text-black" 
+                : "bg-white/5 border-white/10 text-white/60"
+              }`}
+            >
+              {f.label}
+            </Button>
+          ))}
         </div>
       </header>
 
       <div className="p-6">
-        <p className="text-[10px] text-white/40 uppercase tracking-widest mb-6 font-bold">{filteredStrains.length} Strains gefunden</p>
-
-        {strains.length === 0 ? (
-          <div className="text-center py-12 space-y-4">
-            <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto border border-white/10 shadow-xl"><Star className="text-white/20" size={24} /></div>
-            <div>
-              <h2 className="text-lg font-bold uppercase tracking-tight">Sammlung leer</h2>
-              <p className="text-white/40 text-[10px] uppercase mt-1">Gehe zum Katalog um Strains hinzuzufügen</p>
-            </div>
-            <Link href="/strains">
-              <button className="px-6 py-3 mt-2 bg-[#00FFFF] text-black font-black rounded-xl uppercase tracking-widest text-[10px] hover:bg-white transition-all shadow-[0_0_15px_rgba(0,255,255,0.4)]">Zum Katalog</button>
-            </Link>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <Loader2 className="animate-spin text-[#00F5FF]" size={40} />
+            <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Lade Archiv...</p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4 text-red-400">
+            <AlertCircle size={40} />
+            <p className="text-sm font-bold uppercase tracking-widest">{error}</p>
+          </div>
+        ) : filteredStrains.length > 0 ? (
+          <div className="grid grid-cols-2 gap-6">
+            {filteredStrains.map((strain, i) => (
+              <StrainCard key={strain.id} strain={strain} index={i} isCollected={true} />
+            ))}
           </div>
         ) : (
-          viewMode === 'grid' ? (
-            /* COMPACT GRID VIEW */
-            <div className="grid grid-cols-2 gap-4">
-              {filteredStrains.map((strain, i) => (
-                <StrainCard key={strain.id} strain={strain} index={i} />
-              ))}
-            </div>
-          ) : (
-            /* HORIZONTAL LIST VIEW */
-            <div className="flex flex-col gap-3">
-              {filteredStrains.map((strain, i) => (
-                <Link href={`/strains/${strain.slug}`} key={strain.id} className="bg-[#121212] border border-white/5 rounded-2xl p-2 flex items-center gap-4 hover:bg-white/5 hover:border-[#00FFFF]/30 transition-colors animate-in fade-in slide-in-from-bottom-4 shadow-lg" style={{ animationDelay: `${i * 0.05}s`, animationFillMode: 'both' }}>
-                  <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 relative">
-                    <img src={strain.image_url || "/strains/placeholder-1.svg"} alt={strain.name} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-serif italic font-bold text-sm leading-tight truncate">{strain.name}</h3>
-                    <div className="flex gap-2 mt-1 items-center">
-                      <span className="text-[9px] text-white font-bold uppercase tracking-widest">THC {getCannabinoidDisplay(strain.avg_thc, strain.thc_max)}</span>
-                      <span className="text-[9px] text-white/40 uppercase tracking-widest">•</span>
-                      <span className={`text-[9px] uppercase tracking-widest font-bold ${strain.type === 'sativa' ? 'text-yellow-500' : strain.type === 'indica' ? 'text-emerald-500' : 'text-[#00FFFF]'}`}>
-                        {strain.type || 'Hybrid'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="pr-2 text-white/20">
-                    <ChevronLeft size={16} className="rotate-180" />
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )
+          <div className="text-center py-20">
+            <p className="text-white/20 font-bold uppercase tracking-widest text-sm">Keine Treffer in der Sammlung</p>
+          </div>
         )}
       </div>
 

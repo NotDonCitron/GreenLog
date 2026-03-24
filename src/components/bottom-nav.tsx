@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Home, Leaf, Sprout, User, ScanLine, Users, ActivitySquare } from "lucide-react";
+import { Home, Leaf, BookMarked, Users, User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import { FollowRequestsModal } from "@/components/social/follow-requests-modal";
@@ -11,8 +11,8 @@ import { FollowRequestsModal } from "@/components/social/follow-requests-modal";
 const navItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/strains", label: "Strains", icon: Leaf },
-  { href: "/scanner", label: "Scanner", icon: ScanLine, isCenter: true },
-  { href: "/discover", label: "Discover", icon: Users, showBadge: true },
+  { href: "/collection", label: "Sammlung", icon: BookMarked },
+  { href: "/discover", label: "Social", icon: Users, showBadge: true },
   { href: "/profile", label: "Profil", icon: User },
 ];
 
@@ -58,43 +58,24 @@ export function BottomNav() {
           {navItems.map((item) => {
             const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
-            if (item.isCenter) {
+            // Discover with badge (Always a link)
+            if (item.showBadge) {
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex flex-col items-center justify-center -mt-10"
-                >
-                  <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 ${isActive
-                    ? "bg-[#00F5FF] text-black scale-110 shadow-[#00F5FF]/20"
-                    : "bg-[#1a191b] text-[#00F5FF] border border-white/10"
-                    }`}>
-                    <item.icon size={28} />
-                  </div>
-                  <span className={`text-[10px] mt-2 font-bold uppercase tracking-tighter ${isActive ? "text-[#00F5FF]" : "text-white/40"}`}>
-                    {item.label}
-                  </span>
-                </Link>
-              );
-            }
-
-            // Special handling for Discover with badge
-            if (item.showBadge && pendingRequestsCount > 0) {
-              return (
-                <button
-                  key={item.href}
-                  onClick={() => setShowRequestsModal(true)}
-                  className={`flex flex-1 flex-col items-center gap-1 py-2 text-[10px] uppercase font-bold tracking-tighter transition-colors ${isActive ? "text-[#2FF801]" : "text-white/40"
-                    }`}
+                  className={`flex flex-1 flex-col items-center gap-1 py-2 text-[10px] uppercase font-bold tracking-tighter transition-colors ${isActive ? "text-[#2FF801]" : "text-white/40"}`}
                 >
                   <div className="relative">
                     <item.icon size={22} className={isActive ? "text-[#2FF801]" : "text-white/40"} />
-                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                      {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
-                    </span>
+                    {pendingRequestsCount > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                        {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
+                      </span>
+                    )}
                   </div>
                   {item.label}
-                </button>
+                </Link>
               );
             }
 

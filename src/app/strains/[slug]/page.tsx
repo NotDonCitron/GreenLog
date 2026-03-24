@@ -8,7 +8,7 @@ import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Flame, Wind, Eye, Leaf, Database, Sparkles, Share2, Download } from "lucide-react";
+import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Flame, Wind, Eye, Leaf, Database, Sparkles, Share2, Download, Trash2 } from "lucide-react";
 import { Strain } from "@/lib/types";
 
 export default function StrainDetailPage() {
@@ -20,6 +20,7 @@ export default function StrainDetailPage() {
 
   const [strain, setStrain] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [userImageUrl, setUserImageUrl] = useState<string | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -84,6 +85,34 @@ export default function StrainDetailPage() {
     }
     fetchStrain();
   }, [slug, user, isDemoMode]);
+
+  const handleDelete = async () => {
+    if (!strain || !user || isDemoMode) return;
+    
+    const confirmDelete = window.confirm(`Möchtest du die Sorte "${strain.name}" wirklich unwiderruflich löschen? Alle Bewertungen und Log-Einträge gehen verloren.`);
+    if (!confirmDelete) return;
+
+    setIsDeleting(true);
+    try {
+      // 1. Alle Ratings & Collection Einträge für diese Sorte löschen (Cascade manuell falls nötig)
+      await supabase.from("ratings").delete().eq("strain_id", strain.id);
+      await supabase.from("user_collection").delete().eq("strain_id", strain.id);
+      await supabase.from("user_strain_relations").delete().eq("strain_id", strain.id);
+
+      // 2. Die Sorte selbst löschen
+      const { error } = await supabase.from("strains").delete().eq("id", strain.id);
+      
+      if (error) throw error;
+
+      alert("Sorte erfolgreich gelöscht.");
+      router.push("/strains");
+    } catch (err: any) {
+      console.error("Delete error:", err);
+      alert("Fehler beim Löschen: " + err.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -299,10 +328,83 @@ export default function StrainDetailPage() {
     underlineBg = 'bg-[#10b981]';
   }
 
-  const thcDisplay = strain?.avg_thc ?? strain?.thc_max ? `${strain.avg_thc ?? strain.thc_max}%` : '—';
-  const cbdDisplay = strain?.avg_cbd ?? strain?.cbd_max ? `${strain.avg_cbd ?? strain.cbd_max}%` : '< 1%';
-  const effectDisplay = strain?.effects?.[0] || strain?.indications?.[0] || (strain?.is_medical ? "Medical" : "Euphorie");
-  const tasteDisplay = strain?.terpenes?.slice(0, 2).map((t: any) => typeof t === 'string' ? t : t?.name).join(' · ') || 'Zitrus, Erdig';
+  const thcValue = strain?.avg_thc ?? strain?.thc_max;
+  const cbdValue = strain?.avg_cbd ?? strain?.cbd_max;
+
+  const extractDisplayName = (value: unknown) => {
+    if (typeof value === 'string') return value;
+    if (!value || typeof value !== 'object') return null;
+
+    if ('name' in value) {
+      const name = (value as { name?: unknown }).name;
+      return typeof name === 'string' ? name : null;
+    }
+
+    if ('label' in value) {
+      const label = (value as { label?: unknown }).label;
+      return typeof label === 'string' ? label : null;
+    }
+
+    if ('title' in value) {
+      const title = (value as { title?: unknown }).title;
+      return typeof title === 'string' ? title : null;
+    }
+
+    if ('terpene' in value) {
+      const nestedTerpene = (value as { terpene?: unknown }).terpene;
+      if (nestedTerpene && typeof nestedTerpene === 'object' && 'name' in nestedTerpene) {
+        const name = (nestedTerpene as { name?: unknown }).name;
+        return typeof name === 'string' ? name : null;
+      }
+    }
+
+    return null;
+  };
+
+  const extractPercent = (value: unknown) => {
+    if (!value || typeof value !== 'object') return null;
+
+    if ('percent' in value) {
+      const percent = (value as { percent?: unknown }).percent;
+      return typeof percent === 'number' ? percent : null;
+    }
+
+    if ('terpene' in value) {
+      const nestedTerpene = (value as { terpene?: unknown }).terpene;
+      if (nestedTerpene && typeof nestedTerpene === 'object' && 'percent' in nestedTerpene) {
+        const percent = (nestedTerpene as { percent?: unknown }).percent;
+        return typeof percent === 'number' ? percent : null;
+      }
+    }
+
+    return null;
+  };
+
+  const normalizedEffects = Array.isArray(strain?.effects)
+    ? strain.effects
+      .map((effect) => extractDisplayName(effect))
+      .filter((effect): effect is string => Boolean(effect))
+    : [];
+
+  const normalizedIndications = Array.isArray(strain?.indications)
+    ? strain.indications
+      .map((indication) => extractDisplayName(indication))
+      .filter((indication): indication is string => Boolean(indication))
+    : [];
+
+  const normalizedTerpenes = Array.isArray(strain?.terpenes)
+    ? strain.terpenes
+      .map((terpene) => ({
+        name: extractDisplayName(terpene),
+        percent: extractPercent(terpene),
+      }))
+      .filter((terpene): terpene is { name: string; percent: number | null } => Boolean(terpene.name))
+    : [];
+
+  const thcDisplay = typeof thcValue === 'number' ? `${thcValue}%` : '—';
+  const cbdDisplay = typeof cbdValue === 'number' ? `${cbdValue}%` : '< 1%';
+  const effectDisplay = normalizedEffects[0] || normalizedIndications[0] || (strain?.is_medical ? "Medical" : "Euphorie");
+  const tasteDisplay = normalizedTerpenes.length > 0 ? normalizedTerpenes.slice(0, 2).map((terpene) => terpene.name).join(' · ') : 'Zitrus, Erdig';
 
   if (loading) return <div className="min-h-screen bg-[#355E3B] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
   if (!strain) return <div className="text-white text-center py-20 uppercase font-bold">Strain not found</div>;
@@ -336,6 +438,15 @@ export default function StrainDetailPage() {
           >
             <Heart size={20} fill={isFavorited ? "currentColor" : "none"} />
           </button>
+          {user && strain?.created_by === user.id && (
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="p-2 rounded-full border border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all"
+            >
+              {isDeleting ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
+            </button>
+          )}
         </div>
       </div>
 
@@ -345,10 +456,10 @@ export default function StrainDetailPage() {
             <Card className={`absolute inset-0 backface-hidden overflow-hidden rounded-[2.5rem] premium-card ${themeClass} flex flex-col w-full h-full p-0 border-0 ${hasCollected ? (themeClass === 'theme-cyan' ? 'ring-[3px] ring-[#00FFFF]/60 shadow-[0_0_40px_rgba(0,255,255,0.4)]' : themeClass === 'theme-gold' ? 'ring-[3px] ring-yellow-500/60 shadow-[0_0_40px_rgba(251,191,36,0.4)]' : 'ring-[3px] ring-emerald-500/60 shadow-[0_0_40px_rgba(16,185,129,0.4)]') : ''} transition-opacity duration-300 ${isFlipped ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
               <div className="absolute inset-0 card-holo opacity-40 pointer-events-none z-10" />
               <div className="p-6 pb-4 z-20">
-                    <h2 className="title-font italic text-3xl text-white font-bold leading-tight uppercase drop-shadow-lg line-clamp-2">
-                      {strain.name}
-                    </h2>
-                    <div className={`w-12 h-1 mt-3 opacity-70 ${underlineBg}`}></div>
+                <h2 className="title-font italic text-3xl text-white font-bold leading-tight uppercase drop-shadow-lg line-clamp-2">
+                  {strain.name}
+                </h2>
+                <div className={`w-12 h-1 mt-3 opacity-70 ${underlineBg}`}></div>
               </div>
 
               <div className="px-5 w-full shrink-0 z-20">
@@ -371,34 +482,34 @@ export default function StrainDetailPage() {
 
               <div className="px-5 mt-5 w-full flex-grow flex flex-col justify-end pb-6 z-20">
                 <div className="bg-[#1a191b]/95 border border-white/10 rounded-2xl p-4 shadow-inner shadow-lg">
-                    {/* Row 1: THC & Geschmack */}
-                    <div className="grid grid-cols-2 gap-3 border-b border-white/5 pb-3 mb-3">
-                        <div className="flex items-center justify-between">
-                            <span className="text-gray-500 text-[11px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
-                            <span className="accent-text text-[15px] font-bold tracking-wide">{thcDisplay}</span>
-                        </div>
-                        <div className="flex items-center justify-end border-l border-white/5 pl-3 w-full">
-                            <span className="text-gray-100 text-xs font-medium tracking-wide leading-tight text-right text-balance">{tasteDisplay}</span>
-                        </div>
+                  {/* Row 1: THC & Geschmack */}
+                  <div className="grid grid-cols-2 gap-3 border-b border-white/5 pb-3 mb-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500 text-[11px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
+                      <span className="accent-text text-[15px] font-bold tracking-wide">{thcDisplay}</span>
                     </div>
-                    {/* Row 2: CBD & Wirkung */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="flex items-center justify-between">
-                            <span className="text-gray-500 text-[11px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
-                            <span className="accent-text text-[15px] font-bold tracking-wide">{cbdDisplay}</span>
-                        </div>
-                        <div className="flex items-center justify-end border-l border-white/5 pl-3 w-full">
-                            <span className="text-gray-100 text-xs font-medium tracking-wide leading-tight text-right text-balance">{effectDisplay}</span>
-                        </div>
+                    <div className="flex items-center justify-end border-l border-white/5 pl-3 w-full">
+                      <span className="text-gray-100 text-xs font-medium tracking-wide leading-tight text-right text-balance">{tasteDisplay}</span>
                     </div>
+                  </div>
+                  {/* Row 2: CBD & Wirkung */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500 text-[11px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
+                      <span className="accent-text text-[15px] font-bold tracking-wide">{cbdDisplay}</span>
+                    </div>
+                    <div className="flex items-center justify-end border-l border-white/5 pl-3 w-full">
+                      <span className="text-gray-100 text-xs font-medium tracking-wide leading-tight text-right text-balance">{effectDisplay}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex justify-between items-end mt-6 px-1">
-                    <div className="text-[11px] font-bold text-white/50 uppercase tracking-widest animate-pulse">
-                        TAP TO FLIP →
-                    </div>
+                  <div className="text-[11px] font-bold text-white/50 uppercase tracking-widest animate-pulse">
+                    TAP TO FLIP →
+                  </div>
                 </div>
-              </div>              
+              </div>
             </Card>
             <Card className={`absolute inset-0 rotate-y-180 backface-hidden overflow-hidden border-2 rounded-[2.5rem] bg-[#1a191b] border-[#2FF801] ring-8 ring-[#2FF801]/10 shadow-[0_0_50px_rgba(47,248,1,0.15)] transition-opacity duration-300 ${isFlipped ? 'opacity-100 delay-200' : 'opacity-0 pointer-events-none delay-0'}`}>
               <div className="p-8 h-full flex flex-col justify-between overflow-y-auto custom-scrollbar">
@@ -425,12 +536,12 @@ export default function StrainDetailPage() {
                       <p className="text-[11px] font-medium italic text-white/70 leading-relaxed">{strain.description}</p>
                     </div>
 
-                    {strain.indications && strain.indications.length > 0 && (
+                    {normalizedIndications.length > 0 && (
                       <div>
                         <p className="text-[9px] text-white/30 uppercase font-black mb-2">Common Indications</p>
                         <div className="flex flex-wrap gap-1.5">
-                          {strain.indications.map(ind => (
-                            <Badge key={ind} className="bg-white/5 text-white/60 border-white/10 text-[9px] font-bold">{ind}</Badge>
+                          {normalizedIndications.map((ind, i) => (
+                            <Badge key={i} className="bg-white/5 text-white/60 border-white/10 text-[9px] font-bold">{ind}</Badge>
                           ))}
                         </div>
                       </div>
@@ -439,17 +550,12 @@ export default function StrainDetailPage() {
                     <div>
                       <p className="text-[9px] text-white/30 uppercase font-black mb-2">Terpenes</p>
                       <div className="flex flex-wrap gap-1.5">
-                        {strain.terpenes && Array.isArray(strain.terpenes) && strain.terpenes.length > 0 ? (
-                          strain.terpenes.map((t: any, i: number) => {
-                            const name = typeof t === 'string' ? t : t?.name;
-                            const percent = typeof t === 'object' ? t?.percent : null;
-                            if (!name) return null;
-                            return (
-                              <Badge key={i} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold">
-                                {name}{percent ? ` (${percent}%)` : ''}
-                              </Badge>
-                            );
-                          })
+                        {normalizedTerpenes.length > 0 ? (
+                          normalizedTerpenes.map((terpene, i) => (
+                            <Badge key={i} variant="secondary" className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold">
+                              {terpene.name}{terpene.percent ? ` (${terpene.percent}%)` : ''}
+                            </Badge>
+                          ))
                         ) : (
                           <span className="text-[10px] text-white/20 italic">Keine Terpen-Daten verfügbar</span>
                         )}

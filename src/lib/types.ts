@@ -26,11 +26,11 @@ export interface Strain {
   is_medical?: boolean;
   // Custom strain fields
   is_custom?: boolean;
-  source?: 'pharmacy' | 'street' | 'grow';
+  source?: 'pharmacy' | 'street' | 'grow' | 'csc' | 'other';
   created_by?: string;
 }
 
-export type StrainSource = 'pharmacy' | 'street' | 'grow';
+export type StrainSource = 'pharmacy' | 'street' | 'grow' | 'csc' | 'other';
 
 export interface Grow {
   id: string;

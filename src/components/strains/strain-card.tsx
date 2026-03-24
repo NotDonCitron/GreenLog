@@ -44,30 +44,55 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
   const cbdValue = strain.avg_cbd ?? strain.cbd_max;
   const cbdDisplay = typeof cbdValue === 'number' ? `${cbdValue}%` : '< 1%';
 
+  const extractDisplayName = (value: unknown) => {
+    if (typeof value === 'string') return value;
+    if (!value || typeof value !== 'object') return null;
+
+    if ('name' in value) {
+      const name = (value as { name?: unknown }).name;
+      return typeof name === 'string' ? name : null;
+    }
+
+    if ('label' in value) {
+      const label = (value as { label?: unknown }).label;
+      return typeof label === 'string' ? label : null;
+    }
+
+    if ('title' in value) {
+      const title = (value as { title?: unknown }).title;
+      return typeof title === 'string' ? title : null;
+    }
+
+    if ('terpene' in value) {
+      const nestedTerpene = (value as { terpene?: unknown }).terpene;
+      if (nestedTerpene && typeof nestedTerpene === 'object' && 'name' in nestedTerpene) {
+        const name = (nestedTerpene as { name?: unknown }).name;
+        return typeof name === 'string' ? name : null;
+      }
+    }
+
+    return null;
+  };
+
   const normalizedEffects = Array.isArray(strain.effects)
     ? strain.effects
-      .map((effect) => (typeof effect === 'string' ? effect : null))
+      .map((effect) => extractDisplayName(effect))
       .filter((effect): effect is string => Boolean(effect))
     : [];
 
   const normalizedTerpenes = Array.isArray(strain.terpenes)
     ? strain.terpenes
-      .map((terpene) => {
-        if (typeof terpene === 'string') return terpene;
-        if (terpene && typeof terpene === 'object' && 'name' in terpene) {
-          const name = (terpene as { name?: unknown }).name;
-          return typeof name === 'string' ? name : null;
-        }
-        return null;
-      })
+      .map((terpene) => extractDisplayName(terpene))
       .filter((terpene): terpene is string => Boolean(terpene))
     : [];
 
   const effectDisplay = normalizedEffects.length > 0 ? normalizedEffects[0] : 'Euphorie';
   const tasteDisplay = normalizedTerpenes.length > 0 ? normalizedTerpenes.slice(0, 2).join(', ') : 'Zitrus, Erdig';
 
-  const hasNonStringEffects = Array.isArray(strain.effects) && strain.effects.some((effect) => typeof effect !== 'string');
-  const hasNonStringTerpenes = Array.isArray(strain.terpenes) && strain.terpenes.some((terpene) => typeof terpene !== 'string');
+  const hasNonStringEffects = Array.isArray(strain.effects)
+    && strain.effects.some((effect) => extractDisplayName(effect) === null && effect !== null && effect !== undefined);
+  const hasNonStringTerpenes = Array.isArray(strain.terpenes)
+    && strain.terpenes.some((terpene) => extractDisplayName(terpene) === null && terpene !== null && terpene !== undefined);
 
   if (hasNonStringEffects || hasNonStringTerpenes) {
     console.warn('[StrainCard] Non-string data detected', {

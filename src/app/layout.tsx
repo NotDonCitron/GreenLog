@@ -14,13 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Budlog v1.1 - Ultimate Edition",
+  title: "CannaLog v1.1 - Ultimate Edition",
   description: "Premium Cannabis Tracking & Trading Cards",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Budlog",
+    title: "CannaLog",
   },
 };
 

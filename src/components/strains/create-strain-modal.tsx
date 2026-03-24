@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth-provider";
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -25,7 +26,7 @@ import { StrainSource } from "@/lib/types";
 
 interface CreateStrainModalProps {
     trigger?: React.ReactNode;
-    onSuccess?: (strainId: string, slug: string) => void;
+    onSuccess?: (strainId: string, slug: string, source: StrainSource, usedSourceFallback?: boolean) => void;
 }
 
 export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps) {
@@ -40,7 +41,20 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
     const [source, setSource] = useState<StrainSource>("street");
     const [thcEstimate, setThcEstimate] = useState("");
     const [cbdEstimate, setCbdEstimate] = useState("");
+    const [selectedTerpenes, setSelectedTerpenes] = useState<string[]>([]);
+    const [selectedEffects, setSelectedEffects] = useState<string[]>([]);
     const [description, setDescription] = useState("");
+
+    const TASTE_OPTIONS = ["Erdig", "Süß", "Zitrone", "Kiefer", "Beeren", "Würzig", "Fruchtig", "Diesel"];
+    const EFFECT_OPTIONS = ["Entspannt", "Kreativ", "Hungrig", "Fokussiert", "Euphörisch", "Schläfrig", "Energisch"];
+
+    const toggleItem = (item: string, list: string[], setList: (items: string[]) => void) => {
+        if (list.includes(item)) {
+            setList(list.filter(i => i !== item));
+        } else {
+            setList([...list, item]);
+        }
+    };
     const [leaflyUrl, setLeaflyUrl] = useState("");
     const [importing, setImporting] = useState(false);
 
@@ -54,28 +68,50 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
         setError(null);
 
         try {
+            console.debug("[CreateStrainModal] Leafly import started", { leaflyUrl });
             const response = await fetch("/api/import/leafly", {
                 method: "POST",
                 body: JSON.stringify({ url: leaflyUrl }),
                 headers: { "Content-Type": "application/json" },
             });
 
-            if (!response.ok) throw new Error("Import fehlgeschlagen");
+            const responseText = await response.text();
+            console.debug("[CreateStrainModal] Leafly import response", {
+                ok: response.ok,
+                status: response.status,
+                bodyPreview: responseText.slice(0, 400),
+            });
 
-            const data = await response.json();
-            
-            if (data.name) setName(data.name);
-            if (data.type && ["indica", "sativa", "hybrid"].includes(data.type)) {
-                setType(data.type as any);
+            if (!response.ok) {
+                throw new Error("Import fehlgeschlagen");
             }
-            if (data.thc) setThcEstimate(data.thc.toString());
-            if (data.description) setDescription(data.description);
-            
-            // Note: We don't have fields for terpenes/effects in the current basic form,
-            // but we could add them later if needed.
-            
+
+            const data = JSON.parse(responseText);
+            console.debug("[CreateStrainModal] Leafly import parsed payload", data);
+
+            if (typeof data.name === "string" && data.name.trim()) setName(data.name.trim());
+            if (data.type && ["indica", "sativa", "hybrid"].includes(String(data.type).toLowerCase())) {
+                setType(String(data.type).toLowerCase() as any);
+            }
+            if (data.thc !== undefined && data.thc !== null && data.thc !== "") {
+                setThcEstimate(String(data.thc));
+            }
+            if (data.cbd !== undefined && data.cbd !== null && data.cbd !== "") {
+                setCbdEstimate(String(data.cbd));
+            }
+            if (typeof data.description === "string" && data.description.trim()) {
+                setDescription(data.description.trim());
+            }
+            if (data.source && ["pharmacy", "street", "grow"].includes(String(data.source))) {
+                setSource(data.source as StrainSource);
+            }
+
+            // Note: We don't have dedicated form fields for terpenes/effects yet.
+            // The import still seeds the core strain metadata that can be saved.
+
             setLeaflyUrl("");
         } catch (err) {
+            console.error("[CreateStrainModal] Leafly import failed", err);
             setError("Daten konnten nicht von Leafly geladen werden.");
         } finally {
             setImporting(false);
@@ -88,6 +124,8 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
         setSource("street");
         setThcEstimate("");
         setCbdEstimate("");
+        setSelectedTerpenes([]);
+        setSelectedEffects([]);
         setDescription("");
         setLeaflyUrl("");
         setError(null);
@@ -119,13 +157,35 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
 
         try {
             const slug = generateSlug(name);
+            const basePayload = {
+                name: name.trim(),
+                slug,
+                type,
+                created_by: user.id,
+                thc_max: thcEstimate ? parseFloat(thcEstimate) : null,
+                cbd_max: cbdEstimate ? parseFloat(cbdEstimate) : null,
+                description: description.trim() || null,
+                terpenes: selectedTerpenes.length > 0 ? selectedTerpenes : null,
+                effects: selectedEffects.length > 0 ? selectedEffects : null,
+            };
+            let payload: Record<string, unknown> = {
+                ...basePayload,
+                source,
+                is_custom: true,
+            };
+
+            console.debug("[CreateStrainModal] Submit payload", payload);
 
             // Check if slug already exists
-            const { data: existing } = await supabase
+            const { data: existing, error: existingError } = await supabase
                 .from("strains")
                 .select("id")
                 .eq("slug", slug)
-                .single();
+                .maybeSingle();
+
+            if (existingError) {
+                console.warn("[CreateStrainModal] Slug precheck warning", existingError);
+            }
 
             if (existing) {
                 setError("Eine Sorte mit diesem Namen existiert bereits.");
@@ -133,32 +193,98 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
                 return;
             }
 
-            // Create the custom strain
-            const { data, error: insertError } = await supabase
+            let usedSourceFallback = false;
+            let insertResult = await supabase
                 .from("strains")
-                .insert({
-                    name: name.trim(),
-                    slug,
-                    type,
-                    source,
-                    is_custom: true,
-                    created_by: user.id,
-                    thc_max: thcEstimate ? parseFloat(thcEstimate) : null,
-                    cbd_max: cbdEstimate ? parseFloat(cbdEstimate) : null,
-                    description: description.trim() || null,
-                })
+                .insert(payload)
                 .select("id, slug")
                 .single();
 
+            while (insertResult.error) {
+                const errorCode = String(insertResult.error.code || "").toUpperCase();
+                const errorMessage = [
+                    insertResult.error.message,
+                    insertResult.error.details,
+                    insertResult.error.hint,
+                ]
+                    .filter(Boolean)
+                    .join(" ")
+                    .toLowerCase();
+
+                const isSchemaFallbackError = ["PGRST204", "42703", "23502", "23514"].includes(errorCode)
+                    || errorMessage.includes("column")
+                    || errorMessage.includes("schema cache")
+                    || errorMessage.includes("could not find")
+                    || errorMessage.includes("does not exist")
+                    || errorMessage.includes("unknown")
+                    || errorMessage.includes("invalid input");
+
+                if (!isSchemaFallbackError) {
+                    break;
+                }
+
+                let retried = false;
+
+                if (errorMessage.includes("source") && "source" in payload) {
+                    console.warn("[CreateStrainModal] Retrying insert without source", insertResult.error);
+                    const { source: _source, ...nextPayload } = payload;
+                    payload = nextPayload;
+                    usedSourceFallback = true;
+                    retried = true;
+                }
+
+                if (errorMessage.includes("is_custom") && "is_custom" in payload) {
+                    console.warn("[CreateStrainModal] Retrying insert without is_custom", insertResult.error);
+                    const { is_custom: _isCustom, ...nextPayload } = payload;
+                    payload = nextPayload;
+                    retried = true;
+                }
+
+                if (!retried) {
+                    break;
+                }
+
+                insertResult = await supabase
+                    .from("strains")
+                    .insert(payload)
+                    .select("id, slug")
+                    .single();
+            }
+
+            const { data, error: insertError } = insertResult;
+
+            console.debug("[CreateStrainModal] Insert result", {
+                data,
+                insertError,
+                payload,
+                usedSourceFallback,
+            });
+
             if (insertError) throw insertError;
+
+            // 4. Save source to user_collection (Persistence)
+            const { error: collectionError } = await supabase
+                .from("user_collection")
+                .upsert({
+                    user_id: user.id,
+                    strain_id: data.id,
+                    batch_info: source, // 'pharmacy', 'street', or 'grow'
+                    user_thc_percent: thcEstimate ? parseFloat(thcEstimate) : null,
+                    user_cbd_percent: cbdEstimate ? parseFloat(cbdEstimate) : null,
+                    user_notes: description.trim() || null,
+                }, { onConflict: 'user_id,strain_id' });
+
+            if (collectionError) {
+                console.warn("[CreateStrainModal] Failed to save to user_collection", collectionError);
+            }
 
             // Success!
             resetForm();
             setOpen(false);
-            onSuccess?.(data.id, data.slug);
+            onSuccess?.(data.id, data.slug, source, usedSourceFallback);
         } catch (err: any) {
             console.error("Error creating strain:", err);
-            setError(err.message || "Fehler beim Erstellen der Sorte.");
+            setError(err?.message || "Fehler beim Erstellen der Sorte.");
         } finally {
             setLoading(false);
         }
@@ -184,6 +310,9 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
                         <Leaf className="text-[#2FF801]" size={24} />
                         Neue Sorte erstellen
                     </DialogTitle>
+                    <DialogDescription className="text-[11px] text-white/50">
+                        Erstelle eine eigene Sorte oder importiere Grunddaten per Leafly-Link.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-5 mt-4">
@@ -235,38 +364,56 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
                         />
                     </div>
 
-                    {/* Type */}
-                    <div className="space-y-2">
+                    {/* Type Selection */}
+                    <div className="space-y-3">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">
                             Typ *
                         </Label>
-                        <Select value={type} onValueChange={(v) => { if (v) setType(v as "indica" | "sativa" | "hybrid") }}>
-                            <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-12">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-[#1a191b] border-white/10">
-                                <SelectItem value="indica">Indica</SelectItem>
-                                <SelectItem value="sativa">Sativa</SelectItem>
-                                <SelectItem value="hybrid">Hybrid</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <div className="grid grid-cols-3 gap-2">
+                            {(['indica', 'sativa', 'hybrid'] as const).map((t) => (
+                                <button
+                                    key={t}
+                                    type="button"
+                                    onClick={() => setType(t)}
+                                    className={`py-3 px-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
+                                        type === t 
+                                        ? "bg-[#2FF801] border-[#2FF801] text-black shadow-[0_0_15px_rgba(47,248,1,0.3)]" 
+                                        : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10"
+                                    }`}
+                                >
+                                    {t}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
-                    {/* Source */}
-                    <div className="space-y-2">
+                    {/* Source Selection */}
+                    <div className="space-y-3">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">
                             Herkunft *
                         </Label>
-                        <Select value={source} onValueChange={(v) => { if (v) setSource(v as StrainSource) }}>
-                            <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-12">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-[#1a191b] border-white/10">
-                                <SelectItem value="pharmacy">🧪 Apotheke</SelectItem>
-                                <SelectItem value="street">📦 Street</SelectItem>
-                                <SelectItem value="grow">🌱 Eigenanbau</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <div className="flex flex-wrap gap-2">
+                            {[
+                                { id: 'pharmacy', label: '🧪 Apotheke' },
+                                { id: 'street', label: '📦 Street' },
+                                { id: 'grow', label: '🌱 Eigen' },
+                                { id: 'csc', label: '🏢 CSC' },
+                                { id: 'other', label: 'Sonstiges' }
+                            ].map((s) => (
+                                <button
+                                    key={s.id}
+                                    type="button"
+                                    onClick={() => setSource(s.id as StrainSource)}
+                                    className={`py-3 px-3 flex-1 min-w-[30%] rounded-xl text-[10px] font-bold uppercase tracking-tight border transition-all ${
+                                        source === s.id 
+                                        ? "bg-[#2FF801] border-[#2FF801] text-black shadow-[0_0_15px_rgba(47,248,1,0.3)]" 
+                                        : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10"
+                                    }`}
+                                >
+                                    {s.label}
+                                </button>
+                            ))}
+                        </div>
                         <p className="text-[9px] text-white/30 italic">
                             Andere User sehen die Herkunft deiner Sorte.
                         </p>
@@ -311,6 +458,52 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
                                 className="bg-white/5 border-white/10 rounded-xl h-12 pr-8 focus:border-[#2FF801]"
                             />
                             <span className="absolute right-4 top-3.5 text-white/30 text-sm">%</span>
+                        </div>
+                    </div>
+
+                    {/* Geschmäcker (Terpenes) Selection */}
+                    <div className="space-y-3">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">
+                            Geschmack
+                        </Label>
+                        <div className="flex flex-wrap gap-2">
+                            {TASTE_OPTIONS.map((t) => (
+                                <button
+                                    key={t}
+                                    type="button"
+                                    onClick={() => toggleItem(t, selectedTerpenes, setSelectedTerpenes)}
+                                    className={`py-2 px-3 rounded-full text-[10px] font-bold border transition-all ${
+                                        selectedTerpenes.includes(t)
+                                        ? "bg-[#00F5FF] border-[#00F5FF] text-black shadow-[0_0_15px_rgba(0,245,255,0.3)]"
+                                        : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10"
+                                    }`}
+                                >
+                                    {t}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Wirkungen (Effects) Selection */}
+                    <div className="space-y-3">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">
+                            Wirkung
+                        </Label>
+                        <div className="flex flex-wrap gap-2">
+                            {EFFECT_OPTIONS.map((e) => (
+                                <button
+                                    key={e}
+                                    type="button"
+                                    onClick={() => toggleItem(e, selectedEffects, setSelectedEffects)}
+                                    className={`py-2 px-3 rounded-full text-[10px] font-bold border transition-all ${
+                                        selectedEffects.includes(e)
+                                        ? "bg-[#2FF801] border-[#2FF801] text-black shadow-[0_0_15px_rgba(47,248,1,0.3)]"
+                                        : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10"
+                                    }`}
+                                >
+                                    {e}
+                                </button>
+                            ))}
                         </div>
                     </div>
 

@@ -87,7 +87,7 @@ export default function LoginPage() {
     <main className="min-h-screen bg-[#355E3B] flex items-center justify-center p-6">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <span className="text-[12px] text-[#00F5FF] tracking-[0.5em] font-bold uppercase">Cannalog</span>
+          <span className="text-[12px] text-[#00F5FF] tracking-[0.5em] font-bold uppercase">CannaLog</span>
           <h1 className="text-3xl font-bold text-white mt-2">{isSignUp ? "Konto erstellen" : "Willkommen"}</h1>
           <p className="text-white/40 mt-2">{isSignUp ? "Wähle deinen Benutzernamen und leg los." : "Deine Reise zur perfekten Sammlung beginnt hier."}</p>
         </div>

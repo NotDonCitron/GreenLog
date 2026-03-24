@@ -3,18 +3,80 @@
 import { useState, useRef, useEffect } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { X, Zap, Image as ImageIcon, Camera, Loader2, CheckCircle2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { createWorker } from "tesseract.js";
 import { supabase } from "@/lib/supabase";
+import { createWorker } from "tesseract.js";
+import { useRouter } from "next/navigation";
 
 export default function ScannerPage() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isScanning, setIsScanning] = useState(false);
   const [status, setStatus] = useState<"idle" | "capturing" | "processing" | "success" | "error">("idle");
-  const [result, setResult] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
   const [cameraActive, setCameraActive] = useState(false);
+  const workerRef = useRef<any>(null);
+
+  // Levenshtein Distanz für Fuzzy Search
+  const getLevenshteinDistance = (a: string, b: string) => {
+    const matrix = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+    for (let j = 1; j <= b.length; j++) matrix[0][j] = j;
+
+    for (let i = 1; i <= a.length; i++) {
+      for (let j = 1; j <= b.length; j++) {
+        const cost = a[i - 1].toLowerCase() === b[j - 1].toLowerCase() ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost
+        );
+      }
+    }
+    return matrix[a.length][b.length];
+  };
+
+  const findBestMatch = (text: string, strains: any[]) => {
+    const words = text.toLowerCase().split(/[\s,.\-\n]+/);
+    let bestMatch = null;
+    let minDistance = 4; // Toleranz für längere Namen
+
+    for (const strain of strains) {
+      const name = strain.name.toLowerCase();
+      
+      // 1. Direkter Treffer
+      if (text.toLowerCase().includes(name)) return strain;
+
+      // 2. Fuzzy Match auf Wort-Ebene
+      for (const word of words) {
+        if (word.length < 4) continue;
+        const dist = getLevenshteinDistance(word, name);
+        if (dist <= 2 && dist < minDistance) {
+          minDistance = dist;
+          bestMatch = strain;
+        }
+      }
+    }
+    return bestMatch;
+  };
+
+  // Initialisiere OCR Worker im Hintergrund
+  useEffect(() => {
+    async function initWorker() {
+      try {
+        const worker = await createWorker('deu+eng');
+        workerRef.current = worker;
+        console.log("OCR Worker bereit");
+      } catch (err) {
+        console.error("OCR Worker Fehler:", err);
+      }
+    }
+    initWorker();
+
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.terminate();
+      }
+    };
+  }, []);
 
   // Kamera starten
   useEffect(() => {
@@ -31,6 +93,7 @@ export default function ScannerPage() {
       } catch (err) {
         console.error("Kamerafehler:", err);
         setStatus("error");
+        setResult("Kamerazugriff verweigert.");
       }
     }
     startCamera();
@@ -61,83 +124,89 @@ export default function ScannerPage() {
     setStatus("processing");
     
     try {
-      // OCR Prozess starten
-      const worker = await createWorker('deu+eng');
+      let worker = workerRef.current;
+      
+      // Fallback falls Worker noch nicht bereit
+      if (!worker) {
+        worker = await createWorker('deu+eng');
+      }
+
       const { data: { text } } = await worker.recognize(canvas);
-      await worker.terminate();
+      
+      if (!workerRef.current) {
+        await worker.terminate();
+      }
 
       console.log("Erkannter Text:", text);
-      
-      // Datenbank-Abgleich
-      const { data: strains } = await supabase.from("strains").select("name, slug");
-      
-      const foundStrain = strains?.find(s => 
-        text.toLowerCase().includes(s.name.toLowerCase())
-      );
 
-      if (foundStrain) {
+      // Alle Strains für Abgleich laden
+      const { data: allStrains, error: fetchError } = await supabase
+        .from("strains")
+        .select("*");
+
+      if (fetchError) throw fetchError;
+
+      const matchedStrain = findBestMatch(text, allStrains || []);
+
+      if (matchedStrain) {
+        console.log("Strain erkannt:", matchedStrain.name);
+        setResult(matchedStrain.name);
         setStatus("success");
-        setResult(foundStrain.name);
+        
+        // Nach 2 Sekunden zur Detailseite weiterleiten
         setTimeout(() => {
-          router.push(`/strains/${foundStrain.slug}`);
-        }, 1500);
+          router.push(`/strains/${matchedStrain.slug}`);
+        }, 2000);
       } else {
-        setResult("Keine Sorte erkannt. Versuche es erneut!");
+        console.warn("Keine Sorte erkannt");
         setStatus("error");
-        setTimeout(() => setStatus("idle"), 2000);
+        setResult("Keine Sorte erkannt. Bitte versuche es erneut.");
+        setTimeout(() => setStatus("idle"), 3000);
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("Scanner Fehler:", err);
       setStatus("error");
+      setResult("Fehler beim Scannen.");
+      setTimeout(() => setStatus("idle"), 3000);
     }
   };
 
   return (
-    <main className="min-h-screen bg-black text-white flex flex-col relative overflow-hidden">
-      {/* Top Controls */}
-      <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-50 bg-gradient-to-b from-black/80 to-transparent">
-        <button onClick={() => router.back()} className="p-2 rounded-full bg-white/5 border border-white/10">
-          <X size={20} />
-        </button>
-        <div className="flex gap-4">
-          <button className="p-2 rounded-full bg-white/5 border border-white/10 text-yellow-400">
-            <Zap size={20} fill="currentColor" />
-          </button>
-        </div>
-      </div>
-
+    <main className="min-h-screen bg-black text-white relative overflow-hidden flex flex-col">
       {/* Camera Viewport */}
-      <div className="flex-1 flex items-center justify-center relative">
+      <div className="flex-1 relative bg-black flex items-center justify-center">
         <video 
           ref={videoRef} 
           autoPlay 
           playsInline 
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${cameraActive ? 'opacity-100' : 'opacity-0'}`}
+          className={`w-full h-full object-cover transition-opacity duration-1000 ${cameraActive ? "opacity-100" : "opacity-0"}`} 
         />
         
-        {/* Sucher-Rahmen */}
-        <div className={`relative w-72 h-72 transition-all duration-500 ${status === 'processing' ? 'scale-90 opacity-50' : 'scale-100 opacity-100'}`}>
-          <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-[#00F5FF] rounded-tl-3xl" />
-          <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-[#00F5FF] rounded-tr-3xl" />
-          <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-[#00F5FF] rounded-bl-3xl" />
-          <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-[#00F5FF] rounded-br-3xl" />
-          
-          {status === "processing" && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-3xl">
-              <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
-            </div>
-          )}
+        {/* Scanner Overlay UI */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-none">
+          <div className="w-full aspect-square max-w-sm border-2 border-white/20 rounded-3xl relative">
+            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-[#00F5FF] rounded-tl-3xl" />
+            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-[#00F5FF] rounded-tr-3xl" />
+            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-[#00F5FF] rounded-bl-3xl" />
+            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-[#00F5FF] rounded-br-3xl" />
+            
+            {status === "processing" && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-3xl">
+                <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
+              </div>
+            )}
 
-          {status === "success" && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#2FF801]/20 backdrop-blur-sm rounded-3xl animate-in zoom-in">
-              <CheckCircle2 className="text-[#2FF801]" size={64} />
-              <p className="mt-4 font-bold text-[#2FF801] uppercase tracking-widest">{result}</p>
-            </div>
-          )}
+            {status === "success" && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#2FF801]/20 backdrop-blur-sm rounded-3xl animate-in zoom-in">
+                <CheckCircle2 className="text-[#2FF801]" size={64} />
+                <p className="mt-4 font-bold text-[#2FF801] uppercase tracking-widest">{result}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Versteckter Canvas für OCR */}
+          <canvas ref={canvasRef} className="hidden" />
         </div>
-
-        {/* Versteckter Canvas für OCR */}
-        <canvas ref={canvasRef} className="hidden" />
       </div>
 
       {/* Bottom Instructions */}

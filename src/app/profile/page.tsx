@@ -24,8 +24,12 @@ import {
   Star,
   Trophy,
   UserRound,
+  Users,
   Wand2,
   Zap,
+  Calendar,
+  Check,
+  X
 } from "lucide-react";
 
 import { useAuth } from "@/components/auth-provider";
@@ -33,6 +37,7 @@ import { BottomNav } from "@/components/bottom-nav";
 import { FollowersListModal } from "@/components/social/followers-list-modal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
 import type {
   ProfileActivityItem,
@@ -57,316 +62,35 @@ const BADGE_ICONS: Record<string, LucideIcon> = {
   database: Shield,
 };
 
-type ProfileRow = {
-  username?: string | null;
-  display_name?: string | null;
-  avatar_url?: string | null;
-  profile_visibility?: "public" | "private" | null;
-  bio?: string | null;
-};
-
-type FavoriteQueryRow = {
-  favorite_rank?: number | null;
-  strains?: {
-    id?: string | null;
-    name?: string | null;
-    slug?: string | null;
-    image_url?: string | null;
-    type?: Strain["type"] | null;
-    avg_thc?: number | null;
-    thc_min?: number | null;
-    thc_max?: number | null;
-  } | null;
-};
-
-type BadgeQueryRow = {
-  unlocked_at?: string | null;
-  badges?: {
-    id?: string | null;
-    name?: string | null;
-    description?: string | null;
-    icon_url?: string | null;
-    rarity?: string | null;
-  } | null;
-};
-
-type Milestone = {
-  title: string;
-  description: string;
-  progress: number;
-};
-
-function getBaseUsername(email: string | null | undefined) {
-  if (!email) return "guest";
-  return email.split("@")[0] || "guest";
-}
-
 function getInitials(value: string) {
-  const cleaned = value
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-
-  return cleaned || "GL";
+  const cleaned = value.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("");
+  return cleaned || "CU";
 }
 
-function formatThcDisplay(strain: FavoriteQueryRow["strains"]) {
-  if (!strain) return "Keine Labordaten";
-  if (typeof strain.avg_thc === "number") return `${strain.avg_thc}% THC`;
-  if (typeof strain.thc_min === "number" && typeof strain.thc_max === "number") {
-    return `${strain.thc_min}-${strain.thc_max}% THC`;
-  }
-  return "Keine Labordaten";
-}
-
-function createTagline(stats: ProfileStats, isDemoMode: boolean, hasUser: boolean) {
-  if (isDemoMode) return "Kuratiertes Demo-Profil mit Collection-, Aktivitäts- und Privacy-Vorschau.";
-  if (!hasUser) return "Baue dir ein ruhiges, hochwertiges Profil für Sammlung, Fortschritt und Public Preview auf.";
-  if (stats.totalStrains === 0 && stats.totalGrows === 0) {
-    return "Dein Profil ist bereit. Starte mit deinem ersten Strain oder dokumentiere direkt deinen ersten Grow.";
-  }
-  if (stats.totalGrows > 0) {
-    return "Dein Profil verbindet Sammlung, Grow-Historie und öffentliche Identität in einer ruhigen Premium-Ansicht.";
-  }
-  return "Deine Collection und dein Profil wachsen zusammen zu einem persönlichen Premium-Dashboard.";
-}
-
-function buildPublicPreview(
-  identity: ProfileIdentity,
-  stats: ProfileStats,
-  favorites: ProfileFavorite[],
-  badges: ProfileBadge[]
-): PublicProfilePreview {
-  const isPublic = identity.profileVisibility === "public";
-
-  return {
-    title: isPublic ? "Öffentliche Profilvorschau aktiv" : "Privates Profil aktiv",
-    description: isPublic
-      ? "Andere sehen deinen Namen, ausgewählte Profilinfos, Fortschritt und kuratierte Highlights – sensible Details bleiben privat."
-      : "Nur du siehst aktuell deine persönlichen Daten. Öffentliche Profilteile werden erst nach Freigabe sichtbar.",
-    chips: [
-      isPublic ? "Sichtbar für andere" : "Nur für dich sichtbar",
-      `${stats.totalStrains} geloggte Strains`,
-      `${favorites.length} Favoriten`,
-      `${badges.length} Badges`,
-    ],
-  };
-}
-
-function buildActivity(
-  identity: ProfileIdentity,
-  stats: ProfileStats,
-  favorites: ProfileFavorite[],
-  badges: ProfileBadge[]
-): ProfileActivityItem[] {
-  const items: ProfileActivityItem[] = [
-    {
-      id: "collection",
-      title: "Collection Fokus",
-      detail:
-        stats.totalStrains > 0
-          ? `${stats.totalStrains} Strains dokumentiert und bereit für mehr Tiefe.`
-          : "Deine Collection ist noch leer – der beste Startpunkt für Profilqualität.",
-      value: stats.totalStrains > 0 ? `${stats.totalStrains} Einträge` : "Startklar",
-      tone: stats.totalStrains > 0 ? "accent" : "neutral",
-    },
-    {
-      id: "privacy",
-      title: "Sichtbarkeit",
-      detail:
-        identity.profileVisibility === "public"
-          ? "Dein öffentliches Profil ist aktiviert und teilt nur kuratierte Highlights."
-          : "Aktuell privat – ideal, solange du dein Profil noch aufbaust.",
-      value: identity.profileVisibility === "public" ? "Public" : "Private",
-      tone: identity.profileVisibility === "public" ? "success" : "neutral",
-    },
-    {
-      id: "curation",
-      title: "Kuratierte Favoriten",
-      detail:
-        favorites.length > 0
-          ? `Top-Highlights vorhanden – deine Sammlung wirkt bereits bewusst kuratiert.`
-          : "Noch keine Favoriten gesetzt – ideal für einen hochwertigen ersten Eindruck.",
-      value: favorites.length > 0 ? `${favorites.length} Favoriten` : "Fehlt noch",
-      tone: favorites.length > 0 ? "accent" : "neutral",
-    },
-  ];
-
-  if (badges.length > 0) {
-    items.push({
-      id: "badges",
-      title: "Fortschritt",
-      detail: `Du hast bereits ${badges.length} Badge${badges.length > 1 ? "s" : ""} freigeschaltet – sichtbar als Social Proof.`,
-      value: `${badges.length} Badges`,
-      tone: "success",
-    });
-  }
-
-  if (stats.totalGrows > 0) {
-    items.push({
-      id: "grows",
-      title: "Grow Aktivität",
-      detail: `${stats.totalGrows} Grow${stats.totalGrows > 1 ? "s" : ""} geben deinem Profil echte Historie und Kontext.`,
-      value: `${stats.totalGrows} Grows`,
-      tone: "accent",
-    });
-  }
-
-  return items.slice(0, 4);
-}
-
-function getNextMilestone(stats: ProfileStats): Milestone {
-  if (stats.totalStrains < 1) {
-    return {
-      title: "Ersten Strain loggen",
-      description: "Lege den Grundstein für Collection, Aktivität und Profilwertigkeit.",
-      progress: 0,
-    };
-  }
-
-  if (stats.totalStrains < 5) {
-    return {
-      title: "5 Strains vollständig dokumentieren",
-      description: "Mit fünf Einträgen wirkt dein Profil bereits kuratiert und substanziell.",
-      progress: Math.round((stats.totalStrains / 5) * 100),
-    };
-  }
-
-  if (stats.totalGrows < 1) {
-    return {
-      title: "Ersten Grow ergänzen",
-      description: "Grows geben deinem Profil Tiefe und machen Aktivität sichtbar.",
-      progress: 65,
-    };
-  }
-
-  if (stats.favoriteCount < 3) {
-    return {
-      title: "Top-Favoriten kuratieren",
-      description: "Eine klare Favoritenliste macht dein Profil persönlicher und hochwertiger.",
-      progress: Math.round((stats.favoriteCount / 3) * 100),
-    };
-  }
-
-  return {
-    title: "Öffentliches Profil veredeln",
-    description: "Feinschliff bei Privacy, Badges und Collection Highlights für eine starke Social-Präsenz.",
-    progress: Math.min(100, 72 + stats.unlockedBadgeCount * 6),
-  };
+function formatThcDisplay(strain: any) {
+  if (!strain) return "Keine Daten";
+  return `${strain.avg_thc || strain.thc_max || "—"}% THC`;
 }
 
 function resolveBadgeIcon(iconKey: string) {
   const normalized = iconKey.toLowerCase();
   const matchedKey = Object.keys(BADGE_ICONS).find((key) => normalized.includes(key));
-  return matchedKey ? BADGE_ICONS[matchedKey] : Star;
+  return matchedKey ? BADGE_ICONS[matchedKey] : Trophy;
 }
 
 function createFallbackViewModel(isDemoMode: boolean): ProfileViewModel {
-  const stats: ProfileStats = isDemoMode
-    ? {
-      totalStrains: 12,
-      totalGrows: 3,
-      favoriteCount: 3,
-      unlockedBadgeCount: 2,
-      xp: 1140,
-      level: 5,
-      progressToNextLevel: 50,
-      followers: 42,
-      following: 28,
-    }
-    : {
-      totalStrains: 0,
-      totalGrows: 0,
-      favoriteCount: 0,
-      unlockedBadgeCount: 0,
-      xp: 0,
-      level: 1,
-      progressToNextLevel: 0,
-      followers: 0,
-      following: 0,
-    };
-
-  const favorites: ProfileFavorite[] = isDemoMode
-    ? [
-      {
-        id: "demo-godfather-og",
-        name: "Godfather OG",
-        slug: "godfather-og",
-        imageUrl: "/strains/godfather-og.jpg",
-        type: "indica",
-        thcDisplay: "27% THC",
-        favoriteRank: 1,
-      },
-      {
-        id: "demo-animal-face",
-        name: "Animal Face",
-        slug: "animal-face",
-        imageUrl: "/strains/animal-face.jpg",
-        type: "hybrid",
-        thcDisplay: "24% THC",
-        favoriteRank: 2,
-      },
-      {
-        id: "demo-jack-herer",
-        name: "Jack Herer",
-        slug: "jack-herer",
-        imageUrl: "/strains/jack-herer.jpg",
-        type: "sativa",
-        thcDisplay: "22% THC",
-        favoriteRank: 3,
-      },
-    ]
-    : [];
-
-  const badges: ProfileBadge[] = isDemoMode
-    ? [
-      {
-        id: "starter",
-        name: "Starter",
-        description: "Ersten Strain in der Collection gespeichert.",
-        iconKey: "starter",
-        rarity: "common",
-      },
-      {
-        id: "connoisseur",
-        name: "Connoisseur",
-        description: "Fünf Strains bewertet und dein Profil sichtbar vertieft.",
-        iconKey: "connoisseur",
-        rarity: "uncommon",
-      },
-    ]
-    : [];
-
-  const identity: ProfileIdentity = {
-    email: isDemoMode ? "demo@cannalog.app" : null,
-    username: isDemoMode ? "@demo-curator" : "@guest",
-    displayName: isDemoMode ? "Demo Curator" : "Guest",
-    initials: isDemoMode ? "DC" : "GU",
-    profileVisibility: isDemoMode ? "public" : "private",
-    tagline: createTagline(stats, isDemoMode, false),
-    bio: null,
-  };
-
+  const stats: ProfileStats = { totalStrains: 0, totalGrows: 0, favoriteCount: 0, unlockedBadgeCount: 0, xp: 0, level: 1, progressToNextLevel: 0, followers: 0, following: 0 };
   return {
-    identity,
+    identity: { email: null, username: "@guest", displayName: "Guest", initials: "GU", profileVisibility: "private", tagline: "", bio: null },
     stats,
-    favorites,
-    badges,
-    activity: buildActivity(identity, stats, favorites, badges),
-    preview: buildPublicPreview(identity, stats, favorites, badges),
+    favorites: [],
+    badges: [],
+    activity: [],
+    preview: { title: "Privat", description: "", chips: [] }
   };
 }
 
-function SectionHeader({
-  eyebrow,
-  title,
-}: {
-  eyebrow: string;
-  title: string;
-}) {
+function SectionHeader({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div className="space-y-1 px-1">
       <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#A3E4D7]/70">{eyebrow}</p>
@@ -375,674 +99,270 @@ function SectionHeader({
   );
 }
 
-function ProfileSkeleton() {
-  return (
-    <main className="min-h-screen bg-[#0a0c0d] text-white pb-32">
-      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-5 py-6 animate-pulse sm:px-6">
-        <div className="h-6 w-32 rounded-full bg-white/8" />
-        <div className="h-72 rounded-[2rem] border border-white/8 bg-white/[0.03]" />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {[...Array(4)].map((_, index) => (
-            <div key={index} className="h-24 rounded-3xl border border-white/8 bg-white/[0.03]" />
-          ))}
-        </div>
-        <div className="h-52 rounded-[2rem] border border-white/8 bg-white/[0.03]" />
-        <div className="h-44 rounded-[2rem] border border-white/8 bg-white/[0.03]" />
-      </div>
-
-      <BottomNav />
-    </main>
-  );
-}
-
 export default function ProfilePage() {
-  const { user, signOut, loading, isDemoMode, setDemoMode } = useAuth();
+  const { user, signOut, loading, isDemoMode } = useAuth();
   const router = useRouter();
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const [viewModel, setViewModel] = useState<ProfileViewModel>(() => createFallbackViewModel(false));
   const [pageState, setPageState] = useState<"loading" | "ready" | "error">("loading");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [isUpdatingVisibility, setIsUpdatingVisibility] = useState(false);
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-  const [isEditingUsername, setIsEditingUsername] = useState(false);
-  const [usernameInput, setUsernameInput] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({ displayName: "", bio: "" });
+  const [isSaving, setIsSaving] = useState(false);
   const [followersModal, setFollowersModal] = useState<{ isOpen: boolean; mode: "followers" | "following" }>({ isOpen: false, mode: "followers" });
-  const currentUserId = user?.id ?? viewModel.identity.email ?? "";
+  const currentUserId = user?.id ?? "";
+
+  const fetchProfile = async () => {
+    if (!user && !isDemoMode) { setPageState("ready"); return; }
+    try {
+      const [profileRes, collCount, followersRes, followingRes, favsRes, badgesRes] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", user?.id).single(),
+        supabase.from("user_collection").select("*", { count: "exact", head: true }).eq("user_id", user?.id),
+        supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", user?.id),
+        supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", user?.id),
+        supabase.from("user_strain_relations").select("favorite_rank, strains(*)").eq("user_id", user?.id).eq("is_favorite", true).limit(5),
+        supabase.from("user_badges").select("badges(*)").eq("user_id", user?.id)
+      ]);
+
+      const stats: ProfileStats = {
+        totalStrains: collCount.count ?? 0,
+        totalGrows: 0,
+        favoriteCount: favsRes.data?.length ?? 0,
+        unlockedBadgeCount: badgesRes.data?.length ?? 0,
+        xp: (collCount.count ?? 0) * 50,
+        level: Math.floor(((collCount.count ?? 0) * 50) / 100) + 1,
+        progressToNextLevel: ((collCount.count ?? 0) * 50) % 100,
+        followers: followersRes.count ?? 0,
+        following: followingRes.count ?? 0
+      };
+
+      const favorites: ProfileFavorite[] = (favsRes.data || []).map(f => ({
+        id: f.strains.id,
+        name: f.strains.name,
+        slug: f.strains.slug,
+        imageUrl: f.strains.image_url,
+        type: f.strains.type,
+        thcDisplay: formatThcDisplay(f.strains),
+        favoriteRank: f.favorite_rank
+      }));
+
+      const badges: ProfileBadge[] = (badgesRes.data || []).map(b => ({
+        id: b.badges.id,
+        name: b.badges.name,
+        description: b.badges.description,
+        iconKey: b.badges.icon_url || "starter",
+        rarity: b.badges.rarity || "common"
+      }));
+
+      const identity: ProfileIdentity = {
+        email: user?.email ?? null,
+        username: `@${profileRes.data?.username || "user"}`,
+        displayName: profileRes.data?.display_name || "CannaLog User",
+        initials: getInitials(profileRes.data?.display_name || "CU"),
+        avatarUrl: profileRes.data?.avatar_url || null,
+        profileVisibility: profileRes.data?.profile_visibility || "private",
+        tagline: "",
+        bio: profileRes.data?.bio || null
+      };
+
+      setViewModel({ identity, stats, favorites, badges, activity: [], preview: { title: "", description: "", chips: [] } });
+      setEditData({ displayName: identity.displayName, bio: identity.bio || "" });
+      setPageState("ready");
+    } catch (e) { console.error(e); setPageState("error"); }
+  };
 
   useEffect(() => {
-    if (loading) {
-      setPageState("loading");
-      return;
-    }
+    if (!loading) fetchProfile();
+  }, [user, loading, isDemoMode]);
 
-    let cancelled = false;
-
-    async function fetchProfile() {
-      setPageState("loading");
-      setErrorMessage(null);
-
-      if (isDemoMode) {
-        if (!cancelled) {
-          setViewModel(createFallbackViewModel(true));
-          setPageState("ready");
-        }
-        return;
-      }
-
-      if (!user) {
-        if (!cancelled) {
-          setViewModel(createFallbackViewModel(false));
-          setPageState("ready");
-        }
-        return;
-      }
-
-      try {
-        const [profileResult, favoritesResult, badgesResult, strainCountResult, growCountResult] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select("username, display_name, avatar_url, profile_visibility, bio")
-            .eq("id", user.id)
-            .maybeSingle(),
-          supabase
-            .from("user_strain_relations")
-            .select("favorite_rank, strains(id, name, slug, image_url, type, avg_thc, thc_min, thc_max)")
-            .eq("user_id", user.id)
-            .eq("is_favorite", true)
-            .order("favorite_rank", { ascending: true })
-            .limit(5),
-          supabase
-            .from("user_badges")
-            .select("unlocked_at, badges(id, name, description, icon_url, rarity)")
-            .eq("user_id", user.id)
-            .order("unlocked_at", { ascending: false }),
-          supabase.from("ratings").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-          supabase.from("grows").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-        ]);
-
-        if (profileResult.error) throw profileResult.error;
-        if (favoritesResult.error) throw favoritesResult.error;
-        if (badgesResult.error) throw badgesResult.error;
-        if (strainCountResult.error) throw strainCountResult.error;
-        if (growCountResult.error) throw growCountResult.error;
-
-        const favoriteItems: ProfileFavorite[] = ((favoritesResult.data ?? []) as FavoriteQueryRow[])
-          .map((entry) => {
-            const strain = entry.strains;
-            if (!strain?.id || !strain.name || !strain.slug) return null;
-
-            return {
-              id: strain.id,
-              name: strain.name,
-              slug: strain.slug,
-              imageUrl: strain.image_url ?? null,
-              type: strain.type ?? null,
-              thcDisplay: formatThcDisplay(strain),
-              favoriteRank: entry.favorite_rank ?? null,
-            };
-          })
-          .filter((entry): entry is ProfileFavorite => Boolean(entry));
-
-        const badgeItems: ProfileBadge[] = ((badgesResult.data ?? []) as BadgeQueryRow[])
-          .reduce<ProfileBadge[]>((acc, entry) => {
-            const badge = entry.badges;
-            if (!badge?.id || !badge.name) {
-              return acc;
-            }
-
-            acc.push({
-              id: badge.id,
-              name: badge.name,
-              description: badge.description ?? "Fortschritt im Profil freigeschaltet.",
-              iconKey: badge.icon_url ?? badge.name,
-              rarity: badge.rarity ?? "common",
-              unlockedAt: entry.unlocked_at ?? undefined,
-            });
-
-            return acc;
-          }, []);
-
-        // Fetch follower and following counts
-        const { count: followersCount } = await supabase
-          .from("follows")
-          .select("*", { count: "exact", head: true })
-          .eq("following_id", user.id);
-
-        const { count: followingCount } = await supabase
-          .from("follows")
-          .select("*", { count: "exact", head: true })
-          .eq("follower_id", user.id);
-
-        const stats: ProfileStats = {
-          totalStrains: strainCountResult.count ?? 0,
-          totalGrows: growCountResult.count ?? 0,
-          favoriteCount: favoriteItems.length,
-          unlockedBadgeCount: badgeItems.length,
-          xp:
-            (strainCountResult.count ?? 0) * 60 +
-            (growCountResult.count ?? 0) * 120 +
-            favoriteItems.length * 25 +
-            badgeItems.length * 40,
-          level:
-            Math.max(
-              1,
-              Math.floor(
-                ((strainCountResult.count ?? 0) * 60 +
-                  (growCountResult.count ?? 0) * 120 +
-                  favoriteItems.length * 25 +
-                  badgeItems.length * 40) / 120
-              ) + 1
-            ),
-          progressToNextLevel:
-            Math.round(
-              ((((strainCountResult.count ?? 0) * 60 +
-                (growCountResult.count ?? 0) * 120 +
-                favoriteItems.length * 25 +
-                badgeItems.length * 40) % 120) /
-                120) *
-              100
-            ),
-          followers: followersCount ?? 0,
-          following: followingCount ?? 0,
-        };
-
-        const profile = (profileResult.data ?? null) as ProfileRow | null;
-        const displayName =
-          profile?.display_name?.trim() || profile?.username?.trim() || getBaseUsername(user.email) || "Guest";
-        const username = profile?.username?.trim() || getBaseUsername(user.email);
-
-        const identity: ProfileIdentity = {
-          email: user.email ?? null,
-          username: `@${username.replace(/^@+/, "")}`,
-          displayName,
-          initials: getInitials(displayName),
-          avatarUrl: profile?.avatar_url?.trim() || null,
-          profileVisibility: profile?.profile_visibility === "public" ? "public" : "private",
-          tagline: createTagline(stats, false, true),
-          bio: profile?.bio || null,
-        };
-
-        const nextViewModel: ProfileViewModel = {
-          identity,
-          stats,
-          favorites: favoriteItems,
-          badges: badgeItems,
-          activity: buildActivity(identity, stats, favoriteItems, badgeItems),
-          preview: buildPublicPreview(identity, stats, favoriteItems, badgeItems),
-        };
-
-        if (!cancelled) {
-          setViewModel(nextViewModel);
-          setPageState("ready");
-        }
-      } catch (error) {
-        console.error("Profile loading error:", error);
-        if (!cancelled) {
-          setViewModel(createFallbackViewModel(false));
-          setErrorMessage("Das Profil konnte gerade nicht vollständig geladen werden. Die Seite zeigt eine sichere Fallback-Ansicht.");
-          setPageState("error");
-        }
-      }
-    }
-
-    void fetchProfile();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isDemoMode, loading, user]);
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/login");
-  };
-
-  const handleToggleVisibility = async () => {
-    if (!user || isDemoMode || isUpdatingVisibility) {
-      if (!user && !isDemoMode) {
-        setStatusMessage("Melde dich an, um ein öffentliches Profil freizuschalten.");
-      }
-      return;
-    }
-
-    const previousViewModel = viewModel;
-    const nextVisibility = viewModel.identity.profileVisibility === "public" ? "private" : "public";
-    const nextIdentity: ProfileIdentity = {
-      ...viewModel.identity,
-      profileVisibility: nextVisibility,
-    };
-
-    const nextViewModel: ProfileViewModel = {
-      ...viewModel,
-      identity: nextIdentity,
-      activity: buildActivity(nextIdentity, viewModel.stats, viewModel.favorites, viewModel.badges),
-      preview: buildPublicPreview(nextIdentity, viewModel.stats, viewModel.favorites, viewModel.badges),
-    };
-
-    setViewModel(nextViewModel);
-    setIsUpdatingVisibility(true);
-    setStatusMessage(nextVisibility === "public" ? "Öffentliche Profilansicht aktiviert." : "Profil wieder auf privat gesetzt.");
-
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setIsSaving(true);
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ profile_visibility: nextVisibility })
+        .update({
+          display_name: editData.displayName,
+          bio: editData.bio
+        })
         .eq("id", user.id);
 
       if (error) throw error;
-    } catch (error) {
-      console.error("Visibility error:", error);
-      setViewModel(previousViewModel);
-      setStatusMessage("Die Sichtbarkeit konnte nicht gespeichert werden.");
+      await fetchProfile();
+      setIsEditing(false);
+    } catch (e) {
+      console.error("Error saving profile:", e);
     } finally {
-      setIsUpdatingVisibility(false);
+      setIsSaving(false);
     }
   };
 
-  const handleSaveUsername = async (newUsername: string) => {
-    if (!user || isDemoMode || !newUsername.trim()) {
-      setIsEditingUsername(false);
-      return;
-    }
+  if (pageState === "loading") return <div className="min-h-screen bg-[#355E3B] flex items-center justify-center"><Loader2 className="animate-spin text-white" /></div>;
 
-    const previousViewModel = viewModel;
-    const cleanUsername = newUsername.trim().replace(/^@+/, "");
-
-    const nextIdentity: ProfileIdentity = {
-      ...viewModel.identity,
-      username: `@${cleanUsername}`,
-    };
-
-    const nextViewModel: ProfileViewModel = {
-      ...viewModel,
-      identity: nextIdentity,
-      activity: buildActivity(nextIdentity, viewModel.stats, viewModel.favorites, viewModel.badges),
-      preview: buildPublicPreview(nextIdentity, viewModel.stats, viewModel.favorites, viewModel.badges),
-    };
-
-    setViewModel(nextViewModel);
-    setIsEditingUsername(false);
-    setStatusMessage("Username aktualisiert.");
-
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ username: cleanUsername })
-        .eq("id", user.id);
-
-      if (error) throw error;
-    } catch (error) {
-      console.error("Username error:", error);
-      setViewModel(previousViewModel);
-      setStatusMessage("Der Username konnte nicht gespeichert werden.");
-    }
-  };
-
-  const handleDemoToggle = () => {
-    const nextMode = !isDemoMode;
-    setDemoMode(nextMode);
-    setStatusMessage(nextMode ? "Vorschaumodus aktiviert." : "Vorschaumodus deaktiviert.");
-  };
-
-  const handleProfileImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-
-    if (!file || !user || isDemoMode) {
-      return;
-    }
-
-    setIsUploadingAvatar(true);
-    setStatusMessage(null);
-
-    try {
-      const fileExt = file.name.split(".").pop() || "jpg";
-      const filePath = `avatars/${user.id}-${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage.from("strains").upload(filePath, file, {
-        upsert: true,
-      });
-
-      if (uploadError) throw uploadError;
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("strains").getPublicUrl(filePath);
-
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .upsert(
-          {
-            id: user.id,
-            username: viewModel.identity.username.replace(/^@+/, "") || getBaseUsername(user.email),
-            display_name: viewModel.identity.displayName,
-            avatar_url: publicUrl,
-          },
-          { onConflict: "id" }
-        );
-
-      if (profileError) throw profileError;
-
-      setViewModel((current) => ({
-        ...current,
-        identity: {
-          ...current.identity,
-          avatarUrl: publicUrl,
-        },
-      }));
-      setStatusMessage("Profilbild aktualisiert.");
-    } catch (error) {
-      console.error("Avatar upload error:", error);
-      setStatusMessage("Das Profilbild konnte nicht gespeichert werden.");
-    } finally {
-      setIsUploadingAvatar(false);
-      event.target.value = "";
-    }
-  };
-
-  if (pageState === "loading") {
-    return <ProfileSkeleton />;
-  }
-
-  const { identity, stats, favorites, badges, activity, preview } = viewModel;
-  const nextMilestone = getNextMilestone(stats);
-  const progressWidth = Math.max(stats.progressToNextLevel, stats.xp > 0 ? 8 : 0);
+  const { identity, stats, favorites, badges } = viewModel;
   const isPublic = identity.profileVisibility === "public";
-  const primaryCtaHref = user ? "/strains" : "/login";
-  const primaryCtaLabel = user ? "Collection erweitern" : "Anmelden";
 
   return (
     <main className="min-h-screen bg-[#355E3B] text-white pb-32">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[28rem] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_45%),radial-gradient(circle_at_top_right,rgba(122,168,116,0.14),transparent_28%)]" />
-
-      <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-8 px-5 py-6 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
+      <header className="p-8 pb-4">
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-[#A3E4D7]/80">Cannalog</p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white">Profil</h1>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">My Profile</p>
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">CannaLog</h1>
           </div>
-          <div className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-medium text-white/60">
-            {isDemoMode ? "Preview Mode" : isPublic ? "Public Profile" : "Private Profile"}
-          </div>
+          <button onClick={() => signOut()} className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-red-400">
+            <LogOut size={18} />
+          </button>
         </div>
 
-        {errorMessage && (
-          <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
-            {errorMessage}
-          </div>
-        )}
-
-        {statusMessage && (
-          <div className="rounded-2xl border border-[#00F5FF]/15 bg-[#00F5FF]/10 px-4 py-3 text-sm text-[#b9fbff]">
-            {statusMessage}
-          </div>
-        )}
-
-        <Card className="overflow-hidden rounded-[2rem] border border-[#427249]/50 bg-[#2D5032] p-0 shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
-          <div className="flex flex-col gap-8 p-6 sm:p-8">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-                <div className="relative">
-                  <div className="absolute inset-0 rounded-full bg-[#A3E4D7]/20 blur-3xl" />
-                  <Avatar className="relative h-24 w-24 border border-[#427249]/50 bg-[#355E3B] p-1 sm:h-28 sm:w-28">
-                    <AvatarImage
-                      src={identity.avatarUrl || `https://api.dicebear.com/7.x/thumbs/svg?seed=${user?.email || identity.username || "guest"}`}
-                    />
-                    <AvatarFallback className="bg-[#355E3B] text-lg font-semibold text-white/80">
-                      {identity.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <input
-                    ref={avatarInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleProfileImageUpload}
-                  />
-                  {user && !isDemoMode && (
-                    <button
-                      type="button"
-                      onClick={() => avatarInputRef.current?.click()}
-                      disabled={isUploadingAvatar}
-                      className="absolute -top-1 -right-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#427249]/50 bg-[#355E3B]/90 text-white/75 shadow-lg transition-colors hover:border-[#A3E4D7]/35 hover:text-[#A3E4D7] disabled:cursor-not-allowed disabled:opacity-60"
-                      aria-label="Profilbild ändern"
-                      title="Profilbild ändern"
-                    >
-                      {isUploadingAvatar ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />}
-                    </button>
-                  )}
-                  <div className="absolute -bottom-2 right-0 rounded-full border border-black/40 bg-[#A3E4D7] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-[#2D5032] shadow-lg shadow-[#A3E4D7]/25">
-                    Lvl {stats.level}
-                  </div>
-                </div>
-
-                <div className="max-w-xl space-y-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {isEditingUsername ? (
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          defaultValue={identity.username.replace(/^@/, "")}
-                          onChange={(e) => setUsernameInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") handleSaveUsername(usernameInput || identity.username.replace(/^@/, ""));
-                            if (e.key === "Escape") setIsEditingUsername(false);
-                          }}
-                          className="rounded-full border border-[#A3E4D7]/30 bg-[#355E3B] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/55 outline-none focus:border-[#A3E4D7]"
-                          autoFocus
-                        />
-                        <button
-                          onClick={() => handleSaveUsername(usernameInput || identity.username.replace(/^@/, ""))}
-                          className="text-[#A3E4D7] hover:text-white transition-colors"
-                        >
-                          <ArrowRight size={14} />
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/55">
-                          {identity.username}
-                        </span>
-                        <button
-                          onClick={() => { setIsEditingUsername(true); setUsernameInput(identity.username.replace(/^@/, "")); }}
-                          className="text-white/40 hover:text-white/70 transition-colors"
-                        >
-                          <Pencil size={12} />
-                        </button>
-                      </>
-                    )}
-                    {user?.email === 'test@test.com' || user?.email === 'lars.fieber@gmx.de' || user?.email === 'fabian.gebert@hotmail.de' ? (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-[#F39C12]/30 bg-[#F39C12]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#F39C12]">
-                        <Shield size={10} /> Owner
-                      </span>
-                    ) : null}
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] ${isPublic
-                        ? "border border-[#2FF801]/30 bg-[#2FF801]/10 text-[#baff9a]"
-                        : "border border-white/10 bg-white/[0.04] text-white/60"
-                        }`}
-                    >
-                      {isPublic ? <Globe2 size={12} /> : <Lock size={12} />}
-                      {isPublic ? "Öffentlich" : "Privat"}
-                    </span>
-                    {isDemoMode && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-[#00F5FF]/25 bg-[#00F5FF]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#b9fbff]">
-                        <Wand2 size={12} /> Demo
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">{identity.displayName}</h2>
-                    {identity.bio && (
-                      <div className="flex items-start gap-2 mt-2">
-                        <p className="max-w-xl text-sm leading-6 text-white/70">{identity.bio}</p>
-                        <button className="mt-0.5 text-white/40 hover:text-white/70 transition-colors">
-                          <Pencil size={14} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-white/45">
-                    <span className="inline-flex items-center gap-2">
-                      <UserRound size={14} className="text-white/35" />
-                      {identity.email ?? "Noch nicht angemeldet"}
-                    </span>
-                    <button
-                      onClick={() => { setFollowersModal({ isOpen: true, mode: "followers" }); }}
-                      className="inline-flex items-center gap-2 hover:text-white transition-colors"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/35"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                      <span className="text-white/70">{stats.followers} Followers</span>
-                    </button>
-                    <button
-                      onClick={() => { setFollowersModal({ isOpen: true, mode: "following" }); }}
-                      className="inline-flex items-center gap-2 hover:text-white transition-colors"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/35"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-                      <span className="text-white/70">{stats.following} Following</span>
-                    </button>
-                    <span className="inline-flex items-center gap-2">
-                      <Sparkles size={14} className="text-white/35" />
-                      {stats.xp} XP gesammelt
-                    </span>
-                  </div>
-                </div>
+        <div className="bg-[#1e3a24] rounded-[2.5rem] p-6 border border-white/10 shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,245,255,0.05),transparent_50%)]" />
+          
+          <div className="flex items-start gap-6 relative z-10">
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-black/20 bg-black/40 flex items-center justify-center">
+                {identity.avatarUrl ? (
+                  <img src={identity.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-3xl font-black text-white/20">{identity.initials}</span>
+                )}
               </div>
-
-              <div className="grid gap-3 sm:min-w-[220px]">
-                <button
-                  onClick={handleToggleVisibility}
-                  disabled={!user || isDemoMode || isUpdatingVisibility}
-                  className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all ${user && !isDemoMode
-                    ? "border-white/10 bg-white/[0.03] hover:border-[#A3E4D7]/35 hover:bg-[#A3E4D7]/8"
-                    : "cursor-not-allowed border-white/8 bg-white/[0.02] opacity-70"
-                    }`}
-                >
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/75">Profilsichtbarkeit</p>
-                    <p className="mt-1 text-sm text-white/45">{isPublic ? "Öffentlich" : "Privat"}</p>
-                  </div>
-                  <div className={`rounded-full p-2 ${isPublic ? "bg-[#2FF801]/12 text-[#9eff7d]" : "bg-white/5 text-white/50"}`}>
-                    {isPublic ? <Eye size={18} /> : <EyeOff size={18} />}
-                  </div>
-                </button>
-
-                <div className="flex gap-3">
-                  <Link
-                    href={primaryCtaHref}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition-transform hover:-translate-y-0.5"
-                  >
-                    {primaryCtaLabel}
-                    <ArrowRight size={16} />
-                  </Link>
-                  {user ? (
-                    <button
-                      onClick={handleSignOut}
-                      className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-white/75 transition-colors hover:bg-white/[0.06]"
-                    >
-                      <LogOut size={16} />
-                    </button>
-                  ) : (
-                    <Link
-                      href="/strains"
-                      className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-white/75 transition-colors hover:bg-white/[0.06]"
-                    >
-                      <Leaf size={16} />
-                    </Link>
-                  )}
-                </div>
-              </div>
+              <button className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#2FF801] text-black flex items-center justify-center border-4 border-[#1e3a24]">
+                <Camera size={14} />
+              </button>
             </div>
 
-            <div className="space-y-3 rounded-[1.5rem] border border-[#427249]/50 bg-[#355E3B] p-4 sm:p-5">
-              <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.25em] text-white/45">
-                <span>Level Fortschritt</span>
-                <span>{stats.progressToNextLevel}% bis Level {stats.level + 1}</span>
+            <div className="flex-1 pt-2">
+              <div className="flex justify-between items-center mb-4">
+                <button onClick={() => setFollowersModal({ isOpen: true, mode: "followers" })} className="text-center">
+                  <p className="text-xl font-black">{stats.followers}</p>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-white/40">Follower</p>
+                </button>
+                <button onClick={() => setFollowersModal({ isOpen: true, mode: "following" })} className="text-center">
+                  <p className="text-xl font-black">{stats.following}</p>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-white/40">Following</p>
+                </button>
+                <div className="text-center">
+                  <p className="text-xl font-black">{stats.totalStrains}</p>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-white/40">Strains</p>
+                </div>
               </div>
-              <div className="h-3 overflow-hidden rounded-full bg-white/6">
-                <div
-                  className="h-full rounded-full bg-[linear-gradient(90deg,#A3E4D7,#F39C12)] transition-all duration-700"
-                  style={{ width: `${progressWidth}%` }}
+              
+              {isEditing ? (
+                <div className="flex gap-2">
+                  <button onClick={handleSaveProfile} disabled={isSaving} className="flex-1 py-2 bg-[#2FF801] text-black rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1">
+                    {isSaving ? <Loader2 size={12} className="animate-spin" /> : <><Check size={12} /> Save</>}
+                  </button>
+                  <button onClick={() => setIsEditing(false)} className="w-10 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-white/40">
+                    <X size={12} />
+                  </button>
+                </div>
+              ) : (
+                <button onClick={() => setIsEditing(true)} className="w-full py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                  Profil bearbeiten
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-3 relative z-10">
+            {isEditing ? (
+              <div className="space-y-3">
+                <input 
+                  value={editData.displayName} 
+                  onChange={(e) => setEditData({...editData, displayName: e.target.value})}
+                  placeholder="Anzeigename"
+                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-sm font-bold text-white focus:border-[#2FF801] outline-none"
+                />
+                <textarea 
+                  value={editData.bio} 
+                  onChange={(e) => setEditData({...editData, bio: e.target.value})}
+                  placeholder="Deine Bio / Caption..."
+                  rows={2}
+                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-xs text-white/70 focus:border-[#2FF801] outline-none resize-none"
                 />
               </div>
-            </div>
+            ) : (
+              <>
+                <h2 className="text-2xl font-black uppercase tracking-tight">{identity.displayName}</h2>
+                <p className="text-xs text-[#2FF801] font-bold tracking-widest">{identity.username}</p>
+                {identity.bio && <p className="text-sm text-white/60 mt-2 leading-relaxed">{identity.bio}</p>}
+              </>
+            )}
           </div>
-        </Card>
 
-        <section className="space-y-4">
-          <SectionHeader
-            eyebrow="Overview"
-            title="Das Wesentliche auf einen Blick"
-          />
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="mt-4 flex gap-4 text-[10px] font-bold text-white/40 uppercase tracking-widest relative z-10">
+             <span className="flex items-center gap-1"><Calendar size={12} /> Joined March 2026</span>
+          </div>
+        </div>
+      </header>
+
+      <div className="px-8 space-y-10">
+        <section className="bg-[#1e3a24] rounded-[2rem] p-6 border border-white/10 shadow-xl">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">Level {stats.level} Progress</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#2FF801]">{stats.progressToNextLevel}% XP</span>
+          </div>
+          <div className="h-3 bg-black/20 rounded-full overflow-hidden p-0.5 border border-white/5">
+            <div className="h-full bg-gradient-to-r from-[#2FF801] to-[#00F5FF] rounded-full shadow-[0_0_10px_#2FF801]" style={{ width: `${stats.progressToNextLevel}%` }} />
+          </div>
+        </section>
+
+        <section>
+          <div className="flex justify-between items-end mb-6">
+            <SectionHeader eyebrow="Achievements" title="Abzeichen" />
+            <span className="text-[10px] font-bold text-[#00F5FF]">Katalog</span>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
             {[
-              { label: "Strains", value: stats.totalStrains.toString(), icon: Leaf },
-              { label: "Grows", value: stats.totalGrows.toString(), icon: Sprout },
-              { label: "Favoriten", value: stats.favoriteCount.toString(), icon: Heart },
-              { label: "Badges", value: stats.unlockedBadgeCount.toString(), icon: Trophy },
-            ].map((item) => (
-              <Card key={item.label} className="rounded-[1.6rem] border border-white/8 bg-white/[0.03] p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/40">{item.label}</p>
-                    <p className="mt-4 text-3xl font-semibold tracking-tight text-white">{item.value}</p>
+              { id: "starter", name: "Starter", req: "1 Strain geloggt", icon: Sprout, threshold: 1 },
+              { id: "connoisseur", name: "Collector", req: "5 Strains gesammelt", icon: Trophy, threshold: 5 },
+              { id: "grower", name: "Grower", req: "1 Grow gestartet", icon: Leaf, threshold: 1 },
+              { id: "social", name: "Social", req: "1 Freund gefolgt", icon: Users, threshold: 1 }
+            ].map((b) => {
+              const meetsThreshold = (b.id === 'starter' && stats.totalStrains >= 1) || 
+                                     (b.id === 'connoisseur' && stats.totalStrains >= 5) ||
+                                     (b.id === 'social' && stats.following >= 1);
+              const isUnlocked = meetsThreshold;
+
+              return (
+                <div key={b.id} className={`rounded-3xl p-4 flex flex-col items-center text-center gap-2 transition-all border ${
+                  isUnlocked 
+                  ? "bg-[#1e3a24] border-[#2FF801]/30" 
+                  : "bg-black/20 border-white/5 opacity-40 grayscale"
+                }`}>
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-1 ${
+                    isUnlocked ? "bg-[#2FF801]/10 text-[#ffd76a]" : "bg-white/5 text-white/10"
+                  }`}>
+                    <b.icon size={32} />
                   </div>
-                  <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-3 text-white/60">
-                    <item.icon size={18} />
-                  </div>
+                  <p className={`text-[11px] font-black uppercase tracking-tight leading-none ${
+                    isUnlocked ? "text-white" : "text-white/40"
+                  }`}>{b.name}</p>
+                  <p className={`text-[8px] font-bold uppercase tracking-tighter ${
+                    isUnlocked ? "text-[#2FF801]" : "text-white/20"
+                  }`}>
+                    {isUnlocked ? b.req : `Ziel: ${b.req}`}
+                  </p>
                 </div>
-              </Card>
-            ))}
+              );
+            })}
           </div>
         </section>
 
         <section className="space-y-4">
-          <SectionHeader
-            eyebrow="Collection"
-            title="Kuratierte Highlights"
-          />
-
+          <SectionHeader eyebrow="Collection" title="Kuratierte Highlights" />
           {favorites.length > 0 ? (
-            <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+            <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
               {favorites.map((favorite) => (
-                <Link key={favorite.id} href={`/strains/${favorite.slug}`} className="min-w-[250px] max-w-[250px] flex-shrink-0">
-                  <Card className="h-full overflow-hidden rounded-[1.8rem] border border-white/8 bg-white/[0.03] p-0 transition-all hover:-translate-y-1 hover:border-white/15">
-                    <div className="relative h-48 w-full overflow-hidden">
-                      {favorite.imageUrl ? (
-                        <Image
-                          src={favorite.imageUrl}
-                          alt={favorite.name}
-                          fill
-                          className="object-cover transition-transform duration-500 hover:scale-105"
-                          sizes="250px"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center bg-white/[0.04] text-white/30">
-                          <Leaf size={24} />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0c0d] via-[#0a0c0d]/25 to-transparent" />
-                      <div className="absolute left-4 right-4 top-4 flex items-center justify-between">
-                        <span className="rounded-full border border-white/12 bg-black/30 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">
-                          {favorite.type ?? "curated"}
-                        </span>
-                        {favorite.favoriteRank && (
-                          <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-black">
-                            Top {favorite.favoriteRank}
-                          </span>
-                        )}
-                      </div>
-                      <div className="absolute bottom-4 left-4 right-4 space-y-2">
-                        <p className="text-lg font-semibold tracking-tight text-white">{favorite.name}</p>
-                        <div className="flex items-center justify-between text-xs text-white/65">
-                          <span>{favorite.thcDisplay}</span>
-                          <span className="inline-flex items-center gap-1">
-                            Details <ArrowRight size={14} />
-                          </span>
-                        </div>
+                <Link key={favorite.id} href={`/strains/${favorite.slug}`} className="min-w-[220px] flex-shrink-0">
+                  <Card className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#1e3a24] p-0 shadow-lg hover:border-[#00F5FF]/30 transition-all">
+                    <div className="relative h-40 w-full">
+                      <Image src={favorite.imageUrl || "/strains/placeholder-1.svg"} alt={favorite.name} fill className="object-cover opacity-80" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#1e3a24] to-transparent" />
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <p className="text-sm font-black uppercase tracking-tight truncate">{favorite.name}</p>
+                        <p className="text-[10px] text-[#00F5FF] font-bold">{favorite.thcDisplay}</p>
                       </div>
                     </div>
                   </Card>
@@ -1050,214 +370,24 @@ export default function ProfilePage() {
               ))}
             </div>
           ) : (
-            <Card className="rounded-[2rem] border border-dashed border-white/10 bg-white/[0.025] p-6 sm:p-8">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="max-w-xl space-y-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/45">Noch keine Favoriten</p>
-                  <h3 className="text-xl font-semibold tracking-tight text-white">Mach deine Collection sichtbar</h3>
-                </div>
-                <Link
-                  href="/strains"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition-transform hover:-translate-y-0.5"
-                >
-                  Zum Katalog
-                  <ArrowRight size={16} />
-                </Link>
-              </div>
-            </Card>
+            <div className="py-10 text-center bg-black/10 rounded-[2rem] border border-dashed border-white/10 text-white/20 text-xs font-bold uppercase tracking-widest">Keine Favoriten gesetzt</div>
           )}
         </section>
 
-        <section className="space-y-4">
-          <SectionHeader
-            eyebrow="Activity"
-            title="Aktivität und Momentum"
-          />
-          <div className="grid gap-3 lg:grid-cols-2">
-            {activity.map((item) => (
-              <Card key={item.id} className="rounded-[1.7rem] border border-white/8 bg-white/[0.03] p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.26em] text-white/40">{item.title}</p>
-                    <p className="text-base font-semibold tracking-tight text-white">{item.value}</p>
-                  </div>
-                  <div
-                    className={`rounded-2xl p-3 ${item.tone === "success"
-                      ? "bg-[#2FF801]/12 text-[#afff94]"
-                      : item.tone === "accent"
-                        ? "bg-[#A3E4D7]/10 text-[#A3E4D7]"
-                        : "bg-white/[0.05] text-white/55"
-                      }`}
-                  >
-                    <Activity size={18} />
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-[1.35fr_0.95fr]">
-          <div className="space-y-4">
-            <SectionHeader
-              eyebrow="Progress"
-              title="Badges und nächste Milestones"
-            />
-
-            {badges.length > 0 ? (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {badges.slice(0, 4).map((badge) => {
-                  const BadgeIcon = resolveBadgeIcon(badge.iconKey);
-                  return (
-                    <Card key={badge.id} className="rounded-[1.7rem] border border-white/8 bg-white/[0.03] p-5">
-                      <div className="flex items-start gap-4">
-                        <div className="rounded-2xl border border-white/8 bg-white/[0.04] p-3 text-[#ffd76a]">
-                          <BadgeIcon size={18} />
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-sm font-semibold tracking-tight text-white">{badge.name}</p>
-                            <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
-                              {badge.rarity}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </Card>
-                  );
-                })}
-              </div>
-            ) : (
-              <Card className="rounded-[2rem] border border-dashed border-white/10 bg-white/[0.025] p-6 sm:p-8">
-                <div className="space-y-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/45">Noch keine Badges</p>
-                  <h3 className="text-xl font-semibold tracking-tight text-white">Dein Fortschritt startet mit echter Aktivität</h3>
-                </div>
-              </Card>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            <SectionHeader
-              eyebrow="Next"
-              title="Nächster sinnvoller Schritt"
-            />
-            <Card className="rounded-[2rem] border border-[#427249]/50 bg-[#2D5032] p-6">
-              <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#A3E4D7]/20 bg-[#A3E4D7]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#A3E4D7]">
-                  <Sparkles size={12} /> Empfehlung
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-semibold tracking-tight text-white">{nextMilestone.title}</h3>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.22em] text-white/40">
-                    <span>Fortschritt</span>
-                    <span>{nextMilestone.progress}%</span>
-                  </div>
-                  <div className="h-2.5 overflow-hidden rounded-full bg-white/8">
-                    <div
-                      className="h-full rounded-full bg-[linear-gradient(90deg,#A3E4D7,#F39C12)]"
-                      style={{ width: `${Math.max(6, nextMilestone.progress)}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-3 pt-2">
-                  <Link
-                    href="/strains"
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition-transform hover:-translate-y-0.5"
-                  >
-                    Strains entdecken
-                    <ArrowRight size={16} />
-                  </Link>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-4">
-            <SectionHeader
-              eyebrow="Social"
-              title="Public Preview & Privatsphäre"
-            />
-            <Card className="rounded-[2rem] border border-white/8 bg-white/[0.03] p-6 sm:p-7">
-              <div className="space-y-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-semibold tracking-tight text-white">Öffentliches Profil</h3>
-                  </div>
-                  <div className={`rounded-2xl p-3 ${isPublic ? "bg-[#2FF801]/12 text-[#afff94]" : "bg-white/[0.05] text-white/55"}`}>
-                    {isPublic ? <Globe2 size={18} /> : <Lock size={18} />}
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {preview.chips.map((chip) => (
-                    <span
-                      key={chip}
-                      className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium text-white/65"
-                    >
-                      {chip}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          <div className="space-y-4">
-            <SectionHeader
-              eyebrow="Account"
-              title="Profilmodus & Zugang"
-            />
-            <Card className="rounded-[2rem] border border-white/8 bg-white/[0.03] p-6">
-              <div className="space-y-4">
-                <button
-                  onClick={handleDemoToggle}
-                  className={`flex w-full items-center justify-between rounded-2xl border px-4 py-4 text-left transition-all ${isDemoMode
-                    ? "border-[#A3E4D7]/25 bg-[#A3E4D7]/10"
-                    : "border-white/10 bg-white/[0.03] hover:bg-white/[0.05]"
-                    }`}
-                >
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/75">Vorschaumodus</p>
-                  </div>
-                  <div className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] ${isDemoMode ? "bg-[#A3E4D7] text-[#2D5032]" : "bg-white/8 text-white/55"}`}>
-                    {isDemoMode ? "Aktiv" : "Aus"}
-                  </div>
-                </button>
-
-                {user ? (
-                  <button
-                    onClick={handleSignOut}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm font-semibold text-red-100 transition-colors hover:bg-red-400/15"
-                  >
-                    <LogOut size={16} />
-                    Logout
-                  </button>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-black transition-transform hover:-translate-y-0.5"
-                  >
-                    Einloggen für volles Profil
-                    <ArrowRight size={16} />
-                  </Link>
-                )}
-              </div>
-            </Card>
+        <section className="bg-black/20 rounded-[2rem] p-6 border border-white/10">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-sm font-black uppercase tracking-widest">Profil Sichtbarkeit</h3>
+              <p className="text-[10px] text-white/40">{isPublic ? "Dein Profil ist für alle sichtbar" : "Nur du siehst dein Profil"}</p>
+            </div>
+            <button className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${isPublic ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]' : 'bg-white/5 border-white/10 text-white/40'}`}>
+              {isPublic ? <Eye size={20} /> : <EyeOff size={20} />}
+            </button>
           </div>
         </section>
       </div>
 
-      <FollowersListModal
-        isOpen={followersModal.isOpen}
-        onClose={() => setFollowersModal((prev) => ({ ...prev, isOpen: false }))}
-        mode={followersModal.mode}
-        userId={currentUserId}
-      />
-
+      <FollowersListModal isOpen={followersModal.isOpen} onClose={() => setFollowersModal((prev) => ({ ...prev, isOpen: false }))} mode={followersModal.mode} userId={currentUserId} />
       <BottomNav />
     </main>
   );
