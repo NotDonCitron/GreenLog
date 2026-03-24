@@ -3,24 +3,25 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { 
-    Loader2, 
-    MapPin, 
-    Calendar, 
-    ArrowLeft, 
-    Shield, 
-    Lock, 
-    Sprout, 
-    Trophy, 
-    Zap, 
-    Leaf, 
-    Sparkles, 
-    Users 
+import {
+    Loader2,
+    MapPin,
+    Calendar,
+    ArrowLeft,
+    Shield,
+    Lock,
+    Sprout,
+    Trophy,
+    Zap,
+    Leaf,
+    Sparkles,
+    Users
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { FollowButton } from "@/components/social/follow-button";
 import { ActivityItem } from "@/components/social/activity-item";
+import { UserCollectionsTab } from "@/components/profile/user-collections-tab";
 import { useAuth } from "@/components/auth-provider";
 import { supabase } from "@/lib/supabase";
 import type { ProfileRow, ProfileStats, UserActivity, FollowStatus } from "@/lib/types";
@@ -63,10 +64,10 @@ export default function UserProfilePage() {
         has_pending_request: false,
     });
     const [activities, setActivities] = useState<UserActivity[]>([]);
-    const [favorites, setFavorites] = useState<any[]>([]);
-    const [grows, setGrows] = useState<any[]>([]);
-    const [userBadges, setUserBadges] = useState<any[]>([]);
-    const [activeTab, setActiveTab] = useState<"activity" | "favorites" | "grows">("activity");
+    const [favorites, setFavorites] = useState<unknown[]>([]);
+    const [grows, setGrows] = useState<unknown[]>([]);
+    const [userBadges, setUserBadges] = useState<unknown[]>([]);
+    const [activeTab, setActiveTab] = useState<"activity" | "favorites" | "collections" | "grows">("activity");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [followersCount, setFollowersCount] = useState(0);
@@ -223,7 +224,7 @@ export default function UserProfilePage() {
         return (
             <div className="min-h-screen bg-[#355E3B] flex flex-col items-center justify-center p-4">
                 <h1 className="text-2xl font-bold text-white mb-2">User Not Found</h1>
-                <p className="text-white/60 mb-4">The user @{username} doesn't exist or their profile is private.</p>
+                <p className="text-white/60 mb-4">The user @{username} doesn&apos;t exist or their profile is private.</p>
                 <Link href="/">
                     <button className="px-6 py-3 bg-white/10 text-white font-semibold rounded-xl">
                         <ArrowLeft className="h-4 w-4 inline mr-2" />
@@ -340,10 +341,10 @@ export default function UserProfilePage() {
                                 const badge = ub.badges;
                                 if (!badge) return null;
                                 const Icon = resolveBadgeIcon(badge.icon_url || "starter");
-                                
+
                                 return (
-                                    <div 
-                                        key={ub.id} 
+                                    <div
+                                        key={ub.id}
                                         className="flex flex-col items-center gap-1.5 min-w-[70px] bg-white/5 border border-white/10 rounded-2xl p-2.5 shadow-lg"
                                     >
                                         <div className="w-10 h-10 rounded-xl bg-[#2FF801]/10 flex items-center justify-center text-[#ffd700]">
@@ -374,34 +375,45 @@ export default function UserProfilePage() {
                     </div>
                 ) : (
                     <>
-                        <div className="flex gap-6 border-b border-white/10">
-                            <button
-                                onClick={() => setActiveTab("activity")}
-                                className={`pb-3 text-sm font-semibold transition-colors ${activeTab === "activity"
-                                    ? "text-[#A3E4D7] border-b-2 border-[#A3E4D7]"
-                                    : "text-white/40"
-                                    }`}
-                            >
-                                Activity
-                            </button>
-                            <button
-                                onClick={() => setActiveTab("favorites")}
-                                className={`pb-3 text-sm font-semibold transition-colors ${activeTab === "favorites"
-                                    ? "text-[#A3E4D7] border-b-2 border-[#A3E4D7]"
-                                    : "text-white/40"
-                                    }`}
-                            >
-                                Favorites
-                            </button>
-                            <button
-                                onClick={() => setActiveTab("grows")}
-                                className={`pb-3 text-sm font-semibold transition-colors ${activeTab === "grows"
-                                    ? "text-[#A3E4D7] border-b-2 border-[#A3E4D7]"
-                                    : "text-white/40"
-                                    }`}
-                            >
-                                Grows
-                            </button>
+                        <div className="overflow-x-auto border-b border-white/10 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                            <div className="flex min-w-max gap-6">
+                                <button
+                                    onClick={() => setActiveTab("activity")}
+                                    className={`pb-3 text-sm font-semibold transition-colors whitespace-nowrap ${activeTab === "activity"
+                                        ? "text-[#A3E4D7] border-b-2 border-[#A3E4D7]"
+                                        : "text-white/40"
+                                        }`}
+                                >
+                                    Activity
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("favorites")}
+                                    className={`pb-3 text-sm font-semibold transition-colors whitespace-nowrap ${activeTab === "favorites"
+                                        ? "text-[#A3E4D7] border-b-2 border-[#A3E4D7]"
+                                        : "text-white/40"
+                                        }`}
+                                >
+                                    Favorites
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("collections")}
+                                    className={`pb-3 text-sm font-semibold transition-colors whitespace-nowrap ${activeTab === "collections"
+                                        ? "text-[#A3E4D7] border-b-2 border-[#A3E4D7]"
+                                        : "text-white/40"
+                                        }`}
+                                >
+                                    Sammlung
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("grows")}
+                                    className={`pb-3 text-sm font-semibold transition-colors whitespace-nowrap ${activeTab === "grows"
+                                        ? "text-[#A3E4D7] border-b-2 border-[#A3E4D7]"
+                                        : "text-white/40"
+                                        }`}
+                                >
+                                    Grows
+                                </button>
+                            </div>
                         </div>
 
                         {/* Tab Content */}
@@ -452,6 +464,12 @@ export default function UserProfilePage() {
                                         <p className="text-white/40 text-sm">No favorites yet</p>
                                     </div>
                                 )
+                            )}
+
+                            {activeTab === "collections" && (
+                                <UserCollectionsTab
+                                    displayName={profile.display_name ?? profile.username ?? "This user"}
+                                />
                             )}
 
                             {activeTab === "grows" && (
