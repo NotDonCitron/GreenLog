@@ -94,18 +94,22 @@ export default function StrainDetailPage() {
 
     setIsDeleting(true);
     try {
-      // 1. Alle Ratings & Collection Einträge für diese Sorte löschen (Cascade manuell falls nötig)
-      await supabase.from("ratings").delete().eq("strain_id", strain.id);
-      await supabase.from("user_collection").delete().eq("strain_id", strain.id);
-      await supabase.from("user_strain_relations").delete().eq("strain_id", strain.id);
+      // 1. Alle verknüpften Daten löschen
+      await Promise.all([
+        supabase.from("ratings").delete().eq("strain_id", strain.id),
+        supabase.from("user_collection").delete().eq("strain_id", strain.id),
+        supabase.from("user_strain_relations").delete().eq("strain_id", strain.id),
+        supabase.from("user_activities").delete().eq("target_id", strain.id.toString())
+      ]);
 
       // 2. Die Sorte selbst löschen
       const { error } = await supabase.from("strains").delete().eq("id", strain.id);
       
       if (error) throw error;
 
-      alert("Sorte erfolgreich gelöscht.");
+      // 3. Cache löschen und umleiten
       router.push("/strains");
+      router.refresh();
     } catch (err: any) {
       console.error("Delete error:", err);
       alert("Fehler beim Löschen: " + err.message);

@@ -5,8 +5,9 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2, AlertCircle, Plus, User } from "lucide-react";
+import { Search, Loader2, AlertCircle, Plus, User, Camera } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Strain, StrainSource } from "@/lib/types";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { StrainCard } from "@/components/strains/strain-card";
@@ -277,7 +278,12 @@ export default function StrainsPage() {
         )}
       </div>
 
-      <div className="fixed bottom-24 right-6 z-50">
+      <div className="fixed bottom-24 right-6 z-50 flex flex-col gap-4">
+        <Link href="/scanner">
+          <button className="w-14 h-14 bg-[#00F5FF] hover:bg-[#00F5FF]/90 text-black rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,245,255,0.4)] transition-transform active:scale-95">
+            <Camera size={28} />
+          </button>
+        </Link>
         <CreateStrainModal
           onSuccess={handleStrainCreated}
           trigger={
