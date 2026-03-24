@@ -6,79 +6,19 @@ import { X, Zap, Image as ImageIcon, Camera, Loader2, CheckCircle2 } from "lucid
 import { supabase } from "@/lib/supabase";
 import { createWorker } from "tesseract.js";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function ScannerPage() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [status, setStatus] = useState<"idle" | "capturing" | "processing" | "success" | "error">("idle");
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<string | null>(null);
+  const [debugText, setDebugText] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const workerRef = useRef<any>(null);
 
-  // Levenshtein Distanz für Fuzzy Search
-  const getLevenshteinDistance = (a: string, b: string) => {
-    const matrix = Array.from({ length: a.length + 1 }, (_, i) => [i]);
-    for (let j = 1; j <= b.length; j++) matrix[0][j] = j;
-
-    for (let i = 1; i <= a.length; i++) {
-      for (let j = 1; j <= b.length; j++) {
-        const cost = a[i - 1].toLowerCase() === b[j - 1].toLowerCase() ? 0 : 1;
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j - 1] + cost
-        );
-      }
-    }
-    return matrix[a.length][b.length];
-  };
-
-  const findBestMatch = (text: string, strains: any[]) => {
-    const lowerText = text.toLowerCase();
-    const words = lowerText.split(/[\s,.\-\n]+/);
-    
-    // Sortiere Strains nach Länge (längste zuerst), um spezifischere Namen zu bevorzugen
-    const sortedStrains = [...strains].sort((a, b) => b.name.length - a.name.length);
-    
-    let bestMatch = null;
-    let minDistance = 3;
-
-    // 1. Suche nach exakten (langen) Treffern im Text
-    for (const strain of sortedStrains) {
-      const name = strain.name.toLowerCase();
-      
-      // Für kurze Namen ( < 4 Zeichen) nutzen wir Wortgrenzen-Check
-      if (name.length < 4) {
-        const regex = new RegExp(`\\b${name}\\b`, 'i');
-        if (regex.test(lowerText)) return strain;
-      } else {
-        if (lowerText.includes(name)) return strain;
-      }
-    }
-
-    // 2. Fuzzy Match auf Wort-Ebene (falls kein exakter Treffer)
-    for (const strain of sortedStrains) {
-      const name = strain.name.toLowerCase();
-      if (name.length < 4) continue; // Zu kurz für Fuzzy
-
-      for (const word of words) {
-        if (word.length < 4) continue;
-        const dist = getLevenshteinDistance(word, name);
-        
-        // Toleranz: 1 Fehler bei Wörtern bis 6 Zeichen, 2 Fehler darüber
-        const maxAllowedDist = name.length > 6 ? 2 : 1;
-        
-        if (dist <= maxAllowedDist && dist < minDistance) {
-          minDistance = dist;
-          bestMatch = strain;
-        }
-      }
-    }
-    return bestMatch;
-  };
-
-  // Initialisiere OCR Worker im Hintergrund
+  // Initialisiere OCR Worker
   useEffect(() => {
     async function initWorker() {
       try {
@@ -90,12 +30,7 @@ export default function ScannerPage() {
       }
     }
     initWorker();
-
-    return () => {
-      if (workerRef.current) {
-        workerRef.current.terminate();
-      }
-    };
+    return () => { if (workerRef.current) workerRef.current.terminate(); };
   }, []);
 
   // Kamera starten
@@ -103,7 +38,7 @@ export default function ScannerPage() {
     async function startCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "environment" },
+          video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
           audio: false 
         });
         if (videoRef.current) {
@@ -111,13 +46,11 @@ export default function ScannerPage() {
           setCameraActive(true);
         }
       } catch (err) {
-        console.error("Kamerafehler:", err);
         setStatus("error");
-        setResult("Kamerazugriff verweigert.");
+        setResult("Kamera-Fehler");
       }
     }
     startCamera();
-
     return () => {
       if (videoRef.current?.srcObject) {
         const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
@@ -126,6 +59,37 @@ export default function ScannerPage() {
     };
   }, []);
 
+  const findBestMatch = (text: string, strains: any[]) => {
+    const lowerText = text.toLowerCase();
+    let bestStrain = null;
+    let highestScore = 0;
+
+    for (const strain of strains) {
+      const name = strain.name.toLowerCase();
+      const nameWords = name.split(/[\s,.\-\n]+/).filter(w => w.length > 2);
+      
+      let score = 0;
+      
+      // 1. Bonus für exakten kompletten Treffer
+      if (lowerText.includes(name)) score += 10;
+
+      // 2. Punkte für jedes Wort des Namens, das im Text vorkommt
+      for (const word of nameWords) {
+        if (lowerText.includes(word)) {
+          score += 2;
+        }
+      }
+
+      // 3. Nur Strains mit einer Mindest-Relevanz nehmen
+      if (score > highestScore && score >= 2) {
+        highestScore = score;
+        bestStrain = strain;
+      }
+    }
+
+    return bestStrain;
+  };
+
   const captureAndRecognize = async () => {
     if (!videoRef.current || !canvasRef.current) return;
 
@@ -133,85 +97,57 @@ export default function ScannerPage() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
-
     if (!context) return;
 
-    // Screenshot vom Video-Feed machen
+    // Screenshot machen
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     
-    // Bildverbesserung für OCR
-    context.filter = 'contrast(1.4) grayscale(1)';
+    // Bildverbesserung (Kontrast & Schärfe)
+    context.filter = 'contrast(1.2) brightness(1.1)';
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     setStatus("processing");
+    setDebugText(null);
     
     try {
       let worker = workerRef.current;
-      
-      // Fallback falls Worker noch nicht bereit
-      if (!worker) {
-        worker = await createWorker('deu+eng');
-      }
+      if (!worker) worker = await createWorker('deu+eng');
 
       const { data: { text } } = await worker.recognize(canvas);
-      
-      if (!workerRef.current) {
-        await worker.terminate();
-      }
-
       console.log("Erkannter Text:", text);
 
-      // Alle Strains für Abgleich laden
-      const { data: allStrains, error: fetchError } = await supabase
-        .from("strains")
-        .select("*");
-
-      if (fetchError) throw fetchError;
-
+      const { data: allStrains } = await supabase.from("strains").select("*");
       const matchedStrain = findBestMatch(text, allStrains || []);
 
       if (matchedStrain) {
-        console.log("Strain erkannt:", matchedStrain.name);
         setResult(matchedStrain.name);
         setStatus("success");
-        
-        // Nach 2 Sekunden zur Detailseite weiterleiten
-        setTimeout(() => {
-          router.push(`/strains/${matchedStrain.slug}`);
-        }, 2000);
+        setTimeout(() => router.push(`/strains/${matchedStrain.slug}`), 2000);
       } else {
-        console.warn("Keine Sorte erkannt");
         setStatus("error");
-        setResult("Keine Sorte erkannt. Bitte versuche es erneut.");
-        setTimeout(() => setStatus("idle"), 3000);
+        setResult("Nicht gefunden");
+        setDebugText(text.slice(0, 50) + "..."); // Zeige was erkannt wurde für Debugging
+        setTimeout(() => { setStatus("idle"); setDebugText(null); }, 4000);
       }
-    } catch (err: any) {
-      console.error("Scanner Fehler:", err);
+    } catch (err) {
       setStatus("error");
-      setResult("Fehler beim Scannen.");
+      setResult("Fehler");
       setTimeout(() => setStatus("idle"), 3000);
     }
   };
 
   return (
     <main className="min-h-screen bg-black text-white relative overflow-hidden flex flex-col">
-      {/* Camera Viewport */}
       <div className="flex-1 relative bg-black flex items-center justify-center">
-        <video 
-          ref={videoRef} 
-          autoPlay 
-          playsInline 
-          className={`w-full h-full object-cover transition-opacity duration-1000 ${cameraActive ? "opacity-100" : "opacity-0"}`} 
-        />
+        <video ref={videoRef} autoPlay playsInline className={`w-full h-full object-cover transition-opacity duration-1000 ${cameraActive ? "opacity-100" : "opacity-0"}`} />
         
-        {/* Scanner Overlay UI */}
         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-none">
           <div className="w-full aspect-square max-w-sm border-2 border-white/20 rounded-3xl relative">
-            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-[#00F5FF] rounded-tl-3xl" />
-            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-[#00F5FF] rounded-tr-3xl" />
-            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-[#00F5FF] rounded-bl-3xl" />
-            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-[#00F5FF] rounded-br-3xl" />
+            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-[#00F5FF] rounded-tl-3xl shadow-[0_0_15px_#00F5FF]" />
+            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-[#00F5FF] rounded-tr-3xl shadow-[0_0_15px_#00F5FF]" />
+            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-[#00F5FF] rounded-bl-3xl shadow-[0_0_15px_#00F5FF]" />
+            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-[#00F5FF] rounded-br-3xl shadow-[0_0_15px_#00F5FF]" />
             
             {status === "processing" && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-3xl">
@@ -222,34 +158,33 @@ export default function ScannerPage() {
             {status === "success" && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#2FF801]/20 backdrop-blur-sm rounded-3xl animate-in zoom-in">
                 <CheckCircle2 className="text-[#2FF801]" size={64} />
-                <p className="mt-4 font-bold text-[#2FF801] uppercase tracking-widest">{result}</p>
+                <p className="mt-4 font-black text-[#2FF801] uppercase tracking-widest">{result}</p>
               </div>
             )}
           </div>
-
-          {/* Versteckter Canvas für OCR */}
           <canvas ref={canvasRef} className="hidden" />
         </div>
       </div>
 
-      {/* Bottom Instructions */}
-      <div className="p-8 pb-40 flex flex-col items-center gap-6 bg-gradient-to-t from-black via-black/80 to-transparent z-10">
+      <div className="p-8 pb-44 flex flex-col items-center gap-6 bg-gradient-to-t from-black via-black/90 to-transparent z-10">
         <div className="text-center space-y-2">
-          <h2 className="text-sm font-bold tracking-[0.3em] uppercase text-[#00F5FF]">
-            {status === "processing" ? "Analysiere Text..." : "Smart Scanner"}
+          <h2 className="text-sm font-black tracking-[0.3em] uppercase text-[#00F5FF]">
+            {status === "processing" ? "Analysiere..." : "Smart Scanner"}
           </h2>
-          <p className="text-[10px] text-white/40 uppercase tracking-widest leading-relaxed max-w-[200px]">
+          <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">
             {status === "error" ? result : "Ziele auf den Namen der Sorte"}
           </p>
+          {debugText && (
+            <p className="text-[8px] text-red-400 font-mono mt-2 bg-black/40 px-2 py-1 rounded">Gelesen: {debugText}</p>
+          )}
         </div>
 
-        {/* Shutter Button */}
         <button 
           onClick={captureAndRecognize}
           disabled={status === "processing" || status === "success"}
           className={`w-20 h-20 rounded-full border-4 border-white/10 p-1 bg-white/5 transition-all active:scale-95 ${status === "processing" ? "opacity-20" : "opacity-100"}`}
         >
-          <div className="w-full h-full rounded-full bg-white flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.4)]">
+          <div className="w-full h-full rounded-full bg-white flex items-center justify-center shadow-[0_0_40px_rgba(255,255,255,0.3)]">
             <Camera size={32} className="text-black" />
           </div>
         </button>
