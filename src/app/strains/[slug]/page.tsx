@@ -28,6 +28,7 @@ export default function StrainDetailPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isFavorited, setIsFavorite] = useState(false);
   const [hasCollected, setHasCollected] = useState(false);
+  const [isDeletable, setIsDeletable] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [batchInfo, setBatchInfo] = useState("");
   const [userNotes, setUserNotes] = useState("");
@@ -66,6 +67,15 @@ export default function StrainDetailPage() {
             setBatchInfo(collection.batch_info || "");
             setUserNotes(collection.user_notes || "");
           }
+
+          // Prüfen ob andere User den Strain haben
+          const { count: othersCount } = await supabase
+            .from("user_collection")
+            .select("*", { count: 'exact', head: true })
+            .eq("strain_id", data.id)
+            .neq("user_id", user.id);
+          
+          setIsDeletable((othersCount || 0) === 0);
         }
       } else if (isDemoMode) {
         setStrain({
@@ -293,9 +303,18 @@ export default function StrainDetailPage() {
                   </button>
                 } 
               />
-              <button onClick={handleDelete} disabled={isDeleting} className="p-2 rounded-full border border-red-500/20 bg-red-500/10 text-red-500">
-                {isDeleting ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
-              </button>
+              {isDeletable ? (
+                <button onClick={handleDelete} disabled={isDeleting} className="p-2 rounded-full border border-red-500/20 bg-red-500/10 text-red-500">
+                  {isDeleting ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
+                </button>
+              ) : (
+                <button 
+                  onClick={() => alert("Diese Sorte kann nicht mehr gelöscht werden, da sie bereits von anderen Community-Mitgliedern gesammelt wurde.")} 
+                  className="p-2 rounded-full border border-white/5 bg-white/5 text-white/20"
+                >
+                  <Lock size={20} />
+                </button>
+              )}
             </>
           )}
         </div>
