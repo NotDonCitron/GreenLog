@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Strain } from '@/lib/types';
-import { Lock, UserRound } from 'lucide-react';
+import { Lock } from 'lucide-react';
 
 interface StrainCardProps {
   strain: Strain;
@@ -25,6 +25,28 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
   }
 
   const farmerDisplay = strain.farmer?.trim() || strain.manufacturer?.trim() || strain.brand?.trim() || 'Unbekannter Farmer';
+  const thcValue = strain.avg_thc ?? strain.thc_max;
+  const thcDisplay = typeof thcValue === 'number' ? `${thcValue}%` : '—';
+  const cbdValue = strain.avg_cbd ?? strain.cbd_max;
+  const cbdDisplay = typeof cbdValue === 'number' ? `${cbdValue}%` : '< 1%';
+
+  const extractDisplayName = (value: unknown) => {
+    if (typeof value === 'string') return value;
+    if (!value || typeof value !== 'object') return null;
+    if ('name' in value) return (value as { name?: string | null }).name ?? null;
+    if ('label' in value) return (value as { label?: string | null }).label ?? null;
+    return null;
+  };
+
+  const normalizedEffects = Array.isArray(strain.effects)
+    ? strain.effects.map((effect) => extractDisplayName(effect)).filter(Boolean)
+    : [];
+  const normalizedFlavors = Array.isArray(strain.flavors)
+    ? strain.flavors.map((flavor) => extractDisplayName(flavor)).filter(Boolean)
+    : [];
+
+  const effectDisplay = normalizedEffects.length > 0 ? normalizedEffects[0] : 'Euphorie';
+  const tasteDisplay = normalizedFlavors.length > 0 ? normalizedFlavors.slice(0, 2).join(', ') : 'Zitrus, Erdig';
 
   const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const normalizedStrainName = (() => {
@@ -52,18 +74,12 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
         animationFillMode: 'both'
       }}
     >
-      <div className="p-3 pb-2">
-        <div className="flex items-start gap-2 min-w-0">
-          <UserRound className="mt-0.5 shrink-0 text-white/55" size={12} />
-          <div className="min-w-0 flex-1">
-            <p className="text-[8px] font-black uppercase tracking-[0.22em] text-white/40">Farmer</p>
-            <h2 className="text-sm font-black leading-tight text-white break-words line-clamp-2">
-              {farmerDisplay}
-            </h2>
-          </div>
-        </div>
-        <div className={`w-8 h-0.5 mt-2 opacity-70 ${underlineBg}`}></div>
-        <p className="mt-2 text-xs font-medium leading-snug text-white/82 break-words line-clamp-2">
+      <div className="p-3 pb-2 min-w-0">
+        <h2 className="title-font italic text-sm font-bold leading-tight uppercase text-white break-words line-clamp-2">
+          {farmerDisplay}
+        </h2>
+        <div className={`w-8 h-0.5 mt-1 opacity-70 ${underlineBg}`}></div>
+        <p className="mt-2 title-font italic text-sm font-bold leading-tight uppercase text-white/90 break-words line-clamp-2 min-h-[2.5rem]">
           {normalizedStrainName}
         </p>
       </div>
@@ -83,11 +99,25 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
       </div>
 
       <div className="px-2.5 mt-2.5 w-full flex-grow flex flex-col justify-end pb-3">
-        <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 shadow-inner backdrop-blur-sm shadow-md min-h-[84px] flex flex-col justify-center">
-          <p className="text-[8px] font-black uppercase tracking-[0.22em] text-white/40">Sorte</p>
-          <p className="mt-1 text-sm font-semibold leading-snug text-white break-words line-clamp-3">
-            {normalizedStrainName}
-          </p>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-2 shadow-inner backdrop-blur-sm shadow-md">
+          <div className="grid grid-cols-2 gap-2 border-b border-white/5 pb-1.5 mb-1.5">
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <span className="text-gray-500 text-[7px] uppercase tracking-widest font-semibold flex-shrink-0">THC</span>
+              <span className="text-[10px] font-bold tracking-wide truncate" style={{ color: themeColor }}>{thcDisplay}</span>
+            </div>
+            <div className="flex items-center justify-end border-l border-white/5 pl-2 w-full text-right min-w-0">
+              <span className="text-gray-100 text-[8px] font-medium tracking-wide break-words line-clamp-2">{tasteDisplay}</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center justify-between gap-2 min-w-0">
+              <span className="text-gray-500 text-[7px] uppercase tracking-widest font-semibold flex-shrink-0">CBD</span>
+              <span className="text-[10px] font-bold tracking-wide truncate" style={{ color: themeColor }}>{cbdDisplay}</span>
+            </div>
+            <div className="flex items-center justify-end border-l border-white/5 pl-2 w-full text-right min-w-0">
+              <span className="text-gray-100 text-[8px] font-medium tracking-wide break-words line-clamp-2">{effectDisplay}</span>
+            </div>
+          </div>
         </div>
       </div>
     </Link>

@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Plus, Globe, Wand2, Check, Loader2 } from "lucide-react";
 import { Strain, StrainSource } from "@/lib/types";
 import { useEffect } from "react";
@@ -169,6 +170,37 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
             setImportedImageUrl(strain.image_url || null);
         }
     }, [strain, open]);
+
+    useEffect(() => {
+        if (!open || !isEditMode || !strain?.id || importedImageUrl) {
+            return;
+        }
+
+        let cancelled = false;
+
+        const loadUserImage = async () => {
+            const { data, error: collectionError } = await supabase
+                .from("user_collection")
+                .select("user_image_url")
+                .eq("strain_id", strain.id)
+                .eq("user_id", user?.id ?? "")
+                .maybeSingle();
+
+            if (cancelled || collectionError) {
+                return;
+            }
+
+            if (data?.user_image_url) {
+                setImportedImageUrl(data.user_image_url);
+            }
+        };
+
+        void loadUserImage();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [open, isEditMode, strain?.id, strain?.image_url, importedImageUrl, user?.id]);
 
     // Erweiterte Optionen
     const TASTE_OPTIONS = [
@@ -555,6 +587,17 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
                                 <button key={e} type="button" onClick={() => toggleItem(e, selectedEffects, setSelectedEffects)} className={`py-2 px-3 rounded-full text-[10px] font-bold border transition-all ${selectedEffects.includes(e) ? "bg-[#2FF801] border-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/40"}`}>{e}</button>
                             ))}
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="description" className="text-[10px] font-black uppercase tracking-widest text-white/60">Beschreibung</Label>
+                        <Textarea
+                            id="description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Beschreibe Wirkung, Geschmack oder besondere Eigenschaften..."
+                            className="min-h-[120px] bg-white/5 border-white/10 rounded-2xl text-sm text-white placeholder:text-white/30 focus:border-[#2FF801]"
+                        />
                     </div>
 
                     {error && <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-xs font-bold uppercase tracking-widest">{error}</div>}
