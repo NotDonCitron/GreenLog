@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner Test Labels - CannaLog</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px;
+            font-family: 'Inter', sans-serif;
+        }
+        .container {
+            display: grid;
+            grid-template-cols: 1fr 1fr;
+            gap: 40px;
+            max-width: 1000px;
+        }
+        .label {
+            background: white;
+            color: black;
+            width: 350px;
+            padding: 20px;
+            border: 2px solid #000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .header {
+            border-bottom: 2px solid #000;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .brand {
+            font-weight: 900;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+        .strain-name {
+            font-size: 24px;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin: 8px 0;
+            background: #000;
+            color: #fff;
+            padding: 4px 8px;
+            display: inline-block;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+        .stats {
+            margin-top: 15px;
+            display: grid;
+            grid-template-cols: 1fr 1fr;
+            gap: 8px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .barcode {
+            margin-top: 20px;
+            height: 30px;
+            background: repeating-linear-gradient(90deg, #000, #000 2px, #fff 2px, #fff 4px);
+            width: 100%;
+        }
+        h1 { margin-bottom: 40px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #2FF801; }
+    </style>
+</head>
+<body>
+    <h1>CannaLog Scanner Test Gallery</h1>
+    
+    <div class="container">
+        <!-- Label 1 -->
+        <div class="label">
+            <div class="header">
+                <div class="brand">Aurora Medical</div>
+                <div style="font-size: 8px;">REF: AUR-GH-22</div>
+            </div>
+            <div style="font-size: 10px; font-weight: bold;">Cannabisblüten:</div>
+            <div class="strain-name">Ghost Train Haze</div>
+            <div class="stats">
+                <div>THC: 22.5%</div>
+                <div>CBD: <1%</div>
+                <div>TYP: SATIVA</div>
+            </div>
+            <div class="barcode"></div>
+        </div>
+
+        <!-- Label 2 -->
+        <div class="label">
+            <div class="header">
+                <div class="brand">420 Pharma</div>
+                <div style="font-size: 8px;">LOT: 420-KM-26</div>
+            </div>
+            <div style="font-size: 10px; font-weight: bold;">Cannabisblüten:</div>
+            <div class="strain-name">Kush Mint</div>
+            <div class="stats">
+                <div>THC: 26.0%</div>
+                <div>CBD: <1%</div>
+                <div>TYP: HYBRID</div>
+            </div>
+            <div class="barcode"></div>
+        </div>
+
+        <!-- Label 3 -->
+        <div class="label">
+            <div class="header">
+                <div class="brand">Tilray Cannabis</div>
+                <div style="font-size: 8px;">BATCH: TIL-PK-21</div>
+            </div>
+            <div style="font-size: 10px; font-weight: bold;">Cannabisblüten:</div>
+            <div class="strain-name">Pink Kush</div>
+            <div class="stats">
+                <div>THC: 21.0%</div>
+                <div>CBD: <1%</div>
+                <div>TYP: INDICA</div>
+            </div>
+            <div class="barcode"></div>
+        </div>
+
+        <!-- Label 4 -->
+        <div class="label">
+            <div class="header">
+                <div class="brand">Custom Entry</div>
+                <div style="font-size: 8px;">ID: USER-SG-01</div>
+            </div>
+            <div style="font-size: 10px; font-weight: bold;">Eigene Sorte:</div>
+            <div class="strain-name">Sour Goth Girl Kush</div>
+            <div class="stats">
+                <div>THC: 24.5%</div>
+                <div>CBD: 1.2%</div>
+                <div>TYP: HYBRID</div>
+            </div>
+            <div class="barcode"></div>
+        </div>
+    </div>
+
+    <div style="margin-top: 50px; color: #666; font-size: 12px; text-align: center; max-width: 600px;">
+        Ziele mit dem CannaLog-Scanner auf die schwarzen Namens-Boxen. <br>
+        Der Algorithmus erkennt die Sorte auch bei leichter Unschärfe.
+    </div>
+</body>
+</html>

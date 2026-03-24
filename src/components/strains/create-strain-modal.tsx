@@ -9,33 +9,26 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { Loader2, Plus, Leaf, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Plus, Globe, Wand2, Check } from "lucide-react";
 import { StrainSource } from "@/lib/types";
 
 interface CreateStrainModalProps {
-    trigger?: React.ReactNode;
-    onSuccess?: (strainId: string, slug: string, source: StrainSource, usedSourceFallback?: boolean) => void;
+    onSuccess?: (id: string, slug: string, source: StrainSource, usedSourceFallback: boolean) => void;
+    trigger: React.ReactNode;
 }
 
-export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps) {
+export function CreateStrainModal({ onSuccess, trigger }: CreateStrainModalProps) {
     const { user } = useAuth();
     const [open, setOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Form state
+    // Form State
     const [name, setName] = useState("");
     const [type, setType] = useState<"indica" | "sativa" | "hybrid">("hybrid");
     const [source, setSource] = useState<StrainSource>("street");
@@ -44,6 +37,8 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
     const [selectedTerpenes, setSelectedTerpenes] = useState<string[]>([]);
     const [selectedEffects, setSelectedEffects] = useState<string[]>([]);
     const [description, setDescription] = useState("");
+    const [leaflyUrl, setLeaflyUrl] = useState("");
+    const [importedImageUrl, setImportedImageUrl] = useState<string | null>(null);
 
     const TASTE_OPTIONS = ["Erdig", "Süß", "Zitrone", "Kiefer", "Beeren", "Würzig", "Fruchtig", "Diesel"];
     const EFFECT_OPTIONS = ["Entspannt", "Kreativ", "Hungrig", "Fokussiert", "Euphörisch", "Schläfrig", "Energisch"];
@@ -53,68 +48,6 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
             setList(list.filter(i => i !== item));
         } else {
             setList([...list, item]);
-        }
-    };
-    const [leaflyUrl, setLeaflyUrl] = useState("");
-    const [importing, setImporting] = useState(false);
-
-    const handleLeaflyImport = async () => {
-        if (!leaflyUrl || !leaflyUrl.includes("leafly.com")) {
-            setError("Bitte gib eine gültige Leafly-URL ein.");
-            return;
-        }
-
-        setImporting(true);
-        setError(null);
-
-        try {
-            console.debug("[CreateStrainModal] Leafly import started", { leaflyUrl });
-            const response = await fetch("/api/import/leafly", {
-                method: "POST",
-                body: JSON.stringify({ url: leaflyUrl }),
-                headers: { "Content-Type": "application/json" },
-            });
-
-            const responseText = await response.text();
-            console.debug("[CreateStrainModal] Leafly import response", {
-                ok: response.ok,
-                status: response.status,
-                bodyPreview: responseText.slice(0, 400),
-            });
-
-            if (!response.ok) {
-                throw new Error("Import fehlgeschlagen");
-            }
-
-            const data = JSON.parse(responseText);
-            console.debug("[CreateStrainModal] Leafly import parsed payload", data);
-
-            if (typeof data.name === "string" && data.name.trim()) setName(data.name.trim());
-            if (data.type && ["indica", "sativa", "hybrid"].includes(String(data.type).toLowerCase())) {
-                setType(String(data.type).toLowerCase() as any);
-            }
-            if (data.thc !== undefined && data.thc !== null && data.thc !== "") {
-                setThcEstimate(String(data.thc));
-            }
-            if (data.cbd !== undefined && data.cbd !== null && data.cbd !== "") {
-                setCbdEstimate(String(data.cbd));
-            }
-            if (typeof data.description === "string" && data.description.trim()) {
-                setDescription(data.description.trim());
-            }
-            if (data.source && ["pharmacy", "street", "grow"].includes(String(data.source))) {
-                setSource(data.source as StrainSource);
-            }
-
-            // Note: We don't have dedicated form fields for terpenes/effects yet.
-            // The import still seeds the core strain metadata that can be saved.
-
-            setLeaflyUrl("");
-        } catch (err) {
-            console.error("[CreateStrainModal] Leafly import failed", err);
-            setError("Daten konnten nicht von Leafly geladen werden.");
-        } finally {
-            setImporting(false);
         }
     };
 
@@ -128,35 +61,73 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
         setSelectedEffects([]);
         setDescription("");
         setLeaflyUrl("");
+        setImportedImageUrl(null);
         setError(null);
     };
 
-    const handleClose = (isOpen: boolean) => {
-        setOpen(isOpen);
-        if (!isOpen) {
-            resetForm();
+    const handleImportFromLeafly = async () => {
+        if (!leaflyUrl.includes("leafly.com/strains/")) {
+            setError("Bitte gib eine gültige Leafly-URL ein.");
+            return;
         }
-    };
 
-    const generateSlug = (strainName: string): string => {
-        return strainName
-            .toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, "")
-            .replace(/\s+/g, "-")
-            .replace(/-+/g, "-")
-            .trim()
-            .substring(0, 50);
+        setIsImporting(true);
+        setError(null);
+
+        try {
+            const response = await fetch("/api/import/leafly", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: leaflyUrl }),
+            });
+
+            if (!response.ok) throw new Error("Import fehlgeschlagen");
+
+            const data = await response.json();
+
+            if (data.name) setName(data.name);
+            if (data.type) setType(data.type === "hybrid" || data.type === "sativa" || data.type === "indica" ? data.type : "hybrid");
+            if (data.thc) setThcEstimate(data.thc.toString());
+            if (data.cbd) setCbdEstimate(data.cbd.toString());
+            if (data.description) setDescription(data.description.slice(0, 500));
+            if (data.image_url) setImportedImageUrl(data.image_url);
+            
+            // Map terpenes & effects to our options
+            if (Array.isArray(data.terpenes)) {
+                const found = TASTE_OPTIONS.filter(opt => 
+                    data.terpenes.some((t: string) => t.toLowerCase().includes(opt.toLowerCase()))
+                );
+                setSelectedTerpenes(found);
+            }
+            if (Array.isArray(data.effects)) {
+                const found = EFFECT_OPTIONS.filter(opt => 
+                    data.effects.some((e: string) => e.toLowerCase().includes(opt.toLowerCase()))
+                );
+                setSelectedEffects(found);
+            }
+
+        } catch (err) {
+            console.error("Import error:", err);
+            setError("Konnte Daten nicht von Leafly laden.");
+        } finally {
+            setIsImporting(false);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user || !name.trim()) return;
+        if (!user) return;
+        if (!name.trim()) {
+            setError("Bitte gib einen Namen ein.");
+            return;
+        }
 
-        setLoading(true);
+        setIsLoading(true);
         setError(null);
 
         try {
-            const slug = generateSlug(name);
+            const slug = name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            
             const basePayload = {
                 name: name.trim(),
                 slug,
@@ -167,231 +138,103 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
                 description: description.trim() || null,
                 terpenes: selectedTerpenes.length > 0 ? selectedTerpenes : null,
                 effects: selectedEffects.length > 0 ? selectedEffects : null,
-            };
-            let payload: Record<string, unknown> = {
-                ...basePayload,
-                source,
-                is_custom: true,
+                image_url: importedImageUrl || null
             };
 
-            console.debug("[CreateStrainModal] Submit payload", payload);
-
-            // Check if slug already exists
-            const { data: existing, error: existingError } = await supabase
+            const { data, error: insertError } = await supabase
                 .from("strains")
-                .select("id")
-                .eq("slug", slug)
-                .maybeSingle();
-
-            if (existingError) {
-                console.warn("[CreateStrainModal] Slug precheck warning", existingError);
-            }
-
-            if (existing) {
-                setError("Eine Sorte mit diesem Namen existiert bereits.");
-                setLoading(false);
-                return;
-            }
-
-            let usedSourceFallback = false;
-            let insertResult = await supabase
-                .from("strains")
-                .insert(payload)
-                .select("id, slug")
+                .insert([basePayload])
+                .select()
                 .single();
-
-            while (insertResult.error) {
-                const errorCode = String(insertResult.error.code || "").toUpperCase();
-                const errorMessage = [
-                    insertResult.error.message,
-                    insertResult.error.details,
-                    insertResult.error.hint,
-                ]
-                    .filter(Boolean)
-                    .join(" ")
-                    .toLowerCase();
-
-                const isSchemaFallbackError = ["PGRST204", "42703", "23502", "23514"].includes(errorCode)
-                    || errorMessage.includes("column")
-                    || errorMessage.includes("schema cache")
-                    || errorMessage.includes("could not find")
-                    || errorMessage.includes("does not exist")
-                    || errorMessage.includes("unknown")
-                    || errorMessage.includes("invalid input");
-
-                if (!isSchemaFallbackError) {
-                    break;
-                }
-
-                let retried = false;
-
-                if (errorMessage.includes("source") && "source" in payload) {
-                    console.warn("[CreateStrainModal] Retrying insert without source", insertResult.error);
-                    const { source: _source, ...nextPayload } = payload;
-                    payload = nextPayload;
-                    usedSourceFallback = true;
-                    retried = true;
-                }
-
-                if (errorMessage.includes("is_custom") && "is_custom" in payload) {
-                    console.warn("[CreateStrainModal] Retrying insert without is_custom", insertResult.error);
-                    const { is_custom: _isCustom, ...nextPayload } = payload;
-                    payload = nextPayload;
-                    retried = true;
-                }
-
-                if (!retried) {
-                    break;
-                }
-
-                insertResult = await supabase
-                    .from("strains")
-                    .insert(payload)
-                    .select("id, slug")
-                    .single();
-            }
-
-            const { data, error: insertError } = insertResult;
-
-            console.debug("[CreateStrainModal] Insert result", {
-                data,
-                insertError,
-                payload,
-                usedSourceFallback,
-            });
 
             if (insertError) throw insertError;
 
-            // 4. Save source to user_collection (Persistence)
-            const { error: collectionError } = await supabase
-                .from("user_collection")
-                .upsert({
-                    user_id: user.id,
-                    strain_id: data.id,
-                    batch_info: source, // 'pharmacy', 'street', or 'grow'
-                    user_thc_percent: thcEstimate ? parseFloat(thcEstimate) : null,
-                    user_cbd_percent: cbdEstimate ? parseFloat(cbdEstimate) : null,
-                    user_notes: description.trim() || null,
-                }, { onConflict: 'user_id,strain_id' });
+            // Save source & metadata to user_collection
+            await supabase.from("user_collection").upsert({
+                user_id: user.id,
+                strain_id: data.id,
+                batch_info: source,
+                user_thc_percent: thcEstimate ? parseFloat(thcEstimate) : null,
+                user_notes: description.trim() || null,
+                user_image_url: importedImageUrl || null
+            }, { onConflict: 'user_id,strain_id' });
 
-            if (collectionError) {
-                console.warn("[CreateStrainModal] Failed to save to user_collection", collectionError);
-            }
-
-            // Success!
             resetForm();
             setOpen(false);
-            onSuccess?.(data.id, data.slug, source, usedSourceFallback);
+            onSuccess?.(data.id, data.slug, source, false);
+
         } catch (err: any) {
-            console.error("Error creating strain:", err);
-            setError(err?.message || "Fehler beim Erstellen der Sorte.");
+            console.error("Creation error:", err);
+            setError(err.message || "Fehler beim Erstellen.");
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
 
-    if (!user) {
-        return null; // Don't show for non-authenticated users
-    }
-
     return (
-        <Dialog open={open} onOpenChange={handleClose}>
-            <DialogTrigger asChild>
-                {trigger || (
-                    <Button className="bg-[#2FF801] hover:bg-[#2FF801]/90 text-black font-black rounded-2xl">
-                        <Plus size={18} className="mr-2" />
-                        Eigene Sorte erstellen
-                    </Button>
-                )}
-            </DialogTrigger>
-            <DialogContent className="bg-[#1a191b] border-white/10 text-white max-w-md max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="text-xl font-black italic uppercase tracking-tight flex items-center gap-2">
-                        <Leaf className="text-[#2FF801]" size={24} />
-                        Neue Sorte erstellen
-                    </DialogTitle>
-                    <DialogDescription className="text-[11px] text-white/50">
-                        Erstelle eine eigene Sorte oder importiere Grunddaten per Leafly-Link.
+        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
+            <div onClick={() => setOpen(true)}>{trigger}</div>
+            <DialogContent className="max-w-md bg-[#1a191b] border-white/10 text-white rounded-[2.5rem] p-8 overflow-y-auto max-h-[90vh] no-scrollbar">
+                <DialogHeader className="mb-6">
+                    <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-[#00F5FF]">Neue Sorte</DialogTitle>
+                    <DialogDescription className="text-white/40 text-xs font-bold uppercase tracking-widest">
+                        Eigene Entdeckung im Katalog verewigen
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-5 mt-4">
-                    {/* Leafly Import */}
-                    <div className="p-4 bg-[#2FF801]/5 border border-[#2FF801]/20 rounded-2xl space-y-3">
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="leaflyUrl" className="text-[10px] font-black uppercase tracking-widest text-[#2FF801]">
-                                ✨ Von Leafly importieren
-                            </Label>
-                            {importing && <Loader2 className="animate-spin text-[#2FF801]" size={14} />}
-                        </div>
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    {/* Leafly Quick Import */}
+                    <div className="space-y-3 bg-[#00F5FF]/5 p-4 rounded-3xl border border-[#00F5FF]/20">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-[#00F5FF] flex items-center gap-2">
+                            <Globe size={12} /> Leafly Quick Import
+                        </Label>
                         <div className="flex gap-2">
                             <Input
-                                id="leaflyUrl"
                                 value={leaflyUrl}
                                 onChange={(e) => setLeaflyUrl(e.target.value)}
                                 placeholder="https://www.leafly.com/strains/..."
-                                className="bg-white/5 border-white/10 rounded-xl h-10 text-xs focus:border-[#2FF801]"
+                                className="bg-black/20 border-white/10 rounded-xl text-xs h-10 flex-1 focus:border-[#00F5FF]"
                             />
-                            <Button
-                                type="button"
-                                onClick={handleLeaflyImport}
-                                disabled={importing || !leaflyUrl}
-                                className="bg-[#2FF801] hover:bg-[#2FF801]/90 text-black font-bold rounded-xl px-4 h-10 text-xs shrink-0"
+                            <Button 
+                                type="button" 
+                                onClick={handleImportFromLeafly}
+                                disabled={isImporting || !leaflyUrl}
+                                className="h-10 px-4 bg-[#00F5FF] text-black font-black uppercase text-[10px] rounded-xl hover:bg-[#00F5FF]/80 transition-all"
                             >
-                                Import
+                                {isImporting ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
                             </Button>
                         </div>
-                        <p className="text-[9px] text-white/40 italic">
-                            Fügt Name, Typ, THC und Beschreibung automatisch ein.
-                        </p>
                     </div>
 
-                    <div className="h-px bg-white/5 w-full my-2" />
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-white/60">Name *</Label>
+                            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="z.B. Super Silver Haze" className="bg-white/5 border-white/10 rounded-xl h-12 text-lg font-bold focus:border-[#2FF801]" />
+                        </div>
 
-                    {/* Name */}
-                    <div className="space-y-2">
-                        <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-white/60">
-                            Name der Sorte *
-                        </Label>
-                        <Input
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="z.B. Meine Geheime OG"
-                            className="bg-white/5 border-white/10 rounded-xl h-12 focus:border-[#2FF801] focus:ring-[#2FF801]/20"
-                            required
-                            maxLength={100}
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">THC (%)</Label>
+                                <Input type="number" step="0.1" value={thcEstimate} onChange={(e) => setThcEstimate(e.target.value)} placeholder="z.B. 22.5" className="bg-white/5 border-white/10 rounded-xl h-12 focus:border-[#2FF801]" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">CBD (%)</Label>
+                                <Input type="number" step="0.1" value={cbdEstimate} onChange={(e) => setCbdEstimate(e.target.value)} placeholder="z.B. 1.0" className="bg-white/5 border-white/10 rounded-xl h-12 focus:border-[#2FF801]" />
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Type Selection */}
                     <div className="space-y-3">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">
-                            Typ *
-                        </Label>
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">Typ *</Label>
                         <div className="grid grid-cols-3 gap-2">
                             {(['indica', 'sativa', 'hybrid'] as const).map((t) => (
-                                <button
-                                    key={t}
-                                    type="button"
-                                    onClick={() => setType(t)}
-                                    className={`py-3 px-2 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
-                                        type === t 
-                                        ? "bg-[#2FF801] border-[#2FF801] text-black shadow-[0_0_15px_rgba(47,248,1,0.3)]" 
-                                        : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10"
-                                    }`}
-                                >
-                                    {t}
-                                </button>
+                                <button key={t} type="button" onClick={() => setType(t)} className={`py-3 rounded-xl text-[10px] font-bold uppercase border transition-all ${type === t ? "bg-[#2FF801] border-[#2FF801] text-black shadow-[0_0_15px_#2FF80144]" : "bg-white/5 border-white/10 text-white/40"}`}>{t}</button>
                             ))}
                         </div>
                     </div>
 
-                    {/* Source Selection */}
                     <div className="space-y-3">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">
-                            Herkunft *
-                        </Label>
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">Herkunft *</Label>
                         <div className="flex flex-wrap gap-2">
                             {[
                                 { id: 'pharmacy', label: '🧪 Apotheke' },
@@ -400,157 +243,34 @@ export function CreateStrainModal({ trigger, onSuccess }: CreateStrainModalProps
                                 { id: 'csc', label: '🏢 CSC' },
                                 { id: 'other', label: 'Sonstiges' }
                             ].map((s) => (
-                                <button
-                                    key={s.id}
-                                    type="button"
-                                    onClick={() => setSource(s.id as StrainSource)}
-                                    className={`py-3 px-3 flex-1 min-w-[30%] rounded-xl text-[10px] font-bold uppercase tracking-tight border transition-all ${
-                                        source === s.id 
-                                        ? "bg-[#2FF801] border-[#2FF801] text-black shadow-[0_0_15px_rgba(47,248,1,0.3)]" 
-                                        : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10"
-                                    }`}
-                                >
-                                    {s.label}
-                                </button>
+                                <button key={s.id} type="button" onClick={() => setSource(s.id as StrainSource)} className={`py-3 px-3 flex-1 min-w-[30%] rounded-xl text-[10px] font-bold uppercase border transition-all ${source === s.id ? "bg-[#2FF801] border-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/40"}`}>{s.label}</button>
                             ))}
                         </div>
-                        <p className="text-[9px] text-white/30 italic">
-                            Andere User sehen die Herkunft deiner Sorte.
-                        </p>
                     </div>
 
-                    {/* THC Estimate */}
-                    <div className="space-y-2">
-                        <Label htmlFor="thc" className="text-[10px] font-black uppercase tracking-widest text-white/60">
-                            THC-Gehalt (Schätzung)
-                        </Label>
-                        <div className="relative">
-                            <Input
-                                id="thc"
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                max="100"
-                                value={thcEstimate}
-                                onChange={(e) => setThcEstimate(e.target.value)}
-                                placeholder="z.B. 22.5"
-                                className="bg-white/5 border-white/10 rounded-xl h-12 pr-8 focus:border-[#2FF801]"
-                            />
-                            <span className="absolute right-4 top-3.5 text-white/30 text-sm">%</span>
-                        </div>
-                    </div>
-
-                    {/* CBD Estimate */}
-                    <div className="space-y-2">
-                        <Label htmlFor="cbd" className="text-[10px] font-black uppercase tracking-widest text-white/60">
-                            CBD-Gehalt (Schätzung)
-                        </Label>
-                        <div className="relative">
-                            <Input
-                                id="cbd"
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                max="100"
-                                value={cbdEstimate}
-                                onChange={(e) => setCbdEstimate(e.target.value)}
-                                placeholder="z.B. 1.2"
-                                className="bg-white/5 border-white/10 rounded-xl h-12 pr-8 focus:border-[#2FF801]"
-                            />
-                            <span className="absolute right-4 top-3.5 text-white/30 text-sm">%</span>
-                        </div>
-                    </div>
-
-                    {/* Geschmäcker (Terpenes) Selection */}
                     <div className="space-y-3">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">
-                            Geschmack
-                        </Label>
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">Geschmack</Label>
                         <div className="flex flex-wrap gap-2">
                             {TASTE_OPTIONS.map((t) => (
-                                <button
-                                    key={t}
-                                    type="button"
-                                    onClick={() => toggleItem(t, selectedTerpenes, setSelectedTerpenes)}
-                                    className={`py-2 px-3 rounded-full text-[10px] font-bold border transition-all ${
-                                        selectedTerpenes.includes(t)
-                                        ? "bg-[#00F5FF] border-[#00F5FF] text-black shadow-[0_0_15px_rgba(0,245,255,0.3)]"
-                                        : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10"
-                                    }`}
-                                >
-                                    {t}
-                                </button>
+                                <button key={t} type="button" onClick={() => toggleItem(t, selectedTerpenes, setSelectedTerpenes)} className={`py-2 px-3 rounded-full text-[10px] font-bold border transition-all ${selectedTerpenes.includes(t) ? "bg-[#00F5FF] border-[#00F5FF] text-black" : "bg-white/5 border-white/10 text-white/40"}`}>{t}</button>
                             ))}
                         </div>
                     </div>
 
-                    {/* Wirkungen (Effects) Selection */}
                     <div className="space-y-3">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">
-                            Wirkung
-                        </Label>
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">Wirkung</Label>
                         <div className="flex flex-wrap gap-2">
                             {EFFECT_OPTIONS.map((e) => (
-                                <button
-                                    key={e}
-                                    type="button"
-                                    onClick={() => toggleItem(e, selectedEffects, setSelectedEffects)}
-                                    className={`py-2 px-3 rounded-full text-[10px] font-bold border transition-all ${
-                                        selectedEffects.includes(e)
-                                        ? "bg-[#2FF801] border-[#2FF801] text-black shadow-[0_0_15px_rgba(47,248,1,0.3)]"
-                                        : "bg-white/5 border-white/10 text-white/40 hover:bg-white/10"
-                                    }`}
-                                >
-                                    {e}
-                                </button>
+                                <button key={e} type="button" onClick={() => toggleItem(e, selectedEffects, setSelectedEffects)} className={`py-2 px-3 rounded-full text-[10px] font-bold border transition-all ${selectedEffects.includes(e) ? "bg-[#2FF801] border-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/40"}`}>{e}</button>
                             ))}
                         </div>
                     </div>
 
-                    {/* Description */}
-                    <div className="space-y-2">
-                        <Label htmlFor="description" className="text-[10px] font-black uppercase tracking-widest text-white/60">
-                            Beschreibung / Notizen
-                        </Label>
-                        <textarea
-                            id="description"
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Optik, Geruch, Wirkung..."
-                            rows={3}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm focus:border-[#2FF801] focus:ring-[#2FF801]/20 resize-none"
-                            maxLength={500}
-                        />
-                    </div>
+                    {error && <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-xs font-bold uppercase tracking-widest">{error}</div>}
 
-                    {/* Error */}
-                    {error && (
-                        <div className="flex items-center gap-2 text-red-500 text-sm bg-red-500/10 rounded-xl p-3">
-                            <AlertCircle size={16} />
-                            {error}
-                        </div>
-                    )}
-
-                    {/* Submit */}
-                    <Button
-                        type="submit"
-                        disabled={loading || !name.trim()}
-                        className="w-full bg-[#2FF801] hover:bg-[#2FF801]/90 text-black font-black rounded-xl h-14 text-sm uppercase tracking-widest"
-                    >
-                        {loading ? (
-                            <Loader2 className="animate-spin" size={20} />
-                        ) : (
-                            <>
-                                <Leaf size={18} className="mr-2" />
-                                Sorte erstellen
-                            </>
-                        )}
+                    <Button type="submit" disabled={isLoading} className="w-full h-16 bg-white text-black hover:bg-[#2FF801] font-black uppercase tracking-[0.2em] rounded-2xl transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+                        {isLoading ? <Loader2 className="animate-spin" /> : <><Plus className="mr-2" /> Strain erstellen</>}
                     </Button>
-
-                    <p className="text-[9px] text-white/30 text-center leading-relaxed">
-                        Deine Sorte wird öffentlich im Katalog angezeigt.<br />
-                        Andere User können sie sehen und bewerten.
-                    </p>
                 </form>
             </DialogContent>
         </Dialog>

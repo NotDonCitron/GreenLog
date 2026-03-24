@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Greenlog – Cannabis Leaf Logo Ideen</title>
+    <style>
+        :root {
+            --bg: #06110c;
+            --bg-2: #0b1812;
+            --panel: rgba(17, 30, 24, 0.84);
+            --panel-strong: rgba(20, 36, 29, 0.98);
+            --line: rgba(154, 255, 198, 0.16);
+            --text: #ecfff4;
+            --muted: #a3c9b2;
+            --mint: #7fffb2;
+            --teal: #00f5d4;
+            --green: #21c45b;
+            --green-deep: #0d3d2c;
+            --lime: #b6ff6a;
+            --sand: #f1dfc2;
+            --light: #f8fff9;
+            --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(0, 245, 212, 0.13), transparent 28%),
+                radial-gradient(circle at top right, rgba(182, 255, 106, 0.1), transparent 26%),
+                linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+        }
+
+        body {
+            min-height: 100vh;
+            padding: 40px 20px 56px;
+        }
+
+        .wrap {
+            width: min(1280px, 100%);
+            margin: 0 auto;
+        }
+
+        .hero {
+            display: grid;
+            gap: 22px;
+            margin-bottom: 34px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            width: fit-content;
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--mint);
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-size: clamp(36px, 6vw, 72px);
+            line-height: 0.94;
+            letter-spacing: -0.04em;
+            max-width: 11ch;
+        }
+
+        .hero p {
+            margin: 0;
+            max-width: 820px;
+            color: var(--muted);
+            font-size: 18px;
+            line-height: 1.65;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
+            margin-bottom: 34px;
+        }
+
+        .summary-card {
+            padding: 18px;
+            border-radius: 22px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow);
+        }
+
+        .summary-card strong {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 14px;
+            color: var(--sand);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .summary-card span {
+            color: var(--text);
+            font-size: 16px;
+            line-height: 1.45;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 22px;
+        }
+
+        .card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 30px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(12px);
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: auto -20% 55% auto;
+            width: 220px;
+            height: 220px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(127, 255, 178, 0.12), transparent 70%);
+            pointer-events: none;
+        }
+
+        .card-top {
+            padding: 24px 24px 8px;
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .card-index {
+            color: var(--mint);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .card-title {
+            margin: 8px 0 0;
+            font-size: 24px;
+            letter-spacing: -0.03em;
+        }
+
+        .badge {
+            flex-shrink: 0;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 8px 10px;
+            font-size: 11px;
+            color: var(--sand);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .artboard {
+            margin: 0 24px;
+            border-radius: 24px;
+            min-height: 320px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background:
+                linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+                radial-gradient(circle at top, rgba(0, 245, 212, 0.08), transparent 35%),
+                #0c1712;
+        }
+
+        .artboard.light {
+            background:
+                linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(244, 252, 246, 0.96)),
+                #f8fff9;
+        }
+
+        .artboard svg {
+            width: min(100%, 330px);
+            height: auto;
+        }
+
+        .meta {
+            padding: 20px 24px 24px;
+        }
+
+        .meta p {
+            margin: 0 0 14px;
+            color: var(--muted);
+            line-height: 1.62;
+            font-size: 15px;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .chip {
+            padding: 8px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            font-size: 12px;
+        }
+
+        .colors {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .swatch {
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+
+        .footer-note {
+            margin-top: 34px;
+            padding: 22px 24px;
+            border-radius: 24px;
+            background: var(--panel-strong);
+            border: 1px solid var(--line);
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .footer-note strong {
+            color: var(--text);
+        }
+
+        @media (max-width: 720px) {
+            body {
+                padding: 24px 14px 40px;
+            }
+
+            .artboard {
+                min-height: 260px;
+            }
+
+            .card-top,
+            .meta {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .artboard {
+                margin-left: 18px;
+                margin-right: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="wrap">
+        <section class="hero">
+            <span class="eyebrow">Greenlog • Cannabis Leaf Exploration</span>
+            <h1>6 Logo-Ideen mit Cannabisblatt</h1>
+            <p>
+                Ich habe die Konzepte jetzt deutlicher in Richtung <strong>Cannabis Leaf</strong>
+                angepasst. Jede Variante zeigt ein klar erkennbares Cannabisblatt, aber in einer
+                anderen Markenlogik: eher Premium-App, eher Tracking-Tool, eher Scanner-Produkt oder
+                eher moderne Lifestyle-Brand.
+            </p>
+        </section>
+
+        <section class="summary">
+            <div class="summary-card">
+                <strong>Stärkstes Icon</strong>
+                <span>GL Monogramm mit kleinem Cannabisblatt für App, Splash und Avatar</span>
+            </div>
+            <div class="summary-card">
+                <strong>Am klarsten</strong>
+                <span>Journal + Cannabisblatt erklärt Tracking und Pflanzenbezug sofort</span>
+            </div>
+            <div class="summary-card">
+                <strong>Am digitalsten</strong>
+                <span>Scan + Cannabisblatt, falls Scanner und Discovery zentral bleiben</span>
+            </div>
+            <div class="summary-card">
+                <strong>Stilrichtung</strong>
+                <span>Clean und modern, aber jetzt mit eindeutigem Cannabis-Charakter</span>
+            </div>
+        </section>
+
+        <section class="grid">
+            <article class="card">
+                <div class="card-top">
+                    <div>
+                        <div class="card-index">Konzept 01</div>
+                        <h2 class="card-title">Journal + Cannabisblatt</h2>
+                    </div>
+                    <div class="badge">Tracking</div>
+                </div>
+                <div class="artboard">
+                    <svg viewBox="0 0 360 320" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        aria-label="Journal with cannabis leaf logo">
+                        <rect x="86" y="54" width="188" height="212" rx="34" fill="#0F1E17" stroke="#294438"
+                            stroke-width="2" />
+                        <rect x="104" y="72" width="152" height="176" rx="24" fill="#132821" stroke="#3A6954"
+                            stroke-width="2" />
+                        <path d="M128 106H230" stroke="#345B49" stroke-width="8" stroke-linecap="round" />
+                        <path d="M128 132H220" stroke="#345B49" stroke-width="8" stroke-linecap="round" />
+                        <path d="M128 158H208" stroke="#345B49" stroke-width="8" stroke-linecap="round" />
+                        <circle cx="218" cy="176" r="54" fill="#0C1712" stroke="#24533E" stroke-width="2" />
+                        <g transform="translate(38 0)">
+                            <path d="M180 116C168 147 170 174 180 224C190 174 192 147 180 116Z" fill="#7FFFB2" />
+                            <path d="M156 126C145 148 146 170 170 218C170 179 169 149 156 126Z" fill="#76F09E" />
+                            <path d="M204 126C215 148 214 170 190 218C190 179 191 149 204 126Z" fill="#76F09E" />
+                            <path d="M136 146C128 166 133 186 168 226C158 187 151 165 136 146Z" fill="#68DF8E" />
+                            <path d="M224 146C232 166 227 186 192 226C202 187 209 165 224 146Z" fill="#68DF8E" />
+                            <path d="M124 174C122 192 130 210 168 236C151 206 141 188 124 174Z" fill="#58CB7D" />
+                            <path d="M236 174C238 192 230 210 192 236C209 206 219 188 236 174Z" fill="#58CB7D" />
+                            <path d="M180 224V250" stroke="#DFFFF0" stroke-width="5" stroke-linecap="round" />
+                        </g>
+                    </svg>
+                </div>
+                <div class="meta">
+                    <p>
+                        Das Notizbuch bleibt als Symbol für Logging und Tracking, aber das runde Badge trägt
+                        jetzt ein deutlich erkennbares Cannabisblatt. Dadurch wird die App-Idee sofort klar:
+                        dokumentieren, sammeln und Cannabis-Strains verwalten.
+                    </p>
+                    <div class="chips">
+                        <span class="chip">klar verständlich</span>
+                        <span class="chip">direkter Cannabis-Bezug</span>
+                        <span class="chip">stark für Onboarding</span>
+                    </div>
+                    <div class="colors">
+                        <div class="swatch" style="background:#7FFFB2"></div>
+                        <div class="swatch" style="background:#132821"></div>
+                        <div class="swatch" style="background:#58CB7D"></div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="card">
+                <div class="card-top">
+                    <div>
+                        <div class="card-index">Konzept 02</div>
+                        <h2 class="card-title">GL Monogramm + Leaf</h2>
+                    </div>
+                    <div class="badge">App Icon</div>
+                </div>
+                <div class="artboard">
+                    <svg viewBox="0 0 360 320" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        aria-label="GL monogram with cannabis leaf logo">
+                        <rect x="72" y="52" width="216" height="216" rx="56" fill="url(#bg2)" />
+                        <path d="M180 94C135 94 102 126 102 170C102 214 134 246 180 246C214 246 242 229 258 202H194"
+                            stroke="#EFFFF6" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M212 111V206C212 225 223 236 241 236" stroke="#B6FF6A" stroke-width="18"
+                            stroke-linecap="round" />
+                        <g transform="translate(63 2) scale(0.62)">
+                            <path d="M180 116C168 147 170 174 180 224C190 174 192 147 180 116Z" fill="#7FFFB2" />
+                            <path d="M156 126C145 148 146 170 170 218C170 179 169 149 156 126Z" fill="#A7FF7A" />
+                            <path d="M204 126C215 148 214 170 190 218C190 179 191 149 204 126Z" fill="#A7FF7A" />
+                            <path d="M136 146C128 166 133 186 168 226C158 187 151 165 136 146Z" fill="#88F59E" />
+                            <path d="M224 146C232 166 227 186 192 226C202 187 209 165 224 146Z" fill="#88F59E" />
+                            <path d="M124 174C122 192 130 210 168 236C151 206 141 188 124 174Z" fill="#68DF8E" />
+                            <path d="M236 174C238 192 230 210 192 236C209 206 219 188 236 174Z" fill="#68DF8E" />
+                            <path d="M180 224V248" stroke="#EFFFF6" stroke-width="5" stroke-linecap="round" />
+                        </g>
+                        <defs>
+                            <linearGradient id="bg2" x1="72" y1="52" x2="288" y2="268" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#18B85C" />
+                                <stop offset="1" stop-color="#0D3D2C" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="meta">
+                    <p>
+                        Das bleibt die stärkste Richtung für ein echtes App-Logo. Das Monogramm ist kompakt,
+                        modern und hochwertig, während das kleine Cannabisblatt die Identität eindeutig macht,
+                        ohne zu laut oder verspielt zu werden.
+                    </p>
+                    <div class="chips">
+                        <span class="chip">premium</span>
+                        <span class="chip">prägnant</span>
+                        <span class="chip">perfekt als App-Icon</span>
+                    </div>
+                    <div class="colors">
+                        <div class="swatch" style="background:#18B85C"></div>
+                        <div class="swatch" style="background:#0D3D2C"></div>
+                        <div class="swatch" style="background:#B6FF6A"></div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="card">
+                <div class="card-top">
+                    <div>
+                        <div class="card-index">Konzept 03</div>
+                        <h2 class="card-title">Growth Ring Cannabis</h2>
+                    </div>
+                    <div class="badge">Organic Data</div>
+                </div>
+                <div class="artboard light">
+                    <svg viewBox="0 0 360 320" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        aria-label="Growth ring cannabis logo">
+                        <circle cx="180" cy="160" r="84" stroke="#104E31" stroke-width="14" />
+                        <circle cx="180" cy="160" r="58" stroke="#36C56C" stroke-width="10" stroke-dasharray="8 12" />
+                        <g transform="translate(0 2)">
+                            <path d="M180 86C166 125 168 159 180 225C192 159 194 125 180 86Z" fill="#1AB759" />
+                            <path d="M151 101C138 129 140 158 171 218C171 169 168 132 151 101Z" fill="#35CC68" />
+                            <path d="M209 101C222 129 220 158 189 218C189 169 192 132 209 101Z" fill="#35CC68" />
+                            <path d="M128 126C120 154 126 179 169 229C157 178 148 149 128 126Z" fill="#52DB7B" />
+                            <path d="M232 126C240 154 234 179 191 229C203 178 212 149 232 126Z" fill="#52DB7B" />
+                            <path d="M116 164C116 188 126 208 169 239C150 204 139 183 116 164Z" fill="#72E592" />
+                            <path d="M244 164C244 188 234 208 191 239C210 204 221 183 244 164Z" fill="#72E592" />
+                            <path d="M180 225V252" stroke="#104E31" stroke-width="6" stroke-linecap="round" />
+                        </g>
+                    </svg>
+                </div>
+                <div class="meta">
+                    <p>
+                        Hier wird das Cannabisblatt zum Kern eines intelligenten Emblems. Die Ringe deuten
+                        Fortschritt, Verlauf und persönliche Daten an. Dadurch wirkt das Logo natürlicher als
+                        ein Tech-Symbol, aber gleichzeitig strukturierter als ein reines Leaf-Icon.
+                    </p>
+                    <div class="chips">
+                        <span class="chip">smart-organic</span>
+                        <span class="chip">emblematisch</span>
+                        <span class="chip">sehr markenfähig</span>
+                    </div>
+                    <div class="colors">
+                        <div class="swatch" style="background:#104E31"></div>
+                        <div class="swatch" style="background:#36C56C"></div>
+                        <div class="swatch" style="background:#72E592"></div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="card">
+                <div class="card-top">
+                    <div>
+                        <div class="card-index">Konzept 04</div>
+                        <h2 class="card-title">Scan + Cannabisblatt</h2>
+                    </div>
+                    <div class="badge">Feature First</div>
+                </div>
+                <div class="artboard">
+                    <svg viewBox="0 0 360 320" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        aria-label="Scan with cannabis leaf logo">
+                        <rect x="96" y="76" width="168" height="168" rx="34" stroke="#00F5D4" stroke-width="8"
+                            stroke-dasharray="28 16" />
+                        <g transform="translate(0 6)">
+                            <path d="M180 96C166 135 168 169 180 235C192 169 194 135 180 96Z" fill="#7FFFB2" />
+                            <path d="M151 110C138 138 140 167 171 227C171 178 168 141 151 110Z" fill="#B6FF6A" />
+                            <path d="M209 110C222 138 220 167 189 227C189 178 192 141 209 110Z" fill="#B6FF6A" />
+                            <path d="M128 136C120 164 126 189 169 239C157 188 148 159 128 136Z" fill="#6FE995" />
+                            <path d="M232 136C240 164 234 189 191 239C203 188 212 159 232 136Z" fill="#6FE995" />
+                            <path d="M116 174C116 198 126 218 169 249C150 214 139 193 116 174Z" fill="#42D37A" />
+                            <path d="M244 174C244 198 234 218 191 249C210 214 221 193 244 174Z" fill="#42D37A" />
+                            <path d="M180 235V260" stroke="#05221A" stroke-width="6" stroke-linecap="round" />
+                        </g>
+                        <circle cx="116" cy="96" r="8" fill="#B6FF6A" />
+                        <circle cx="244" cy="224" r="8" fill="#B6FF6A" />
+                    </svg>
+                </div>
+                <div class="meta">
+                    <p>
+                        Falls der Scanner in Greenlog wichtig ist, ist das hier die passendste Richtung. Das
+                        Cannabisblatt sitzt im Scan-Frame und verbindet sofort Cannabis mit digitalem Erfassen,
+                        Erkennen und Entdecken von Strains.
+                    </p>
+                    <div class="chips">
+                        <span class="chip">digital</span>
+                        <span class="chip">produktnah</span>
+                        <span class="chip">sehr passend für Scanner</span>
+                    </div>
+                    <div class="colors">
+                        <div class="swatch" style="background:#00F5D4"></div>
+                        <div class="swatch" style="background:#7FFFB2"></div>
+                        <div class="swatch" style="background:#B6FF6A"></div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="card">
+                <div class="card-top">
+                    <div>
+                        <div class="card-index">Konzept 05</div>
+                        <h2 class="card-title">Marker + Cannabisblatt</h2>
+                    </div>
+                    <div class="badge">Collection</div>
+                </div>
+                <div class="artboard">
+                    <svg viewBox="0 0 360 320" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        aria-label="Marker with cannabis leaf logo">
+                        <path
+                            d="M180 68C132 68 96 104 96 152C96 209 152 252 180 284C208 252 264 209 264 152C264 104 228 68 180 68Z"
+                            fill="url(#pin)" />
+                        <circle cx="180" cy="154" r="56" fill="#EDFFF2" />
+                        <g transform="translate(0 18) scale(0.72)">
+                            <path d="M180 116C168 147 170 174 180 224C190 174 192 147 180 116Z" fill="#1AB759" />
+                            <path d="M156 126C145 148 146 170 170 218C170 179 169 149 156 126Z" fill="#35CC68" />
+                            <path d="M204 126C215 148 214 170 190 218C190 179 191 149 204 126Z" fill="#35CC68" />
+                            <path d="M136 146C128 166 133 186 168 226C158 187 151 165 136 146Z" fill="#52DB7B" />
+                            <path d="M224 146C232 166 227 186 192 226C202 187 209 165 224 146Z" fill="#52DB7B" />
+                            <path d="M124 174C122 192 130 210 168 236C151 206 141 188 124 174Z" fill="#72E592" />
+                            <path d="M236 174C238 192 230 210 192 236C209 206 219 188 236 174Z" fill="#72E592" />
+                            <path d="M180 224V248" stroke="#0F5133" stroke-width="5" stroke-linecap="round" />
+                        </g>
+                        <defs>
+                            <linearGradient id="pin" x1="96" y1="68" x2="264" y2="284" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#0E5133" />
+                                <stop offset="1" stop-color="#1BD36A" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="meta">
+                    <p>
+                        Dieses Konzept wirkt friendly und mobile-first. Der Marker vermittelt Sammeln,
+                        Speichern und Navigieren durch Inhalte, während das Cannabisblatt im Zentrum klar
+                        macht, dass es um Weed-Strains und persönliche Collections geht.
+                    </p>
+                    <div class="chips">
+                        <span class="chip">friendly</span>
+                        <span class="chip">mobile-first</span>
+                        <span class="chip">collection vibe</span>
+                    </div>
+                    <div class="colors">
+                        <div class="swatch" style="background:#0E5133"></div>
+                        <div class="swatch" style="background:#1BD36A"></div>
+                        <div class="swatch" style="background:#EDFFF2"></div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="card">
+                <div class="card-top">
+                    <div>
+                        <div class="card-index">Konzept 06</div>
+                        <h2 class="card-title">Wordmark + Cannabisblatt</h2>
+                    </div>
+                    <div class="badge">Brand System</div>
+                </div>
+                <div class="artboard light">
+                    <svg viewBox="0 0 360 320" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        aria-label="Wordmark with cannabis leaf logo">
+                        <rect x="50" y="90" width="260" height="140" rx="28" fill="#F8FFF9" />
+                        <text x="62" y="184" fill="#103323" font-size="58" font-weight="800"
+                            font-family="Inter, Arial, sans-serif" letter-spacing="-2">greenlog</text>
+                        <g transform="translate(92 -8) scale(0.42)">
+                            <path d="M180 116C168 147 170 174 180 224C190 174 192 147 180 116Z" fill="#18C35D" />
+                            <path d="M156 126C145 148 146 170 170 218C170 179 169 149 156 126Z" fill="#36D16B" />
+                            <path d="M204 126C215 148 214 170 190 218C190 179 191 149 204 126Z" fill="#36D16B" />
+                            <path d="M136 146C128 166 133 186 168 226C158 187 151 165 136 146Z" fill="#57DD7D" />
+                            <path d="M224 146C232 166 227 186 192 226C202 187 209 165 224 146Z" fill="#57DD7D" />
+                            <path d="M124 174C122 192 130 210 168 236C151 206 141 188 124 174Z" fill="#7BE79A" />
+                            <path d="M236 174C238 192 230 210 192 236C209 206 219 188 236 174Z" fill="#7BE79A" />
+                            <path d="M180 224V248" stroke="#103323" stroke-width="5" stroke-linecap="round" />
+                        </g>
+                    </svg>
+                </div>
+                <div class="meta">
+                    <p>
+                        Hier steht die Typografie im Vordergrund, aber das Cannabisblatt sitzt wie ein feiner,
+                        identitätsstarker Akzent über der Marke. Dadurch wirkt Greenlog erwachsener und mehr
+                        wie ein echtes Produkt-Branding statt nur wie ein Fun-Logo.
+                    </p>
+                    <div class="chips">
+                        <span class="chip">elegant</span>
+                        <span class="chip">reifer Markenauftritt</span>
+                        <span class="chip">ideal für Brand-Systeme</span>
+                    </div>
+                    <div class="colors">
+                        <div class="swatch" style="background:#103323"></div>
+                        <div class="swatch" style="background:#18C35D"></div>
+                        <div class="swatch" style="background:#F8FFF9"></div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="footer-note">
+            <strong>Nächster sinnvoller Schritt:</strong> Aus einem Favoriten kann ich als Nächstes
+            ein saubereres Final-Set bauen — zum Beispiel <strong>3 ausgereifte Varianten</strong> mit
+            einer stärkeren Cannabisblatt-Form, besserer Typografie und exportfähigen SVG-Versionen für
+            App-Icon, Header und Social Media.
+        </section>
+    </main>
+</body>
+
+</html>
