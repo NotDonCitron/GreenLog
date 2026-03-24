@@ -27,8 +27,9 @@ export async function POST(req: NextRequest) {
     if (!response.ok) throw new Error("Leafly konnte nicht geladen werden");
 
     const html = await response.text();
-    let scrapedData: any = {};
+    let scrapedData: any = { terpenes: [], effects: [] };
 
+    // 1. Primär: Next.js JSON Block
     const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
     if (nextDataMatch) {
       try {
@@ -37,25 +38,13 @@ export async function POST(req: NextRequest) {
 
         const getVal = (val: any) => {
           if (typeof val === 'number') return val;
-          if (typeof val === 'string') return parseFloat(val.replace('%', ''));
+          if (typeof val === 'string') {
+            const m = val.match(/(\d+(?:\.\d+)?)/);
+            return m ? parseFloat(m[1]) : null;
+          }
           if (val && typeof val === 'object') return val.avg || val.value || val.average || null;
           return null;
         };
-
-        // Sammle wirklich alles was nach Geschmack aussieht
-        const allTastes = [
-          ...extractNames(strainData.topTerpenes || []),
-          ...extractNames(strainData.terpenes || []),
-          ...extractNames(strainData.flavors || []),
-          ...extractNames(strainData.flavorProfiles || [])
-        ];
-
-        // Sammle wirklich alles was nach Wirkung aussieht
-        const allEffects = [
-          ...extractNames(strainData.feelings || []),
-          ...extractNames(strainData.effects || []),
-          ...extractNames(strainData.topEffects || [])
-        ];
 
         scrapedData = {
           name: strainData.name || "",
@@ -63,19 +52,46 @@ export async function POST(req: NextRequest) {
           description: strainData.description || "",
           thc: getVal(strainData.thc),
           cbd: getVal(strainData.cbd),
-          terpenes: Array.from(new Set(allTastes)),
-          effects: Array.from(new Set(allEffects)),
+          terpenes: extractNames(strainData.topTerpenes || strainData.terpenes || strainData.flavors || []),
+          effects: extractNames(strainData.feelings || strainData.effects || []),
           image_url: strainData.imageUrl || strainData.heroImage || null,
         };
-      } catch (e) {
-        console.warn("JSON Parse Error");
-      }
+      } catch (e) {}
     }
 
+    // 2. Sekundär: Aggressives Full-Text Scraping (Falls JSON lückenhaft)
+    
+    // Name aus Title
     if (!scrapedData.name) {
       const titleMatch = html.match(/<title>(.*?)<\/title>/i);
       scrapedData.name = titleMatch ? titleMatch[1].split("|")[0].replace("Strain Information", "").trim() : "";
     }
+
+    // THC/CBD aus dem HTML Text extrahieren
+    if (!scrapedData.thc) {
+      const thcMatch = html.match(/(\d+(?:\.\d+)?)\s*%\s*thc/i);
+      if (thcMatch) scrapedData.thc = parseFloat(thcMatch[1]);
+    }
+    if (!scrapedData.cbd) {
+      const cbdMatch = html.match(/(\d+(?:\.\d+)?)\s*%\s*cbd/i);
+      if (cbdMatch) scrapedData.cbd = parseFloat(cbdMatch[1]);
+    }
+
+    // Terpene/Flavors aus HTML finden (Suche nach Begriffen in Listen oder Buttons)
+    const TASTE_KEYWORDS = ["earthy", "sweet", "citrus", "lemon", "pine", "berry", "spicy", "fruity", "diesel", "skunk", "pepper", "grape", "tropical"];
+    TASTE_KEYWORDS.forEach(keyword => {
+      if (html.toLowerCase().includes(`>${keyword}<`) || html.toLowerCase().includes(`"${keyword}"`)) {
+        if (!scrapedData.terpenes.includes(keyword)) scrapedData.terpenes.push(keyword);
+      }
+    });
+
+    // Effekte aus HTML finden
+    const EFFECT_KEYWORDS = ["relaxed", "happy", "euphoric", "uplifted", "creative", "sleepy", "hungry", "focused", "energetic", "calm"];
+    EFFECT_KEYWORDS.forEach(keyword => {
+      if (html.toLowerCase().includes(`>${keyword}<`) || html.toLowerCase().includes(`"${keyword}"`)) {
+        if (!scrapedData.effects.includes(keyword)) scrapedData.effects.push(keyword);
+      }
+    });
 
     return NextResponse.json(scrapedData);
   } catch (error: any) {
