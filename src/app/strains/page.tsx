@@ -132,14 +132,19 @@ export default function StrainsPage() {
           setStrains(normalizedStrains as Strain[]);
         }
 
-        // 3. Fetch user's collected strains
+        // 3. Fetch user's collected strains (from both collection and ratings)
         if (user) {
-          const { data: ratings, error: ratingsError } = await supabase
-            .from("ratings")
-            .select("strain_id")
-            .eq("user_id", user.id);
+          const [collectionRes, ratingsRes] = await Promise.all([
+            supabase.from("user_collection").select("strain_id").eq("user_id", user.id),
+            supabase.from("ratings").select("strain_id").eq("user_id", user.id)
+          ]);
 
-          if (ratings) setUserCollection(ratings.map(r => r.strain_id));
+          const collectedIds = new Set([
+            ...(collectionRes.data?.map(c => c.strain_id) || []),
+            ...(ratingsRes.data?.map(r => r.strain_id) || [])
+          ]);
+
+          setUserCollection(Array.from(collectedIds));
         }
 
         if (isDemoMode && allStrains) {
