@@ -51,6 +51,33 @@ function formatDate(dateString: string): string {
     });
 }
 
+interface UserBadgeWithDetails {
+    id: string;
+    badges: {
+        name: string;
+        icon_url: string | null;
+    } | null;
+}
+
+interface FavoriteWithStrain {
+    id: string;
+    strains: {
+        name: string;
+        slug: string;
+        image_url: string | null;
+    } | null;
+}
+
+interface GrowWithStrain {
+    id: string;
+    title: string;
+    grow_type: string;
+    status: string;
+    strains: {
+        name: string;
+    } | null;
+}
+
 export default function UserProfilePage() {
     const params = useParams();
     const username = params.username as string;
@@ -64,9 +91,9 @@ export default function UserProfilePage() {
         has_pending_request: false,
     });
     const [activities, setActivities] = useState<UserActivity[]>([]);
-    const [favorites, setFavorites] = useState<unknown[]>([]);
-    const [grows, setGrows] = useState<unknown[]>([]);
-    const [userBadges, setUserBadges] = useState<unknown[]>([]);
+    const [favorites, setFavorites] = useState<FavoriteWithStrain[]>([]);
+    const [grows, setGrows] = useState<GrowWithStrain[]>([]);
+    const [userBadges, setUserBadges] = useState<UserBadgeWithDetails[]>([]);
     const [activeTab, setActiveTab] = useState<"activity" | "favorites" | "collections" | "grows">("activity");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
