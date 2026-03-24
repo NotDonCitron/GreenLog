@@ -203,6 +203,23 @@ export default function ProfilePage() {
     }
   };
 
+  const handleToggleVisibility = async () => {
+    if (!user || isDemoMode) return;
+    const nextVisibility = identity.profileVisibility === "public" ? "private" : "public";
+    
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ profile_visibility: nextVisibility })
+        .eq("id", user.id);
+
+      if (error) throw error;
+      await fetchProfile();
+    } catch (e) {
+      console.error("Visibility toggle error:", e);
+    }
+  };
+
   if (pageState === "loading") return <div className="min-h-screen bg-[#355E3B] flex items-center justify-center"><Loader2 className="animate-spin text-white" /></div>;
 
   const { identity, stats, favorites, badges } = viewModel;
@@ -386,7 +403,10 @@ export default function ProfilePage() {
               <h3 className="text-sm font-black uppercase tracking-widest">Profil Sichtbarkeit</h3>
               <p className="text-[10px] text-white/40">{isPublic ? "Dein Profil ist für alle sichtbar" : "Nur du siehst dein Profil"}</p>
             </div>
-            <button className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${isPublic ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]' : 'bg-white/5 border-white/10 text-white/40'}`}>
+            <button 
+              onClick={handleToggleVisibility}
+              className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${isPublic ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]' : 'bg-white/5 border-white/10 text-white/40'}`}
+            >
               {isPublic ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
           </div>
