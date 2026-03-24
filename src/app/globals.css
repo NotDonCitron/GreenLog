@@ -172,6 +172,7 @@
 
   html {
     @apply font-sans;
+    color-scheme: only dark;
   }
 }
 
