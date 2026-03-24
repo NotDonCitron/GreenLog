@@ -90,18 +90,13 @@ export default function StrainDetailPage() {
 
     setIsDeleting(true);
     try {
-      // Löschvorgang mit Fehlermeldungen pro Tabelle
-      const { error: e1 } = await supabase.from("user_strain_relations").delete().eq("strain_id", strain.id);
-      if (e1) throw new Error(`Fehler Relations: ${e1.message}`);
+      await supabase.from("user_strain_relations").delete().eq("strain_id", strain.id);
+      await supabase.from("user_collection").delete().eq("strain_id", strain.id);
+      await supabase.from("ratings").delete().eq("strain_id", strain.id);
+      await supabase.from("user_activities").delete().eq("target_id", String(strain.id));
 
-      const { error: e2 } = await supabase.from("user_collection").delete().eq("strain_id", strain.id);
-      if (e2) throw new Error(`Fehler Collection: ${e2.message}`);
-
-      const { error: e3 } = await supabase.from("ratings").delete().eq("strain_id", strain.id);
-      if (e3) throw new Error(`Fehler Ratings: ${e3.message}`);
-
-      const { error: e4 } = await supabase.from("strains").delete().eq("id", strain.id);
-      if (e4) throw new Error(`Fehler Haupttabelle: ${e4.message}`);
+      const { error: mainError } = await supabase.from("strains").delete().eq("id", strain.id);
+      if (mainError) throw mainError;
 
       window.location.href = "/strains";
     } catch (err: any) {
@@ -154,11 +149,42 @@ export default function StrainDetailPage() {
     }
   };
 
+  const handleShareCard = async () => {
+    if (!cardRef.current || !strain) return;
+    setIsSharing(true);
+    try {
+      const wasFlipped = isFlipped;
+      if (wasFlipped) setIsFlipped(false);
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      const dataUrl = await toPng(cardRef.current, { quality: 1, pixelRatio: 2, backgroundColor: '#1a191b' });
+
+      if (navigator.share) {
+        const blob = await (await fetch(dataUrl)).blob();
+        const file = new File([blob], `${strain.slug}-card.png`, { type: 'image/png' });
+        await navigator.share({ files: [file], title: strain.name });
+      } else {
+        const link = document.createElement('a');
+        link.download = `${strain.slug}-card.png`;
+        link.href = dataUrl;
+        link.click();
+      }
+      if (wasFlipped) setIsFlipped(true);
+    } catch (err) {
+      console.error("Share error:", err);
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   const saveRating = async () => {
     if (!user || !strain || isDemoMode) return;
     setIsSaving(true);
     try {
-      await supabase.from("ratings").upsert({
+      const username = user.email?.split("@")[0] || "user_" + Math.random().toString(36).slice(2, 7);
+      await supabase.from("profiles").upsert({ id: user.id, username, display_name: username }, { onConflict: 'id' });
+
+      const { error: rError } = await supabase.from("ratings").upsert({
         strain_id: strain.id,
         user_id: user.id,
         overall_rating: (ratings.taste + ratings.effect + ratings.look) / 3,
@@ -166,6 +192,8 @@ export default function StrainDetailPage() {
         effect_rating: ratings.effect,
         look_rating: ratings.look
       }, { onConflict: 'strain_id,user_id' });
+
+      if (rError) throw rError;
 
       await supabase.from("user_collection").upsert({
         user_id: user.id,
@@ -213,6 +241,7 @@ export default function StrainDetailPage() {
   const normalizedTerpenes = Array.isArray(strain?.terpenes) ? strain.terpenes.map(t => extractDisplayName(t)).filter(Boolean) : [];
 
   const thcDisplay = (strain?.avg_thc ?? strain?.thc_max) ? `${strain?.avg_thc ?? strain?.thc_max}%` : '—';
+  const cbdDisplay = (strain?.avg_cbd ?? strain?.cbd_max) ? `${strain?.avg_cbd ?? strain?.cbd_max}%` : '< 1%';
   const tasteDisplay = normalizedTerpenes.length > 0 ? normalizedTerpenes.slice(0, 2).join(' · ') : 'Zitrus, Erdig';
   const effectDisplay = normalizedEffects[0] || (strain?.is_medical ? "Medical" : "Euphorie");
 
@@ -253,17 +282,17 @@ export default function StrainDetailPage() {
               <div className="px-5 w-full">
                 <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-white/10">
                   <img src={userImageUrl || strain.image_url || "/strains/placeholder-1.svg"} alt={strain.name} className="w-full h-full object-cover" />
-                  <div className="absolute bottom-2 left-2 border bg-black/70 uppercase text-[9px] px-2 py-1 rounded-sm font-bold" style={{ borderColor: themeColor, color: themeColor }}>{strain.type || 'HYBRID'}</div>
+                  <div className="absolute bottom-2 left-2 border bg-black/70 backdrop-blur-md uppercase text-[9px] px-2 py-1 rounded-sm font-bold" style={{ borderColor: themeColor, color: themeColor }}>{strain.type || 'HYBRID'}</div>
                 </div>
               </div>
               <div className="px-5 mt-5 w-full mb-5">
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4 shadow-inner">
                   <div className="grid grid-cols-2 gap-4 border-b border-white/5 pb-2 mb-2">
-                    <div className="flex justify-between"><span className="text-gray-500 text-[9px] uppercase font-semibold">THC</span><span className="text-sm font-bold" style={{ color: themeColor }}>{thcDisplay}</span></div>
+                    <div className="flex justify-between items-center"><span className="text-gray-500 text-[9px] uppercase font-semibold">THC</span><span className="text-sm font-bold" style={{ color: themeColor }}>{thcDisplay}</span></div>
                     <div className="flex justify-end border-l border-white/5 pl-4 w-full"><span className="text-gray-100 text-[10px] font-medium truncate">{tasteDisplay}</span></div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="flex justify-between"><span className="text-gray-500 text-[9px] uppercase font-semibold">CBD</span><span className="text-sm font-bold" style={{ color: themeColor }}>{strain.avg_cbd || '< 1%'}</span></div>
+                    <div className="flex justify-between items-center"><span className="text-gray-500 text-[9px] uppercase font-semibold">CBD</span><span className="text-sm font-bold" style={{ color: themeColor }}>{cbdDisplay}</span></div>
                     <div className="flex justify-end border-l border-white/5 pl-4 w-full"><span className="text-gray-100 text-[10px] font-medium truncate">{effectDisplay}</span></div>
                   </div>
                 </div>
@@ -276,8 +305,23 @@ export default function StrainDetailPage() {
               style={{ borderColor: themeColor }}
             >
               <div className="flex-1 space-y-6">
-                <h3 className="font-serif italic text-xl font-bold uppercase text-white">Strain Profile</h3>
-                <p className="text-[11px] font-medium italic text-white/70 leading-relaxed line-clamp-6">{strain.description}</p>
+                <h3 className="font-serif italic text-xl font-bold uppercase text-white">Sorte Profil</h3>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[9px] font-black uppercase text-white/30 mb-1">Beschreibung</p>
+                    <p className="text-[11px] font-medium italic text-white/70 leading-relaxed line-clamp-6">{strain.description}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-white/30 mb-1">Geschmack</p>
+                      <p className="text-[10px] font-bold text-white/90 truncate">{tasteDisplay}</p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase text-white/30 mb-1">Wirkung</p>
+                      <p className="text-[10px] font-bold text-white/90 truncate">{effectDisplay}</p>
+                    </div>
+                  </div>
+                </div>
                 {(userNotes || batchInfo) && (
                   <div className="pt-4 border-t border-white/5 space-y-4">
                     <div className="flex items-center gap-2 text-[#00F5FF]"><Database size={12} /><h4 className="text-[10px] font-black uppercase">Mein Journal</h4></div>
