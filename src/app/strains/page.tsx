@@ -68,8 +68,9 @@ export default function StrainsPage() {
     }
 
     if (sourceFilter === "grow") {
-      // Zeige Eigenanbau ODER vom User selbst erstellte Sorten
-      return strain.source === "grow" || (!!user && strain.created_by === user.id);
+      // Zeige Sorten mit Source 'grow' ODER alles was vom aktuellen User erstellt wurde
+      const isCreator = user?.id && strain.created_by === user.id;
+      return strain.source === "grow" || isCreator;
     }
 
     if (sourceFilter === "other") {
@@ -220,7 +221,7 @@ export default function StrainsPage() {
             onClick={() => setSourceFilter("grow")}
             className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "grow" ? "bg-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
           >
-            🌱 Eigenanbau
+            🌱 Selbstanbau
           </Button>
           <Button
             size="sm"

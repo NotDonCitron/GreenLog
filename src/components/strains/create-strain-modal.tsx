@@ -302,7 +302,7 @@ export function CreateStrainModal({ onSuccess, trigger }: CreateStrainModalProps
                             {[
                                 { id: 'pharmacy', label: '🧪 Apotheke' },
                                 { id: 'street', label: '📦 Street' },
-                                { id: 'grow', label: '🌱 Eigen' },
+                                { id: 'grow', label: '🌱 Selbstanbau' },
                                 { id: 'csc', label: '🏢 CSC' },
                                 { id: 'other', label: 'Sonstiges' }
                             ].map((s) => (
