@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Globe, Wand2, Check, Loader2 } from "lucide-react";
 import { Strain, StrainSource } from "@/lib/types";
+import { safeParsePercent } from "@/lib/strain-display";
 import { useEffect } from "react";
 
 type NamedItem = string | { name?: string | null };
@@ -34,7 +35,8 @@ type StrainPayload = {
     cbd_max: number | null;
     avg_cbd?: number | null;
     description: string | null;
-    terpenes: string[] | null;
+    terpenes?: string[] | null;
+    flavors?: string[] | null;
     effects: string[] | null;
     image_url: string | null;
     slug?: string;
@@ -159,11 +161,17 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
             setThcEstimate(strain.avg_thc?.toString() || strain.thc_max?.toString() || "");
             setCbdEstimate(strain.avg_cbd?.toString() || strain.cbd_max?.toString() || "");
 
-            // Extract display names for terpenes and effects
+            // Extract display names for flavors, terpenes and effects
             const extractNames = (items: NamedItem[]) => items
                 .map((item) => typeof item === 'string' ? item : item.name)
                 .filter((value): value is string => Boolean(value));
-            setSelectedTerpenes(Array.isArray(strain.terpenes) ? extractNames(strain.terpenes as NamedItem[]) : []);
+            setSelectedTerpenes(
+                Array.isArray(strain.flavors)
+                    ? extractNames(strain.flavors as NamedItem[])
+                    : Array.isArray(strain.terpenes)
+                        ? extractNames(strain.terpenes as NamedItem[])
+                        : []
+            );
             setSelectedEffects(Array.isArray(strain.effects) ? extractNames(strain.effects as NamedItem[]) : []);
 
             setDescription(strain.description || "");
@@ -317,7 +325,16 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
     };
 
     const handleImportFromLeafly = async () => {
-        if (!leaflyUrl.includes("leafly.com/strains/")) {
+        try {
+            const parsedUrl = new URL(leaflyUrl.trim());
+            const isValidLeaflyHost = parsedUrl.hostname === "leafly.com" || parsedUrl.hostname === "www.leafly.com";
+            const isValidStrainPath = parsedUrl.pathname.startsWith("/strains/");
+
+            if (!isValidLeaflyHost || !isValidStrainPath) {
+                setError("Bitte gib eine gültige Leafly-URL ein.");
+                return;
+            }
+        } catch {
             setError("Bitte gib eine gültige Leafly-URL ein.");
             return;
         }
@@ -329,7 +346,7 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
             const response = await fetch("/api/import/leafly", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ url: leaflyUrl }),
+                body: JSON.stringify({ url: leaflyUrl.trim() }),
             });
 
             if (!response.ok) throw new Error("Import fehlgeschlagen");
@@ -339,11 +356,11 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
             if (data.name) setName(data.name);
             if (data.type) setType(data.type === "hybrid" || data.type === "sativa" || data.type === "indica" ? data.type : "hybrid");
 
-            if (data.thc !== undefined && data.thc !== null) setThcEstimate(data.thc.toString());
-            if (data.cbd !== undefined && data.cbd !== null) setCbdEstimate(data.cbd.toString());
+            if (data.thc !== undefined && data.thc !== null) setThcEstimate(String(data.thc));
+            if (data.cbd !== undefined && data.cbd !== null) setCbdEstimate(String(data.cbd));
 
             if (data.description) setDescription(data.description.replace(/<[^>]*>/g, '').slice(0, 500));
-            if (data.image_url) setImportedImageUrl(data.image_url);
+            if (typeof data.image_url === "string" && data.image_url.trim()) setImportedImageUrl(data.image_url);
 
             // Extensive Mapping Dictionary
             const TASTE_MAP: Record<string, string[]> = {
@@ -386,10 +403,16 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
                 "Klar": ["clear", "mental clarity"]
             };
 
-            if (Array.isArray(data.terpenes)) {
+            const importedTasteValues = Array.isArray(data.flavors)
+                ? data.flavors
+                : Array.isArray(data.terpenes)
+                    ? data.terpenes
+                    : [];
+
+            if (importedTasteValues.length > 0) {
                 const foundTastes = TASTE_OPTIONS.filter(opt => {
                     const keywords = TASTE_MAP[opt] || [];
-                    const normalizedImported = data.terpenes.map((t: string) => t.toLowerCase());
+                    const normalizedImported = importedTasteValues.map((t: string) => t.toLowerCase());
                     return normalizedImported.some((t: string) =>
                         t.includes(opt.toLowerCase()) ||
                         keywords.some(k => t.includes(k))
@@ -434,6 +457,19 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
         setError(null);
 
         try {
+            const parsedThcEstimate = safeParsePercent(thcEstimate);
+            const parsedCbdEstimate = safeParsePercent(cbdEstimate);
+
+            if (thcEstimate.trim() && parsedThcEstimate === null) {
+                setError("Bitte gib einen gültigen THC-Wert ein.");
+                return;
+            }
+
+            if (cbdEstimate.trim() && parsedCbdEstimate === null) {
+                setError("Bitte gib einen gültigen CBD-Wert ein.");
+                return;
+            }
+
             const slug = isEditMode && strain ? strain.slug : await generateUniqueSlug(name.trim(), user.id);
 
             const basePayload: StrainPayload = {
@@ -441,12 +477,12 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
                 farmer: farmer.trim(),
                 type,
                 source,
-                thc_max: thcEstimate ? parseFloat(thcEstimate) : null,
-                avg_thc: thcEstimate ? parseFloat(thcEstimate) : null,
-                cbd_max: cbdEstimate ? parseFloat(cbdEstimate) : null,
-                avg_cbd: cbdEstimate ? parseFloat(cbdEstimate) : null,
+                thc_max: parsedThcEstimate,
+                avg_thc: parsedThcEstimate,
+                cbd_max: parsedCbdEstimate,
+                avg_cbd: parsedCbdEstimate,
                 description: description.trim() || null,
-                terpenes: selectedTerpenes.length > 0 ? selectedTerpenes : null,
+                flavors: selectedTerpenes.length > 0 ? selectedTerpenes : null,
                 effects: selectedEffects.length > 0 ? selectedEffects : null,
                 image_url: importedImageUrl || (isEditMode ? strain.image_url ?? null : null)
             };
@@ -464,7 +500,8 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
                 user_id: user.id,
                 strain_id: resultData.id,
                 batch_info: source,
-                user_thc_percent: thcEstimate ? parseFloat(thcEstimate) : null,
+                user_thc_percent: parsedThcEstimate,
+                user_cbd_percent: parsedCbdEstimate,
                 user_notes: description.trim() || null,
                 user_image_url: importedImageUrl || (isEditMode ? strain.image_url ?? null : null)
             }, { onConflict: 'user_id,strain_id' });

@@ -9,6 +9,7 @@ import { useAuth } from "@/components/auth-provider";
 import { Strain, StrainSource } from "@/lib/types";
 import { StrainCard } from "@/components/strains/strain-card";
 import { Calendar } from "@/components/ui/calendar";
+import { normalizeCollectionSource } from "@/lib/strain-display";
 import {
   Dialog,
   DialogContent,
@@ -18,9 +19,36 @@ import {
 import { format, isSameDay } from "date-fns";
 import { de } from "date-fns/locale";
 
+type CollectionStrain = Strain & {
+  collected_at?: string | null;
+  created_by?: string | null;
+  user_notes?: string | null;
+  image_url?: string;
+  avg_thc?: number;
+  avg_cbd?: number;
+};
+
+type CollectionRow = {
+  batch_info: string | null;
+  user_notes: string | null;
+  user_thc_percent: number | null;
+  user_cbd_percent: number | null;
+  user_image_url: string | null;
+  date_added: string | null;
+  strain: Strain[] | Strain | null;
+};
+
+const SOURCE_FILTERS: { id: StrainSource | "all"; label: string }[] = [
+  { id: "all", label: "Alle" },
+  { id: "pharmacy", label: "🧪 Apotheke" },
+  { id: "grow", label: "🌱 Eigenanbau" },
+  { id: "csc", label: "🏢 CSC" },
+  { id: "other", label: "📦 Sonstiges" },
+];
+
 export default function CollectionPage() {
   const { user, loading: authLoading } = useAuth();
-  const [strains, setStrains] = useState<(Strain & { collected_at?: string })[]>([]);
+  const [strains, setStrains] = useState<CollectionStrain[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<StrainSource | "all">("all");
@@ -54,33 +82,32 @@ export default function CollectionPage() {
         if (fetchError) throw fetchError;
 
         if (data) {
-          const userStrains = data
-            .map(item => {
-              const s = item.strain as any;
-              if (!s) return null;
-              
-              // Normalisiere die Herkunft für die Filterung
-              let normalizedSource = item.batch_info || s.source || 'pharmacy';
-              if (normalizedSource === 'apotheke') normalizedSource = 'pharmacy';
-              if (normalizedSource === 'street') normalizedSource = 'other';
+          const userStrains = (data as unknown as CollectionRow[]).reduce<CollectionStrain[]>((acc, item) => {
+            const rawStrain = Array.isArray(item.strain) ? item.strain[0] : item.strain;
+            if (!rawStrain) {
+              return acc;
+            }
 
-              return {
-                ...s,
-                image_url: item.user_image_url || s.image_url,
-                source: normalizedSource,
-                avg_thc: item.user_thc_percent || s.avg_thc,
-                avg_cbd: item.user_cbd_percent || s.avg_cbd,
-                user_notes: item.user_notes,
-                collected_at: item.date_added
-              };
-            })
-            .filter(Boolean);
+            const normalizedSource = normalizeCollectionSource(item.batch_info || rawStrain.source);
+
+            acc.push({
+              ...rawStrain,
+              image_url: item.user_image_url || rawStrain.image_url || undefined,
+              source: normalizedSource,
+              avg_thc: item.user_thc_percent ?? rawStrain.avg_thc ?? rawStrain.thc_max ?? undefined,
+              avg_cbd: item.user_cbd_percent ?? rawStrain.avg_cbd ?? rawStrain.cbd_max ?? undefined,
+              user_notes: item.user_notes,
+              collected_at: item.date_added,
+            });
+
+            return acc;
+          }, []);
 
           setStrains(userStrains);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Collection fetch error:", err);
-        setError(err.message);
+        setError(err instanceof Error ? err.message : "Unbekannter Fehler beim Laden der Sammlung.");
       } finally {
         setLoading(false);
       }
@@ -91,11 +118,11 @@ export default function CollectionPage() {
 
   const filteredStrains = strains.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
-    
+
     let matchesSource = true;
     if (sourceFilter === "grow") {
-      const isGrow = s.source === "grow" || (!!user && (s as any).created_by === user.id);
-      matchesSource = !!isGrow;
+      const isGrow = s.source === "grow" || (!!user && s.created_by === user.id);
+      matchesSource = isGrow;
     } else if (sourceFilter !== "all") {
       matchesSource = s.source === sourceFilter;
     }
@@ -133,12 +160,12 @@ export default function CollectionPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => setIsCalendarOpen(true)}
             className={`h-12 w-12 rounded-2xl border-white/10 shrink-0 transition-all ${selectedDate ? 'bg-[#2FF801] border-[#2FF801] text-black' : 'bg-white/5 text-[#2FF801]'}`}
           >
-             <CalendarDays size={20} />
+            <CalendarDays size={20} />
           </Button>
         </div>
 
@@ -157,23 +184,16 @@ export default function CollectionPage() {
         )}
 
         <div className="flex gap-2 mt-2 overflow-x-auto pb-1 -mx-1 px-1">
-          {[
-            { id: "all", label: "Alle" },
-            { id: "pharmacy", label: "🧪 Apotheke" },
-            { id: "grow", label: "🌱 Eigenanbau" },
-            { id: "csc", label: "🏢 CSC" },
-            { id: "other", label: "📦 Sonstiges" }
-          ].map((f) => (
+          {SOURCE_FILTERS.map((f) => (
             <Button
               key={f.id}
               size="sm"
               variant={sourceFilter === f.id ? "default" : "outline"}
-              onClick={() => setSourceFilter(f.id as any)}
-              className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${
-                sourceFilter === f.id 
-                ? "bg-[#2FF801] text-black" 
+              onClick={() => setSourceFilter(f.id)}
+              className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === f.id
+                ? "bg-[#2FF801] text-black"
                 : "bg-white/5 border-white/10 text-white/60"
-              }`}
+                }`}
             >
               {f.label}
             </Button>
@@ -210,7 +230,7 @@ export default function CollectionPage() {
           <DialogHeader className="w-full mb-4">
             <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-[#2FF801] text-center">Archiv Datum</DialogTitle>
           </DialogHeader>
-          
+
           <div className="w-full bg-black/20 rounded-3xl p-2 border border-white/5 shadow-inner">
             <Calendar
               mode="single"
@@ -224,8 +244,8 @@ export default function CollectionPage() {
           </div>
 
           {selectedDate && (
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={() => {
                 setSelectedDate(undefined);
                 setIsCalendarOpen(false);

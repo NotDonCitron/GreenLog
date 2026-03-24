@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Strain } from '@/lib/types';
 import { Lock } from 'lucide-react';
+import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay } from '@/lib/strain-display';
 
 interface StrainCardProps {
   strain: Strain;
@@ -9,44 +10,13 @@ interface StrainCardProps {
 }
 
 export function StrainCard({ strain, index = 0, isCollected = true }: StrainCardProps) {
-  const typeStr = (strain.type || '').toLowerCase();
-  let themeColor = '#00FFFF';
-  let themeClass = 'theme-cyan';
-  let underlineBg = 'bg-[#00FFFF]';
-
-  if (typeStr.includes('sativa')) {
-    themeColor = '#fbbf24';
-    themeClass = 'theme-gold';
-    underlineBg = 'bg-[#fbbf24]';
-  } else if (typeStr.includes('indica')) {
-    themeColor = '#10b981';
-    themeClass = 'theme-emerald';
-    underlineBg = 'bg-[#10b981]';
-  }
+  const { color: themeColor, className: themeClass, underlineClass: underlineBg } = getStrainTheme(strain.type);
 
   const farmerDisplay = strain.farmer?.trim() || strain.manufacturer?.trim() || strain.brand?.trim() || 'Unbekannter Farmer';
-  const thcValue = strain.avg_thc ?? strain.thc_max;
-  const thcDisplay = typeof thcValue === 'number' ? `${thcValue}%` : '—';
-  const cbdValue = strain.avg_cbd ?? strain.cbd_max;
-  const cbdDisplay = typeof cbdValue === 'number' ? `${cbdValue}%` : '< 1%';
-
-  const extractDisplayName = (value: unknown) => {
-    if (typeof value === 'string') return value;
-    if (!value || typeof value !== 'object') return null;
-    if ('name' in value) return (value as { name?: string | null }).name ?? null;
-    if ('label' in value) return (value as { label?: string | null }).label ?? null;
-    return null;
-  };
-
-  const normalizedEffects = Array.isArray(strain.effects)
-    ? strain.effects.map((effect) => extractDisplayName(effect)).filter(Boolean)
-    : [];
-  const normalizedFlavors = Array.isArray(strain.flavors)
-    ? strain.flavors.map((flavor) => extractDisplayName(flavor)).filter(Boolean)
-    : [];
-
-  const effectDisplay = normalizedEffects.length > 0 ? normalizedEffects[0] : 'Euphorie';
-  const tasteDisplay = normalizedFlavors.length > 0 ? normalizedFlavors.slice(0, 2).join(', ') : 'Zitrus, Erdig';
+  const thcDisplay = formatPercent(strain.avg_thc ?? strain.thc_max, '—');
+  const cbdDisplay = formatPercent(strain.avg_cbd ?? strain.cbd_max, '< 1%');
+  const effectDisplay = getEffectDisplay(strain);
+  const tasteDisplay = getTasteDisplay(strain);
 
   const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const normalizedStrainName = (() => {

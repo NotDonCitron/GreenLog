@@ -1,5 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 
+type JsonRecord = Record<string, unknown>;
+
+type LeaflyImportResponse = {
+  name?: string;
+  type?: string;
+  description?: string;
+  thc: number | null;
+  cbd: number | null;
+  terpenes: string[];
+  flavors: string[];
+  effects: string[];
+  image_url: string | null;
+};
+
+const isRecord = (value: unknown): value is JsonRecord => typeof value === "object" && value !== null;
+
 const extractNames = (items: unknown): string[] => {
   if (!Array.isArray(items)) return [];
   return items.map((item) => {
@@ -13,10 +29,50 @@ const extractNames = (items: unknown): string[] => {
   }).filter(Boolean);
 };
 
+const parseLeaflyUrl = (rawUrl: unknown) => {
+  if (typeof rawUrl !== "string" || !rawUrl.trim()) {
+    return null;
+  }
+
+  try {
+    const parsedUrl = new URL(rawUrl.trim());
+    const isValidHost = parsedUrl.hostname === "leafly.com" || parsedUrl.hostname === "www.leafly.com";
+    const isValidPath = parsedUrl.pathname.startsWith("/strains/");
+
+    if (!isValidHost || !isValidPath) {
+      return null;
+    }
+
+    return parsedUrl.toString();
+  } catch {
+    return null;
+  }
+};
+
+const getNumericValue = (value: unknown) => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+
+  if (typeof value === "string") {
+    const match = value.match(/(\d+(?:\.\d+)?)/);
+    return match ? Number.parseFloat(match[1]) : null;
+  }
+
+  if (value && typeof value === "object") {
+    const valueRecord = value as Record<string, unknown>;
+    return getNumericValue(valueRecord.avg ?? valueRecord.value ?? valueRecord.average ?? null);
+  }
+
+  return null;
+};
+
+const uniqueNormalized = (values: string[]) => Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+
 export async function POST(req: NextRequest) {
   try {
-    const { url } = await req.json();
-    if (!url || !url.includes("leafly.com/strains/")) {
+    const body = await req.json();
+    const url = parseLeaflyUrl(body?.url);
+
+    if (!url) {
       return NextResponse.json({ error: "Ungültige Leafly-URL" }, { status: 400 });
     }
 
@@ -28,88 +84,101 @@ export async function POST(req: NextRequest) {
 
     const html = await response.text();
     const lowerHtml = html.toLowerCase();
-    let scrapedData: any = { terpenes: [], effects: [] };
+    const scrapedData: LeaflyImportResponse = {
+      thc: null,
+      cbd: null,
+      terpenes: [],
+      flavors: [],
+      effects: [],
+      image_url: null,
+    };
 
-    // 1. Primär: Next.js JSON Block
     const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
     if (nextDataMatch) {
       try {
-        const fullData = JSON.parse(nextDataMatch[1]);
-        const strainData = fullData.props?.pageProps?.strain || fullData.props?.pageProps?.strainData || fullData.props?.pageProps?.initialStrain || {};
+        const fullData = JSON.parse(nextDataMatch[1]) as unknown;
+        const propsData = isRecord(fullData) && isRecord(fullData.props) ? fullData.props : null;
+        const pagePropsData = propsData && isRecord(propsData.pageProps) ? propsData.pageProps : null;
+        const strainData = pagePropsData && isRecord(pagePropsData.strain)
+          ? pagePropsData.strain
+          : pagePropsData && isRecord(pagePropsData.strainData)
+            ? pagePropsData.strainData
+            : pagePropsData && isRecord(pagePropsData.initialStrain)
+              ? pagePropsData.initialStrain
+              : {};
 
-        const getVal = (val: any) => {
-          if (typeof val === 'number') return val;
-          if (typeof val === 'string') {
-            const m = val.match(/(\d+(?:\.\d+)?)/);
-            return m ? parseFloat(m[1]) : null;
-          }
-          if (val && typeof val === 'object') return val.avg || val.value || val.average || null;
-          return null;
-        };
-
-        const allTastes = [
+        const extractedTerpenes = uniqueNormalized([
           ...extractNames(strainData.topTerpenes || []),
           ...extractNames(strainData.terpenes || []),
-          ...extractNames(strainData.flavors || []),
-          ...extractNames(strainData.flavorProfiles || [])
-        ];
+        ]);
 
-        const allEffects = [
+        const extractedFlavors = uniqueNormalized([
+          ...extractNames(strainData.flavors || []),
+          ...extractNames(strainData.flavorProfiles || []),
+        ]);
+
+        const extractedEffects = uniqueNormalized([
           ...extractNames(strainData.feelings || []),
           ...extractNames(strainData.effects || []),
-          ...extractNames(strainData.topEffects || [])
-        ];
+          ...extractNames(strainData.topEffects || []),
+        ]);
 
-        scrapedData = {
-          name: strainData.name || "",
-          type: (strainData.category || "hybrid").toLowerCase(),
-          description: strainData.description || "",
-          thc: getVal(strainData.thc),
-          cbd: getVal(strainData.cbd),
-          terpenes: Array.from(new Set(allTastes)),
-          effects: Array.from(new Set(allEffects)),
-          image_url: strainData.imageUrl || strainData.heroImage || null,
-        };
-      } catch (e) {}
+        scrapedData.name = typeof strainData.name === "string" ? strainData.name : "";
+        scrapedData.type = typeof strainData.category === "string" ? strainData.category.toLowerCase() : "hybrid";
+        scrapedData.description = typeof strainData.description === "string" ? strainData.description : "";
+        scrapedData.thc = getNumericValue(strainData.thc);
+        scrapedData.cbd = getNumericValue(strainData.cbd);
+        scrapedData.terpenes = extractedTerpenes;
+        scrapedData.flavors = extractedFlavors;
+        scrapedData.effects = extractedEffects;
+        scrapedData.image_url = typeof strainData.imageUrl === "string"
+          ? strainData.imageUrl
+          : typeof strainData.heroImage === "string"
+            ? strainData.heroImage
+            : null;
+      } catch (error) {
+        console.error("Leafly __NEXT_DATA__ parse error:", error);
+      }
     }
 
-    // 2. Sekundär: Meta-Tags Fallback
     const titleMatch = html.match(/<title>(.*?)<\/title>/i);
     const descMatch = html.match(/<meta name="description" content="(.*?)"/i);
     const imageMatch = html.match(/<meta property="og:image" content="(.*?)"/i);
-    
+
     if (!scrapedData.name) scrapedData.name = titleMatch ? titleMatch[1].split("|")[0].replace("Strain Information", "").trim() : "";
     if (!scrapedData.description) scrapedData.description = descMatch ? descMatch[1] : "";
     if (!scrapedData.image_url) scrapedData.image_url = imageMatch ? imageMatch[1] : null;
 
-    if (!scrapedData.thc && scrapedData.description) {
+    if (scrapedData.thc === null && scrapedData.description) {
       const thcMatch = scrapedData.description.match(/(\d+(?:\.\d+)?)\s*%\s*thc/i);
-      if (thcMatch) scrapedData.thc = parseFloat(thcMatch[1]);
+      if (thcMatch) scrapedData.thc = Number.parseFloat(thcMatch[1]);
     }
 
-    // 3. Tertiär: Aggressives Keyword Scraping für Geschmack & Wirkung
-    // Wir suchen nach Begriffen in der gesamten Seite
     const TASTE_KEYWORDS = ["earthy", "sweet", "citrus", "lemon", "pine", "berry", "spicy", "fruity", "diesel", "skunk", "pepper", "grape", "tropical", "vanilla", "cheese", "mint", "coffee", "nutty"];
-    TASTE_KEYWORDS.forEach(kw => {
-      // Suche nach dem Keyword als Standalone-Wort oder in Tags
-      if (lowerHtml.includes(`>${kw}<`) || lowerHtml.includes(`"${kw}"`) || lowerHtml.includes(` ${kw} `)) {
-        if (!scrapedData.terpenes.map((t: string) => t.toLowerCase()).includes(kw)) {
-          scrapedData.terpenes.push(kw);
+    TASTE_KEYWORDS.forEach((keyword) => {
+      if (lowerHtml.includes(`>${keyword}<`) || lowerHtml.includes(`"${keyword}"`) || lowerHtml.includes(` ${keyword} `)) {
+        if (!scrapedData.flavors.some((value) => value.toLowerCase() === keyword)) {
+          scrapedData.flavors.push(keyword);
         }
       }
     });
 
     const EFFECT_KEYWORDS = ["relaxed", "happy", "euphoric", "uplifted", "creative", "sleepy", "hungry", "focused", "energetic", "calm", "giggly", "talkative", "tingly"];
-    EFFECT_KEYWORDS.forEach(kw => {
-      if (lowerHtml.includes(`>${kw}<`) || lowerHtml.includes(`"${kw}"`) || lowerHtml.includes(` ${kw} `)) {
-        if (!scrapedData.effects.map((e: string) => e.toLowerCase()).includes(kw)) {
-          scrapedData.effects.push(kw);
+    EFFECT_KEYWORDS.forEach((keyword) => {
+      if (lowerHtml.includes(`>${keyword}<`) || lowerHtml.includes(`"${keyword}"`) || lowerHtml.includes(` ${keyword} `)) {
+        if (!scrapedData.effects.some((value) => value.toLowerCase() === keyword)) {
+          scrapedData.effects.push(keyword);
         }
       }
     });
 
-    return NextResponse.json(scrapedData);
-  } catch (error: any) {
+    return NextResponse.json({
+      ...scrapedData,
+      terpenes: uniqueNormalized(scrapedData.terpenes),
+      flavors: uniqueNormalized(scrapedData.flavors),
+      effects: uniqueNormalized(scrapedData.effects),
+    });
+  } catch (error: unknown) {
     console.error("Leafly Import Error:", error);
     return NextResponse.json({ error: "Fehler beim Importieren" }, { status: 500 });
   }

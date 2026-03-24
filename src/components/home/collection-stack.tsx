@@ -1,8 +1,10 @@
 "use client";
 
+import { useRef } from "react";
 import { Strain } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { RefreshCw } from "lucide-react";
+import { extractDisplayName, formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeTerpeneList } from "@/lib/strain-display";
 
 interface CollectionStackProps {
   strains: (Strain & {
@@ -27,71 +29,41 @@ export function CollectionStack({
   handleSwipe,
 }: CollectionStackProps) {
   const currentStrain = strains[activeIndex];
+  const touchStartRef = useRef<number | null>(null);
+  const mouseStartRef = useRef<number | null>(null);
 
-  const extractDisplayName = (value: unknown) => {
-    if (typeof value === 'string') return value;
-    if (!value || typeof value !== 'object') return null;
-    if ('name' in value) return (value as any).name;
-    if ('label' in value) return (value as any).label;
-    return null;
-  };
-  
-  const getTasteDisplay = (strain: Strain) => {
-    if (Array.isArray(strain.flavors) && strain.flavors.length > 0) {
-      return strain.flavors.map(f => extractDisplayName(f)).filter(Boolean).slice(0, 2).join(", ");
-    }
-    return "Zitrus, Erdig";
-  };
-
-  const getEffectDisplay = (strain: Strain) => {
-    if (Array.isArray(strain.effects) && strain.effects.length > 0) {
-      return strain.effects.map(e => extractDisplayName(e)).filter(Boolean).slice(0, 1).join("");
-    }
-    return strain.is_medical ? "Medical" : "Euphorie";
-  };
-
-  const normalizedTerpenes = Array.isArray(currentStrain.terpenes) ? currentStrain.terpenes.map(t => {
-    if (typeof t === 'string') return t;
-    if (t && typeof t === 'object' && 'name' in t) {
-      return (t as any).percent ? `${(t as any).name} (${(t as any).percent}%)` : (t as any).name;
-    }
-    return null;
-  }).filter(Boolean) : [];
-
+  const normalizedTerpenes = normalizeTerpeneList(currentStrain.terpenes);
   const typeDisplay = (extractDisplayName(currentStrain.type) || "Hybrid").toUpperCase();
-
-  // Color Mapping
-  const getThemeColor = () => {
-    switch(typeDisplay.toLowerCase()) {
-      case 'sativa': return '#fbbf24';
-      case 'indica': return '#10b981';
-      case 'hybrid': return '#00FFFF';
-      default: return '#00FFFF';
-    }
-  };
-
-  const themeColor = getThemeColor();
+  const themeColor = getStrainTheme(currentStrain.type).color;
 
   return (
     <div className="relative w-full aspect-[3/4.5] perspective-1000 max-w-[340px] mx-auto">
-      <div 
+      <div
         className={`relative w-full h-full transition-all duration-500 preserve-3d cursor-pointer ${isFlipped ? "rotate-y-180" : ""}`}
         onClick={() => setIsFlipped(!isFlipped)}
-        onTouchStart={(e) => (window as any).touchStart = e.touches[0].clientX}
-        onTouchEnd={(e) => {
-          const start = (window as any).touchStart;
-          const end = e.changedTouches[0].clientX;
-          handleSwipe(start, end);
+        onTouchStart={(e) => {
+          touchStartRef.current = e.touches[0].clientX;
         }}
-        onMouseDown={(e) => (window as any).mouseStart = e.clientX}
+        onTouchEnd={(e) => {
+          const start = touchStartRef.current;
+          const end = e.changedTouches[0].clientX;
+          if (start !== null) {
+            handleSwipe(start, end);
+          }
+          touchStartRef.current = null;
+        }}
+        onMouseDown={(e) => {
+          mouseStartRef.current = e.clientX;
+        }}
         onMouseUp={(e) => {
-          const start = (window as any).mouseStart;
+          const start = mouseStartRef.current;
           const end = e.clientX;
-          if (start && Math.abs(start - end) > 10) handleSwipe(start, end);
+          if (start !== null && Math.abs(start - end) > 10) handleSwipe(start, end);
+          mouseStartRef.current = null;
         }}
       >
         {/* Front Side */}
-        <Card 
+        <Card
           className="absolute inset-0 backface-hidden rounded-[20px] overflow-hidden bg-[#121212] shadow-2xl flex flex-col border-2"
           style={{ borderColor: themeColor, boxShadow: `0 0 15px ${themeColor}4d` }}
         >
@@ -113,7 +85,7 @@ export function CollectionStack({
               <div className="grid grid-cols-2 gap-4 border-b border-white/5 pb-2 mb-2">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
-                  <span className="text-sm font-bold tracking-wide" style={{ color: themeColor }}>{currentStrain.avg_thc || currentStrain.thc_max || "—"}%</span>
+                  <span className="text-sm font-bold tracking-wide" style={{ color: themeColor }}>{formatPercent(currentStrain.avg_thc ?? currentStrain.thc_max, "—")}</span>
                 </div>
                 <div className="flex items-center justify-end border-l border-white/5 pl-4 w-full">
                   <span className="text-gray-100 text-[10px] font-medium tracking-wide truncate">{getTasteDisplay(currentStrain)}</span>
@@ -123,7 +95,7 @@ export function CollectionStack({
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
-                  <span className="text-sm font-bold tracking-wide" style={{ color: themeColor }}>{currentStrain.avg_cbd || currentStrain.cbd_max || "—"}%</span>
+                  <span className="text-sm font-bold tracking-wide" style={{ color: themeColor }}>{formatPercent(currentStrain.avg_cbd ?? currentStrain.cbd_max, "< 1%")}</span>
                 </div>
                 <div className="flex items-center justify-end border-l border-white/5 pl-4 w-full">
                   <span className="text-gray-100 text-[10px] font-medium tracking-wide truncate">{getEffectDisplay(currentStrain)}</span>
@@ -134,20 +106,20 @@ export function CollectionStack({
         </Card>
 
         {/* Back Side */}
-        <Card 
+        <Card
           className="absolute inset-0 rotate-y-180 backface-hidden rounded-[20px] overflow-hidden bg-[#121212] shadow-2xl p-8 flex flex-col border-2"
           style={{ borderColor: themeColor }}
         >
           <div className="flex-1 space-y-6">
             <h3 className="font-serif italic text-xl font-bold uppercase text-white">Sorten Profil</h3>
-            
+
             <div>
               <p className="text-[9px] font-black uppercase text-white/30 mb-1">Beschreibung</p>
               <p className="text-[11px] font-medium italic text-white/70 leading-relaxed line-clamp-6">
                 {currentStrain.user_review || currentStrain.description || "Noch keine Informationen hinterlegt."}
               </p>
             </div>
-            
+
             {normalizedTerpenes.length > 0 && (
               <div className="pt-4 border-t border-white/5">
                 <p className="text-[9px] font-black uppercase text-white/30 mb-2">Terpene</p>

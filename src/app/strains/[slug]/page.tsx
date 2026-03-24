@@ -2,22 +2,28 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { toPng } from "html-to-image";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, Info, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Flame, Wind, Eye, Leaf, Database, Sparkles, Share2, Download, Trash2, Pencil, Lock } from "lucide-react";
+import { ChevronLeft, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Database, Trash2, Pencil, Lock } from "lucide-react";
 import { Strain } from "@/lib/types";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
+import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeCollectionSource, normalizeTerpeneList } from "@/lib/strain-display";
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return fallback;
+};
 
 export default function StrainDetailPage() {
   const { slug } = useParams();
   const { user, isDemoMode } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
 
   const [strain, setStrain] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);
@@ -32,8 +38,6 @@ export default function StrainDetailPage() {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [batchInfo, setBatchInfo] = useState("");
   const [userNotes, setUserNotes] = useState("");
-  const [badgeToast, setBadgeToast] = useState<{ name: string; rarity: string } | null>(null);
-  const [isSharing, setIsSharing] = useState(false);
 
   const [ratings, setRatings] = useState({
     taste: 4.5,
@@ -52,29 +56,49 @@ export default function StrainDetailPage() {
     async function fetchStrain() {
       const { data, error } = await supabase.from("strains").select("*").eq("slug", slug).single();
 
+      if (error && !isDemoMode) {
+        console.error("Strain fetch error:", error);
+      }
+
       if (data) {
-        setStrain(data as Strain);
+        setStrain({
+          ...(data as Strain),
+          source: normalizeCollectionSource((data as Strain).source),
+        });
+
         if (user) {
-          const { data: r } = await supabase.from("ratings").select("id").eq("strain_id", data.id).eq("user_id", user.id).single();
-          if (r) setHasCollected(true);
+          const { data: fav } = await supabase
+            .from("user_strain_relations")
+            .select("is_favorite")
+            .eq("strain_id", data.id)
+            .eq("user_id", user.id)
+            .maybeSingle();
+          setIsFavorite(Boolean(fav?.is_favorite));
 
-          const { data: fav } = await supabase.from("user_strain_relations").select("is_favorite").eq("strain_id", data.id).eq("user_id", user.id).single();
-          if (fav) setIsFavorite(fav.is_favorite);
+          const { data: collection } = await supabase
+            .from("user_collection")
+            .select("user_image_url, batch_info, user_notes")
+            .eq("strain_id", data.id)
+            .eq("user_id", user.id)
+            .maybeSingle();
 
-          const { data: collection } = await supabase.from("user_collection").select("user_image_url, batch_info, user_notes").eq("strain_id", data.id).eq("user_id", user.id).maybeSingle();
+          setHasCollected(Boolean(collection));
           if (collection) {
-            if (collection.user_image_url) setUserImageUrl(collection.user_image_url);
+            setUserImageUrl(collection.user_image_url || null);
             setBatchInfo(collection.batch_info || "");
             setUserNotes(collection.user_notes || "");
+          } else {
+            setUserImageUrl(null);
+            setBatchInfo("");
+            setUserNotes("");
           }
 
-          // Prüfen ob andere User den Strain haben
           const { count: othersCount } = await supabase
             .from("user_collection")
             .select("*", { count: 'exact', head: true })
             .eq("strain_id", data.id)
             .neq("user_id", user.id);
-          
+
           setIsDeletable((othersCount || 0) === 0);
         }
       } else if (isDemoMode) {
@@ -95,41 +119,55 @@ export default function StrainDetailPage() {
 
   const handleDelete = async () => {
     if (!strain || !user || isDemoMode) return;
-    
+
+    if (strain.created_by !== user.id) {
+      alert("Nur der Ersteller kann diese Sorte löschen.");
+      return;
+    }
+
+    if (!isDeletable) {
+      alert("Diese Sorte kann nicht mehr gelöscht werden, da sie bereits von anderen Community-Mitgliedern gesammelt wurde.");
+      return;
+    }
+
     const confirmDelete = window.confirm(`Möchtest du die Sorte "${strain.name}" wirklich unwiderruflich löschen?`);
     if (!confirmDelete) return;
 
     setIsDeleting(true);
     try {
-      console.log("Starting deletion process for strain:", strain.id);
-      
-      // Lösche alle Referenzen
-      await supabase.from("user_strain_relations").delete().eq("strain_id", strain.id);
-      await supabase.from("user_collection").delete().eq("strain_id", strain.id);
-      await supabase.from("ratings").delete().eq("strain_id", strain.id);
-      await supabase.from("user_activities").delete().eq("target_id", String(strain.id));
+      const cleanupOperations = [
+        supabase.from("user_strain_relations").delete().eq("strain_id", strain.id).eq("user_id", user.id),
+        supabase.from("user_collection").delete().eq("strain_id", strain.id).eq("user_id", user.id),
+        supabase.from("ratings").delete().eq("strain_id", strain.id).eq("user_id", user.id),
+        supabase.from("user_activities").delete().eq("target_id", String(strain.id)).eq("user_id", user.id),
+      ];
 
-      // Haupt-Eintrag löschen und Rückgabe prüfen
-      const { data: deletedRows, error: mainError } = await supabase
+      const cleanupResults = await Promise.all(cleanupOperations);
+      const cleanupFailure = cleanupResults.find((result) => result.error);
+      if (cleanupFailure?.error) {
+        throw cleanupFailure.error;
+      }
+
+      const { data: deletedRows, error: deleteError } = await supabase
         .from("strains")
         .delete()
         .eq("id", strain.id)
-        .select();
-      
-      if (mainError) {
-        throw new Error(`Datenbank-Fehler: ${mainError.message}`);
+        .eq("created_by", user.id)
+        .select("id");
+
+      if (deleteError) {
+        throw deleteError;
       }
 
       if (!deletedRows || deletedRows.length === 0) {
-        throw new Error("Löschen fehlgeschlagen: Die Sorte wurde nicht in der Datenbank gefunden oder du hast keine Berechtigung (RLS).");
+        throw new Error("Löschen fehlgeschlagen: Die Sorte wurde nicht gefunden oder du hast keine Berechtigung.");
       }
 
-      console.log("Deletion confirmed by database, redirecting...");
-      // Hard redirect to clear all caches
-      window.location.href = "/strains";
-    } catch (err: any) {
-      console.error("Delete failure:", err);
-      alert(err.message);
+      router.replace("/strains");
+      router.refresh();
+    } catch (error: unknown) {
+      console.error("Delete failure:", error);
+      alert(getErrorMessage(error, "Die Sorte konnte nicht gelöscht werden."));
     } finally {
       setIsDeleting(false);
     }
@@ -138,23 +176,48 @@ export default function StrainDetailPage() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user || !strain) return;
+
+    const isValidMimeType = ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type);
+    if (!isValidMimeType) {
+      alert("Bitte lade nur JPG, PNG, WEBP oder GIF hoch.");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Das Bild ist zu groß. Maximal 5 MB sind erlaubt.");
+      e.target.value = "";
+      return;
+    }
+
     setIsUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split('.').pop() || "jpg";
       const fileName = `${user.id}/${strain.slug}-${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('strains').upload(fileName, file);
+      const { error: uploadError } = await supabase.storage.from('strains').upload(fileName, file, { upsert: false });
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage.from('strains').getPublicUrl(fileName);
       setUserImageUrl(publicUrl);
 
-      if (hasCollected) {
-        await supabase.from('user_collection').update({ user_image_url: publicUrl }).eq('strain_id', strain.id).eq('user_id', user.id);
-      }
+      const { error: collectionError } = await supabase.from('user_collection').upsert({
+        user_id: user.id,
+        strain_id: strain.id,
+        user_image_url: publicUrl,
+        batch_info: batchInfo || null,
+        user_notes: userNotes || null,
+        user_thc_percent: strain.avg_thc ?? strain.thc_max ?? null,
+        user_cbd_percent: strain.avg_cbd ?? strain.cbd_max ?? null,
+      }, { onConflict: 'user_id,strain_id' });
+
+      if (collectionError) throw collectionError;
+
+      setHasCollected(true);
       alert("Foto hochgeladen!");
-    } catch (err: any) {
-      alert("Error: " + err.message);
+    } catch (error: unknown) {
+      alert("Error: " + getErrorMessage(error, "Foto konnte nicht hochgeladen werden."));
     } finally {
+      e.target.value = "";
       setIsUploading(false);
     }
   };
@@ -164,44 +227,25 @@ export default function StrainDetailPage() {
       if (isDemoMode) setIsFavorite(!isFavorited);
       return;
     }
-    const nextState = !isFavorited;
+
+    const previousState = isFavorited;
+    const nextState = !previousState;
     setIsFavorite(nextState);
+
     try {
-      await supabase.from("user_strain_relations").upsert({
+      const { error } = await supabase.from("user_strain_relations").upsert({
         user_id: user.id,
         strain_id: strain.id,
         is_favorite: nextState
       }, { onConflict: 'user_id,strain_id' });
+
+      if (error) {
+        throw error;
+      }
     } catch (err) {
       console.error("Fav error:", err);
-    }
-  };
-
-  const handleShareCard = async () => {
-    if (!cardRef.current || !strain) return;
-    setIsSharing(true);
-    try {
-      const wasFlipped = isFlipped;
-      if (wasFlipped) setIsFlipped(false);
-      await new Promise(resolve => setTimeout(resolve, 150));
-
-      const dataUrl = await toPng(cardRef.current, { quality: 1, pixelRatio: 2, backgroundColor: '#1a191b' });
-
-      if (navigator.share) {
-        const blob = await (await fetch(dataUrl)).blob();
-        const file = new File([blob], `${strain.slug}-card.png`, { type: 'image/png' });
-        await navigator.share({ files: [file], title: strain.name });
-      } else {
-        const link = document.createElement('a');
-        link.download = `${strain.slug}-card.png`;
-        link.href = dataUrl;
-        link.click();
-      }
-      if (wasFlipped) setIsFlipped(true);
-    } catch (err) {
-      console.error("Share error:", err);
-    } finally {
-      setIsSharing(false);
+      setIsFavorite(previousState);
+      alert("Favorit konnte nicht gespeichert werden.");
     }
   };
 
@@ -220,62 +264,34 @@ export default function StrainDetailPage() {
 
       if (rError) throw rError;
 
-      await supabase.from("user_collection").upsert({
+      const { error: collectionError } = await supabase.from("user_collection").upsert({
         user_id: user.id,
         strain_id: strain.id,
-        batch_info: batchInfo,
-        user_notes: userNotes,
-        user_thc_percent: strain.avg_thc || strain.thc_max,
+        batch_info: batchInfo || null,
+        user_notes: userNotes || null,
+        user_thc_percent: strain.avg_thc ?? strain.thc_max ?? null,
+        user_cbd_percent: strain.avg_cbd ?? strain.cbd_max ?? null,
         user_image_url: userImageUrl
       }, { onConflict: 'user_id,strain_id' });
+
+      if (collectionError) throw collectionError;
 
       setHasCollected(true);
       setShowRatingModal(false);
       router.refresh();
-    } catch (err: any) {
-      alert("Error: " + err.message);
+    } catch (error: unknown) {
+      alert("Error: " + getErrorMessage(error, "Bewertung konnte nicht gespeichert werden."));
     } finally {
       setIsSaving(false);
     }
   };
 
-  const typeStr = (strain?.type || '').toLowerCase();
-  let themeColor = '#00FFFF';
-  let themeClass = 'theme-cyan';
-  let underlineBg = 'bg-[#00FFFF]';
-
-  if (typeStr.includes('sativa')) {
-    themeColor = '#fbbf24';
-    themeClass = 'theme-gold';
-    underlineBg = 'bg-[#fbbf24]';
-  } else if (typeStr.includes('indica')) {
-    themeColor = '#10b981';
-    themeClass = 'theme-emerald';
-    underlineBg = 'bg-[#10b981]';
-  }
-
-  const extractDisplayName = (value: unknown) => {
-    if (typeof value === 'string') return value;
-    if (!value || typeof value !== 'object') return null;
-    if ('name' in value) return (value as any).name;
-    if ('label' in value) return (value as any).label;
-    return null;
-  };
-
-  const normalizedEffects = Array.isArray(strain?.effects) ? strain.effects.map(e => extractDisplayName(e)).filter(Boolean) : [];
-  const normalizedFlavors = Array.isArray(strain?.flavors) ? strain.flavors.map(f => extractDisplayName(f)).filter(Boolean) : [];
-  const normalizedTerpenes = Array.isArray(strain?.terpenes) ? strain.terpenes.map(t => {
-    if (typeof t === 'string') return t;
-    if (t && typeof t === 'object' && 'name' in t) {
-      return (t as any).percent ? `${(t as any).name} (${(t as any).percent}%)` : (t as any).name;
-    }
-    return null;
-  }).filter(Boolean) : [];
-
-  const thcDisplay = (strain?.avg_thc ?? strain?.thc_max) ? `${strain?.avg_thc ?? strain?.thc_max}%` : '—';
-  const cbdDisplay = (strain?.avg_cbd ?? strain?.cbd_max) ? `${strain?.avg_cbd ?? strain?.cbd_max}%` : '< 1%';
-  const tasteDisplay = normalizedFlavors.length > 0 ? normalizedFlavors.slice(0, 2).join(' · ') : 'Zitrus, Erdig';
-  const effectDisplay = normalizedEffects[0] || (strain?.is_medical ? "Medical" : "Euphorie");
+  const { color: themeColor, underlineClass: underlineBg } = getStrainTheme(strain?.type);
+  const normalizedTerpenes = normalizeTerpeneList(strain?.terpenes);
+  const thcDisplay = formatPercent(strain?.avg_thc ?? strain?.thc_max, '—');
+  const cbdDisplay = formatPercent(strain?.avg_cbd ?? strain?.cbd_max, '< 1%');
+  const tasteDisplay = strain ? getTasteDisplay(strain, 'Zitrus · Erdig').replace(/, /g, ' · ') : 'Zitrus · Erdig';
+  const effectDisplay = strain ? getEffectDisplay(strain) : 'Euphorie';
 
   if (loading) return <div className="min-h-screen bg-[#355E3B] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
   if (!strain) return <div className="text-white text-center py-20 uppercase font-bold">Strain not found</div>;
@@ -292,22 +308,22 @@ export default function StrainDetailPage() {
           </button>
           {user && strain?.created_by === user.id && (
             <>
-              <CreateStrainModal 
-                strain={strain} 
-                onSuccess={() => window.location.reload()} 
+              <CreateStrainModal
+                strain={strain}
+                onSuccess={() => window.location.reload()}
                 trigger={
                   <button className="p-2 rounded-full border border-[#00F5FF]/20 bg-[#00F5FF]/10 text-[#00F5FF]">
                     <Pencil size={20} />
                   </button>
-                } 
+                }
               />
               {isDeletable ? (
                 <button onClick={handleDelete} disabled={isDeleting} className="p-2 rounded-full border border-red-500/20 bg-red-500/10 text-red-500">
                   {isDeleting ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
                 </button>
               ) : (
-                <button 
-                  onClick={() => alert("Diese Sorte kann nicht mehr gelöscht werden, da sie bereits von anderen Community-Mitgliedern gesammelt wurde.")} 
+                <button
+                  onClick={() => alert("Diese Sorte kann nicht mehr gelöscht werden, da sie bereits von anderen Community-Mitgliedern gesammelt wurde.")}
                   className="p-2 rounded-full border border-white/5 bg-white/5 text-white/20"
                 >
                   <Lock size={20} />
@@ -321,9 +337,9 @@ export default function StrainDetailPage() {
       <div className="px-6 flex flex-col items-center">
         <div className="relative w-full max-w-[340px] aspect-[3/4.5] perspective-1000 mt-4 cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
           <div className={`relative w-full h-full transition-all duration-700 preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
-            
+
             {/* FRONT SIDE */}
-            <Card 
+            <Card
               className="absolute inset-0 backface-hidden rounded-[20px] overflow-hidden bg-[#121212] shadow-2xl flex flex-col border-2"
               style={{ borderColor: themeColor, boxShadow: `0 0 15px ${themeColor}4d` }}
             >
@@ -364,7 +380,7 @@ export default function StrainDetailPage() {
             </Card>
 
             {/* BACK SIDE */}
-            <Card 
+            <Card
               className="absolute inset-0 rotate-y-180 backface-hidden rounded-[20px] overflow-hidden bg-[#121212] shadow-2xl p-8 flex flex-col border-2"
               style={{ borderColor: themeColor }}
             >
@@ -423,21 +439,21 @@ export default function StrainDetailPage() {
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowRatingModal(false)} />
           <Card className="relative w-full max-w-md bg-[#1a191b] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl p-8 space-y-8 shadow-2xl animate-in slide-in-from-bottom duration-300">
             <h2 className="text-2xl font-black italic uppercase text-[#00F5FF] text-center">Tasting Log</h2>
-            
+
             <div className="space-y-6">
               {(['taste', 'effect', 'look'] as const).map((key) => (
                 <div key={key} className="flex items-center justify-between">
                   <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{key}</span>
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <button 
-                        key={star} 
+                      <button
+                        key={star}
                         onClick={() => handleStarClick(key, star)}
                         className="transition-transform active:scale-90"
                       >
-                        <Star 
-                          size={24} 
-                          className={ratings[key] >= star ? "text-[#ffd700] fill-[#ffd700]" : "text-white/10"} 
+                        <Star
+                          size={24}
+                          className={ratings[key] >= star ? "text-[#ffd700] fill-[#ffd700]" : "text-white/10"}
                         />
                       </button>
                     ))}
