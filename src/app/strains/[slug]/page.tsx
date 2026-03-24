@@ -104,28 +104,29 @@ export default function StrainDetailPage() {
       console.log("Starting deletion process for strain:", strain.id);
       
       // Lösche alle Referenzen
-      const r1 = await supabase.from("user_strain_relations").delete().eq("strain_id", strain.id);
-      if (r1.error) console.warn("Rel delete error:", r1.error);
-      
-      const r2 = await supabase.from("user_collection").delete().eq("strain_id", strain.id);
-      if (r2.error) console.warn("Coll delete error:", r2.error);
-      
-      const r3 = await supabase.from("ratings").delete().eq("strain_id", strain.id);
-      if (r3.error) console.warn("Rating delete error:", r3.error);
-      
-      const r4 = await supabase.from("user_activities").delete().eq("target_id", String(strain.id));
-      if (r4.error) console.warn("Activity delete error:", r4.error);
+      await supabase.from("user_strain_relations").delete().eq("strain_id", strain.id);
+      await supabase.from("user_collection").delete().eq("strain_id", strain.id);
+      await supabase.from("ratings").delete().eq("strain_id", strain.id);
+      await supabase.from("user_activities").delete().eq("target_id", String(strain.id));
 
-      // Haupt-Eintrag löschen
-      const { error: mainError } = await supabase.from("strains").delete().eq("id", strain.id);
+      // Haupt-Eintrag löschen und Rückgabe prüfen
+      const { data: deletedRows, error: mainError } = await supabase
+        .from("strains")
+        .delete()
+        .eq("id", strain.id)
+        .select();
       
       if (mainError) {
-        throw new Error(`Konnte Strain nicht aus Haupttabelle löschen: ${mainError.message}`);
+        throw new Error(`Datenbank-Fehler: ${mainError.message}`);
       }
 
-      console.log("Deletion successful, redirecting...");
-      router.push("/strains");
-      router.refresh();
+      if (!deletedRows || deletedRows.length === 0) {
+        throw new Error("Löschen fehlgeschlagen: Die Sorte wurde nicht in der Datenbank gefunden oder du hast keine Berechtigung (RLS).");
+      }
+
+      console.log("Deletion confirmed by database, redirecting...");
+      // Hard redirect to clear all caches
+      window.location.href = "/strains";
     } catch (err: any) {
       console.error("Delete failure:", err);
       alert(err.message);
