@@ -2,19 +2,30 @@
 
 import { useState, useEffect } from "react";
 import { BottomNav } from "@/components/bottom-nav";
-import { Search, CalendarDays, Loader2, AlertCircle } from "lucide-react";
+import { Search, CalendarDays, Loader2, AlertCircle, X, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import { Strain, StrainSource } from "@/lib/types";
 import { StrainCard } from "@/components/strains/strain-card";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { format, isSameDay } from "date-fns";
+import { de } from "date-fns/locale";
 
 export default function CollectionPage() {
   const { user, loading: authLoading } = useAuth();
-  const [strains, setStrains] = useState<Strain[]>([]);
+  const [strains, setStrains] = useState<(Strain & { collected_at?: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<StrainSource | "all">("all");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,6 +46,7 @@ export default function CollectionPage() {
             user_thc_percent,
             user_cbd_percent,
             user_image_url,
+            created_at,
             strain:strains (*)
           `)
           .eq('user_id', user.id);
@@ -58,10 +70,11 @@ export default function CollectionPage() {
                 source: normalizedSource,
                 avg_thc: item.user_thc_percent || s.avg_thc,
                 avg_cbd: item.user_cbd_percent || s.avg_cbd,
-                user_notes: item.user_notes
+                user_notes: item.user_notes,
+                collected_at: item.created_at
               };
             })
-            .filter(Boolean) as unknown as Strain[];
+            .filter(Boolean);
 
           setStrains(userStrains);
         }
@@ -79,15 +92,20 @@ export default function CollectionPage() {
   const filteredStrains = strains.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
     
-    if (sourceFilter === "all") return matchesSearch;
-
-    // Filter Logik: Eigenanbau zeigt auch alles was vom User erstellt wurde
+    let matchesSource = true;
     if (sourceFilter === "grow") {
       const isGrow = s.source === "grow" || (user && (s as any).created_by === user.id);
-      return matchesSearch && isGrow;
+      matchesSource = isGrow;
+    } else if (sourceFilter !== "all") {
+      matchesSource = s.source === sourceFilter;
     }
 
-    return matchesSearch && s.source === sourceFilter;
+    let matchesDate = true;
+    if (selectedDate && s.collected_at) {
+      matchesDate = isSameDay(new Date(s.collected_at), selectedDate);
+    }
+
+    return matchesSearch && matchesSource && matchesDate;
   });
 
   return (
@@ -115,10 +133,28 @@ export default function CollectionPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <Button variant="outline" className="h-12 w-12 rounded-2xl bg-white/5 border-white/10 shrink-0">
-             <CalendarDays className="text-[#00F5FF]" size={20} />
+          <Button 
+            variant="outline" 
+            onClick={() => setIsCalendarOpen(true)}
+            className={`h-12 w-12 rounded-2xl border-white/10 shrink-0 transition-all ${selectedDate ? 'bg-[#00F5FF] border-[#00F5FF] text-black' : 'bg-white/5 text-[#00F5FF]'}`}
+          >
+             <CalendarDays size={20} />
           </Button>
         </div>
+
+        {selectedDate && (
+          <div className="flex items-center justify-between bg-[#00F5FF]/10 border border-[#00F5FF]/20 rounded-xl px-4 py-2 mb-4 animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-2">
+              <Filter size={12} className="text-[#00F5FF]" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#00F5FF]">
+                Gefiltert: {format(selectedDate, "dd. MMMM yyyy", { locale: de })}
+              </p>
+            </div>
+            <button onClick={() => setSelectedDate(undefined)} className="text-[#00F5FF] hover:text-white transition-colors">
+              <X size={14} />
+            </button>
+          </div>
+        )}
 
         <div className="flex gap-2 mt-2 overflow-x-auto pb-1 -mx-1 px-1">
           {[
@@ -168,6 +204,36 @@ export default function CollectionPage() {
           </div>
         )}
       </div>
+
+      <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+        <DialogContent className="max-w-[340px] bg-[#1a191b] border-white/10 text-white rounded-[2rem] p-4 flex flex-col items-center">
+          <DialogHeader className="w-full text-center mb-2">
+            <DialogTitle className="text-xl font-black italic uppercase tracking-tighter text-[#00F5FF]">Archiv Datum</DialogTitle>
+          </DialogHeader>
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={(date) => {
+              setSelectedDate(date);
+              setIsCalendarOpen(false);
+            }}
+            initialFocus
+            className="rounded-2xl border border-white/5 bg-black/20"
+          />
+          {selectedDate && (
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                setSelectedDate(undefined);
+                setIsCalendarOpen(false);
+              }}
+              className="mt-4 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white"
+            >
+              Filter zurücksetzen
+            </Button>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </main>
