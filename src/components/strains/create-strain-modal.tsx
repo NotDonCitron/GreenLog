@@ -234,22 +234,26 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
 
             let resultData;
 
-            if (isEditMode) {
+            if (isEditMode && strain) {
                 const { data, error: updateError } = await supabase
                     .from("strains")
                     .update(basePayload)
                     .eq("id", strain.id)
                     .select()
-                    .single();
+                    .maybeSingle();
+                
                 if (updateError) throw updateError;
+                if (!data) throw new Error("Sorte konnte nicht aktualisiert werden. (Eventuell keine Berechtigung?)");
                 resultData = data;
             } else {
                 const { data, error: insertError } = await supabase
                     .from("strains")
                     .insert([basePayload])
                     .select()
-                    .single();
+                    .maybeSingle();
+                
                 if (insertError) throw insertError;
+                if (!data) throw new Error("Sorte konnte nicht erstellt werden.");
                 resultData = data;
             }
 
