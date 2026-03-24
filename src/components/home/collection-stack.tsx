@@ -139,8 +139,14 @@ export function CollectionStack({
           style={{ borderColor: themeColor }}
         >
           <div className="flex-1 space-y-6">
-            <h3 className="font-serif italic text-xl font-bold uppercase text-white">Journal Notes</h3>
-            <p className="text-sm text-white/70 italic leading-relaxed line-clamp-4">{currentStrain.user_review || "Noch keine Notizen hinterlegt."}</p>
+            <h3 className="font-serif italic text-xl font-bold uppercase text-white">Sorte Profil</h3>
+            
+            <div>
+              <p className="text-[9px] font-black uppercase text-white/30 mb-1">Beschreibung</p>
+              <p className="text-[11px] font-medium italic text-white/70 leading-relaxed line-clamp-6">
+                {currentStrain.user_review || currentStrain.description || "Noch keine Informationen hinterlegt."}
+              </p>
+            </div>
             
             {normalizedTerpenes.length > 0 && (
               <div className="pt-4 border-t border-white/5">
