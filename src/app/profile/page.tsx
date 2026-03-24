@@ -17,6 +17,7 @@ import {
   Loader2,
   Lock,
   LogOut,
+  LogIn,
   Pencil,
   Shield,
   Sparkles,
@@ -224,6 +225,64 @@ export default function ProfilePage() {
 
   const { identity, stats, favorites, badges } = viewModel;
   const isPublic = identity.profileVisibility === "public";
+
+  // Wenn nicht eingeloggt und kein Demo-Modus -> Login Aufforderung
+  if (!user && !isDemoMode) {
+    return (
+      <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+        <header className="p-8 pb-4">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">My Profile</p>
+              <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">CannaLog</h1>
+            </div>
+            <Link href="/login" className="px-6 py-2 bg-[#2FF801] text-black rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+              <LogIn size={14} /> Login
+            </Link>
+          </div>
+
+          <div className="bg-[#1e3a24] rounded-[2.5rem] p-8 border border-white/10 shadow-2xl relative overflow-hidden text-center">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,245,255,0.05),transparent_50%)]" />
+            
+            <div className="relative z-10 space-y-6">
+              <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto border border-white/10">
+                <UserRound size={40} className="text-white/20" />
+              </div>
+              
+              <div className="space-y-2">
+                <h2 className="text-2xl font-black uppercase italic tracking-tight">Profil gesperrt</h2>
+                <p className="text-xs text-white/40 font-bold tracking-widest leading-relaxed">
+                  Logge dich ein, um deine Sammlung zu verwalten,<br />
+                  Achievements zu sammeln und dich mit der<br />
+                  Community zu vernetzen.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <Link href="/login">
+                  <button className="w-full py-4 bg-[#2FF801] text-black rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(47,248,1,0.2)]">
+                    Jetzt Anmelden
+                  </button>
+                </Link>
+                <Link href="/login?signup=true">
+                  <button className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                    Neues Konto erstellen
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="px-8 mt-4">
+           <div className="bg-black/10 rounded-3xl p-6 border border-dashed border-white/5 text-center">
+             <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.3em]">Authorized Access Only</p>
+           </div>
+        </div>
+        <BottomNav />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#355E3B] text-white pb-32">

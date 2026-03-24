@@ -37,8 +37,8 @@ export function CollectionStack({
   };
   
   const getTasteDisplay = (strain: Strain) => {
-    if (Array.isArray(strain.terpenes) && strain.terpenes.length > 0) {
-      return strain.terpenes.map(t => extractDisplayName(t)).filter(Boolean).slice(0, 2).join(", ");
+    if (Array.isArray(strain.flavors) && strain.flavors.length > 0) {
+      return strain.flavors.map(f => extractDisplayName(f)).filter(Boolean).slice(0, 2).join(", ");
     }
     return "Zitrus, Erdig";
   };
@@ -100,23 +100,25 @@ export function CollectionStack({
           </div>
 
           <div className="px-5 mt-5 w-full mb-5">
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 shadow-inner backdrop-blur-sm">
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 shadow-inner backdrop-blur-sm shadow-md">
+              {/* Row 1: THC & Geschmack */}
               <div className="grid grid-cols-2 gap-4 border-b border-white/5 pb-2 mb-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500 text-[9px] uppercase font-semibold">THC</span>
-                  <span className="text-sm font-bold" style={{ color: themeColor }}>{currentStrain.avg_thc || currentStrain.thc_max || "—"}%</span>
+                  <span className="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
+                  <span className="text-sm font-bold tracking-wide" style={{ color: themeColor }}>{currentStrain.avg_thc || currentStrain.thc_max || "—"}%</span>
                 </div>
                 <div className="flex items-center justify-end border-l border-white/5 pl-4 w-full">
-                  <span className="text-gray-100 text-[10px] font-medium truncate">{getTasteDisplay(currentStrain)}</span>
+                  <span className="text-gray-100 text-[10px] font-medium tracking-wide truncate">{getTasteDisplay(currentStrain)}</span>
                 </div>
               </div>
+              {/* Row 2: CBD & Wirkung */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500 text-[9px] uppercase font-semibold">CBD</span>
-                  <span className="text-sm font-bold" style={{ color: themeColor }}>{currentStrain.avg_cbd || currentStrain.cbd_max || "—"}%</span>
+                  <span className="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
+                  <span className="text-sm font-bold tracking-wide" style={{ color: themeColor }}>{currentStrain.avg_cbd || currentStrain.cbd_max || "—"}%</span>
                 </div>
                 <div className="flex items-center justify-end border-l border-white/5 pl-4 w-full">
-                  <span className="text-gray-100 text-[10px] font-medium truncate">{getEffectDisplay(currentStrain)}</span>
+                  <span className="text-gray-100 text-[10px] font-medium tracking-wide truncate">{getEffectDisplay(currentStrain)}</span>
                 </div>
               </div>
             </div>

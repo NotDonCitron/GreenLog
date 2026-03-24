@@ -20,6 +20,7 @@ export interface Strain {
   image_url?: string;
   description?: string;
   terpenes?: (string | Terpene)[];
+  flavors?: string[];
   effects?: string[];
   genetics?: string;
   indications?: string[];

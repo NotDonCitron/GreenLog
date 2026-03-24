@@ -37,10 +37,10 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
   };
 
   const normalizedEffects = Array.isArray(strain.effects) ? strain.effects.map(e => extractDisplayName(e)).filter(Boolean) : [];
-  const normalizedTerpenes = Array.isArray(strain.terpenes) ? strain.terpenes.map(t => extractDisplayName(t)).filter(Boolean) : [];
+  const normalizedFlavors = Array.isArray(strain.flavors) ? strain.flavors.map(f => extractDisplayName(f)).filter(Boolean) : [];
 
   const effectDisplay = normalizedEffects.length > 0 ? normalizedEffects[0] : 'Euphorie';
-  const tasteDisplay = normalizedTerpenes.length > 0 ? normalizedTerpenes.slice(0, 2).join(', ') : 'Zitrus, Erdig';
+  const tasteDisplay = normalizedFlavors.length > 0 ? normalizedFlavors.slice(0, 2).join(', ') : 'Zitrus, Erdig';
 
   return (
     <Link
@@ -74,24 +74,25 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
       </div>
 
       <div className="px-2.5 mt-2.5 w-full flex-grow flex flex-col justify-end pb-3">
-        <div className="bg-white/5 border border-white/10 rounded-xl p-2 shadow-inner">
+        <div className="bg-white/5 border border-white/10 rounded-xl p-2 shadow-inner backdrop-blur-sm shadow-md">
+          {/* Row 1: THC & Geschmack */}
           <div className="grid grid-cols-2 gap-2 border-b border-white/5 pb-1.5 mb-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-gray-500 text-[7px] uppercase font-semibold">THC</span>
-              <span className="text-[10px] font-bold" style={{ color: themeColor }}>{thcDisplay}</span>
+              <span className="text-gray-500 text-[7px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
+              <span className="text-[10px] font-bold tracking-wide" style={{ color: themeColor }}>{thcDisplay}</span>
             </div>
-            {/* HIER WAR DER FEHLER: KEIN LABEL "TERPENE" MEHR */}
             <div className="flex items-center justify-end border-l border-white/5 pl-2 w-full text-right">
-              <span className="text-gray-100 text-[8px] font-medium truncate">{tasteDisplay}</span>
+              <span className="text-gray-100 text-[8px] font-medium tracking-wide truncate">{tasteDisplay}</span>
             </div>
           </div>
+          {/* Row 2: CBD & Wirkung */}
           <div className="grid grid-cols-2 gap-2">
             <div className="flex items-center justify-between">
-              <span className="text-gray-500 text-[7px] uppercase font-semibold">CBD</span>
-              <span className="text-[10px] font-bold" style={{ color: themeColor }}>{cbdDisplay}</span>
+              <span className="text-gray-500 text-[7px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
+              <span className="text-[10px] font-bold tracking-wide" style={{ color: themeColor }}>{cbdDisplay}</span>
             </div>
             <div className="flex items-center justify-end border-l border-white/5 pl-2 w-full text-right">
-              <span className="text-gray-100 text-[8px] font-medium truncate">{effectDisplay}</span>
+              <span className="text-gray-100 text-[8px] font-medium tracking-wide truncate">{effectDisplay}</span>
             </div>
           </div>
         </div>

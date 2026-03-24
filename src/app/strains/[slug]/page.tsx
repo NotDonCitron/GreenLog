@@ -238,11 +238,11 @@ export default function StrainDetailPage() {
   };
 
   const normalizedEffects = Array.isArray(strain?.effects) ? strain.effects.map(e => extractDisplayName(e)).filter(Boolean) : [];
-  const normalizedTerpenes = Array.isArray(strain?.terpenes) ? strain.terpenes.map(t => extractDisplayName(t)).filter(Boolean) : [];
+  const normalizedFlavors = Array.isArray(strain?.flavors) ? strain.flavors.map(f => extractDisplayName(f)).filter(Boolean) : [];
 
   const thcDisplay = (strain?.avg_thc ?? strain?.thc_max) ? `${strain?.avg_thc ?? strain?.thc_max}%` : '—';
   const cbdDisplay = (strain?.avg_cbd ?? strain?.cbd_max) ? `${strain?.avg_cbd ?? strain?.cbd_max}%` : '< 1%';
-  const tasteDisplay = normalizedTerpenes.length > 0 ? normalizedTerpenes.slice(0, 2).join(' · ') : 'Zitrus, Erdig';
+  const tasteDisplay = normalizedFlavors.length > 0 ? normalizedFlavors.slice(0, 2).join(' · ') : 'Zitrus, Erdig';
   const effectDisplay = normalizedEffects[0] || (strain?.is_medical ? "Medical" : "Euphorie");
 
   if (loading) return <div className="min-h-screen bg-[#355E3B] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
@@ -286,14 +286,26 @@ export default function StrainDetailPage() {
                 </div>
               </div>
               <div className="px-5 mt-5 w-full mb-5">
-                <div className="bg-white/5 border border-white/10 rounded-xl p-4 shadow-inner">
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4 shadow-inner backdrop-blur-sm shadow-md">
+                  {/* Row 1: THC & Geschmack */}
                   <div className="grid grid-cols-2 gap-4 border-b border-white/5 pb-2 mb-2">
-                    <div className="flex justify-between items-center"><span className="text-gray-500 text-[9px] uppercase font-semibold">THC</span><span className="text-sm font-bold" style={{ color: themeColor }}>{thcDisplay}</span></div>
-                    <div className="flex justify-end border-l border-white/5 pl-4 w-full"><span className="text-gray-100 text-[10px] font-medium truncate">{tasteDisplay}</span></div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
+                      <span className="text-sm font-bold tracking-wide" style={{ color: themeColor }}>{thcDisplay}</span>
+                    </div>
+                    <div className="flex justify-end border-l border-white/5 pl-4 w-full">
+                      <span className="text-gray-100 text-[10px] font-medium tracking-wide truncate">{tasteDisplay}</span>
+                    </div>
                   </div>
+                  {/* Row 2: CBD & Wirkung */}
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="flex justify-between items-center"><span className="text-gray-500 text-[9px] uppercase font-semibold">CBD</span><span className="text-sm font-bold" style={{ color: themeColor }}>{cbdDisplay}</span></div>
-                    <div className="flex justify-end border-l border-white/5 pl-4 w-full"><span className="text-gray-100 text-[10px] font-medium truncate">{effectDisplay}</span></div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
+                      <span className="text-sm font-bold tracking-wide" style={{ color: themeColor }}>{cbdDisplay}</span>
+                    </div>
+                    <div className="flex justify-end border-l border-white/5 pl-4 w-full">
+                      <span className="text-gray-100 text-[10px] font-medium tracking-wide truncate">{effectDisplay}</span>
+                    </div>
                   </div>
                 </div>
               </div>
