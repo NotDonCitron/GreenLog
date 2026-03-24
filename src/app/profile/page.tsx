@@ -322,6 +322,15 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* Owner Badge Above Card */}
+        {(identity.username === '@fabian.gebert' || identity.username === '@lars' || identity.username === '@lars.fieber' || identity.username === '@test' || identity.username === '@pascal') && (
+          <div className="flex justify-center mb-4">
+            <span className="inline-flex items-center gap-1 rounded-full border border-[#F39C12]/30 bg-[#F39C12]/10 px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#F39C12] shadow-[0_0_15px_rgba(243,156,18,0.1)]">
+              <Shield size={12} /> CannaLog Owner
+            </span>
+          </div>
+        )}
+
         <div className="bg-[#1e3a24] rounded-[2.5rem] p-6 border border-white/10 shadow-2xl relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,245,255,0.05),transparent_50%)]" />
           
