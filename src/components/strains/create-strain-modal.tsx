@@ -95,18 +95,50 @@ export function CreateStrainModal({ onSuccess, trigger }: CreateStrainModalProps
             if (data.description) setDescription(data.description.replace(/<[^>]*>/g, '').slice(0, 500));
             if (data.image_url) setImportedImageUrl(data.image_url);
             
-            // Improved Mapping for Terpenes & Effects
+            // Improved Mapping for Terpenes & Effects with Keyword Dictionary
+            const TASTE_MAP: Record<string, string[]> = {
+                "Erdig": ["earthy", "wood", "pine"],
+                "Süß": ["sweet", "candy", "sugar", "vanilla"],
+                "Zitrone": ["citrus", "lemon", "lime", "orange", "grapefruit", "zest"],
+                "Kiefer": ["pine", "pinene", "forest"],
+                "Beeren": ["berry", "blueberry", "grape", "strawberry", "cherry"],
+                "Würzig": ["spicy", "pepper", "clove", "herbal"],
+                "Fruchtig": ["fruity", "tropical", "mango", "pineapple", "apple"],
+                "Diesel": ["diesel", "gas", "chemical", "skunk"]
+            };
+
+            const EFFECT_MAP: Record<string, string[]> = {
+                "Entspannt": ["relaxed", "calm", "sleepy", "couch-lock"],
+                "Kreativ": ["creative", "inspired"],
+                "Hungrig": ["hungry", "munchies"],
+                "Fokussiert": ["focused", "clear-headed"],
+                "Euphörisch": ["euphoric", "happy", "giggly", "uplifted"],
+                "Schläfrig": ["sleepy", "tired", "insomnia"],
+                "Energisch": ["energetic", "talkative", "active"]
+            };
+
             if (Array.isArray(data.terpenes)) {
-                const matchedTerpenes = TASTE_OPTIONS.filter(opt => 
-                    data.terpenes.some((t: string) => t.toLowerCase().includes(opt.toLowerCase()) || opt.toLowerCase().includes(t.toLowerCase()))
-                );
-                setSelectedTerpenes(matchedTerpenes);
+                const foundTastes = TASTE_OPTIONS.filter(opt => {
+                    const keywords = TASTE_MAP[opt] || [];
+                    const normalizedImported = data.terpenes.map((t: string) => t.toLowerCase());
+                    return normalizedImported.some((t: string) => 
+                        t.includes(opt.toLowerCase()) || 
+                        keywords.some(k => t.includes(k))
+                    );
+                });
+                setSelectedTerpenes(foundTastes);
             }
+
             if (Array.isArray(data.effects)) {
-                const matchedEffects = EFFECT_OPTIONS.filter(opt => 
-                    data.effects.some((e: string) => e.toLowerCase().includes(opt.toLowerCase()) || opt.toLowerCase().includes(e.toLowerCase()))
-                );
-                setSelectedEffects(matchedEffects);
+                const foundEffects = EFFECT_OPTIONS.filter(opt => {
+                    const keywords = EFFECT_MAP[opt] || [];
+                    const normalizedImported = data.effects.map((e: string) => e.toLowerCase());
+                    return normalizedImported.some((e: string) => 
+                        e.includes(opt.toLowerCase()) || 
+                        keywords.some(k => e.includes(k))
+                    );
+                });
+                setSelectedEffects(foundEffects);
             }
 
         } catch (err) {

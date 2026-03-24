@@ -28,7 +28,6 @@ export async function POST(req: NextRequest) {
     const html = await response.text();
     let scrapedData: any = {};
 
-    // 1. Primär: Next.js JSON Block
     const nextDataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
     if (nextDataMatch) {
       try {
@@ -42,37 +41,37 @@ export async function POST(req: NextRequest) {
           return null;
         };
 
+        // Sammle alle Geschmäcker (Terpene + Flavors)
+        const allTastes = [
+          ...extractNames(strainData.topTerpenes || strainData.terpenes || []),
+          ...extractNames(strainData.flavors || [])
+        ];
+
+        // Sammle alle positiven Effekte (Feelings + Effects)
+        const allEffects = [
+          ...extractNames(strainData.feelings || []),
+          ...extractNames(strainData.effects || [])
+        ];
+
         scrapedData = {
           name: strainData.name || "",
           type: (strainData.category || "hybrid").toLowerCase(),
           description: strainData.description || "",
           thc: getVal(strainData.thc),
           cbd: getVal(strainData.cbd),
-          terpenes: extractNames(strainData.topTerpenes || strainData.terpenes || []),
-          effects: extractNames(strainData.effects || []),
+          terpenes: Array.from(new Set(allTastes)), // Duplikate entfernen
+          effects: Array.from(new Set(allEffects)),
           image_url: strainData.imageUrl || strainData.heroImage || null,
         };
       } catch (e) {
-        console.warn("JSON Parse Error, falling back to Meta Tags");
+        console.warn("JSON Parse Error");
       }
     }
 
-    // 2. Sekundär: Meta-Tags & Regex Fallback (Falls JSON fehlt oder unvollständig)
-    if (!scrapedData.name || !scrapedData.thc) {
+    // Fallback Meta-Tags
+    if (!scrapedData.name) {
       const titleMatch = html.match(/<title>(.*?)<\/title>/i);
-      const descMatch = html.match(/<meta name="description" content="(.*?)"/i);
-      const imageMatch = html.match(/<meta property="og:image" content="(.*?)"/i);
-      
-      if (!scrapedData.name) scrapedData.name = titleMatch ? titleMatch[1].split("|")[0].replace("Strain Information", "").trim() : "";
-      if (!scrapedData.description) scrapedData.description = descMatch ? descMatch[1] : "";
-      if (!scrapedData.image_url) scrapedData.image_url = imageMatch ? imageMatch[1] : null;
-
-      // THC aus Description extrahieren (Leafly schreibt oft: "...contains X% THC")
-      if (!scrapedData.thc && scrapedData.description) {
-        const thcRegex = /(\d+(?:\.\d+)?)\s*%\s*thc/i;
-        const match = scrapedData.description.match(thcRegex);
-        if (match) scrapedData.thc = parseFloat(match[1]);
-      }
+      scrapedData.name = titleMatch ? titleMatch[1].split("|")[0].replace("Strain Information", "").trim() : "";
     }
 
     return NextResponse.json(scrapedData);
