@@ -85,27 +85,28 @@ export default function StrainDetailPage() {
   const handleDelete = async () => {
     if (!strain || !user || isDemoMode) return;
     
-    const confirmDelete = window.confirm(`Möchtest du die Sorte "${strain.name}" wirklich unwiderruflich löschen? Alle Bewertungen und Log-Einträge gehen verloren.`);
+    const confirmDelete = window.confirm(`Möchtest du die Sorte "${strain.name}" wirklich unwiderruflich löschen?`);
     if (!confirmDelete) return;
 
     setIsDeleting(true);
     try {
-      // 1. Alle Referenzen löschen
-      await supabase.from("user_strain_relations").delete().eq("strain_id", strain.id);
-      await supabase.from("user_collection").delete().eq("strain_id", strain.id);
-      await supabase.from("ratings").delete().eq("strain_id", strain.id);
-      await supabase.from("user_activities").delete().eq("target_id", String(strain.id));
+      // Löschvorgang mit Fehlermeldungen pro Tabelle
+      const { error: e1 } = await supabase.from("user_strain_relations").delete().eq("strain_id", strain.id);
+      if (e1) throw new Error(`Fehler Relations: ${e1.message}`);
 
-      // 2. Die Sorte selbst löschen
-      const { error: mainError } = await supabase.from("strains").delete().eq("id", strain.id);
-      if (mainError) throw mainError;
+      const { error: e2 } = await supabase.from("user_collection").delete().eq("strain_id", strain.id);
+      if (e2) throw new Error(`Fehler Collection: ${e2.message}`);
 
-      // 3. Hartes Update der UI
+      const { error: e3 } = await supabase.from("ratings").delete().eq("strain_id", strain.id);
+      if (e3) throw new Error(`Fehler Ratings: ${e3.message}`);
+
+      const { error: e4 } = await supabase.from("strains").delete().eq("id", strain.id);
+      if (e4) throw new Error(`Fehler Haupttabelle: ${e4.message}`);
+
       window.location.href = "/strains";
-
     } catch (err: any) {
-      console.error("Critical delete error:", err);
-      alert("Löschen fehlgeschlagen: " + (err.message || "Unbekannter Fehler"));
+      console.error("Delete failure:", err);
+      alert(err.message);
     } finally {
       setIsDeleting(false);
     }
@@ -153,42 +154,11 @@ export default function StrainDetailPage() {
     }
   };
 
-  const handleShareCard = async () => {
-    if (!cardRef.current || !strain) return;
-    setIsSharing(true);
-    try {
-      const wasFlipped = isFlipped;
-      if (wasFlipped) setIsFlipped(false);
-      await new Promise(resolve => setTimeout(resolve, 150));
-
-      const dataUrl = await toPng(cardRef.current, { quality: 1, pixelRatio: 2, backgroundColor: '#1a191b' });
-
-      if (navigator.share) {
-        const blob = await (await fetch(dataUrl)).blob();
-        const file = new File([blob], `${strain.slug}-card.png`, { type: 'image/png' });
-        await navigator.share({ files: [file], title: strain.name });
-      } else {
-        const link = document.createElement('a');
-        link.download = `${strain.slug}-card.png`;
-        link.href = dataUrl;
-        link.click();
-      }
-      if (wasFlipped) setIsFlipped(true);
-    } catch (err) {
-      console.error("Share error:", err);
-    } finally {
-      setIsSharing(false);
-    }
-  };
-
   const saveRating = async () => {
     if (!user || !strain || isDemoMode) return;
     setIsSaving(true);
     try {
-      const username = user.email?.split("@")[0] || "user_" + Math.random().toString(36).slice(2, 7);
-      await supabase.from("profiles").upsert({ id: user.id, username, display_name: username }, { onConflict: 'id' });
-
-      const { error: rError } = await supabase.from("ratings").upsert({
+      await supabase.from("ratings").upsert({
         strain_id: strain.id,
         user_id: user.id,
         overall_rating: (ratings.taste + ratings.effect + ratings.look) / 3,
@@ -196,8 +166,6 @@ export default function StrainDetailPage() {
         effect_rating: ratings.effect,
         look_rating: ratings.look
       }, { onConflict: 'strain_id,user_id' });
-
-      if (rError) throw rError;
 
       await supabase.from("user_collection").upsert({
         user_id: user.id,
@@ -219,25 +187,19 @@ export default function StrainDetailPage() {
   };
 
   const typeStr = (strain?.type || '').toLowerCase();
+  let themeColor = '#00FFFF';
   let themeClass = 'theme-cyan';
-  let imageFilter = '';
-  let badgeClasses = 'border-[#00FFFF] text-[#00FFFF]';
   let underlineBg = 'bg-[#00FFFF]';
 
   if (typeStr.includes('sativa')) {
+    themeColor = '#fbbf24';
     themeClass = 'theme-gold';
-    imageFilter = 'saturate-50 contrast-125';
-    badgeClasses = 'border-yellow-500 text-yellow-500';
     underlineBg = 'bg-[#fbbf24]';
   } else if (typeStr.includes('indica')) {
+    themeColor = '#10b981';
     themeClass = 'theme-emerald';
-    imageFilter = 'grayscale-[0.2]';
-    badgeClasses = 'border-emerald-400 text-emerald-400';
     underlineBg = 'bg-[#10b981]';
   }
-
-  const thcValue = strain?.avg_thc ?? strain?.thc_max;
-  const cbdValue = strain?.avg_cbd ?? strain?.cbd_max;
 
   const extractDisplayName = (value: unknown) => {
     if (typeof value === 'string') return value;
@@ -250,8 +212,7 @@ export default function StrainDetailPage() {
   const normalizedEffects = Array.isArray(strain?.effects) ? strain.effects.map(e => extractDisplayName(e)).filter(Boolean) : [];
   const normalizedTerpenes = Array.isArray(strain?.terpenes) ? strain.terpenes.map(t => extractDisplayName(t)).filter(Boolean) : [];
 
-  const thcDisplay = typeof thcValue === 'number' ? `${thcValue}%` : '—';
-  const cbdDisplay = typeof cbdValue === 'number' ? `${cbdValue}%` : '< 1%';
+  const thcDisplay = (strain?.avg_thc ?? strain?.thc_max) ? `${strain?.avg_thc ?? strain?.thc_max}%` : '—';
   const tasteDisplay = normalizedTerpenes.length > 0 ? normalizedTerpenes.slice(0, 2).join(' · ') : 'Zitrus, Erdig';
   const effectDisplay = normalizedEffects[0] || (strain?.is_medical ? "Medical" : "Euphorie");
 
@@ -263,16 +224,13 @@ export default function StrainDetailPage() {
       <div className="p-6 flex justify-between items-center sticky top-0 z-50 bg-[#355E3B]/80 backdrop-blur-xl">
         <button onClick={() => router.back()} className="p-2 rounded-full bg-white/5"><ChevronLeft size={24} /></button>
         <div className="flex gap-2">
-          <button onClick={handleShareCard} disabled={isSharing} className="p-2 rounded-full bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/20">
-            {isSharing ? <Loader2 size={20} className="animate-spin" /> : <Share2 size={20} />}
-          </button>
           {user && <button onClick={() => fileInputRef.current?.click()} disabled={isUploading} className="p-2 rounded-full bg-[#00F5FF]/10 text-[#00F5FF] border border-[#00F5FF]/20"><Upload size={20} /></button>}
           <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
           <button onClick={toggleFavorite} className={`p-2 rounded-full border transition-all ${isFavorited ? 'bg-red-500/20 border-red-500/40 text-red-500' : 'bg-white/5 border-white/5 text-white/40'}`}>
             <Heart size={20} fill={isFavorited ? "currentColor" : "none"} />
           </button>
           {user && strain?.created_by === user.id && (
-            <button onClick={handleDelete} disabled={isDeleting} className="p-2 rounded-full border border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all">
+            <button onClick={handleDelete} disabled={isDeleting} className="p-2 rounded-full border border-red-500/20 bg-red-500/10 text-red-500">
               {isDeleting ? <Loader2 size={20} className="animate-spin" /> : <Trash2 size={20} />}
             </button>
           )}
@@ -280,49 +238,57 @@ export default function StrainDetailPage() {
       </div>
 
       <div className="px-6 flex flex-col items-center">
-        <div ref={cardRef} className="relative w-full max-w-[340px] aspect-[3/4.5] perspective-1000 mt-4 cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
+        <div className="relative w-full max-w-[340px] aspect-[3/4.5] perspective-1000 mt-4 cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
           <div className={`relative w-full h-full transition-all duration-700 preserve-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
-            <Card className={`absolute inset-0 backface-hidden overflow-hidden rounded-[2.5rem] premium-card ${themeClass} flex flex-col w-full h-full p-0 border-0 ${hasCollected ? 'ring-[3px] ring-white/20 shadow-2xl' : ''}`}>
-              <div className="p-6 pb-4 z-20">
-                <h2 className="title-font italic text-3xl text-white font-bold leading-tight uppercase drop-shadow-lg line-clamp-2">{strain.name}</h2>
-                <div className={`w-12 h-1 mt-3 opacity-70 ${underlineBg}`}></div>
+            
+            {/* FRONT SIDE */}
+            <Card 
+              className="absolute inset-0 backface-hidden rounded-[20px] overflow-hidden bg-[#121212] shadow-2xl flex flex-col border-2"
+              style={{ borderColor: themeColor, boxShadow: `0 0 15px ${themeColor}4d` }}
+            >
+              <div className="p-6 pb-4">
+                <h2 className="font-serif italic text-2xl text-white font-bold leading-tight uppercase line-clamp-2">{strain.name}</h2>
+                <div className={`w-12 h-0.5 mt-2 ${underlineBg}`}></div>
               </div>
-              <div className="px-5 w-full shrink-0 z-20">
-                <div className="relative w-full h-[220px] rounded-[1.5rem] overflow-hidden border border-white/10 shadow-lg">
-                  <img src={userImageUrl || strain.image_url || "/strains/placeholder-1.svg"} alt={strain.name} className={`w-full h-full object-cover ${imageFilter}`} />
-                  <div className={`absolute bottom-3 left-3 border bg-black/95 uppercase text-[11px] px-2.5 py-1 rounded-sm tracking-wider font-bold shadow-md ${badgeClasses}`}>{strain.type || 'HYBRID'}</div>
+              <div className="px-5 w-full">
+                <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-white/10">
+                  <img src={userImageUrl || strain.image_url || "/strains/placeholder-1.svg"} alt={strain.name} className="w-full h-full object-cover" />
+                  <div className="absolute bottom-2 left-2 border bg-black/70 uppercase text-[9px] px-2 py-1 rounded-sm font-bold" style={{ borderColor: themeColor, color: themeColor }}>{strain.type || 'HYBRID'}</div>
                 </div>
               </div>
-              <div className="px-5 mt-5 w-full flex-grow flex flex-col justify-end pb-6 z-20">
-                <div className="bg-[#1a191b]/95 border border-white/10 rounded-2xl p-4 shadow-lg">
-                  <div className="grid grid-cols-2 gap-3 border-b border-white/5 pb-3 mb-3">
-                    <div className="flex items-center justify-between"><span className="text-gray-500 text-[11px] uppercase tracking-widest font-semibold mr-1">THC</span><span className="accent-text text-[15px] font-bold">{thcDisplay}</span></div>
-                    <div className="flex items-center justify-end border-l border-white/5 pl-3 w-full"><span className="text-gray-100 text-xs text-right">{tasteDisplay}</span></div>
+              <div className="px-5 mt-5 w-full mb-5">
+                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <div className="grid grid-cols-2 gap-4 border-b border-white/5 pb-2 mb-2">
+                    <div className="flex justify-between"><span className="text-gray-500 text-[9px] uppercase font-semibold">THC</span><span className="text-sm font-bold" style={{ color: themeColor }}>{thcDisplay}</span></div>
+                    <div className="flex justify-end border-l border-white/5 pl-4 w-full"><span className="text-gray-100 text-[10px] font-medium truncate">{tasteDisplay}</span></div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-center justify-between"><span className="text-gray-500 text-[11px] uppercase tracking-widest font-semibold mr-1">CBD</span><span className="accent-text text-[15px] font-bold">{cbdDisplay}</span></div>
-                    <div className="flex items-center justify-end border-l border-white/5 pl-3 w-full"><span className="text-gray-100 text-xs text-right">{effectDisplay}</span></div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex justify-between"><span className="text-gray-500 text-[9px] uppercase font-semibold">CBD</span><span className="text-sm font-bold" style={{ color: themeColor }}>{strain.avg_cbd || '< 1%'}</span></div>
+                    <div className="flex justify-end border-l border-white/5 pl-4 w-full"><span className="text-gray-100 text-[10px] font-medium truncate">{effectDisplay}</span></div>
                   </div>
                 </div>
               </div>
             </Card>
-            <Card className="absolute inset-0 rotate-y-180 backface-hidden overflow-hidden border-2 rounded-[2.5rem] bg-[#1a191b] border-[#2FF801] p-8 h-full flex flex-col justify-between">
-               <div>
-                  <h3 className="text-[#2FF801] font-bold tracking-widest text-xs uppercase mb-6">Strain Profile</h3>
-                  <div className="space-y-5">
-                    <p className="text-[11px] font-medium italic text-white/70 leading-relaxed">{strain.description}</p>
-                    {(userNotes || batchInfo) && (
-                      <div className="pt-4 border-t border-white/10 mt-2 space-y-4">
-                        <div className="flex items-center gap-2 text-[#00F5FF]"><Database size={12} /><h4 className="text-[10px] font-black uppercase">Mein Journal</h4></div>
-                        {batchInfo && <p className="text-[10px] font-bold text-white/90">{batchInfo}</p>}
-                        {userNotes && <p className="text-[10px] italic text-white/70 bg-white/5 p-3 rounded-xl">{userNotes}</p>}
-                      </div>
-                    )}
+
+            {/* BACK SIDE */}
+            <Card 
+              className="absolute inset-0 rotate-y-180 backface-hidden rounded-[20px] overflow-hidden bg-[#121212] shadow-2xl p-8 flex flex-col border-2"
+              style={{ borderColor: themeColor }}
+            >
+              <div className="flex-1 space-y-6">
+                <h3 className="font-serif italic text-xl font-bold uppercase text-white">Strain Profile</h3>
+                <p className="text-[11px] font-medium italic text-white/70 leading-relaxed line-clamp-6">{strain.description}</p>
+                {(userNotes || batchInfo) && (
+                  <div className="pt-4 border-t border-white/5 space-y-4">
+                    <div className="flex items-center gap-2 text-[#00F5FF]"><Database size={12} /><h4 className="text-[10px] font-black uppercase">Mein Journal</h4></div>
+                    {batchInfo && <p className="text-[10px] font-bold text-white/90">{batchInfo}</p>}
+                    {userNotes && <p className="text-[10px] italic text-white/70 bg-white/5 p-3 rounded-xl line-clamp-3">{userNotes}</p>}
                   </div>
-               </div>
-               <div className="mt-auto pt-4 flex justify-center items-center gap-2 text-[10px] font-bold text-white/20 uppercase tracking-widest">
-                 <RefreshCw size={12} className="animate-spin-slow" /> Tap to Flip
-               </div>
+                )}
+              </div>
+              <div className="mt-auto flex justify-center items-center gap-2 text-[10px] font-bold text-white/20 uppercase tracking-widest">
+                <RefreshCw size={12} className="animate-spin-slow" /> Tap to Flip
+              </div>
             </Card>
           </div>
         </div>
@@ -337,13 +303,13 @@ export default function StrainDetailPage() {
       {showRatingModal && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowRatingModal(false)} />
-          <Card className="relative w-full max-w-md bg-[#1a191b] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl p-8 space-y-8 shadow-2xl">
+          <Card className="relative w-full max-w-md bg-[#1a191b] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl p-8 space-y-8 shadow-2xl animate-in slide-in-from-bottom duration-300">
             <h2 className="text-2xl font-black italic uppercase text-[#00F5FF] text-center">Tasting Log</h2>
             <div className="space-y-4">
-              <input type="text" placeholder="Batch / Apotheke" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-xs text-white" value={batchInfo} onChange={(e) => setBatchInfo(e.target.value)} />
-              <textarea placeholder="Deine Notizen..." className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-xs text-white min-h-[100px]" value={userNotes} onChange={(e) => setUserNotes(e.target.value)} />
+              <input type="text" placeholder="Batch / Apotheke" className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-xs text-white outline-none focus:border-[#00F5FF]" value={batchInfo} onChange={(e) => setBatchInfo(e.target.value)} />
+              <textarea placeholder="Deine Notizen..." className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-xs text-white min-h-[100px] outline-none focus:border-[#00F5FF]" value={userNotes} onChange={(e) => setUserNotes(e.target.value)} />
             </div>
-            <button onClick={saveRating} disabled={isSaving} className="w-full h-16 bg-[#00F5FF] text-black font-black uppercase rounded-2xl flex items-center justify-center gap-3">
+            <button onClick={saveRating} disabled={isSaving} className="w-full h-16 bg-[#00F5FF] text-black font-black uppercase rounded-2xl flex items-center justify-center gap-3 shadow-lg">
               {isSaving ? <Loader2 className="animate-spin" /> : "SAVE LOG"}
             </button>
           </Card>
