@@ -47,10 +47,7 @@ export default function SettingsPage() {
     
     try {
       const { error } = await supabase.auth.updateUser({ email: emailToSubmit });
-      if (error) {
-        if (error.message.includes("invalid")) throw new Error("Die E-Mail-Adresse ist ungültig.");
-        throw error;
-      }
+      if (error) throw error;
       
       setEmailStatus({ 
         type: 'success', 
@@ -58,7 +55,7 @@ export default function SettingsPage() {
       });
       setNewEmail("");
     } catch (err: any) {
-      setEmailStatus({ type: 'error', msg: err.message });
+      setEmailStatus({ type: 'error', msg: `Fehler: ${err.message}` });
     } finally {
       setIsUpdatingEmail(false);
     }
