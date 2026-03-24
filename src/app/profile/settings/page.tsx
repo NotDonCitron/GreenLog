@@ -46,16 +46,19 @@ export default function SettingsPage() {
     setEmailStatus(null);
     
     try {
+      // Session kurz auffrischen
+      await supabase.auth.refreshSession();
+
       const { error } = await supabase.auth.updateUser({ email: emailToSubmit });
       if (error) throw error;
       
       setEmailStatus({ 
         type: 'success', 
-        msg: "Bestätigungs-Mails wurden gesendet. Du musst den Link in BEIDEN Postfächern (alt & neu) bestätigen." 
+        msg: `Anfrage für ${emailToSubmit} gesendet! Checke BEIDE Postfächer (alt & neu) für die Bestätigungs-Links.` 
       });
       setNewEmail("");
     } catch (err: any) {
-      setEmailStatus({ type: 'error', msg: `Fehler: ${err.message}` });
+      setEmailStatus({ type: 'error', msg: `Supabase-Fehler: ${err.message}` });
     } finally {
       setIsUpdatingEmail(false);
     }
