@@ -11,10 +11,10 @@ interface StrainCardProps {
 export function StrainCard({ strain, index = 0, isCollected = true }: StrainCardProps) {
   // Determine Theme
   const typeStr = (strain.type || '').toLowerCase();
-  
+
   let themeClass = 'theme-cyan'; // default hybrid
   let imageFilter = '';
-  
+
   if (typeStr.includes('sativa')) {
     themeClass = 'theme-gold';
     imageFilter = 'saturate-50 contrast-125';
@@ -40,18 +40,48 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
 
   const thcValue = strain.avg_thc ?? strain.thc_max;
   const thcDisplay = typeof thcValue === 'number' ? `${thcValue}%` : '—';
-  
+
   const cbdValue = strain.avg_cbd ?? strain.cbd_max;
   const cbdDisplay = typeof cbdValue === 'number' ? `${cbdValue}%` : '< 1%';
-  
-  const effectDisplay = (strain.effects && strain.effects.length > 0) ? strain.effects[0] : 'Euphorie';
-  const tasteDisplay = (strain.terpenes && strain.terpenes.length > 0) ? strain.terpenes.slice(0, 2).join(', ') : 'Zitrus, Erdig'; 
+
+  const normalizedEffects = Array.isArray(strain.effects)
+    ? strain.effects
+      .map((effect) => (typeof effect === 'string' ? effect : null))
+      .filter((effect): effect is string => Boolean(effect))
+    : [];
+
+  const normalizedTerpenes = Array.isArray(strain.terpenes)
+    ? strain.terpenes
+      .map((terpene) => {
+        if (typeof terpene === 'string') return terpene;
+        if (terpene && typeof terpene === 'object' && 'name' in terpene) {
+          const name = (terpene as { name?: unknown }).name;
+          return typeof name === 'string' ? name : null;
+        }
+        return null;
+      })
+      .filter((terpene): terpene is string => Boolean(terpene))
+    : [];
+
+  const effectDisplay = normalizedEffects.length > 0 ? normalizedEffects[0] : 'Euphorie';
+  const tasteDisplay = normalizedTerpenes.length > 0 ? normalizedTerpenes.slice(0, 2).join(', ') : 'Zitrus, Erdig';
+
+  const hasNonStringEffects = Array.isArray(strain.effects) && strain.effects.some((effect) => typeof effect !== 'string');
+  const hasNonStringTerpenes = Array.isArray(strain.terpenes) && strain.terpenes.some((terpene) => typeof terpene !== 'string');
+
+  if (hasNonStringEffects || hasNonStringTerpenes) {
+    console.warn('[StrainCard] Non-string data detected', {
+      id: strain.id,
+      name: strain.name,
+      effects: strain.effects,
+      terpenes: strain.terpenes,
+    });
+  }
 
   const imgUrl = strain.image_url || "/strains/placeholder-1.svg";
-
   return (
-    <Link 
-      href={`/strains/${strain.slug}`} 
+    <Link
+      href={`/strains/${strain.slug}`}
       className={`premium-card ${themeClass} ${!isCollected ? 'opacity-70 grayscale-[0.8]' : ''} flex flex-col w-full h-full animate-in fade-in slide-in-from-bottom-4`}
       style={{ animationDelay: `${index * 0.05}s`, animationFillMode: 'both' }}
     >
@@ -80,23 +110,23 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
         <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 shadow-inner backdrop-blur-sm shadow-md">
           {/* Row 1: THC & Geschmack */}
           <div className="grid grid-cols-2 gap-1.5 border-b border-white/5 pb-1.5 mb-1.5">
-              <div className="flex items-center justify-between">
-                  <span className="text-gray-500 text-[8px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
-                  <span className="accent-text text-xs font-bold tracking-wide">{thcDisplay}</span>
-              </div>
-              <div className="flex items-center justify-end border-l border-white/5 pl-1.5 w-full">
-                  <span className="text-gray-100 text-[9px] font-medium tracking-wide leading-tight text-right text-balance">{tasteDisplay}</span>
-              </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500 text-[8px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
+              <span className="accent-text text-xs font-bold tracking-wide">{thcDisplay}</span>
+            </div>
+            <div className="flex items-center justify-end border-l border-white/5 pl-1.5 w-full">
+              <span className="text-gray-100 text-[9px] font-medium tracking-wide leading-tight text-right text-balance">{tasteDisplay}</span>
+            </div>
           </div>
           {/* Row 2: CBD & Wirkung */}
           <div className="grid grid-cols-2 gap-1.5">
-              <div className="flex items-center justify-between">
-                  <span className="text-gray-500 text-[8px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
-                  <span className="accent-text text-xs font-bold tracking-wide">{cbdDisplay}</span>
-              </div>
-              <div className="flex items-center justify-end border-l border-white/5 pl-1.5 w-full">
-                  <span className="text-gray-100 text-[9px] font-medium tracking-wide leading-tight text-right text-balance">{effectDisplay}</span>
-              </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-500 text-[8px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
+              <span className="accent-text text-xs font-bold tracking-wide">{cbdDisplay}</span>
+            </div>
+            <div className="flex items-center justify-end border-l border-white/5 pl-1.5 w-full">
+              <span className="text-gray-100 text-[9px] font-medium tracking-wide leading-tight text-right text-balance">{effectDisplay}</span>
+            </div>
           </div>
         </div>
       </div>
