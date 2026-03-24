@@ -135,23 +135,23 @@ export default function DiscoverPage() {
                     friends.length > 0 ? (
                         <div className="space-y-4">
                             {friends.map((friend) => (
-                                <Link key={friend.id} href={`/user/${friend.username}`}>
+                                <Link key={friend.id} href={`/user/${friend.username || friend.id}`}>
                                     <div className="bg-[#1e3a24] border border-white/10 rounded-[2rem] p-5 flex flex-col gap-4 shadow-xl hover:border-[#00F5FF]/30 transition-all">
                                         <div className="flex items-center justify-between gap-4">
                                             <div className="flex items-center gap-4 min-w-0">
                                                 {/* Profilbild links */}
                                                 <div className="w-16 h-16 rounded-full overflow-hidden bg-black/20 border-2 border-white/10 flex-shrink-0 flex items-center justify-center">
                                                     {friend.avatar_url ? (
-                                                        <img src={friend.avatar_url} alt={friend.username} className="w-full h-full object-cover" />
+                                                        <img src={friend.avatar_url} alt={friend.username || "User"} className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <span className="text-xl font-bold text-white/20">{friend.username?.[0]?.toUpperCase()}</span>
+                                                        <span className="text-xl font-bold text-white/20">{(friend.username || "U")[0].toUpperCase()}</span>
                                                     )}
                                                 </div>
                                                 
                                                 {/* Name */}
                                                 <div className="min-w-0">
                                                     <h3 className="font-black text-white uppercase tracking-tight truncate text-xl leading-none">
-                                                        {friend.display_name || friend.username}
+                                                        {friend.display_name || friend.username || "User"}
                                                     </h3>
                                                 </div>
                                             </div>
@@ -171,12 +171,12 @@ export default function DiscoverPage() {
                                                         <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 bg-white/5 shadow-inner">
                                                             <img 
                                                                 src={s.image_url || "/strains/placeholder-1.svg"} 
-                                                                alt={s.name} 
+                                                                alt={s.name || "Strain"} 
                                                                 className="w-full h-full object-cover opacity-80" 
                                                             />
                                                         </div>
                                                         <p className="text-[7px] text-white/40 font-black uppercase tracking-tighter truncate w-full text-center leading-none">
-                                                            {s.name}
+                                                            {s.name || "Strain"}
                                                         </p>
                                                     </div>
                                                 ))}
