@@ -35,21 +35,41 @@ export default function ScannerPage() {
   };
 
   const findBestMatch = (text: string, strains: any[]) => {
-    const words = text.toLowerCase().split(/[\s,.\-\n]+/);
+    const lowerText = text.toLowerCase();
+    const words = lowerText.split(/[\s,.\-\n]+/);
+    
+    // Sortiere Strains nach Länge (längste zuerst), um spezifischere Namen zu bevorzugen
+    const sortedStrains = [...strains].sort((a, b) => b.name.length - a.name.length);
+    
     let bestMatch = null;
-    let minDistance = 4; // Toleranz für längere Namen
+    let minDistance = 3;
 
-    for (const strain of strains) {
+    // 1. Suche nach exakten (langen) Treffern im Text
+    for (const strain of sortedStrains) {
       const name = strain.name.toLowerCase();
       
-      // 1. Direkter Treffer
-      if (text.toLowerCase().includes(name)) return strain;
+      // Für kurze Namen ( < 4 Zeichen) nutzen wir Wortgrenzen-Check
+      if (name.length < 4) {
+        const regex = new RegExp(`\\b${name}\\b`, 'i');
+        if (regex.test(lowerText)) return strain;
+      } else {
+        if (lowerText.includes(name)) return strain;
+      }
+    }
 
-      // 2. Fuzzy Match auf Wort-Ebene
+    // 2. Fuzzy Match auf Wort-Ebene (falls kein exakter Treffer)
+    for (const strain of sortedStrains) {
+      const name = strain.name.toLowerCase();
+      if (name.length < 4) continue; // Zu kurz für Fuzzy
+
       for (const word of words) {
         if (word.length < 4) continue;
         const dist = getLevenshteinDistance(word, name);
-        if (dist <= 2 && dist < minDistance) {
+        
+        // Toleranz: 1 Fehler bei Wörtern bis 6 Zeichen, 2 Fehler darüber
+        const maxAllowedDist = name.length > 6 ? 2 : 1;
+        
+        if (dist <= maxAllowedDist && dist < minDistance) {
           minDistance = dist;
           bestMatch = strain;
         }
