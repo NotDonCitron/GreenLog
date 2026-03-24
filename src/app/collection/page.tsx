@@ -136,21 +136,21 @@ export default function CollectionPage() {
           <Button 
             variant="outline" 
             onClick={() => setIsCalendarOpen(true)}
-            className={`h-12 w-12 rounded-2xl border-white/10 shrink-0 transition-all ${selectedDate ? 'bg-[#00F5FF] border-[#00F5FF] text-black' : 'bg-white/5 text-[#00F5FF]'}`}
+            className={`h-12 w-12 rounded-2xl border-white/10 shrink-0 transition-all ${selectedDate ? 'bg-[#2FF801] border-[#2FF801] text-black' : 'bg-white/5 text-[#2FF801]'}`}
           >
              <CalendarDays size={20} />
           </Button>
         </div>
 
         {selectedDate && (
-          <div className="flex items-center justify-between bg-[#00F5FF]/10 border border-[#00F5FF]/20 rounded-xl px-4 py-2 mb-4 animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center justify-between bg-[#2FF801]/10 border border-[#2FF801]/20 rounded-xl px-4 py-2 mb-4 animate-in fade-in slide-in-from-top-2">
             <div className="flex items-center gap-2">
-              <Filter size={12} className="text-[#00F5FF]" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#00F5FF]">
+              <Filter size={12} className="text-[#2FF801]" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#2FF801]">
                 Gefiltert: {format(selectedDate, "dd. MMMM yyyy", { locale: de })}
               </p>
             </div>
-            <button onClick={() => setSelectedDate(undefined)} className="text-[#00F5FF] hover:text-white transition-colors">
+            <button onClick={() => setSelectedDate(undefined)} className="text-[#2FF801] hover:text-white transition-colors">
               <X size={14} />
             </button>
           </div>
@@ -208,7 +208,7 @@ export default function CollectionPage() {
       <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
         <DialogContent className="max-w-[340px] bg-[#1a191b] border-white/10 text-white rounded-[2rem] p-4 flex flex-col items-center">
           <DialogHeader className="w-full text-center mb-2">
-            <DialogTitle className="text-xl font-black italic uppercase tracking-tighter text-[#00F5FF]">Archiv Datum</DialogTitle>
+            <DialogTitle className="text-xl font-black italic uppercase tracking-tighter text-[#2FF801]">Archiv Datum</DialogTitle>
           </DialogHeader>
           <Calendar
             mode="single"

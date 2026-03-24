@@ -20,37 +20,35 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
-        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+        months: "flex flex-col space-y-4",
         month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-black uppercase tracking-widest text-[#00F5FF]",
-        nav: "space-x-1 flex items-center",
-        nav_button: cn(
+        month_caption: "flex justify-center pt-1 relative items-center mb-4",
+        caption_label: "text-sm font-black uppercase tracking-widest text-[#2FF801]",
+        nav: "flex items-center justify-between absolute w-full px-1 z-10",
+        button_previous: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 border-white/10"
+          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 border-white/10 text-white"
         ),
-        nav_button_previous: "absolute left-1",
-        nav_button_next: "absolute right-1",
-        table: "w-full border-collapse space-y-1",
-        head_row: "flex",
-        head_cell:
-          "text-white/40 rounded-md w-9 font-black uppercase text-[8px] tracking-tighter",
-        row: "flex w-full mt-2",
-        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-white/5 [&:has([aria-selected])]:bg-white/5 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-        day: cn(
+        button_next: cn(
+          buttonVariants({ variant: "outline" }),
+          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 border-white/10 text-white"
+        ),
+        month_grid: "w-full border-collapse space-y-1",
+        weekdays: "flex",
+        weekday: "text-white/40 rounded-md w-9 font-black uppercase text-[8px] tracking-tighter text-center",
+        week: "flex w-full mt-2",
+        day: "h-9 w-9 text-center text-sm p-0 relative flex items-center justify-center",
+        day_button: cn(
           buttonVariants({ variant: "ghost" }),
           "h-9 w-9 p-0 font-bold aria-selected:opacity-100 hover:bg-[#2FF801] hover:text-black transition-all"
         ),
-        day_range_end: "day-range-end",
-        day_selected:
-          "bg-[#2FF801] text-black hover:bg-[#2FF801] hover:text-black focus:bg-[#2FF801] focus:text-black shadow-[0_0_15px_#2FF80144]",
-        day_today: "bg-white/10 text-white font-black border border-[#00F5FF]/30",
-        day_outside:
-          "day-outside text-white/20 aria-selected:bg-white/5 aria-selected:text-white/20 aria-selected:opacity-30",
-        day_disabled: "text-white/20 opacity-50",
-        day_range_middle:
-          "aria-selected:bg-white/5 aria-selected:text-white",
-        day_hidden: "invisible",
+        selected:
+          "bg-[#2FF801] text-black hover:bg-[#2FF801] hover:text-black focus:bg-[#2FF801] focus:text-black shadow-[0_0_15px_#2FF80144] rounded-md",
+        today: "text-[#2FF801] font-black border border-[#2FF801]/30 rounded-md",
+        outside:
+          "day-outside text-white/10 opacity-50 aria-selected:bg-white/5 aria-selected:text-white/20",
+        disabled: "text-white/20 opacity-50",
+        hidden: "invisible",
         ...classNames,
       }}
       components={{
