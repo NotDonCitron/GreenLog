@@ -33,18 +33,28 @@ export default function SettingsPage() {
 
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newEmail || isDemoMode) return;
+    const emailToSubmit = newEmail.trim().toLowerCase();
+    
+    if (!emailToSubmit || isDemoMode) return;
+    
+    if (emailToSubmit === user?.email?.toLowerCase()) {
+      setEmailStatus({ type: 'error', msg: "Die neue E-Mail ist identisch mit der aktuellen." });
+      return;
+    }
     
     setIsUpdatingEmail(true);
     setEmailStatus(null);
     
     try {
-      const { error } = await supabase.auth.updateUser({ email: newEmail });
-      if (error) throw error;
+      const { error } = await supabase.auth.updateUser({ email: emailToSubmit });
+      if (error) {
+        if (error.message.includes("invalid")) throw new Error("Die E-Mail-Adresse ist ungültig.");
+        throw error;
+      }
       
       setEmailStatus({ 
         type: 'success', 
-        msg: "Bestätigungs-Mail wurde an beide Adressen gesendet. Bitte klicke auf die Links in beiden Mails." 
+        msg: "Bestätigungs-Mails wurden gesendet. Du musst den Link in BEIDEN Postfächern (alt & neu) bestätigen." 
       });
       setNewEmail("");
     } catch (err: any) {
