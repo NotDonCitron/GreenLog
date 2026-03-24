@@ -206,20 +206,23 @@ export default function CollectionPage() {
       </div>
 
       <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-        <DialogContent className="max-w-[340px] bg-[#1a191b] border-white/10 text-white rounded-[2rem] p-4 flex flex-col items-center">
-          <DialogHeader className="w-full text-center mb-2">
-            <DialogTitle className="text-xl font-black italic uppercase tracking-tighter text-[#2FF801]">Archiv Datum</DialogTitle>
+        <DialogContent className="max-w-[360px] w-[95vw] bg-[#1a191b] border-white/10 text-white rounded-[2.5rem] p-6 flex flex-col items-center shadow-2xl">
+          <DialogHeader className="w-full mb-4">
+            <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-[#2FF801] text-center">Archiv Datum</DialogTitle>
           </DialogHeader>
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={(date) => {
-              setSelectedDate(date);
-              setIsCalendarOpen(false);
-            }}
-            initialFocus
-            className="rounded-2xl border border-white/5 bg-black/20"
-          />
+          
+          <div className="w-full bg-black/20 rounded-3xl p-2 border border-white/5 shadow-inner">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={(date) => {
+                setSelectedDate(date);
+                setIsCalendarOpen(false);
+              }}
+              initialFocus
+            />
+          </div>
+
           {selectedDate && (
             <Button 
               variant="ghost" 
@@ -227,7 +230,7 @@ export default function CollectionPage() {
                 setSelectedDate(undefined);
                 setIsCalendarOpen(false);
               }}
-              className="mt-4 text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-white"
+              className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-[#2FF801] hover:bg-[#2FF801]/10 h-10 w-full rounded-xl"
             >
               Filter zurücksetzen
             </Button>

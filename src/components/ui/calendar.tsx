@@ -18,43 +18,43 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
+      className={cn("p-0 w-full", className)}
       classNames={{
-        months: "flex flex-col space-y-4",
-        month: "space-y-4",
-        month_caption: "flex justify-center pt-1 relative items-center mb-4",
-        caption_label: "text-sm font-black uppercase tracking-widest text-[#2FF801]",
-        nav: "flex items-center justify-between absolute w-full px-1 z-10",
+        months: "flex flex-col space-y-4 w-full",
+        month: "space-y-6 w-full",
+        month_caption: "flex justify-center pt-2 relative items-center mb-4 px-8",
+        caption_label: "text-base font-black uppercase tracking-[0.2em] text-[#2FF801]",
+        nav: "flex items-center justify-between absolute w-full left-0 top-2 px-1 z-10",
         button_previous: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 border-white/10 text-white"
+          "h-8 w-8 bg-black/20 p-0 opacity-80 hover:opacity-100 border-white/10 text-white rounded-lg hover:bg-[#2FF801] hover:text-black transition-all"
         ),
         button_next: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 border-white/10 text-white"
+          "h-8 w-8 bg-black/20 p-0 opacity-80 hover:opacity-100 border-white/10 text-white rounded-lg hover:bg-[#2FF801] hover:text-black transition-all"
         ),
-        month_grid: "w-full border-collapse space-y-1",
-        weekdays: "flex",
-        weekday: "text-white/40 rounded-md w-9 font-black uppercase text-[8px] tracking-tighter text-center",
-        week: "flex w-full mt-2",
-        day: "h-9 w-9 text-center text-sm p-0 relative flex items-center justify-center",
+        month_grid: "w-full border-collapse space-y-2",
+        weekdays: "flex justify-between mb-2",
+        weekday: "text-white/30 w-10 font-black uppercase text-[10px] tracking-widest text-center",
+        week: "flex w-full justify-between mt-1",
+        day: "h-10 w-10 text-center text-sm p-0 relative flex items-center justify-center",
         day_button: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-bold aria-selected:opacity-100 hover:bg-[#2FF801] hover:text-black transition-all"
+          "h-10 w-10 p-0 font-bold text-base aria-selected:opacity-100 hover:bg-[#2FF801] hover:text-black transition-all rounded-xl"
         ),
         selected:
-          "bg-[#2FF801] text-black hover:bg-[#2FF801] hover:text-black focus:bg-[#2FF801] focus:text-black shadow-[0_0_15px_#2FF80144] rounded-md",
-        today: "text-[#2FF801] font-black border border-[#2FF801]/30 rounded-md",
+          "bg-[#2FF801] text-black hover:bg-[#2FF801] hover:text-black focus:bg-[#2FF801] focus:text-black shadow-[0_0_20px_#2FF80166] rounded-xl",
+        today: "text-[#2FF801] font-black border-2 border-[#2FF801]/40 rounded-xl",
         outside:
-          "day-outside text-white/10 opacity-50 aria-selected:bg-white/5 aria-selected:text-white/20",
-        disabled: "text-white/20 opacity-50",
+          "day-outside text-white/5 opacity-30",
+        disabled: "text-white/10 opacity-20",
         hidden: "invisible",
         ...classNames,
       }}
       components={{
         Chevron: ({ ...props }) => {
-          if (props.orientation === 'left') return <ChevronLeft className="h-4 w-4" />
-          return <ChevronRight className="h-4 w-4" />
+          if (props.orientation === 'left') return <ChevronLeft className="h-5 w-5" />
+          return <ChevronRight className="h-5 w-5" />
         }
       }}
       {...props}
