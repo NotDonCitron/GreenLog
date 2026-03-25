@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
     Loader2,
     MapPin,
@@ -23,7 +24,7 @@ import { FollowButton } from "@/components/social/follow-button";
 import { ActivityItem } from "@/components/social/activity-item";
 import { UserCollectionsTab, type UserCollectionStrain } from "@/components/profile/user-collections-tab";
 import { useAuth } from "@/components/auth-provider";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { normalizeCollectionSource } from "@/lib/strain-display";
 import type { ProfileRow, ProfileStats, UserActivity, FollowStatus } from "@/lib/types";
 
@@ -122,108 +123,70 @@ export default function UserProfilePage() {
         setError(null);
 
         try {
-            // Fetch profile by username
+            // 1. Fetch profile by username (Initial core fetch)
             const { data: profileData, error: profileError } = await supabase
                 .from("profiles")
                 .select("*")
                 .eq("username", username)
                 .single();
 
-            if (profileError) throw new Error("User not found");
+            if (profileError || !profileData) throw new Error("User not found");
             setProfile(profileData);
 
-            // Check follow status if not own profile
-            if (user && user.id !== profileData.id) {
-                const { data: followData } = await supabase
+            // 2. Parallel data fetching for everything else
+            const [
+                followDataRes,
+                followerCountRes,
+                followingCountRes,
+                ratingsCountRes,
+                growsCountRes,
+                favoritesRes,
+                publicGrowsRes,
+                collectionRes,
+                activitiesRes,
+                badgesRes
+            ] = await Promise.all([
+                // Follow status (if logged in)
+                user ? supabase
                     .from("follows")
                     .select("*")
-                    .eq("follower_id", user.id)
-                    .eq("following_id", profileData.id)
-                    .single();
+                    .or(`and(follower_id.eq.${user.id},following_id.eq.${profileData.id}),and(follower_id.eq.${profileData.id},following_id.eq.${user.id})`)
+                    : Promise.resolve({ data: [] }),
+                
+                // Counts
+                supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", profileData.id),
+                supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", profileData.id),
+                supabase.from("ratings").select("*", { count: "exact", head: true }).eq("user_id", profileData.id),
+                supabase.from("grows").select("*", { count: "exact", head: true }).eq("user_id", profileData.id),
+                
+                // Detailed data
+                supabase.from("user_strain_relations").select("*, strains:strain_id (*)").eq("user_id", profileData.id).eq("is_favorite", true).limit(10),
+                supabase.from("grows").select("*, strains:strain_id (*)").eq("user_id", profileData.id).eq("is_public", true).limit(10),
+                supabase.from("user_collection").select("batch_info, user_notes, user_thc_percent, user_cbd_percent, user_image_url, date_added, strain:strains (*)").eq("user_id", profileData.id).order("date_added", { ascending: false }).limit(24),
+                supabase.from("user_activities").select("*").eq("user_id", profileData.id).eq("is_public", true).order("created_at", { ascending: false }).limit(20),
+                supabase.from("user_badges").select("*, badges(*)").eq("user_id", profileData.id)
+            ]);
 
-                const { data: reverseFollowData } = await supabase
-                    .from("follows")
-                    .select("*")
-                    .eq("follower_id", profileData.id)
-                    .eq("following_id", user.id)
-                    .single();
-
+            // Process follow status
+            if (user && followDataRes.data) {
+                const isFollowing = followDataRes.data.some(f => f.follower_id === user.id && f.following_id === profileData.id);
+                const isFollowingMe = followDataRes.data.some(f => f.follower_id === profileData.id && f.following_id === user.id);
+                
                 setFollowStatus({
-                    is_following: !!followData,
-                    is_following_me: !!reverseFollowData,
+                    is_following: isFollowing,
+                    is_following_me: isFollowingMe,
                     has_pending_request: false,
                 });
             }
 
-            // Fetch follower and following counts
-            const { count: followers } = await supabase
-                .from("follows")
-                .select("*", { count: "exact", head: true })
-                .eq("following_id", profileData.id);
+            // Set counts
+            setFollowersCount(followerCountRes.count ?? 0);
+            setFollowingCount(followingCountRes.count ?? 0);
 
-            const { count: following } = await supabase
-                .from("follows")
-                .select("*", { count: "exact", head: true })
-                .eq("follower_id", profileData.id);
-
-            setFollowersCount(followers ?? 0);
-            setFollowingCount(following ?? 0);
-
-            // Fetch ratings count
-            const { count: ratingsCount } = await supabase
-                .from("ratings")
-                .select("*", { count: "exact", head: true })
-                .eq("user_id", profileData.id);
-
-            // Fetch grows count
-            const { count: growsCount } = await supabase
-                .from("grows")
-                .select("*", { count: "exact", head: true })
-                .eq("user_id", profileData.id);
-
-            // Fetch favorites
-            const { data: favoritesData } = await supabase
-                .from("user_strain_relations")
-                .select(`
-            *,
-            strains:strain_id (*)
-          `)
-                .eq("user_id", profileData.id)
-                .eq("is_favorite", true)
-                .limit(10);
-
-            // Fetch public grows
-            const { data: growsData } = await supabase
-                .from("grows")
-                .select(`
-            *,
-            strains:strain_id (*)
-          `)
-                .eq("user_id", profileData.id)
-                .eq("is_public", true)
-                .limit(10);
-
-            // Fetch visible collection items
-            const { data: collectionData } = await supabase
-                .from("user_collection")
-                .select(`
-            batch_info,
-            user_notes,
-            user_thc_percent,
-            user_cbd_percent,
-            user_image_url,
-            date_added,
-            strain:strains (*)
-          `)
-                .eq("user_id", profileData.id)
-                .order("date_added", { ascending: false })
-                .limit(24);
-
-            const normalizedCollections = (collectionData as CollectionRow[] | null)?.reduce<UserCollectionStrain[]>((acc, item) => {
+            // Normalize and set detailed data
+            const normalizedCollections = (collectionRes.data as CollectionRow[] | null)?.reduce<UserCollectionStrain[]>((acc, item) => {
                 const rawStrain = Array.isArray(item.strain) ? item.strain[0] : item.strain;
-                if (!rawStrain) {
-                    return acc;
-                }
+                if (!rawStrain) return acc;
 
                 acc.push({
                     ...rawStrain,
@@ -234,42 +197,22 @@ export default function UserProfilePage() {
                     user_notes: item.user_notes,
                     collected_at: item.date_added,
                 });
-
                 return acc;
             }, []) ?? [];
 
-            // Fetch recent activities
-            const { data: activitiesData } = await supabase
-                .from("user_activities")
-                .select("*")
-                .eq("user_id", profileData.id)
-                .eq("is_public", true)
-                .order("created_at", { ascending: false })
-                .limit(20);
-
-            // Fetch badges
-            const { data: badgesData } = await supabase
-                .from("user_badges")
-                .select("*, badges(*)")
-                .eq("user_id", profileData.id);
-
             setStats({
-                totalStrains: ratingsCount ?? 0,
-                totalGrows: growsCount ?? 0,
-                favoriteCount: favoritesData?.length ?? 0,
-                unlockedBadgeCount: badgesData?.length ?? 0,
-                xp: 0,
-                level: 1,
-                progressToNextLevel: 0,
-                followers: 0,
-                following: 0,
+                totalStrains: ratingsCountRes.count ?? 0,
+                totalGrows: growsCountRes.count ?? 0,
+                favoriteCount: favoritesRes.data?.length ?? 0,
+                unlockedBadgeCount: badgesRes.data?.length ?? 0,
+                xp: 0, level: 1, progressToNextLevel: 0, followers: 0, following: 0,
             });
 
-            setFavorites(favoritesData ?? []);
-            setGrows(growsData ?? []);
+            setFavorites(favoritesRes.data ?? []);
+            setGrows(publicGrowsRes.data ?? []);
             setCollections(normalizedCollections);
-            setActivities(activitiesData ?? []);
-            setUserBadges(badgesData ?? []);
+            setActivities(activitiesRes.data ?? []);
+            setUserBadges(badgesRes.data ?? []);
         } catch (err) {
             console.error("Error fetching profile:", err);
             setError("User not found");
@@ -346,12 +289,13 @@ export default function UserProfilePage() {
                     <div className="flex items-center gap-4 min-w-0">
                         {/* Avatar */}
                         <div className="flex-shrink-0">
-                            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-white/20 bg-white/10 shadow-xl">
+                            <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-white/20 bg-white/10 shadow-xl">
                                 {profile.avatar_url ? (
-                                    <img
+                                    <Image
                                         src={profile.avatar_url}
                                         alt={profile.display_name ?? profile.username ?? ""}
-                                        className="h-full w-full object-cover"
+                                        fill
+                                        className="object-cover"
                                     />
                                 ) : (
                                     <span className="text-2xl font-bold text-white/50">
@@ -539,10 +483,11 @@ export default function UserProfilePage() {
                                             <Link key={fav.id} href={`/strains/${fav.strains?.slug}`} className="min-w-0">
                                                 <div className="relative aspect-square overflow-hidden rounded-xl border border-[#427249]/50 bg-[#2D5032]">
                                                     {fav.strains?.image_url && (
-                                                        <img
+                                                        <Image
                                                             src={fav.strains.image_url}
                                                             alt={fav.strains?.name ?? ""}
-                                                            className="w-full h-full object-cover"
+                                                            fill
+                                                            className="object-cover"
                                                         />
                                                     )}
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />

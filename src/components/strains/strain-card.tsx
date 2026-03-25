@@ -1,4 +1,6 @@
+import { memo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Strain } from '@/lib/types';
 import { Lock } from 'lucide-react';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay } from '@/lib/strain-display';
@@ -9,7 +11,7 @@ interface StrainCardProps {
   isCollected?: boolean;
 }
 
-export function StrainCard({ strain, index = 0, isCollected = true }: StrainCardProps) {
+export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollected = true }: StrainCardProps) {
   const { color: themeColor, className: themeClass } = getStrainTheme(strain.type);
 
   const farmerDisplay = strain.farmer?.trim() || strain.manufacturer?.trim() || strain.brand?.trim() || 'Unbekannter Farmer';
@@ -55,10 +57,12 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
 
       <div className="px-3 w-full shrink-0 relative z-10">
         <div className="relative w-full h-[110px] rounded-xl overflow-hidden border border-white/5 shadow-lg">
-          <img 
+          <Image 
             src={strain.image_url || "/strains/placeholder-1.svg"} 
             alt={strain.name} 
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-110" 
+            sizes="(max-width: 768px) 50vw, 33vw"
           />
           {!isCollected && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-[1.5px]">
@@ -97,5 +101,9 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
         </div>
       </div>
     </Link>
+  );
+});
+
+
   );
 }

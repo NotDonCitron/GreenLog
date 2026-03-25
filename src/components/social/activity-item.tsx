@@ -1,6 +1,8 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Star, Sprout, Trophy, Heart, TrendingUp } from "lucide-react";
 import type { UserActivity, ProfileRow } from "@/lib/types";
 
@@ -61,7 +63,7 @@ function formatTimeAgo(dateString: string): string {
     return date.toLocaleDateString();
 }
 
-export function ActivityItem({ activity, user, className = "" }: ActivityItemProps) {
+export const ActivityItem = memo(function ActivityItem({ activity, user, className = "" }: ActivityItemProps) {
     const Icon = getActivityIcon(activity.activity_type);
     const activityText = getActivityText(activity);
 
@@ -69,12 +71,13 @@ export function ActivityItem({ activity, user, className = "" }: ActivityItemPro
         <div className={`flex gap-3 py-4 border-b border-white/5 ${className}`}>
             {/* Avatar */}
             <Link href={`/user/${user.username}`} className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-white/10 flex items-center justify-center">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden bg-white/10 flex items-center justify-center">
                     {user.avatar_url ? (
-                        <img
+                        <Image
                             src={user.avatar_url}
                             alt={user.display_name ?? user.username ?? ""}
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
                         />
                     ) : (
                         <span className="text-sm font-bold text-white/50">
@@ -107,10 +110,11 @@ export function ActivityItem({ activity, user, className = "" }: ActivityItemPro
                 {activity.target_image_url && (
                     <Link href={`/strains/${activity.target_id}`} className="block mt-3">
                         <div className="relative h-20 w-20 rounded-xl overflow-hidden border border-white/10">
-                            <img
+                            <Image
                                 src={activity.target_image_url}
                                 alt={activity.target_name ?? ""}
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
                             />
                         </div>
                     </Link>
@@ -118,4 +122,5 @@ export function ActivityItem({ activity, user, className = "" }: ActivityItemPro
             </div>
         </div>
     );
-}
+});
+
