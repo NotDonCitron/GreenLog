@@ -63,6 +63,10 @@ export function OnboardingGuide() {
     const [isSaving, setIsLoading] = useState(false);
 
     useEffect(() => {
+        console.log("[Onboarding] Component mounted.");
+    }, []);
+
+    useEffect(() => {
         async function checkOnboarding() {
             // In Demo mode, always show onboarding if not explicitly dismissed in session
             if (isDemoMode) {

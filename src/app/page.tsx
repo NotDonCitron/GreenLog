@@ -167,7 +167,6 @@ export default function Home() {
         )}
       </div>
       <BottomNav />
-      <OnboardingGuide />
     </main>
   );
 }
