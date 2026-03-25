@@ -142,14 +142,17 @@ export function OnboardingGuide() {
                 .update({ has_completed_onboarding: true })
                 .eq("id", user.id);
 
-            if (!error) {
-                console.log("[Onboarding] Successfully saved status.");
+            if (error) {
+                console.error("[Onboarding] Error saving status:", error);
+                // Even if DB fails, close it for the current session so the user can use the app
                 setIsVisible(false);
             } else {
-                console.error("[Onboarding] Error saving status:", error);
+                console.log("[Onboarding] Successfully saved status.");
+                setIsVisible(false);
             }
         } catch (err) {
             console.error("[Onboarding] Failed to complete onboarding:", err);
+            setIsVisible(false); // UI Fallback
         } finally {
             setIsLoading(false);
         }
