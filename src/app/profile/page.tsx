@@ -27,7 +27,6 @@ import {
   Trophy,
   UserRound,
   Users,
-  Wand2,
   Zap,
   Calendar,
   Check,
@@ -93,11 +92,14 @@ function createFallbackViewModel(isDemoMode: boolean): ProfileViewModel {
   };
 }
 
-function SectionHeader({ eyebrow, title }: { eyebrow: string; title: string }) {
+function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow: string; title: string; icon?: LucideIcon }) {
   return (
     <div className="space-y-1 px-1">
       {eyebrow && <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#A3E4D7]/70">{eyebrow}</p>}
-      <h2 className="text-lg font-semibold tracking-tight text-white">{title}</h2>
+      <h2 className="text-lg font-semibold tracking-tight text-white flex items-center gap-2">
+        {Icon && <Icon size={18} className="text-[#ff4757]" />}
+        {title}
+      </h2>
     </div>
   );
 }
@@ -309,25 +311,9 @@ export default function ProfilePage() {
           <div>
             <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">Profil</h1>
           </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={async () => {
-                localStorage.removeItem("cannalog_onboarding_completed");
-                sessionStorage.removeItem("cannalog_onboarding_dismissed");
-                if (user) {
-                  await supabase.from("profiles").update({ has_completed_onboarding: false }).eq("id", user.id);
-                }
-                window.location.href = "/";
-              }}
-              className="w-10 h-10 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 hover:bg-orange-500/20 transition-colors"
-              title="Reset Onboarding (Test)"
-            >
-              <Wand2 size={18} />
-            </button>
-            <div className="w-10 h-10 relative">
+          <div className="w-10 h-10 relative">
               <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
             </div>
-          </div>
         </div>
 
         {/* Owner Badge Above Card */}
@@ -474,7 +460,7 @@ export default function ProfilePage() {
         </section>
 
         <section className="space-y-4">
-          <SectionHeader eyebrow="" title="Collection" />
+          <SectionHeader eyebrow="" title="Favorites" icon={Heart} />
           {favorites.length > 0 ? (
             <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
               {favorites.map((favorite) => (
