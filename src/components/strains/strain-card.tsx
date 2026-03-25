@@ -103,7 +103,3 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
     </Link>
   );
 });
-
-
-  );
-}
