@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { Search, CalendarDays, Loader2, AlertCircle, X, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { Strain, StrainSource } from "@/lib/types";
 import { StrainCard } from "@/components/strains/strain-card";
@@ -140,7 +140,6 @@ export default function CollectionPage() {
       <header className="p-8 sticky top-0 bg-[#355E3B]/90 backdrop-blur-xl z-50 border-b border-white/5">
         <div className="flex justify-between items-end mb-6">
           <div>
-            <span className="text-[10px] text-[#00F5FF] font-black uppercase tracking-[0.4em]">Archiv</span>
             <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">Deine Sammlung</h1>
           </div>
           <div className="text-right">
