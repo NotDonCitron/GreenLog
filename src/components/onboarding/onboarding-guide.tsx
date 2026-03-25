@@ -291,4 +291,3 @@ export function OnboardingGuide() {
         </AnimatePresence>
     );
 }
-}
