@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { Search, Loader2, AlertCircle, Plus, User, Camera } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Strain, StrainSource } from "@/lib/types";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
@@ -15,16 +15,29 @@ import { StrainCard } from "@/components/strains/strain-card";
 const SOURCE_OVERRIDE_STORAGE_KEY = "greenlog:strain-source-overrides";
 
 export default function StrainsPage() {
-  const { user, isDemoMode } = useAuth();
+  const { user, isDemoMode, activeOrganization } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [strains, setStrains] = useState<Strain[]>([]);
   const [userCollection, setUserCollection] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<StrainSource | "all" | "mine">("all");
+  const [activeTab, setActiveTab] = useState<"catalog" | "org">("catalog");
   const [error, setError] = useState<string | null>(null);
   const [sourceOverrides, setSourceOverrides] = useState<Record<string, StrainSource>>({});
   const [sourceOverridesReady, setSourceOverridesReady] = useState(false);
+
+  // Read tab from URL params on mount
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "org" && activeOrganization) {
+      setActiveTab("org");
+    } else if (tab === "org") {
+      // No active org, redirect to catalog
+      void router.replace("/strains");
+    }
+  }, [searchParams, activeOrganization, router]);
 
   const persistSourceOverride = (strainId: string, strainSource: StrainSource) => {
     setSourceOverrides((current) => {
@@ -104,11 +117,19 @@ export default function StrainsPage() {
       setError(null);
 
       try {
-        // 1. Fetch all strains
-        const { data: allStrains, error: strainError } = await supabase
+        // 1. Fetch strains based on active tab
+        let strainsQuery = supabase
           .from("strains")
           .select("*")
           .order("name");
+
+        if (activeTab === "catalog") {
+          strainsQuery = strainsQuery.is("organization_id", null);
+        } else if (activeOrganization) {
+          strainsQuery = strainsQuery.eq("organization_id", activeOrganization.organization_id);
+        }
+
+        const { data: allStrains, error: strainError } = await strainsQuery;
 
         if (strainError) throw new Error(strainError.message);
 
@@ -165,7 +186,7 @@ export default function StrainsPage() {
     }
 
     fetchData();
-  }, [user, isDemoMode, sourceOverridesReady]); // sourceOverrides intentional removed to avoid infinite loops since it's merged inside
+  }, [user, isDemoMode, sourceOverridesReady, activeTab]);
 
   const filteredStrains = strains.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
@@ -198,7 +219,32 @@ export default function StrainsPage() {
           />
         </div>
 
-        <div className="flex gap-2 mt-4 overflow-x-auto pb-1 -mx-1 px-1">
+        <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-1 px-1">
+          <button
+            onClick={() => setActiveTab("catalog")}
+            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${
+              activeTab === "catalog"
+                ? "bg-[#2FF801] text-black"
+                : "bg-white/5 border border-white/10 text-white/60"
+            }`}
+          >
+            Katalog
+          </button>
+          {activeOrganization && (
+            <button
+              onClick={() => setActiveTab("org")}
+              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${
+                activeTab === "org"
+                  ? "bg-[#00F5FF] text-black"
+                  : "bg-white/5 border border-white/10 text-white/60"
+              }`}
+            >
+              {activeOrganization.organizations?.name || "Organisation"}
+            </button>
+          )}
+        </div>
+
+        <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-1 px-1">
           <Button
             size="sm"
             variant={sourceFilter === "all" ? "default" : "outline"}

@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Home, Leaf, BookMarked, Users, User } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { FollowRequestsModal } from "@/components/social/follow-requests-modal";
 
@@ -18,9 +18,11 @@ const navItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, activeOrganization } = useAuth();
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [showRequestsModal, setShowRequestsModal] = useState(false);
+
+  const isAdmin = activeOrganization?.role === "owner" || activeOrganization?.role === "admin";
 
   useEffect(() => {
     const fetchPendingRequests = async () => {
@@ -91,6 +93,20 @@ export function BottomNav() {
               </Link>
             );
           })}
+
+          {activeOrganization && (
+            <Link
+              href="/community"
+              className={`flex flex-1 flex-col items-center gap-1 py-2 text-[10px] uppercase font-bold tracking-tighter transition-colors ${
+                pathname.startsWith("/community") || pathname.startsWith("/settings/organization")
+                  ? "text-[#2FF801]"
+                  : "text-white/40"
+              }`}
+            >
+              <Users size={22} className={pathname.startsWith("/community") || pathname.startsWith("/settings/organization") ? "text-[#2FF801]" : "text-white/40"} />
+              Community
+            </Link>
+          )}
         </div>
       </nav>
 
