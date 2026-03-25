@@ -203,106 +203,92 @@ export function OnboardingGuide() {
     if (!isVisible) return null;
 
     const step = ONBOARDING_STEPS[currentStep];
+    // Determine if the guide should be at the top or bottom based on the feature being explained
+    // Scanner is at bottom -> Guide to Top. Profile/Home header is at top -> Guide to Bottom.
+    const isTop = step.path === "/scanner" || step.path === "/profile";
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 sm:p-4 overflow-hidden">
-                {/* Backdrop */}
-                <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-black/80 backdrop-blur-md"
-                />
-
-                {/* Card */}
+            <div className={`fixed left-0 right-0 z-[9999] pointer-events-none flex justify-center px-6 ${isTop ? "top-10" : "bottom-28"}`}>
+                {/* Compact Floating Card */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-[#121212] border border-white/10 rounded-[2.5rem] shadow-2xl no-scrollbar"
+                    initial={{ opacity: 0, y: isTop ? -20 : 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: isTop ? -20 : 20, scale: 0.95 }}
+                    transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                    className="relative w-full max-w-sm bg-[#121212]/95 border-2 border-[#2FF801]/30 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl pointer-events-auto overflow-hidden"
                 >
-                    {/* Progress Bar */}
-                    <div className="absolute top-0 left-0 right-0 h-1.5 flex gap-1 px-6 pt-6">
-                        {ONBOARDING_STEPS.map((_, i) => (
-                            <div 
-                                key={i} 
-                                className={`h-full flex-1 rounded-full transition-all duration-500 ${i <= currentStep ? "bg-[#2FF801]" : "bg-white/10"}`}
-                            />
-                        ))}
-                    </div>
+                    {/* Glowing Accent */}
+                    <div 
+                        className="absolute top-0 left-0 w-full h-1 opacity-50" 
+                        style={{ background: `linear-gradient(90deg, transparent, ${step.color}, transparent)` }} 
+                    />
 
-                    {/* Content */}
-                    <div className="p-8 pt-12 flex flex-col items-center text-center">
-                        <motion.div
-                            key={currentStep}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.3 }}
-                            className="flex flex-col items-center"
-                        >
+                    <div className="p-6">
+                        <div className="flex items-start gap-4">
                             <div 
-                                className="w-24 h-24 rounded-3xl bg-white/5 flex items-center justify-center mb-8 border border-white/10 shadow-inner"
+                                className="w-12 h-12 rounded-2xl bg-white/5 flex-shrink-0 flex items-center justify-center border border-white/10 shadow-inner"
                                 style={{ color: step.color }}
                             >
                                 {step.icon}
                             </div>
-
-                            <h2 className="text-2xl font-black italic tracking-tighter uppercase text-white mb-4">
-                                {step.title}
-                            </h2>
                             
-                            <p className="text-white/60 text-sm leading-relaxed mb-10 max-w-xs">
-                                {step.description}
-                            </p>
-                        </motion.div>
-
-                        {/* Navigation */}
-                        <div className="flex w-full gap-3">
-                            {currentStep > 0 && (
-                                <button
-                                    onClick={handleBack}
-                                    className="flex-1 h-14 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-white/10 transition-colors"
-                                >
-                                    <ChevronLeft size={18} />
-                                    Zurück
-                                </button>
-                            )}
-                            
-                            <button
-                                onClick={handleNext}
-                                disabled={isSaving}
-                                className={`flex-1 h-14 rounded-2xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 ${
-                                    currentStep === ONBOARDING_STEPS.length - 1 
-                                    ? "bg-[#2FF801] text-black hover:bg-[#2FF801]/90" 
-                                    : "bg-white text-black hover:bg-white/90"
-                                }`}
-                            >
-                                {currentStep === ONBOARDING_STEPS.length - 1 ? (
-                                    <>
-                                        Los geht&apos;s
-                                        <CheckCircle2 size={18} />
-                                    </>
-                                ) : (
-                                    <>
-                                        Weiter
-                                        <ChevronRight size={18} />
-                                    </>
-                                )}
-                            </button>
+                            <div className="flex-1 min-w-0 pt-1">
+                                <h2 className="text-sm font-black italic tracking-tighter uppercase text-white mb-1">
+                                    {step.title}
+                                </h2>
+                                <p className="text-white/50 text-[11px] leading-snug line-clamp-3">
+                                    {step.description}
+                                </p>
+                            </div>
                         </div>
 
-                        {/* Skip */}
+                        {/* Navigation Footer */}
+                        <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5">
+                            <div className="flex gap-1">
+                                {ONBOARDING_STEPS.map((_, i) => (
+                                    <div 
+                                        key={i} 
+                                        className={`h-1 rounded-full transition-all duration-500 ${i === currentStep ? "w-4 bg-[#2FF801]" : "w-1 bg-white/10"}`}
+                                    />
+                                ))}
+                            </div>
+
+                            <div className="flex gap-2">
+                                {currentStep > 0 && (
+                                    <button
+                                        onClick={handleBack}
+                                        className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-white flex items-center justify-center hover:bg-white/10 transition-colors"
+                                    >
+                                        <ChevronLeft size={16} />
+                                    </button>
+                                )}
+                                
+                                <button
+                                    onClick={handleNext}
+                                    disabled={isSaving}
+                                    className={`h-10 px-4 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 ${
+                                        currentStep === ONBOARDING_STEPS.length - 1 
+                                        ? "bg-[#2FF801] text-black" 
+                                        : "bg-white text-black"
+                                    }`}
+                                >
+                                    {currentStep === ONBOARDING_STEPS.length - 1 ? "Starten" : "Weiter"}
+                                    <ChevronRight size={14} />
+                                </button>
+                            </div>
+                        </div>
+
                         <button 
                             onClick={completeOnboarding}
-                            className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/20 hover:text-white/40 transition-colors"
+                            className="w-full mt-4 text-[8px] font-black uppercase tracking-[0.2em] text-white/20 hover:text-white/40 transition-colors text-center"
                         >
-                            Tutorial überspringen
+                            Überspringen
                         </button>
                     </div>
                 </motion.div>
             </div>
         </AnimatePresence>
     );
+}
 }
