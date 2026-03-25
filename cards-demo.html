@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Strain Cards - Structure Matched</title>
+    <title>Premium Strain Cards - Final Colors</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,11 +14,11 @@
             background-color: #1f2937;
             background-image: radial-gradient(circle at 50% 50%, #1f2937 0%, #030712 100%);
             min-height: 100vh;
-            font-family: 'Montserrat', sans-serif;
+            font-family: "Montserrat", sans-serif;
         }
 
         .title-font {
-            font-family: 'Playfair Display', serif;
+            font-family: "Playfair Display", serif;
         }
 
         .premium-card {
@@ -35,278 +35,169 @@
             transform: translateY(-5px);
         }
         
-        /* Theme Colors */
-        .theme-cyan {
-            border: 2px solid #00FFFF;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3), inset 0 0 10px rgba(0, 255, 255, 0.1);
+        /* Theme Colors Generated */
+        
+        .theme-sativa {
+            border: 2px solid #adff00;
+            box-shadow: 0 0 15px rgba(173, 255, 0, 0.3), inset 0 0 10px rgba(173, 255, 0, 0.1);
         }
-        .theme-cyan .accent-text { color: #00FFFF; }
-
-        .theme-gold {
-            border: 2px solid #fbbf24;
-            box-shadow: 0 0 15px rgba(251, 191, 36, 0.3), inset 0 0 10px rgba(251, 191, 36, 0.1);
+        .theme-sativa .accent-text { color: #adff00; }
+    
+        .theme-hybrid {
+            border: 2px solid #00a3ff;
+            box-shadow: 0 0 15px rgba(0, 163, 255, 0.3), inset 0 0 10px rgba(0, 163, 255, 0.1);
         }
-        .theme-gold .accent-text { color: #fbbf24; }
-
-        .theme-emerald {
-            border: 2px solid #10b981;
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3), inset 0 0 10px rgba(16, 185, 129, 0.1);
+        .theme-hybrid .accent-text { color: #00a3ff; }
+    
+        .theme-indica {
+            border: 2px solid #cb00ff;
+            box-shadow: 0 0 15px rgba(203, 0, 255, 0.3), inset 0 0 10px rgba(203, 0, 255, 0.1);
         }
-        .theme-emerald .accent-text { color: #10b981; }
-
-        .theme-purple {
-            border: 2px solid #c084fc;
-            box-shadow: 0 0 15px rgba(192, 132, 252, 0.3), inset 0 0 10px rgba(192, 132, 252, 0.1);
-        }
-        .theme-purple .accent-text { color: #c084fc; }
-
-        .theme-crimson {
-            border: 2px solid #f43f5e;
-            box-shadow: 0 0 15px rgba(244, 63, 94, 0.3), inset 0 0 10px rgba(244, 63, 94, 0.1);
-        }
-        .theme-crimson .accent-text { color: #f43f5e; }
+        .theme-indica .accent-text { color: #cb00ff; }
+    
     </style>
 </head>
 <body class="p-10 text-white flex flex-col items-center">
 
-    <h1 class="text-4xl text-center mb-4 title-font italic font-bold">Texte in einer Linie</h1>
+    <h1 class="text-4xl text-center mb-4 title-font italic font-bold">Ausgewählte Sortenfarben</h1>
     <p class="text-center text-gray-400 mb-12 tracking-widest uppercase text-sm">
-        Die Titel passen jetzt besser auf eine Zeile &amp; die Werte im Kasten sind kompakt nebeneinander.
+        Sativa (Farbe 12) | Hybrid (Farbe 29) | Indica (Farbe 41)
     </p>
     
     <div class="flex flex-wrap justify-center gap-10 max-w-7xl w-full">
-
+        
         <!-- ==========================================
-                CARD 1: NEON CYAN
+                CARD: SATIVA
                 ========================================== -->
-        <div class="premium-card theme-cyan flex flex-col">
-            
+        <div class="premium-card theme-sativa flex flex-col">
             <div class="p-6 pb-4">
-                <!-- Removed <br> inside title, let it flow naturally -->
-                <h2 class="title-font italic text-2xl text-white font-bold leading-tight uppercase drop-shadow-lg line-clamp-2">
-                    420 Pharma Bling Blaow
+                <h2 class="title-font italic text-2xl text-white font-bold leading-tight uppercase drop-shadow-lg line-clamp-1">
+                    Acapulco Gold
                 </h2>
-                <div class="w-12 h-0.5 bg-[#00FFFF] mt-2 opacity-70"></div>
+                <div class="w-12 h-0.5 mt-2 opacity-70" style="background-color: #adff00"></div>
             </div>
 
             <div class="px-5 w-full">
                 <div class="relative w-full h-[220px] rounded-xl overflow-hidden border border-white/10 shadow-lg">
                     <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover">
-                    <!-- Smaller padding here too so it's subtler -->
-                    <div class="absolute bottom-2 left-2 border border-green-500/80 bg-black/70 backdrop-blur-md text-green-400 uppercase text-[9px] px-2 py-1 rounded-sm tracking-wider font-bold shadow-md">
-                        HYBRID
-                    </div>
-                </div>
-            </div>
-
-            <div class="px-5 mt-5 w-full">
-                <!-- 1-Line Layout in bottom box with justify-between -->
-                <div class="bg-white/5 border border-white/10 rounded-xl p-4 shadow-inner backdrop-blur-sm shadow-md">
-                    <!-- Row 1: THC & Geschmack -->
-                    <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-2 mb-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
-                            <span class="accent-text text-sm font-bold tracking-wide">29%</span>
-                        </div>
-                        <div class="flex items-center justify-end border-l border-white/5 pl-4 w-full">
-                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Zitrus, Erdig</span>
-                        </div>
-                    </div>
-                    <!-- Row 2: CBD & Wirkung -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
-                            <span class="accent-text text-sm font-bold tracking-wide">&lt; 1%</span>
-                        </div>
-                        <div class="flex items-center justify-end border-l border-white/5 pl-4 w-full">
-                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Euphorie</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- ==========================================
-                CARD 2: LUXURY GOLD
-                ========================================== -->
-        <div class="premium-card theme-gold flex flex-col">
-            <div class="p-6 pb-4">
-                <h2 class="title-font italic text-2xl text-white font-bold leading-tight uppercase drop-shadow-lg line-clamp-1">
-                    Acapulco Gold
-                </h2>
-                <div class="w-12 h-0.5 bg-[#fbbf24] mt-2 opacity-70"></div>
-            </div>
-
-            <div class="px-5 w-full">
-                <div class="relative w-full h-[220px] rounded-xl overflow-hidden border border-white/10 shadow-lg">
-                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover saturate-50 contrast-125">
-                    <div class="absolute bottom-2 left-2 border border-yellow-500/80 bg-black/70 backdrop-blur-md text-yellow-500 uppercase text-[9px] px-2 py-1 rounded-sm tracking-wider font-bold shadow-md">
-                        SATIVA
+                    <div class="absolute bottom-2 left-2 bg-black/70 backdrop-blur-md uppercase text-[9px] px-2 py-1 rounded-sm tracking-wider font-bold shadow-md" style="color: #adff00; border: 1px solid #adff0080;">
+                        Sativa
                     </div>
                 </div>
             </div>
 
             <div class="px-5 mt-5 w-full">
                 <div class="bg-white/5 border border-white/10 rounded-xl p-4 shadow-inner backdrop-blur-sm shadow-md">
-                    <!-- Row 1 -->
                     <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-2 mb-2">
                         <div class="flex items-center justify-between">
                             <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
                             <span class="accent-text text-sm font-bold tracking-wide">25%</span>
                         </div>
                         <div class="flex items-center justify-end border-l border-white/5 pl-4 w-full">
-                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Süß, Erdig</span>
+                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Aroma</span>
                         </div>
                     </div>
-                    <!-- Row 2 -->
                     <div class="grid grid-cols-2 gap-4">
                         <div class="flex items-center justify-between">
                             <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
-                            <span class="accent-text text-sm font-bold tracking-wide">&lt; 1%</span>
+                            <span class="accent-text text-sm font-bold tracking-wide">< 1%</span>
                         </div>
                         <div class="flex items-center justify-end border-l border-white/5 pl-4 w-full">
-                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Kreativ</span>
+                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Effect</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
+    
         <!-- ==========================================
-                CARD 3: EMERALD GREEN
+                CARD: HYBRID
                 ========================================== -->
-        <div class="premium-card theme-emerald flex flex-col">
+        <div class="premium-card theme-hybrid flex flex-col">
             <div class="p-6 pb-4">
                 <h2 class="title-font italic text-2xl text-white font-bold leading-tight uppercase drop-shadow-lg line-clamp-1">
-                    White Widow
+                    Pineapple Express
                 </h2>
-                <div class="w-12 h-0.5 bg-[#10b981] mt-2 opacity-70"></div>
+                <div class="w-12 h-0.5 mt-2 opacity-70" style="background-color: #00a3ff"></div>
             </div>
 
             <div class="px-5 w-full">
                 <div class="relative w-full h-[220px] rounded-xl overflow-hidden border border-white/10 shadow-lg">
-                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover grayscale-[0.2]">
-                    <div class="absolute bottom-2 left-2 border border-emerald-500/80 bg-black/70 backdrop-blur-md text-emerald-400 uppercase text-[9px] px-2 py-1 rounded-sm tracking-wider font-bold shadow-md">
-                        INDICA
+                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover">
+                    <div class="absolute bottom-2 left-2 bg-black/70 backdrop-blur-md uppercase text-[9px] px-2 py-1 rounded-sm tracking-wider font-bold shadow-md" style="color: #00a3ff; border: 1px solid #00a3ff80;">
+                        Hybrid
                     </div>
                 </div>
             </div>
 
             <div class="px-5 mt-5 w-full">
                 <div class="bg-white/5 border border-white/10 rounded-xl p-4 shadow-inner backdrop-blur-sm shadow-md">
-                    <!-- Row 1 -->
                     <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-2 mb-2">
                         <div class="flex items-center justify-between">
                             <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
-                            <span class="accent-text text-sm font-bold tracking-wide">20%</span>
+                            <span class="accent-text text-sm font-bold tracking-wide">22%</span>
                         </div>
                         <div class="flex items-center justify-end border-l border-white/5 pl-4 w-full">
-                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Kiefer, Holz</span>
+                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Aroma</span>
                         </div>
                     </div>
-                    <!-- Row 2 -->
                     <div class="grid grid-cols-2 gap-4">
                         <div class="flex items-center justify-between">
                             <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
-                            <span class="accent-text text-sm font-bold tracking-wide">3%</span>
+                            <span class="accent-text text-sm font-bold tracking-wide">< 1%</span>
                         </div>
                         <div class="flex items-center justify-end border-l border-white/5 pl-4 w-full">
-                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Schlaf</span>
+                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Effect</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
+    
         <!-- ==========================================
-                CARD 4: AMETHYST PURPLE
+                CARD: INDICA
                 ========================================== -->
-        <div class="premium-card theme-purple flex flex-col">
+        <div class="premium-card theme-indica flex flex-col">
             <div class="p-6 pb-4">
                 <h2 class="title-font italic text-2xl text-white font-bold leading-tight uppercase drop-shadow-lg line-clamp-1">
-                    Amnesia Haze
+                    Purple Kush
                 </h2>
-                <div class="w-12 h-0.5 bg-[#c084fc] mt-2 opacity-70"></div>
+                <div class="w-12 h-0.5 mt-2 opacity-70" style="background-color: #cb00ff"></div>
             </div>
+
             <div class="px-5 w-full">
                 <div class="relative w-full h-[220px] rounded-xl overflow-hidden border border-white/10 shadow-lg">
-                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover hue-rotate-180 brightness-90">
-                    <div class="absolute bottom-2 left-2 border border-purple-500/80 bg-black/70 backdrop-blur-md text-purple-400 uppercase text-[9px] px-2 py-1 rounded-sm tracking-wider font-bold shadow-md">
-                        SATIVA
+                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover">
+                    <div class="absolute bottom-2 left-2 bg-black/70 backdrop-blur-md uppercase text-[9px] px-2 py-1 rounded-sm tracking-wider font-bold shadow-md" style="color: #cb00ff; border: 1px solid #cb00ff80;">
+                        Indica
                     </div>
                 </div>
             </div>
+
             <div class="px-5 mt-5 w-full">
                 <div class="bg-white/5 border border-white/10 rounded-xl p-4 shadow-inner backdrop-blur-sm shadow-md">
-                    <!-- Row 1 -->
                     <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-2 mb-2">
                         <div class="flex items-center justify-between">
                             <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
                             <span class="accent-text text-sm font-bold tracking-wide">28%</span>
                         </div>
                         <div class="flex items-center justify-end border-l border-white/5 pl-4 w-full">
-                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Beere, Süß</span>
+                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Aroma</span>
                         </div>
                     </div>
-                    <!-- Row 2 -->
                     <div class="grid grid-cols-2 gap-4">
                         <div class="flex items-center justify-between">
                             <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
-                            <span class="accent-text text-sm font-bold tracking-wide">1.5%</span>
+                            <span class="accent-text text-sm font-bold tracking-wide">< 1%</span>
                         </div>
                         <div class="flex items-center justify-end border-l border-white/5 pl-4 w-full">
-                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Fokus</span>
+                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Effect</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- ==========================================
-                CARD 5: CRIMSON RED
-                ========================================== -->
-        <div class="premium-card theme-crimson flex flex-col">
-            <div class="p-6 pb-4">
-                <h2 class="title-font italic text-2xl text-white font-bold leading-tight uppercase drop-shadow-lg line-clamp-1">
-                    Strawberry Pave
-                </h2>
-                <div class="w-12 h-0.5 bg-[#f43f5e] mt-2 opacity-70"></div>
-            </div>
-            <div class="px-5 w-full">
-                <div class="relative w-full h-[220px] rounded-xl overflow-hidden border border-white/10 shadow-lg">
-                    <img src="public/strains/afina.jpg" alt="Strain" class="w-full h-full object-cover sepia-[0.3] hue-rotate-[320deg]">
-                    <div class="absolute bottom-2 left-2 border border-rose-500/80 bg-black/70 backdrop-blur-md text-rose-500 uppercase text-[9px] px-2 py-1 rounded-sm tracking-wider font-bold shadow-md">
-                        HYBRID
-                    </div>
-                </div>
-            </div>
-            <div class="px-5 mt-5 w-full">
-                <div class="bg-white/5 border border-white/10 rounded-xl p-4 shadow-inner backdrop-blur-sm shadow-md">
-                    <!-- Row 1 -->
-                    <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-2 mb-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
-                            <span class="accent-text text-sm font-bold tracking-wide">31%</span>
-                        </div>
-                        <div class="flex items-center justify-end border-l border-white/5 pl-4 w-full">
-                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Erdbeer, Gas</span>
-                        </div>
-                    </div>
-                    <!-- Row 2 -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-gray-500 text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
-                            <span class="accent-text text-sm font-bold tracking-wide">&lt; 0.5%</span>
-                        </div>
-                        <div class="flex items-center justify-end border-l border-white/5 pl-4 w-full">
-                            <span class="text-gray-100 text-[10px] font-medium tracking-wide truncate">Heavy</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+    
     </div>
 </body>
 </html>

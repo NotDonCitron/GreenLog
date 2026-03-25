@@ -11,23 +11,23 @@ export function getStrainTheme(type: Strain["type"] | string | null | undefined)
 
     if (normalizedType.includes("sativa")) {
         return {
-            color: "#fbbf24",
-            className: "theme-gold",
-            underlineClass: "bg-[#fbbf24]",
+            color: "#adff00",
+            className: "theme-sativa",
+            underlineClass: "bg-[#adff00]",
         };
     }
 
     if (normalizedType.includes("indica")) {
         return {
-            color: "#10b981",
-            className: "theme-emerald",
-            underlineClass: "bg-[#10b981]",
+            color: "#cb00ff",
+            className: "theme-indica",
+            underlineClass: "bg-[#cb00ff]",
         };
     }
 
     return {
-        color: "#00FFFF",
-        className: "theme-cyan",
-        underlineClass: "bg-[#00FFFF]",
+        color: "#00a3ff",
+        className: "theme-hybrid",
+        underlineClass: "bg-[#00a3ff]",
     };
 }

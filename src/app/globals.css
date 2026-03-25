@@ -195,48 +195,30 @@
   }
 
   /* Theme Colors */
-  .theme-cyan {
-    border: 1px solid #00FFFF;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.2), inset 0 0 8px rgba(0, 255, 255, 0.1);
+  .theme-sativa {
+    border: 1px solid #adff00;
+    box-shadow: 0 0 10px rgba(173, 255, 0, 0.2), inset 0 0 8px rgba(173, 255, 0, 0.1);
   }
 
-  .theme-cyan .accent-text {
-    color: #00FFFF;
+  .theme-sativa .accent-text {
+    color: #adff00;
   }
 
-  .theme-gold {
-    border: 1px solid #fbbf24;
-    box-shadow: 0 0 10px rgba(251, 191, 36, 0.2), inset 0 0 8px rgba(251, 191, 36, 0.1);
+  .theme-hybrid {
+    border: 1px solid #00a3ff;
+    box-shadow: 0 0 10px rgba(0, 163, 255, 0.2), inset 0 0 8px rgba(0, 163, 255, 0.1);
   }
 
-  .theme-gold .accent-text {
-    color: #fbbf24;
+  .theme-hybrid .accent-text {
+    color: #00a3ff;
   }
 
-  .theme-emerald {
-    border: 1px solid #10b981;
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2), inset 0 0 8px rgba(16, 185, 129, 0.1);
+  .theme-indica {
+    border: 1px solid #cb00ff;
+    box-shadow: 0 0 10px rgba(203, 0, 255, 0.2), inset 0 0 8px rgba(203, 0, 255, 0.1);
   }
 
-  .theme-emerald .accent-text {
-    color: #10b981;
-  }
-
-  .theme-purple {
-    border: 1px solid #c084fc;
-    box-shadow: 0 0 10px rgba(192, 132, 252, 0.2), inset 0 0 8px rgba(192, 132, 252, 0.1);
-  }
-
-  .theme-purple .accent-text {
-    color: #c084fc;
-  }
-
-  .theme-crimson {
-    border: 1px solid #f43f5e;
-    box-shadow: 0 0 10px rgba(244, 63, 94, 0.2), inset 0 0 8px rgba(244, 63, 94, 0.1);
-  }
-
-  .theme-crimson .accent-text {
-    color: #f43f5e;
+  .theme-indica .accent-text {
+    color: #cb00ff;
   }
 }
