@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import { 
     ChevronRight, 
     ChevronLeft, 
@@ -11,7 +12,6 @@ import {
     Globe, 
     User as UserIcon, 
     Camera,
-    CheckCircle2,
     BookMarked
 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
@@ -29,7 +29,7 @@ const ONBOARDING_STEPS: Step[] = [
     {
         title: "Willkommen bei CannaLog",
         description: "Dein digitaler Begleiter für alles rund um Cannabis. Entdecke, tracke und teile deine Erfahrungen mit der Community.",
-        icon: <Sparkles size={48} />,
+        icon: <div className="relative w-full h-full p-2"><Image src="/logo.png" alt="Logo" fill className="object-contain" priority /></div>,
         color: "#00F5FF",
         path: "/"
     },
@@ -226,7 +226,7 @@ export function OnboardingGuide() {
                     <div className="p-6">
                         <div className="flex items-start gap-4">
                             <div 
-                                className="w-12 h-12 rounded-2xl bg-white/5 flex-shrink-0 flex items-center justify-center border border-white/10 shadow-inner"
+                                className="relative w-12 h-12 rounded-2xl bg-white/5 flex-shrink-0 flex items-center justify-center border border-white/10 shadow-inner overflow-hidden"
                                 style={{ color: step.color }}
                             >
                                 {step.icon}
@@ -236,7 +236,7 @@ export function OnboardingGuide() {
                                 <h2 className="text-sm font-black italic tracking-tighter uppercase text-white mb-1">
                                     {step.title}
                                 </h2>
-                                <p className="text-white/50 text-[11px] leading-snug line-clamp-3">
+                                <p className="text-white/50 text-[11px] leading-snug">
                                     {step.description}
                                 </p>
                             </div>
