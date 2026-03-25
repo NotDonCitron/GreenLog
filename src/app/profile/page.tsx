@@ -474,7 +474,7 @@ export default function ProfilePage() {
         </section>
 
         <section className="space-y-4">
-          <SectionHeader eyebrow="Collection" title="Kuratierte Highlights" />
+          <SectionHeader eyebrow="" title="Collection" />
           {favorites.length > 0 ? (
             <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
               {favorites.map((favorite) => (
