@@ -77,20 +77,20 @@ SELECT
   p.display_name,
   p.username,
   s.name AS strain_name,
+  s.slug AS strain_slug,
   r.rating
 FROM user_activities ua
 JOIN profiles p ON p.id = ua.user_id
 JOIN strains s ON s.id = ua.strain_id
 LEFT JOIN ratings r ON r.strain_id = ua.strain_id
   AND r.user_id = ua.user_id
-  AND r.created_at >= ua.created_at - INTERVAL '1 minute'
 WHERE s.organization_id = :orgId
   AND ua.activity_type IN ('strain_created', 'strain_rated')
 ORDER BY ua.created_at DESC
 LIMIT 5
 ```
 
-> Der `LEFT JOIN ratings` holt die Bewertung die gleichzeitig mit der Aktivität erstellt wurde. Für `strain_created` ist `r.rating` immer `NULL` — das ist korrekt.
+> Der `LEFT JOIN ratings` matched auf `strain_id + user_id`. Für `strain_created` ist `r.rating` immer `NULL` — das ist korrekt. Das Zeitfenster wurde entfernt, da die `strain_rated`-Aktivität nach dem Rating-Insert erstellt wird.
 
 **UI — Ein Activity Item:**
 
@@ -110,7 +110,12 @@ LIMIT 5
 
 **Struktur:**
 - Max 5 Items, absteigend nach Zeit
-- Relative Zeitangabe ("vor 2 Std", "gestern", "vor 3 Tagen")
+- Relative Zeitangabe:
+  - `< 1 Std` → "vor X Min." (abgerundet auf volle Min.)
+  - `1–24 Std` → "vor X Std."
+  - `1–2 Tage` → "gestern"
+  - `> 2 Tage` → "vor X Tagen"
+  - `> 7 Tage` → Datum als "TT.MM."
 - Kein explizites "org-strain" Label — implizit durch Kontext
 - Falls keine Aktivitäten: kurze Empty-State Nachricht ("Noch keine Strain-Aktivitäten")
 
@@ -169,7 +174,7 @@ Neuer Endpunkt für org-relevante Activity Feed Items.
       "id": "uuid",
       "type": "strain_rated",
       "user": { "displayName": "Pascal", "username": "pascal123" },
-      "strain": { "id": "uuid", "name": "Gorilla Glue #4" },
+      "strain": { "id": "uuid", "name": "Gorilla Glue #4", "slug": "gorilla-glue-4" },
       "rating": 4,
       "createdAt": "2026-03-25T10:00:00Z"
     }
