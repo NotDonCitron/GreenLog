@@ -3,6 +3,45 @@ export interface Terpene {
   percent?: number;
 }
 
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  organization_type: 'club' | 'pharmacy';
+  license_number: string | null;
+  status: 'active' | 'inactive' | 'suspended';
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrganizationMembership {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  role: 'owner' | 'admin' | 'staff' | 'member';
+  membership_status: 'invited' | 'active' | 'suspended';
+  joined_at: string | null;
+  invited_by: string | null;
+  created_at: string;
+  updated_at: string;
+  organizations?: Organization | null;
+}
+
+export interface OrganizationInvite {
+  id: string;
+  organization_id: string;
+  email: string;
+  role: 'admin' | 'staff' | 'member';
+  token_hash: string;
+  status: 'pending' | 'accepted' | 'revoked' | 'expired';
+  expires_at: string;
+  accepted_at: string | null;
+  invited_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Strain {
   id: string;
   name: string;
@@ -30,6 +69,17 @@ export interface Strain {
   is_custom?: boolean;
   source?: 'pharmacy' | 'street' | 'grow' | 'csc' | 'other';
   created_by?: string;
+  // Organization scoping
+  organization_id?: string | null;
+}
+
+export interface OrganizationStrain extends Strain {
+  organization?: {
+    id: string;
+    name: string;
+    slug: string;
+    organization_type: 'club' | 'pharmacy';
+  };
 }
 
 export type StrainSource = 'pharmacy' | 'street' | 'grow' | 'csc' | 'other';
@@ -37,6 +87,7 @@ export type StrainSource = 'pharmacy' | 'street' | 'grow' | 'csc' | 'other';
 export interface Grow {
   id: string;
   user_id: string;
+  organization_id: string;
   strain_id: string | null;
   title: string;
   grow_type: 'indoor' | 'outdoor' | 'greenhouse';

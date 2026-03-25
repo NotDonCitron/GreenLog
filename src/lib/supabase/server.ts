@@ -15,6 +15,7 @@ export async function createServerSupabaseClient(): Promise<SupabaseClient> {
         auth: {
             autoRefreshToken: false,
             persistSession: false,
+            detectSessionInUrl: false,
         },
     };
 
