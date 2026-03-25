@@ -221,6 +221,7 @@ export interface ProfileRow {
   location?: string | null;
   website?: string | null;
   social_links?: Record<string, unknown> | null;
+  has_completed_onboarding?: boolean;
   created_at: string;
 }
 

@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Loader2, ArrowRight } from "lucide-react";
 import { Strain } from "@/lib/types";
 import { CollectionStack } from "@/components/home/collection-stack";
+import { OnboardingGuide } from "@/components/onboarding/onboarding-guide";
 import Link from "next/link";
 import { normalizeCollectionSource } from "@/lib/strain-display";
 
@@ -78,7 +80,13 @@ export default function Home() {
             </h1>
           </div>
           <div className="w-14 h-14 relative p-1 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-xl shadow-2xl transform group-hover:rotate-6 transition-transform duration-500">
-            <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
+            <Image 
+              src="/logo.png" 
+              alt="CannaLog Logo" 
+              fill
+              className="object-contain p-1"
+              priority
+            />
           </div>
         </header>
 
@@ -159,6 +167,7 @@ export default function Home() {
         )}
       </div>
       <BottomNav />
+      <OnboardingGuide />
     </main>
   );
 }
