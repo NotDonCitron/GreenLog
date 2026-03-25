@@ -35,38 +35,38 @@ const ONBOARDING_STEPS: Step[] = [
     },
     {
         title: "Social & Community",
-        description: "Hier siehst du, was deine Freunde gerade rauchen oder anbauen. Entdecke neue Profile und folge interessanten Nutzern.",
+        description: "Hier siehst du die Aktivitäten deiner Freunde. Besuche ihre Profile, um ihre Sammlungen zu entdecken und ihnen zu folgen.",
         icon: <Users size={48} />,
         color: "#2FF801",
         path: "/discover"
     },
     {
         title: "World Collection",
-        description: "Durchsuche unsere globale Datenbank nach hunderten von Sorten. Finde Details zu THC, Terpenen und Wirkungen.",
+        description: "Die globale Datenbank. Suche hier nach Sorten und füge sie mit einem Klick deiner eigenen Sammlung hinzu.",
         icon: <Globe size={48} />,
         color: "#fbbf24",
         path: "/strains"
     },
     {
+        title: "Label Scanner",
+        description: "Digitalisiere Etiketten blitzschnell per Kamera. Der Scanner ist auch direkt über den Kamera-Button in der Sorten-Suche erreichbar.",
+        icon: <Camera size={48} />,
+        color: "#00F5FF",
+        path: "/scanner"
+    },
+    {
         title: "Deine Sammlung",
-        description: "Hier verwaltest du deine persönlichen Bestände. Füge Notizen, Chargen-Nummern und eigene Bilder zu deinen Sorten hinzu.",
+        description: "Hier landen alle deine Sorten. Du kannst eigene Bilder hochladen, Chargen-Nummern (Batch Info) und persönliche Notizen ergänzen.",
         icon: <BookMarked size={48} />,
         color: "#A3E4D7",
         path: "/collection"
     },
     {
         title: "Dein Profil & Badges",
-        description: "Checke deine Stats und Achievements. Hier kannst du dein Profil personalisieren und deine Fortschritte sehen.",
+        description: "Behalte deine Statistiken und Erfolge im Blick. Personalisiere dein Profil und schalte exklusive Abzeichen frei.",
         icon: <UserIcon size={48} />,
         color: "#2FF801",
         path: "/profile"
-    },
-    {
-        title: "Schneller Scanner",
-        description: "Nutze den Kamera-Scanner, um Etiketten sofort zu digitalisieren. Einfacher geht es nicht!",
-        icon: <Camera size={48} />,
-        color: "#00F5FF",
-        path: "/scanner"
     }
 ];
 
@@ -203,9 +203,8 @@ export function OnboardingGuide() {
     if (!isVisible) return null;
 
     const step = ONBOARDING_STEPS[currentStep];
-    // Determine if the guide should be at the top or bottom based on the feature being explained
-    // Scanner is at bottom -> Guide to Top. Profile/Home header is at top -> Guide to Bottom.
-    const isTop = step.path === "/scanner" || step.path === "/profile";
+    // Position ONLY at top for the scanner, everywhere else bottom is better to see headers/stats
+    const isTop = step.path === "/scanner";
 
     return (
         <AnimatePresence>
