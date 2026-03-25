@@ -37,6 +37,7 @@ import {
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { FollowersListModal } from "@/components/social/followers-list-modal";
+import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -95,7 +96,7 @@ function createFallbackViewModel(isDemoMode: boolean): ProfileViewModel {
 function SectionHeader({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div className="space-y-1 px-1">
-      <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#A3E4D7]/70">{eyebrow}</p>
+      {eyebrow && <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#A3E4D7]/70">{eyebrow}</p>}
       <h2 className="text-lg font-semibold tracking-tight text-white">{title}</h2>
     </div>
   );
@@ -149,7 +150,7 @@ export default function ProfilePage() {
       const favorites: ProfileFavorite[] = (favsRes.data || []).map(f => {
         const s = f.strains as any;
         if (!s) return null;
-        
+
         // Prüfen ob es ein User-eigenes Bild in der user_collection gibt
         const customImage = collectionData?.find(c => c.strain_id === s.id)?.user_image_url;
 
@@ -220,7 +221,7 @@ export default function ProfilePage() {
   const handleToggleVisibility = async () => {
     if (!user || isDemoMode) return;
     const nextVisibility = identity.profileVisibility === "public" ? "private" : "public";
-    
+
     try {
       const { error } = await supabase
         .from("profiles")
@@ -244,29 +245,28 @@ export default function ProfilePage() {
     return (
       <main className="min-h-screen bg-[#355E3B] text-white pb-32">
         <header className="p-8 pb-4">
-                          <div className="flex justify-between items-center mb-8">
-                            <div>
-                              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">My Profile</p>
-                              <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">CannaLog</h1>
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 relative">
-                                <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
-                              </div>
-                              <Link href="/login" className="px-6 py-2 bg-[#2FF801] text-black rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                                <LogIn size={14} /> Login
-                              </Link>
-                            </div>
-                          </div>
-                  
-                    <div className="bg-[#1e3a24] rounded-[2.5rem] p-8 border border-white/10 shadow-2xl relative overflow-hidden text-center">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">Profil</h1>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 relative">
+                <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
+              </div>
+              <Link href="/login" className="px-6 py-2 bg-[#2FF801] text-black rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                <LogIn size={14} /> Login
+              </Link>
+            </div>
+          </div>
+
+          <div className="bg-[#1e3a24] rounded-[2.5rem] p-8 border border-white/10 shadow-2xl relative overflow-hidden text-center">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,245,255,0.05),transparent_50%)]" />
-            
+
             <div className="relative z-10 space-y-6">
               <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto border border-white/10">
                 <UserRound size={40} className="text-white/20" />
               </div>
-              
+
               <div className="space-y-2">
                 <h2 className="text-2xl font-black uppercase italic tracking-tight">Profil gesperrt</h2>
                 <p className="text-xs text-white/40 font-bold tracking-widest leading-relaxed">
@@ -293,9 +293,9 @@ export default function ProfilePage() {
         </header>
 
         <div className="px-8 mt-4">
-           <div className="bg-black/10 rounded-3xl p-6 border border-dashed border-white/5 text-center">
-             <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.3em]">Authorized Access Only</p>
-           </div>
+          <div className="bg-black/10 rounded-3xl p-6 border border-dashed border-white/5 text-center">
+            <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.3em]">Authorized Access Only</p>
+          </div>
         </div>
         <BottomNav />
       </main>
@@ -307,11 +307,10 @@ export default function ProfilePage() {
       <header className="p-8 pb-4">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">My Profile</p>
-            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">CannaLog</h1>
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">Profil</h1>
           </div>
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={async () => {
                 localStorage.removeItem("cannalog_onboarding_completed");
                 sessionStorage.removeItem("cannalog_onboarding_dismissed");
@@ -328,11 +327,6 @@ export default function ProfilePage() {
             <div className="w-10 h-10 relative">
               <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
             </div>
-            <Link href="/profile/settings">
-              <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-[#00F5FF] transition-colors">
-                <Settings size={18} />
-              </button>
-            </Link>
           </div>
         </div>
 
@@ -347,7 +341,7 @@ export default function ProfilePage() {
 
         <div className="bg-[#1e3a24] rounded-[2.5rem] p-6 border border-white/10 shadow-2xl relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,245,255,0.05),transparent_50%)]" />
-          
+
           <div className="flex items-start gap-6 relative z-10">
             <div className="relative">
               <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-black/20 bg-black/40 flex items-center justify-center">
@@ -377,7 +371,7 @@ export default function ProfilePage() {
                   <p className="text-[7px] font-black uppercase tracking-wider text-white/40 mt-1">Strains</p>
                 </div>
               </div>
-              
+
               {isEditing ? (
                 <div className="flex gap-2">
                   <button onClick={handleSaveProfile} disabled={isSaving} className="flex-1 py-2 bg-[#2FF801] text-black rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1">
@@ -398,15 +392,15 @@ export default function ProfilePage() {
           <div className="mt-6 space-y-3 relative z-10">
             {isEditing ? (
               <div className="space-y-3">
-                <input 
-                  value={editData.displayName} 
-                  onChange={(e) => setEditData({...editData, displayName: e.target.value})}
+                <input
+                  value={editData.displayName}
+                  onChange={(e) => setEditData({ ...editData, displayName: e.target.value })}
                   placeholder="Anzeigename"
                   className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-sm font-bold text-white focus:border-[#2FF801] outline-none"
                 />
-                <textarea 
-                  value={editData.bio} 
-                  onChange={(e) => setEditData({...editData, bio: e.target.value})}
+                <textarea
+                  value={editData.bio}
+                  onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
                   placeholder="Deine Bio / Caption..."
                   rows={2}
                   className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-xs text-white/70 focus:border-[#2FF801] outline-none resize-none"
@@ -421,27 +415,30 @@ export default function ProfilePage() {
             )}
           </div>
 
-          <div className="mt-4 flex gap-4 text-[10px] font-bold text-white/40 uppercase tracking-widest relative z-10">
-             <span className="flex items-center gap-1"><Calendar size={12} /> Joined March 2026</span>
+          <div className="mt-4 flex items-center justify-between text-[10px] font-bold text-white/40 uppercase tracking-widest relative z-10">
+            <span className="flex items-center gap-1"><Calendar size={12} /> Joined March 2026</span>
+            <Link href="/profile/settings">
+              <button className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-[#00F5FF] transition-colors">
+                <Settings size={14} />
+              </button>
+            </Link>
           </div>
         </div>
       </header>
 
       <div className="px-8 space-y-10">
-        <section className="bg-[#1e3a24] rounded-[2rem] p-6 border border-white/10 shadow-xl">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">Level {stats.level} Progress</span>
-            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#2FF801]">{stats.progressToNextLevel}% XP</span>
-          </div>
-          <div className="h-3 bg-black/20 rounded-full overflow-hidden p-0.5 border border-white/5">
-            <div className="h-full bg-gradient-to-r from-[#2FF801] to-[#00F5FF] rounded-full shadow-[0_0_10px_#2FF801]" style={{ width: `${stats.progressToNextLevel}%` }} />
+        {/* Workspace / Organization Section */}
+        <section>
+          <SectionHeader eyebrow="Workspace" title="Organisation" />
+          <div className="mt-4">
+            <OrganizationSwitcher />
           </div>
         </section>
 
         <section>
           <div className="flex justify-between items-end mb-6">
-            <SectionHeader eyebrow="Achievements" title="Abzeichen" />
-            <span className="text-[10px] font-bold text-[#00F5FF]">Katalog</span>
+            <SectionHeader eyebrow="" title="Abzeichen" />
+            <span className="text-[10px] font-bold text-[#00F5FF]">Alle</span>
           </div>
           <div className="grid grid-cols-2 gap-4">
             {[
@@ -450,28 +447,24 @@ export default function ProfilePage() {
               { id: "grower", name: "Grower", req: "1 Grow gestartet", icon: Leaf, threshold: 1 },
               { id: "social", name: "Social", req: "1 Freund gefolgt", icon: Users, threshold: 1 }
             ].map((b) => {
-              const meetsThreshold = (b.id === 'starter' && stats.totalStrains >= 1) || 
-                                     (b.id === 'connoisseur' && stats.totalStrains >= 5) ||
-                                     (b.id === 'social' && stats.following >= 1);
+              const meetsThreshold = (b.id === 'starter' && stats.totalStrains >= 1) ||
+                (b.id === 'connoisseur' && stats.totalStrains >= 5) ||
+                (b.id === 'social' && stats.following >= 1);
               const isUnlocked = meetsThreshold;
 
               return (
-                <div key={b.id} className={`rounded-3xl p-4 flex flex-col items-center text-center gap-2 transition-all border ${
-                  isUnlocked 
-                  ? "bg-[#1e3a24] border-[#2FF801]/30" 
+                <div key={b.id} className={`rounded-3xl p-4 flex flex-col items-center text-center gap-2 transition-all border ${isUnlocked
+                  ? "bg-[#1e3a24] border-[#2FF801]/30"
                   : "bg-black/20 border-white/5 opacity-40 grayscale"
-                }`}>
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-1 ${
-                    isUnlocked ? "bg-[#2FF801]/10 text-[#ffd76a]" : "bg-white/5 text-white/10"
                   }`}>
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-1 ${isUnlocked ? "bg-[#2FF801]/10 text-[#ffd76a]" : "bg-white/5 text-white/10"
+                    }`}>
                     <b.icon size={32} />
                   </div>
-                  <p className={`text-[11px] font-black uppercase tracking-tight leading-none ${
-                    isUnlocked ? "text-white" : "text-white/40"
-                  }`}>{b.name}</p>
-                  <p className={`text-[8px] font-bold uppercase tracking-tighter ${
-                    isUnlocked ? "text-[#2FF801]" : "text-white/20"
-                  }`}>
+                  <p className={`text-[11px] font-black uppercase tracking-tight leading-none ${isUnlocked ? "text-white" : "text-white/40"
+                    }`}>{b.name}</p>
+                  <p className={`text-[8px] font-bold uppercase tracking-tighter ${isUnlocked ? "text-[#2FF801]" : "text-white/20"
+                    }`}>
                     {isUnlocked ? b.req : `Ziel: ${b.req}`}
                   </p>
                 </div>
@@ -488,10 +481,10 @@ export default function ProfilePage() {
                 <Link key={favorite.id} href={`/strains/${favorite.slug}`} className="min-w-[220px] flex-shrink-0">
                   <Card className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#1e3a24] p-0 shadow-lg hover:border-[#00F5FF]/30 transition-all">
                     <div className="relative h-40 w-full">
-                      <img 
-                        src={favorite.imageUrl || "/strains/placeholder-1.svg"} 
-                        alt={favorite.name} 
-                        className="w-full h-full object-cover opacity-80" 
+                      <img
+                        src={favorite.imageUrl || "/strains/placeholder-1.svg"}
+                        alt={favorite.name}
+                        className="w-full h-full object-cover opacity-80"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#1e3a24] to-transparent" />
                       <div className="absolute bottom-4 left-4 right-4">
@@ -514,7 +507,7 @@ export default function ProfilePage() {
               <h3 className="text-sm font-black uppercase tracking-widest">Profil Sichtbarkeit</h3>
               <p className="text-[10px] text-white/40">{isPublic ? "Dein Profil ist für alle sichtbar" : "Nur du siehst dein Profil"}</p>
             </div>
-            <button 
+            <button
               onClick={handleToggleVisibility}
               className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${isPublic ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]' : 'bg-white/5 border-white/10 text-white/40'}`}
             >
@@ -524,7 +517,7 @@ export default function ProfilePage() {
         </section>
 
         <section className="pb-10">
-          <button 
+          <button
             onClick={() => signOut()}
             className="w-full py-4 bg-red-500/5 border border-red-500/10 rounded-2xl flex items-center justify-center gap-2 text-red-400 text-xs font-black uppercase tracking-[0.2em] hover:bg-red-500/10 transition-all"
           >
