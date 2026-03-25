@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2, AlertCircle, Plus, User, Camera } from "lucide-react";
+import { Search, Loader2, AlertCircle, Plus, Camera } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Strain, StrainSource } from "@/lib/types";
@@ -14,10 +14,31 @@ import { StrainCard } from "@/components/strains/strain-card";
 
 const SOURCE_OVERRIDE_STORAGE_KEY = "greenlog:strain-source-overrides";
 
+function TabParamReader({
+  activeOrganization,
+  onTabReady,
+}: {
+  activeOrganization: ReturnType<typeof useAuth>["activeOrganization"];
+  onTabReady: (tab: "catalog" | "org") => void;
+}) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "org" && activeOrganization) {
+      onTabReady("org");
+    } else if (tab === "org") {
+      void router.replace("/strains");
+    }
+  }, [searchParams, activeOrganization, router, onTabReady]);
+
+  return null;
+}
+
 export default function StrainsPage() {
   const { user, isDemoMode, activeOrganization } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [strains, setStrains] = useState<Strain[]>([]);
   const [userCollection, setUserCollection] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,17 +48,6 @@ export default function StrainsPage() {
   const [error, setError] = useState<string | null>(null);
   const [sourceOverrides, setSourceOverrides] = useState<Record<string, StrainSource>>({});
   const [sourceOverridesReady, setSourceOverridesReady] = useState(false);
-
-  // Read tab from URL params on mount
-  useEffect(() => {
-    const tab = searchParams.get("tab");
-    if (tab === "org" && activeOrganization) {
-      setActiveTab("org");
-    } else if (tab === "org") {
-      // No active org, redirect to catalog
-      void router.replace("/strains");
-    }
-  }, [searchParams, activeOrganization, router]);
 
   const persistSourceOverride = (strainId: string, strainSource: StrainSource) => {
     setSourceOverrides((current) => {
@@ -196,6 +206,12 @@ export default function StrainsPage() {
 
   return (
     <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+      <Suspense fallback={null}>
+        <TabParamReader
+          activeOrganization={activeOrganization}
+          onTabReady={(tab) => setActiveTab(tab)}
+        />
+      </Suspense>
       <header className="p-8 sticky top-0 bg-[#355E3B]/90 backdrop-blur-xl z-50 border-b border-white/5">
         <div className="flex justify-between items-end mb-6">
           <div>
