@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-    X, 
     ChevronRight, 
     ChevronLeft, 
     Sparkles, 
@@ -74,7 +73,6 @@ const ONBOARDING_STEPS: Step[] = [
 export function OnboardingGuide() {
     const { user, isDemoMode } = useAuth();
     const router = useRouter();
-    const pathname = usePathname();
     
     const [isVisible, setIsVisible] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
@@ -86,21 +84,56 @@ export function OnboardingGuide() {
 
     useEffect(() => {
         async function checkOnboarding() {
+            // Check local storage first for immediate fallback
+            if (typeof window !== "undefined") {
+                const localStatus = localStorage.getItem("cannalog_onboarding_completed");
+                if (localStatus === "true") {
+                    console.log("[Onboarding] Found completed status in localStorage.");
+                    return;
+                }
+            }
+
+            // In Demo mode, always show onboarding if not explicitly dismissed in session
             if (isDemoMode) {
+                console.log("[Onboarding] Demo mode detected");
                 const dismissed = sessionStorage.getItem("cannalog_onboarding_dismissed");
-                if (!dismissed) setIsVisible(true);
+                if (!dismissed) {
+                    setIsVisible(true);
+                }
                 return;
             }
 
-            if (!user) return;
+            if (!user) {
+                console.log("[Onboarding] No user session found");
+                return;
+            }
 
-            const { data, error } = await supabase
-                .from("profiles")
-                .select("has_completed_onboarding")
-                .eq("id", user.id)
-                .single();
+            console.log("[Onboarding] Checking profile for user:", user.id);
+            try {
+                const { data, error } = await supabase
+                    .from("profiles")
+                    .select("has_completed_onboarding")
+                    .eq("id", user.id)
+                    .single();
 
-            if (error || data?.has_completed_onboarding !== true) {
+                if (error) {
+                    console.warn("[Onboarding] Database check failed (likely schema cache). Falling back to first-time show.", error);
+                    setIsVisible(true);
+                    return;
+                }
+
+                console.log("[Onboarding] Data found:", data);
+                // Show if value is NOT explicitly true
+                if (data?.has_completed_onboarding !== true) {
+                    console.log("[Onboarding] Showing guide...");
+                    setIsVisible(true);
+                } else {
+                    // Sync local storage if DB says it's completed
+                    localStorage.setItem("cannalog_onboarding_completed", "true");
+                    console.log("[Onboarding] User already completed onboarding according to DB.");
+                }
+            } catch (err) {
+                console.error("[Onboarding] Unexpected error during check:", err);
                 setIsVisible(true);
             }
         }
@@ -127,7 +160,13 @@ export function OnboardingGuide() {
     };
 
     const completeOnboarding = async () => {
+        // Save to local storage immediately (Optimistic UI)
+        if (typeof window !== "undefined") {
+            localStorage.setItem("cannalog_onboarding_completed", "true");
+        }
+        
         if (isDemoMode) {
+            console.log("[Onboarding] Dismissing in Demo Mode");
             sessionStorage.setItem("cannalog_onboarding_dismissed", "true");
             setIsVisible(false);
             router.push("/");
@@ -136,6 +175,7 @@ export function OnboardingGuide() {
 
         if (!user) return;
         setIsLoading(true);
+        console.log("[Onboarding] Saving completion status to DB...");
 
         try {
             const { error } = await supabase
@@ -143,6 +183,13 @@ export function OnboardingGuide() {
                 .update({ has_completed_onboarding: true })
                 .eq("id", user.id);
 
+            if (error) {
+                console.error("[Onboarding] Error saving status to DB (Schema might still be updating):", error);
+            } else {
+                console.log("[Onboarding] Successfully saved status to DB.");
+            }
+            
+            // Always close UI if we reached this point
             setIsVisible(false);
             router.push("/");
         } catch (err) {
@@ -166,7 +213,6 @@ export function OnboardingGuide() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     className="absolute inset-0 bg-black/80 backdrop-blur-md"
-                    onClick={() => {}} // Disable closing by backdrop click
                 />
 
                 {/* Card */}
