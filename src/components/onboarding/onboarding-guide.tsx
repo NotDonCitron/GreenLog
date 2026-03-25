@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
     X, 
@@ -11,7 +12,8 @@ import {
     Globe, 
     User as UserIcon, 
     Camera,
-    CheckCircle2
+    CheckCircle2,
+    BookMarked
 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
@@ -21,6 +23,7 @@ interface Step {
     description: string;
     icon: React.ReactNode;
     color: string;
+    path: string;
 }
 
 const ONBOARDING_STEPS: Step[] = [
@@ -28,36 +31,51 @@ const ONBOARDING_STEPS: Step[] = [
         title: "Willkommen bei CannaLog",
         description: "Dein digitaler Begleiter für alles rund um Cannabis. Entdecke, tracke und teile deine Erfahrungen mit der Community.",
         icon: <Sparkles size={48} />,
-        color: "#00F5FF"
+        color: "#00F5FF",
+        path: "/"
     },
     {
-        title: "Social & Sammlungen",
-        description: "Besuche Profile anderer Nutzer, um deren Sammlungen zu entdecken. Du kannst anderen folgen, um ihre neuesten Aktivitäten zu sehen.",
+        title: "Social & Community",
+        description: "Hier siehst du, was deine Freunde gerade rauchen oder anbauen. Entdecke neue Profile und folge interessanten Nutzern.",
         icon: <Users size={48} />,
-        color: "#2FF801"
+        color: "#2FF801",
+        path: "/discover"
     },
     {
         title: "World Collection",
-        description: "Durchsuche unsere globale Datenbank nach Sorten. Füge sie deiner eigenen Sammlung hinzu und vervollständige dein digitales Sticker-Album.",
+        description: "Durchsuche unsere globale Datenbank nach hunderten von Sorten. Finde Details zu THC, Terpenen und Wirkungen.",
         icon: <Globe size={48} />,
-        color: "#fbbf24"
+        color: "#fbbf24",
+        path: "/strains"
     },
     {
-        title: "Dein Profil & Stats",
-        description: "Behalte deine Statistiken im Blick. Sammle Ratings, schalte Badges frei und präsentiere deine Expertise in deiner neuen Stats-Bar.",
+        title: "Deine Sammlung",
+        description: "Hier verwaltest du deine persönlichen Bestände. Füge Notizen, Chargen-Nummern und eigene Bilder zu deinen Sorten hinzu.",
+        icon: <BookMarked size={48} />,
+        color: "#A3E4D7",
+        path: "/collection"
+    },
+    {
+        title: "Dein Profil & Badges",
+        description: "Checke deine Stats und Achievements. Hier kannst du dein Profil personalisieren und deine Fortschritte sehen.",
         icon: <UserIcon size={48} />,
-        color: "#A3E4D7"
+        color: "#2FF801",
+        path: "/profile"
     },
     {
         title: "Schneller Scanner",
-        description: "Nutze den Kamera-Button, um Etiketten sofort zu erfassen und Details zu Sorten blitzschnell abzurufen.",
+        description: "Nutze den Kamera-Scanner, um Etiketten sofort zu digitalisieren. Einfacher geht es nicht!",
         icon: <Camera size={48} />,
-        color: "#00F5FF"
+        color: "#00F5FF",
+        path: "/scanner"
     }
 ];
 
 export function OnboardingGuide() {
     const { user, isDemoMode } = useAuth();
+    const router = useRouter();
+    const pathname = usePathname();
+    
     const [isVisible, setIsVisible] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
     const [isSaving, setIsLoading] = useState(false);
@@ -68,42 +86,22 @@ export function OnboardingGuide() {
 
     useEffect(() => {
         async function checkOnboarding() {
-            // In Demo mode, always show onboarding if not explicitly dismissed in session
             if (isDemoMode) {
-                console.log("[Onboarding] Demo mode detected");
                 const dismissed = sessionStorage.getItem("cannalog_onboarding_dismissed");
-                if (!dismissed) {
-                    setIsVisible(true);
-                }
+                if (!dismissed) setIsVisible(true);
                 return;
             }
 
-            if (!user) {
-                console.log("[Onboarding] No user session found");
-                return;
-            }
+            if (!user) return;
 
-            console.log("[Onboarding] Checking profile for user:", user.id);
             const { data, error } = await supabase
                 .from("profiles")
                 .select("has_completed_onboarding")
                 .eq("id", user.id)
                 .single();
 
-            if (error) {
-                console.error("[Onboarding] Error fetching profile:", error);
-                // Fallback: If profile doesn't exist yet, show it anyway (it will be created during login/signup)
+            if (error || data?.has_completed_onboarding !== true) {
                 setIsVisible(true);
-                return;
-            }
-
-            console.log("[Onboarding] Data found:", data);
-            // Show if value is NOT explicitly true
-            if (data?.has_completed_onboarding !== true) {
-                console.log("[Onboarding] Showing guide...");
-                setIsVisible(true);
-            } else {
-                console.log("[Onboarding] User already completed onboarding.");
             }
         }
 
@@ -111,30 +109,33 @@ export function OnboardingGuide() {
     }, [user, isDemoMode]);
 
     const handleNext = () => {
-        if (currentStep < ONBOARDING_STEPS.length - 1) {
-            setCurrentStep(prev => prev + 1);
+        const nextIndex = currentStep + 1;
+        if (nextIndex < ONBOARDING_STEPS.length) {
+            setCurrentStep(nextIndex);
+            router.push(ONBOARDING_STEPS[nextIndex].path);
         } else {
             void completeOnboarding();
         }
     };
 
     const handleBack = () => {
-        if (currentStep > 0) {
-            setCurrentStep(prev => prev - 1);
+        const prevIndex = currentStep - 1;
+        if (prevIndex >= 0) {
+            setCurrentStep(prevIndex);
+            router.push(ONBOARDING_STEPS[prevIndex].path);
         }
     };
 
     const completeOnboarding = async () => {
         if (isDemoMode) {
-            console.log("[Onboarding] Dismissing in Demo Mode");
             sessionStorage.setItem("cannalog_onboarding_dismissed", "true");
             setIsVisible(false);
+            router.push("/");
             return;
         }
 
         if (!user) return;
         setIsLoading(true);
-        console.log("[Onboarding] Saving completion status to DB...");
 
         try {
             const { error } = await supabase
@@ -142,17 +143,11 @@ export function OnboardingGuide() {
                 .update({ has_completed_onboarding: true })
                 .eq("id", user.id);
 
-            if (error) {
-                console.error("[Onboarding] Error saving status:", error);
-                // Even if DB fails, close it for the current session so the user can use the app
-                setIsVisible(false);
-            } else {
-                console.log("[Onboarding] Successfully saved status.");
-                setIsVisible(false);
-            }
+            setIsVisible(false);
+            router.push("/");
         } catch (err) {
             console.error("[Onboarding] Failed to complete onboarding:", err);
-            setIsVisible(false); // UI Fallback
+            setIsVisible(false);
         } finally {
             setIsLoading(false);
         }
