@@ -14,10 +14,17 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
+import { ActivityFeed } from "@/components/community/activity-feed";
+import { OrgInfoCard } from "@/components/community/org-info-card";
+import { OrgStats } from "@/lib/types";
+import { useState, useEffect } from "react";
 
 export default function CommunityPage() {
   const { user, activeOrganization, session } = useAuth();
   const router = useRouter();
+
+  const [orgStats, setOrgStats] = useState<OrgStats | null>(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
 
   if (!activeOrganization) {
     return (
@@ -61,6 +68,34 @@ export default function CommunityPage() {
   const orgType = activeOrganization.organizations?.organization_type;
   const orgTypeLabel = orgType === "club" ? "Club" : orgType === "pharmacy" ? "Apotheke" : orgType;
 
+  useEffect(() => {
+    async function fetchStats() {
+      if (!activeOrganization || !session?.access_token) return;
+
+      try {
+        const res = await fetch(
+          `/api/organizations/${activeOrganization.organization_id}/stats`,
+          {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          }
+        );
+
+        if (res.ok) {
+          const data = await res.json();
+          setOrgStats(data);
+        }
+      } catch (e) {
+        console.error("Failed to load org stats", e);
+      } finally {
+        setIsLoadingStats(false);
+      }
+    }
+
+    void fetchStats();
+  }, [activeOrganization, session?.access_token]);
+
   return (
     <main className="min-h-screen bg-[#355E3B] text-white pb-32">
       <header className="p-8 pb-4">
@@ -74,27 +109,22 @@ export default function CommunityPage() {
 
       <div className="px-8 space-y-6 mt-4">
         {/* Org Info Card */}
-        <Card className="bg-[#1e3a24] border-white/10 p-6 rounded-3xl">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center shrink-0">
-              <Building2 size={24} className="text-[#00F5FF]" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-black text-lg truncate">{orgName}</p>
-                {isAdmin && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full border border-yellow-400/20">
-                    <Crown size={8} />
-                    Admin
-                  </span>
-                )}
-              </div>
-              <p className="text-[10px] text-white/40 font-mono uppercase tracking-wider">
-                {orgTypeLabel}
-              </p>
-            </div>
-          </div>
-        </Card>
+        <OrgInfoCard
+          orgName={orgName}
+          orgType={orgType ?? null}
+          isAdmin={isAdmin}
+          stats={orgStats ?? { memberCount: 0, strainCount: 0, newestStrain: null }}
+        />
+
+        {/* Activity Feed */}
+        <div className="mt-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-2 px-1">
+            Letzte Aktivitäten
+          </p>
+          <Card className="bg-[#1e3a24] border-white/10 p-4 rounded-3xl">
+            <ActivityFeed organizationId={activeOrganization.organization_id} />
+          </Card>
+        </div>
 
         {/* Navigation Cards */}
         <div className="grid grid-cols-1 gap-3">
