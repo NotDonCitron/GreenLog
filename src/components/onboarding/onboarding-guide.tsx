@@ -161,7 +161,7 @@ export function OnboardingGuide() {
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-4 overflow-hidden">
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 sm:p-4 overflow-hidden">
                 {/* Backdrop */}
                 <motion.div 
                     initial={{ opacity: 0 }}
@@ -176,7 +176,7 @@ export function OnboardingGuide() {
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="relative w-full max-w-md bg-[#121212] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl"
+                    className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-[#121212] border border-white/10 rounded-[2.5rem] shadow-2xl no-scrollbar"
                 >
                     {/* Progress Bar */}
                     <div className="absolute top-0 left-0 right-0 h-1.5 flex gap-1 px-6 pt-6">
