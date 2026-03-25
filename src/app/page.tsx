@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Loader2, ArrowRight } from "lucide-react";
@@ -62,51 +62,99 @@ export default function Home() {
   }, [user, authLoading, isDemoMode]);
 
   return (
-    <main className="min-h-screen bg-[#355E3B] text-white pb-32 overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.1),transparent_50%)]" />
+    <main className="min-h-screen bg-[#355E3B] text-white pb-32 overflow-hidden selection:bg-[#00F5FF]/30">
+      {/* Dynamic Background Elements */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/10 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#2FF801]/10 blur-[150px] rounded-full animate-pulse [animation-delay:2s]" />
+      </div>
 
-      <div className="relative mx-auto max-w-lg px-6 pt-12 flex flex-col gap-10">
-        <div className="flex justify-between items-center border-b border-white/10 pb-4">
-          <h1 className="text-2xl font-black tracking-widest uppercase italic">CannaLog</h1>
-          <div className="w-12 h-12 relative">
+      <div className="relative mx-auto max-w-lg px-6 pt-10 flex flex-col gap-12">
+        {/* Refined Header */}
+        <header className="flex justify-between items-center group">
+          <div className="flex flex-col">
+            <h1 className="text-3xl font-black tracking-tighter uppercase italic leading-none group-hover:text-[#00F5FF] transition-colors duration-500">
+              CannaLog
+            </h1>
+          </div>
+          <div className="w-14 h-14 relative p-1 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-xl shadow-2xl transform group-hover:rotate-6 transition-transform duration-500">
             <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
           </div>
-        </div>
+        </header>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-40 gap-4">
-            <Loader2 className="animate-spin text-[#00F5FF]" size={40} />
-            <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Initialisiere Dashboard...</p>
+          <div className="flex flex-col items-center justify-center py-40 gap-6">
+            <div className="relative">
+              <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
+              <div className="absolute inset-0 blur-xl bg-[#00F5FF]/20 animate-pulse" />
+            </div>
+            <p className="text-[11px] font-black text-white/30 uppercase tracking-[0.3em] animate-pulse">
+              System wird initialisiert...
+            </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-8">
-            {/* Strain of the Day als Karte */}
-            <div className="flex flex-col gap-4">
-              <h2 className="text-sm font-black tracking-[0.3em] text-[#00F5FF] uppercase px-2 text-center">Strain of the Day</h2>
+          <div className="flex flex-col gap-12">
+            {/* Featured Section: Strain of the Day */}
+            <section className="flex flex-col gap-6">
+              <div className="flex items-center gap-4 px-2">
+                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/10" />
+                <h2 className="text-[11px] font-black tracking-[0.4em] text-[#00F5FF] uppercase italic">
+                  Strain of the Day
+                </h2>
+                <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/10" />
+              </div>
+              
               {strainOfTheDay && (
-                <CollectionStack
-                  strains={[strainOfTheDay]}
-                  activeIndex={0}
-                  isFlipped={isFlipped}
-                  setIsFlipped={setIsFlipped}
-                  handleSwipe={() => { }} // Nur eine Karte, Swipe deaktiviert
-                  nextCard={() => { }}
-                  prevCard={() => { }}
-                />
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-[#00F5FF]/5 blur-3xl rounded-full transform -translate-y-12 opacity-50 group-hover:opacity-100 transition-opacity" />
+                  <CollectionStack
+                    strains={[strainOfTheDay]}
+                    activeIndex={0}
+                    isFlipped={isFlipped}
+                    setIsFlipped={setIsFlipped}
+                    handleSwipe={() => { }} 
+                    nextCard={() => { }}
+                    prevCard={() => { }}
+                  />
+                </div>
               )}
-            </div>
+              
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <div className="w-1 h-1 rounded-full bg-[#00F5FF] animate-pulse" />
+                <p className="text-[9px] text-white/30 uppercase font-black tracking-[0.25em]">
+                  Tippe auf die Karte für Details
+                </p>
+                <div className="w-1 h-1 rounded-full bg-[#00F5FF] animate-pulse [animation-delay:0.5s]" />
+              </div>
+            </section>
 
-            {/* Button zur Sammlung */}
-            <div className="pt-4 flex flex-col gap-4 px-2">
-              <h3 className="text-xl font-black uppercase tracking-tight italic">Journal & Archiv</h3>
+            {/* Quick Actions / Navigation */}
+            <section className="flex flex-col gap-6 px-2">
               <Link href="/collection">
-                <button className="w-full h-20 bg-white text-black font-black uppercase tracking-[0.2em] rounded-3xl flex items-center justify-between px-8 group hover:bg-[#2FF801] transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-                  <span className="text-sm">Meine Sammlung</span>
-                  <ArrowRight className="group-hover:translate-x-2 transition-transform" />
+                <button className="relative w-full h-24 group overflow-hidden rounded-[2rem] transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]">
+                  {/* Button Background */}
+                  <div className="absolute inset-0 bg-white transition-colors duration-500 group-hover:bg-[#2FF801]" />
+                  
+                  {/* Decorative Elements */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-black/5 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-700" />
+                  
+                  {/* Content */}
+                  <div className="relative flex items-center justify-between px-10 h-full">
+                    <div className="flex flex-col items-start">
+                      <span className="text-black text-lg font-black uppercase tracking-tighter italic">
+                        Meine Sammlung
+                      </span>
+                      <span className="text-black/40 text-[9px] font-bold uppercase tracking-widest mt-0.5">
+                        {isDemoMode ? "Demo Mode Active" : "Einträge ansehen"}
+                      </span>
+                    </div>
+                    <div className="w-12 h-12 rounded-full bg-black/5 flex items-center justify-center group-hover:bg-black transition-colors duration-500">
+                      <ArrowRight className="text-black group-hover:text-white transition-all group-hover:translate-x-1" size={24} />
+                    </div>
+                  </div>
                 </button>
               </Link>
-              <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest text-center">Tippe auf die Karte für Details</p>
-            </div>
+            </section>
           </div>
         )}
       </div>
