@@ -27,13 +27,13 @@ src/
   components/
     community/
       org-info-card.tsx                     # Create — stats + admin quick action buttons
-      activity-feed.tsx                      # Create — activity list container
+      activity-feed.tsx                     # Create — activity list container
       activity-item.tsx                     # Create — single activity row
-supabase/migrations/
-  [timestamp]_strain_created_activity.sql    # Create — add strain_created activity type + trigger
-src/
   lib/
-    types.ts                                # Modify — add SocialFeedItem variant + ActivityFeed types
+    types.ts                               # Modify — add SocialFeedItem variant + OrgStats/OrgActivityItem types
+    dates.ts                               # Create — formatRelativeTime utility
+supabase/migrations/
+  [timestamp]_strain_created_activity.sql   # Create — add strain_created activity type + trigger
 ```
 
 ---
@@ -204,20 +204,26 @@ export async function GET(request: Request, { params }: RouteParams) {
       .eq("membership_status", "active");
 
     // Fetch strain count + newest strain
-    const { data: strainData } = await supabase
-      .from("strains")
-      .select("id, name, slug")
-      .eq("organization_id", organizationId)
-      .order("created_at", { ascending: false })
-      .limit(1);
+    const [{ count: strainCount }, { data: newestStrainData }] = await Promise.all([
+      supabase
+        .from("strains")
+        .select("*", { count: "exact", head: true })
+        .eq("organization_id", organizationId),
+      supabase
+        .from("strains")
+        .select("id, name, slug")
+        .eq("organization_id", organizationId)
+        .order("created_at", { ascending: false })
+        .limit(1),
+    ]);
 
-    const newestStrain = strainData && strainData.length > 0
-      ? { id: strainData[0].id, name: strainData[0].name, slug: strainData[0].slug }
+    const newestStrain = newestStrainData && newestStrainData.length > 0
+      ? { id: newestStrainData[0].id, name: newestStrainData[0].name, slug: newestStrainData[0].slug }
       : null;
 
     return NextResponse.json({
       memberCount: memberCount ?? 0,
-      strainCount: strainData?.length ?? 0, // total count needs separate query if needed
+      strainCount: strainCount ?? 0,
       newestStrain,
     });
 
@@ -295,25 +301,22 @@ export async function GET(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Fetch org-strain activities
-    const { data: activities, error: activitiesError } = await supabase
-      .from("user_activities")
-      .select(`
-        id,
-        activity_type,
-        created_at,
-        strain_id:target_id,
-        user_id,
-        metadata,
-        user:profiles!user_id(id, display_name, username)
-      `)
-      .eq("activity_type", "strain_created")
-      .eq("metadata->>organization_id", organizationId)
-      .order("created_at", { ascending: false })
-      .limit(limit);
+    // Fetch org strain IDs + slugs (single query)
+    const { data: orgStrains } = await supabase
+      .from("strains")
+      .select("id, slug, name")
+      .eq("organization_id", organizationId);
 
-    // Fetch ratings on org strains (activity_type = 'rating')
-    const { data: ratedActivities } = await supabase
+    if (!orgStrains || orgStrains.length === 0) {
+      return NextResponse.json({ activities: [] });
+    }
+
+    const orgStrainIds = orgStrains.map(s => s.id);
+    const slugMap = new Map(orgStrains.map(s => [s.id, s.slug]));
+    const nameMap = new Map(orgStrains.map(s => [s.id, s.name]));
+
+    // Fetch all relevant activities in one query (both strain_created + rating)
+    const { data: activities, error: activitiesError } = await supabase
       .from("user_activities")
       .select(`
         id,
@@ -324,75 +327,45 @@ export async function GET(request: Request, { params }: RouteParams) {
         metadata,
         user:profiles!user_id(id, display_name, username)
       `)
-      .eq("activity_type", "rating")
+      .in("activity_type", ["strain_created", "rating"])
+      .in("target_id", orgStrainIds)
       .order("created_at", { ascending: false })
-      .limit(limit);
+      .limit(limit * 2); // fetch extra to account for filtering
 
-    // Filter ratedActivities to only those where the strain belongs to this org
-    const orgStrainIds = await supabase
-      .from("strains")
-      .select("id")
-      .eq("organization_id", organizationId);
+    if (activitiesError) {
+      console.error("Activities query error:", activitiesError);
+      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    }
 
-    const orgStrainIdSet = new Set((orgStrainIds.data ?? []).map(s => s.id));
-
-    const filteredRatings = (ratedActivities ?? []).filter(a =>
-      orgStrainIdSet.has(a.target_id as string)
-    );
-
-    // Merge and sort
-    const allActivities = [
-      ...(activities ?? []).map(a => ({
+    // Map to OrgActivityItem with slug from strains map
+    const mappedActivities = (activities ?? [])
+      .map(a => ({
         id: a.id,
-        type: a.activity_type as 'strain_created',
+        type: a.activity_type as "strain_created" | "rating",
         user: {
           displayName: (a.user as { display_name?: string } | null)?.display_name ?? "",
           username: (a.user as { username?: string } | null)?.username ?? "",
         },
-        strain: { id: a.target_id, name: a.target_name, slug: "" }, // slug not in activities
-        createdAt: a.created_at,
-      })),
-      ...filteredRatings.map(a => ({
-        id: a.id,
-        type: 'rating' as const,
-        user: {
-          displayName: (a.user as { display_name?: string } | null)?.display_name ?? "",
-          username: (a.user as { username?: string } | null)?.username ?? "",
+        strain: {
+          id: a.target_id as string,
+          name: nameMap.get(a.target_id as string) ?? "",
+          slug: slugMap.get(a.target_id as string) ?? "",
         },
-        strain: { id: a.target_id, name: a.target_name, slug: "" },
-        rating: (a.metadata as { rating?: number })?.rating ?? null,
+        rating: a.activity_type === "rating"
+          ? (a.metadata as { rating?: number })?.rating ?? null
+          : undefined,
         createdAt: a.created_at,
-      })),
-    ]
+      }))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, limit);
 
-    return NextResponse.json({ activities: allActivities });
+    return NextResponse.json({ activities: mappedActivities });
 
   } catch (error) {
     console.error("Error fetching org activities:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
-```
-
-> **Note on slug:** The `user_activities` table does not store `slug`. For `strain_created` activities, fetch the slug from the `strains` table in a follow-up query, or store it in `target_name` (not ideal). A better approach: join `strains` to get the slug for each activity's `target_id`.
-
-Revised approach — use a proper JOIN via RPC or a more targeted query:
-
-```typescript
-// After fetching activities, map strain slugs
-const strainIds = allActivities.map(a => a.strain.id);
-const { data: strainSlugs } = await supabase
-  .from("strains")
-  .select("id, slug")
-  .in("id", strainIds);
-
-const slugMap = new Map((strainSlugs ?? []).map(s => [s.id, s.slug]));
-const withSlugs = allActivities.map(a => ({
-  ...a,
-  strain: { ...a.strain, slug: slugMap.get(a.strain.id) ?? "" },
-}));
 ```
 
 - [ ] **Step 2: Test with curl**
