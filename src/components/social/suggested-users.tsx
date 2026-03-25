@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Loader2, RefreshCw, UserPlus } from "lucide-react";
 import { FollowButton } from "./follow-button";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import type { SuggestedUser } from "@/lib/types";
 
@@ -25,6 +25,35 @@ export function SuggestedUsers({
     const [users, setUsers] = useState<SuggestedUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
+
+    const handleFollow = async (targetUserId: string) => {
+        if (!user) return;
+
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const accessToken = session?.access_token;
+
+            const endpoint = `/api/follow-request/${targetUserId}`;
+            const response = await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(accessToken && { "Authorization": `Bearer ${accessToken}` })
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                setFollowingUsers(prev => new Set([...prev, targetUserId]));
+                // Refresh the page to update state
+                window.location.reload();
+            }
+        } catch (err) {
+            console.error("Follow action failed:", err);
+        }
+    };
 
     const fetchSuggestedUsers = async (isRefresh = false) => {
         if (!user) {
@@ -192,16 +221,26 @@ export function SuggestedUsers({
                                     )}
                                 </div>
                                 {/* Add Button or Pending indicator */}
-                                <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-[#355E3B] ${suggestedUser.has_pending_request
-                                    ? "bg-yellow-400"
-                                    : "bg-[#00F5FF]"
-                                    }`}>
-                                    {suggestedUser.has_pending_request ? (
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleFollow(suggestedUser.id);
+                                    }}
+                                    disabled={suggestedUser.has_pending_request || followingUsers.has(suggestedUser.id)}
+                                    className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-[#355E3B] transition-all ${suggestedUser.has_pending_request || followingUsers.has(suggestedUser.id)
+                                        ? "bg-yellow-400"
+                                        : "bg-[#00F5FF] hover:bg-[#00F5FF]/80 cursor-pointer"
+                                        }`}
+                                >
+                                    {followingUsers.has(suggestedUser.id) ? (
+                                        <span className="text-black text-xs">✓</span>
+                                    ) : suggestedUser.has_pending_request ? (
                                         <span className="text-black text-xs">...</span>
                                     ) : (
                                         <span className="text-black text-xs font-bold">+</span>
                                     )}
-                                </div>
+                                </button>
                             </div>
 
                             {/* Username */}
