@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
@@ -21,11 +21,11 @@ const getErrorMessage = (error: unknown, fallback: string) => {
 
 export default function StrainDetailPage() {
   const { slug } = useParams();
-  const { user, isDemoMode } = useAuth();
+  const { user, isDemoMode, activeOrganization } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [strain, setStrain] = useState<Strain | null>(null);
+  const [strain, setStrain] = useState<Strain & { organization?: { id: string; name: string; slug: string; organization_type: string } } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [userImageUrl, setUserImageUrl] = useState<string | null>(null);
@@ -54,7 +54,15 @@ export default function StrainDetailPage() {
 
   useEffect(() => {
     async function fetchStrain() {
-      const { data, error } = await supabase.from("strains").select("*").eq("slug", slug).single();
+      const { data, error } = await supabase.from("strains").select(`
+  *,
+  organization:organization_id (
+    id,
+    name,
+    slug,
+    organization_type
+  )
+`).eq("slug", slug).single();
 
       if (error && !isDemoMode) {
         console.error("Strain fetch error:", error);
@@ -62,7 +70,7 @@ export default function StrainDetailPage() {
 
       if (data) {
         setStrain({
-          ...(data as Strain),
+          ...(data as Strain & { organization?: { id: string; name: string; slug: string; organization_type: string } }),
           source: normalizeCollectionSource((data as Strain).source),
         });
 
@@ -116,6 +124,10 @@ export default function StrainDetailPage() {
     }
     fetchStrain();
   }, [slug, user, isDemoMode]);
+
+  const isOrgStrain = Boolean(strain?.organization_id);
+  const hasOrgAccess = isOrgStrain && activeOrganization?.organization_id === strain?.organization_id;
+  const canViewOrgStrain = isOrgStrain && hasOrgAccess;
 
   const handleDelete = async () => {
     if (!strain || !user || isDemoMode) return;
@@ -259,7 +271,8 @@ export default function StrainDetailPage() {
         overall_rating: (ratings.taste + ratings.effect + ratings.look) / 3,
         taste_rating: ratings.taste,
         effect_rating: ratings.effect,
-        look_rating: ratings.look
+        look_rating: ratings.look,
+        organization_id: isOrgStrain ? strain.organization_id : null,
       }, { onConflict: 'strain_id,user_id' });
 
       if (rError) throw rError;
@@ -293,11 +306,31 @@ export default function StrainDetailPage() {
   const tasteDisplay = strain ? getTasteDisplay(strain, 'Zitrus · Erdig').replace(/, /g, ' · ') : 'Zitrus · Erdig';
   const effectDisplay = strain ? getEffectDisplay(strain) : 'Euphorie';
 
+  // Farmer & Strain Name - same logic as StrainCard for consistent display
+  const farmerDisplay = strain?.farmer?.trim() || strain?.manufacturer?.trim() || strain?.brand?.trim() || 'Unbekannter Farmer';
+  const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const normalizedStrainName = (() => {
+    const rawName = strain?.name?.trim() || '';
+    if (!rawName || farmerDisplay === 'Unbekannter Farmer') return rawName;
+    const withoutFarmerPrefix = rawName.replace(
+      new RegExp(`^${escapeRegExp(farmerDisplay)}[\s:/-]*`, 'i'),
+      ''
+    ).trim();
+    return withoutFarmerPrefix || rawName;
+  })();
+
   if (loading) return <div className="min-h-screen bg-[#355E3B] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
   if (!strain) return <div className="text-white text-center py-20 uppercase font-bold">Strain not found</div>;
 
   return (
     <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+      {isOrgStrain && !canViewOrgStrain && (
+        <div className="mx-8 mb-4 p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20">
+          <p className="text-sm font-bold text-orange-400">
+            Dieser Strain gehört zu {strain.organization?.name} und ist nur für Mitglieder sichtbar.
+          </p>
+        </div>
+      )}
       <div className="p-6 flex justify-between items-center sticky top-0 z-50 bg-[#355E3B]/80 backdrop-blur-xl">
         <button onClick={() => router.back()} className="p-2 rounded-full bg-white/5"><ChevronLeft size={24} /></button>
         <div className="flex gap-2">
@@ -344,8 +377,12 @@ export default function StrainDetailPage() {
               style={{ borderColor: themeColor, boxShadow: `0 0 15px ${themeColor}4d` }}
             >
               <div className="p-6 pb-4">
-                <h2 className="font-serif italic text-2xl text-white font-bold leading-tight uppercase line-clamp-2">{strain.name}</h2>
-                <div className={`w-12 h-0.5 mt-2 ${underlineBg}`}></div>
+                <h2 className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/30 truncate">
+                  {farmerDisplay}
+                </h2>
+                <p className="mt-1 title-font italic text-sm font-black leading-tight uppercase text-white break-words line-clamp-2 min-h-[2.5rem]">
+                  {normalizedStrainName}
+                </p>
               </div>
               <div className="px-5 w-full">
                 <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-white/10">
