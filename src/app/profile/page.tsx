@@ -40,7 +40,7 @@ import { FollowersListModal } from "@/components/social/followers-list-modal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import type {
   ProfileActivityItem,
   ProfileBadge,
@@ -311,6 +311,20 @@ export default function ProfilePage() {
             <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">CannaLog</h1>
           </div>
           <div className="flex items-center gap-4">
+            <button 
+              onClick={async () => {
+                localStorage.removeItem("cannalog_onboarding_completed");
+                sessionStorage.removeItem("cannalog_onboarding_dismissed");
+                if (user) {
+                  await supabase.from("profiles").update({ has_completed_onboarding: false }).eq("id", user.id);
+                }
+                window.location.href = "/";
+              }}
+              className="w-10 h-10 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 hover:bg-orange-500/20 transition-colors"
+              title="Reset Onboarding (Test)"
+            >
+              <Wand2 size={18} />
+            </button>
             <div className="w-10 h-10 relative">
               <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
             </div>
