@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,6 +78,7 @@ function LoginForm() {
         id: data.user.id,
         username: username.trim().toLowerCase().replace(/\s+/g, "_"),
         display_name: username.trim(),
+        has_completed_onboarding: false,
       });
 
       if (data.session === null) {

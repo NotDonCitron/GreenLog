@@ -66,22 +66,40 @@ export function OnboardingGuide() {
         async function checkOnboarding() {
             // In Demo mode, always show onboarding if not explicitly dismissed in session
             if (isDemoMode) {
+                console.log("[Onboarding] Demo mode detected");
                 const dismissed = sessionStorage.getItem("cannalog_onboarding_dismissed");
-                if (!dismissed) setIsVisible(true);
+                if (!dismissed) {
+                    setIsVisible(true);
+                }
                 return;
             }
 
-            if (!user) return;
+            if (!user) {
+                console.log("[Onboarding] No user session found");
+                return;
+            }
 
+            console.log("[Onboarding] Checking profile for user:", user.id);
             const { data, error } = await supabase
                 .from("profiles")
                 .select("has_completed_onboarding")
                 .eq("id", user.id)
                 .single();
 
-            // Show if value is false OR null (for existing users before the migration)
-            if (!error && (data?.has_completed_onboarding === false || data?.has_completed_onboarding === null)) {
+            if (error) {
+                console.error("[Onboarding] Error fetching profile:", error);
+                // Fallback: If profile doesn't exist yet, show it anyway (it will be created during login/signup)
                 setIsVisible(true);
+                return;
+            }
+
+            console.log("[Onboarding] Data found:", data);
+            // Show if value is NOT explicitly true
+            if (data?.has_completed_onboarding !== true) {
+                console.log("[Onboarding] Showing guide...");
+                setIsVisible(true);
+            } else {
+                console.log("[Onboarding] User already completed onboarding.");
             }
         }
 
@@ -104,6 +122,7 @@ export function OnboardingGuide() {
 
     const completeOnboarding = async () => {
         if (isDemoMode) {
+            console.log("[Onboarding] Dismissing in Demo Mode");
             sessionStorage.setItem("cannalog_onboarding_dismissed", "true");
             setIsVisible(false);
             return;
@@ -111,6 +130,7 @@ export function OnboardingGuide() {
 
         if (!user) return;
         setIsLoading(true);
+        console.log("[Onboarding] Saving completion status to DB...");
 
         try {
             const { error } = await supabase
@@ -119,10 +139,13 @@ export function OnboardingGuide() {
                 .eq("id", user.id);
 
             if (!error) {
+                console.log("[Onboarding] Successfully saved status.");
                 setIsVisible(false);
+            } else {
+                console.error("[Onboarding] Error saving status:", error);
             }
         } catch (err) {
-            console.error("Failed to complete onboarding:", err);
+            console.error("[Onboarding] Failed to complete onboarding:", err);
         } finally {
             setIsLoading(false);
         }
