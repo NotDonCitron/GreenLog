@@ -81,25 +81,32 @@ SELECT
 FROM user_activities ua
 JOIN profiles p ON p.id = ua.user_id
 JOIN strains s ON s.id = ua.strain_id
+LEFT JOIN ratings r ON r.strain_id = ua.strain_id
+  AND r.user_id = ua.user_id
+  AND r.created_at >= ua.created_at - INTERVAL '1 minute'
 WHERE s.organization_id = :orgId
   AND ua.activity_type IN ('strain_created', 'strain_rated')
 ORDER BY ua.created_at DESC
 LIMIT 5
 ```
 
+> Der `LEFT JOIN ratings` holt die Bewertung die gleichzeitig mit der Aktivität erstellt wurde. Für `strain_created` ist `r.rating` immer `NULL` — das ist korrekt.
+
 **UI — Ein Activity Item:**
 
 ```
 ┌──────────────────────────────────────────────────┐
-│ 🌿 [Display Name] hat "Strain Name" bewertet     │
+│ 🌿 [Display Name] hat "[Strain Name]" bewertet   │  ← Strain Name ist Link
 │    ★★★★☆  •  vor 2 Stunden                      │
 └──────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────┐
-│ 🌿 [Display Name] hat "Strain Name" erstellt     │
+│ 🌿 [Display Name] hat "[Strain Name]" erstellt    │  ← Strain Name ist Link
 │    +Neue Sorte  •  gestern                      │
 └──────────────────────────────────────────────────┘
 ```
+
+> Der Strain-Name ist ein klickbarer Link zu `/strains/[slug]`.
 
 **Struktur:**
 - Max 5 Items, absteigend nach Zeit
@@ -174,8 +181,8 @@ Neuer Endpunkt für org-relevante Activity Feed Items.
 
 ## Offene Fragen
 
-- [ ] Soll der Feed automatisch refreshed werden (Polling) oder nur beim Laden?
-- [ ] Sollen Ratings einen Link zum Strain haben?
+- [x] Soll der Feed automatisch refreshed werden (Polling) oder nur beim Laden? → **Nur beim Laden** (kein Polling) — YAGNI, kann später hinzugefügt werden
+- [x] Sollen Ratings einen Link zum Strain haben? → **Ja** — Klick auf Strain-Namen öffnet `/strains/[slug]`
 
 ---
 
