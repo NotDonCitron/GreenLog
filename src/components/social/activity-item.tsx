@@ -91,7 +91,7 @@ export function ActivityItem({ activity, user, className = "" }: ActivityItemPro
                         <Icon className="h-4 w-4 text-[#00F5FF]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white">
+                        <p className="text-sm text-white break-words [overflow-wrap:anywhere]">
                             <Link href={`/user/${user.username}`} className="font-semibold hover:underline">
                                 {user.display_name || user.username}
                             </Link>{" "}

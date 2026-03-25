@@ -47,10 +47,10 @@ export default function RootLayout({
       <head>
         <meta name="color-scheme" content="dark" />
       </head>
-      <body className="h-full bg-[#355E3B] text-white">
+      <body className="h-full bg-[#355E3B] text-white overflow-x-hidden">
         <AuthProvider>
           <div className="flex h-full flex-col">
-            <main className="flex-1 overflow-y-auto">{children}</main>
+            <main className="flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
           </div>
         </AuthProvider>
       </body>

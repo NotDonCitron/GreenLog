@@ -37,7 +37,7 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
   return (
     <Link
       href={`/strains/${strain.slug}`}
-      className={`premium-card ${themeClass} ${!isCollected ? 'opacity-70 grayscale-[0.8]' : ''} flex flex-col w-full h-full border-2 rounded-[20px] bg-[#121212] overflow-hidden`}
+      className={`premium-card ${themeClass} ${!isCollected ? 'opacity-70 grayscale-[0.8]' : ''} flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[20px] border-2 bg-[#121212]`}
       style={{
         borderColor: isCollected ? themeColor : '#333',
         animationDelay: `${index * 0.05}s`,
@@ -68,24 +68,24 @@ export function StrainCard({ strain, index = 0, isCollected = true }: StrainCard
         </div>
       </div>
 
-      <div className="px-2.5 mt-2.5 w-full flex-grow flex flex-col justify-end pb-3">
-        <div className="bg-white/5 border border-white/10 rounded-xl p-2 shadow-inner backdrop-blur-sm shadow-md">
-          <div className="grid grid-cols-2 gap-2 border-b border-white/5 pb-1.5 mb-1.5">
-            <div className="flex items-center justify-between gap-2 min-w-0">
-              <span className="text-gray-500 text-[7px] uppercase tracking-widest font-semibold flex-shrink-0">THC</span>
-              <span className="text-[10px] font-bold tracking-wide truncate" style={{ color: themeColor }}>{thcDisplay}</span>
+      <div className="mt-2.5 flex w-full min-w-0 flex-grow flex-col justify-end px-2.5 pb-3">
+        <div className="rounded-xl border border-white/10 bg-white/5 p-2 shadow-inner shadow-md backdrop-blur-sm">
+          <div className="mb-1.5 grid min-w-0 grid-cols-2 gap-2 border-b border-white/5 pb-1.5">
+            <div className="flex min-w-0 items-center justify-between gap-2">
+              <span className="flex-shrink-0 text-[7px] font-semibold uppercase tracking-widest text-gray-500">THC</span>
+              <span className="truncate text-[10px] font-bold tracking-wide" style={{ color: themeColor }}>{thcDisplay}</span>
             </div>
-            <div className="flex items-center justify-end border-l border-white/5 pl-2 w-full text-right min-w-0">
-              <span className="text-gray-100 text-[8px] font-medium tracking-wide break-words line-clamp-2">{tasteDisplay}</span>
+            <div className="flex min-w-0 w-full items-center justify-end border-l border-white/5 pl-2 text-right">
+              <span className="line-clamp-2 break-words text-[8px] font-medium tracking-wide text-gray-100 [overflow-wrap:anywhere]">{tasteDisplay}</span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex items-center justify-between gap-2 min-w-0">
-              <span className="text-gray-500 text-[7px] uppercase tracking-widest font-semibold flex-shrink-0">CBD</span>
-              <span className="text-[10px] font-bold tracking-wide truncate" style={{ color: themeColor }}>{cbdDisplay}</span>
+          <div className="grid min-w-0 grid-cols-2 gap-2">
+            <div className="flex min-w-0 items-center justify-between gap-2">
+              <span className="flex-shrink-0 text-[7px] font-semibold uppercase tracking-widest text-gray-500">CBD</span>
+              <span className="truncate text-[10px] font-bold tracking-wide" style={{ color: themeColor }}>{cbdDisplay}</span>
             </div>
-            <div className="flex items-center justify-end border-l border-white/5 pl-2 w-full text-right min-w-0">
-              <span className="text-gray-100 text-[8px] font-medium tracking-wide break-words line-clamp-2">{effectDisplay}</span>
+            <div className="flex min-w-0 w-full items-center justify-end border-l border-white/5 pl-2 text-right">
+              <span className="line-clamp-2 break-words text-[8px] font-medium tracking-wide text-gray-100 [overflow-wrap:anywhere]">{effectDisplay}</span>
             </div>
           </div>
         </div>
