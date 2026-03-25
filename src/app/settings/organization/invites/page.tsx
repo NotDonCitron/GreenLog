@@ -405,8 +405,13 @@ export default function InvitesPage() {
                       <button
                         onClick={() => void handleRevokeInvite(invite.id)}
                         disabled={actionLoading === invite.id || isDemoMode}
-                        className="text-[10px] font-bold text-red-400/60 hover:text-red-400 transition-colors disabled:opacity-30 mt-1"
+                        className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all mt-1 ${
+                          actionLoading === invite.id || isDemoMode
+                            ? "bg-red-500/5 border-red-500/10 text-red-400/30"
+                            : "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/30"
+                        }`}
                       >
+                        <X size={8} />
                         {actionLoading === invite.id ? "..." : "Widerrufen"}
                       </button>
                     )}
