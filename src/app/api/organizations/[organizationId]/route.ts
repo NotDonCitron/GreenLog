@@ -136,3 +136,61 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }
+
+// DELETE /api/organizations/[organizationId]
+// Delete (archive) an organization — owner only
+export async function DELETE(request: Request, { params }: RouteParams) {
+    try {
+        const { organizationId } = await params;
+        const authHeader = request.headers.get("Authorization");
+        const accessToken = authHeader?.replace("Bearer ", "");
+
+        if (!accessToken) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const supabase = getAuthenticatedClient(accessToken);
+
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        // Must be owner to delete
+        const { data: membership, error: membershipError } = await supabase
+            .from("organization_members")
+            .select("role")
+            .eq("organization_id", organizationId)
+            .eq("user_id", user.id)
+            .eq("membership_status", "active")
+            .single();
+
+        if (membershipError || !membership) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        if (membership.role !== "owner") {
+            return NextResponse.json({ error: "Nur der Owner kann die Community löschen" }, { status: 403 });
+        }
+
+        // Delete organization (cascade should handle members via DB constraints)
+        const { error: deleteError } = await supabase
+            .from("organizations")
+            .delete()
+            .eq("id", organizationId);
+
+        if (deleteError) {
+            console.error("Error deleting organization:", deleteError);
+            return NextResponse.json({
+                error: "Failed to delete organization",
+                details: deleteError.message
+            }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true });
+
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    }
+}

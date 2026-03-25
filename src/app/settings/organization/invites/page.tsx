@@ -214,7 +214,7 @@ export default function InvitesPage() {
             {activeOrganization.organizations?.name}
           </p>
           <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none">
-            Einladungen
+            Admin anlegen
           </h1>
         </div>
       </header>

@@ -5,7 +5,6 @@ import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import {
   Leaf,
-  Users,
   Mail,
   Settings,
   Loader2,
@@ -57,6 +56,7 @@ export default function CommunityPage() {
   }
 
   const isAdmin = activeOrganization.role === "owner" || activeOrganization.role === "admin";
+  const isOwner = activeOrganization.role === "owner";
   const orgName = activeOrganization.organizations?.name || "Unbekannte Organisation";
   const orgType = activeOrganization.organizations?.organization_type;
   const orgTypeLabel = orgType === "club" ? "Club" : orgType === "pharmacy" ? "Apotheke" : orgType;
@@ -64,11 +64,8 @@ export default function CommunityPage() {
   return (
     <main className="min-h-screen bg-[#355E3B] text-white pb-32">
       <header className="p-8 pb-4">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">
-          {orgName}
-        </p>
         <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none">
-          Community Hub
+          Deine Community
         </h1>
       </header>
 
@@ -113,23 +110,8 @@ export default function CommunityPage() {
             </Card>
           </Link>
 
-          {/* Mitglieder - All members */}
-          <Link href="/settings/organization/members">
-            <Card className="bg-[#1e3a24] border-white/10 p-5 rounded-3xl hover:bg-[#243d2a] transition-colors cursor-pointer">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center shrink-0">
-                  <Users size={20} className="text-[#00F5FF]" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-black text-sm">Mitglieder</p>
-                  <p className="text-[10px] text-white/40">Alle Mitglieder der Organisation</p>
-                </div>
-              </div>
-            </Card>
-          </Link>
-
-          {/* Einladungen - Admin only */}
-          {isAdmin && (
+          {/* Admin anlegen - Owner only */}
+          {isOwner && (
             <Link href="/settings/organization/invites">
               <Card className="bg-[#1e3a24] border-white/10 p-5 rounded-3xl hover:bg-[#243d2a] transition-colors cursor-pointer">
                 <div className="flex items-center gap-4">
@@ -137,8 +119,8 @@ export default function CommunityPage() {
                     <Mail size={20} className="text-purple-400" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-black text-sm">Einladungen</p>
-                    <p className="text-[10px] text-white/40">Neue Mitglieder einladen</p>
+                    <p className="font-black text-sm">Admin anlegen</p>
+                    <p className="text-[10px] text-white/40">Neuen Admin ernennen</p>
                   </div>
                 </div>
               </Card>
