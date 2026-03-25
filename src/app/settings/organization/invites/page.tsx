@@ -189,6 +189,29 @@ export default function InvitesPage() {
     }
   };
 
+  const handleRevokeInvite = async (inviteId: string) => {
+    if (!session?.access_token || isDemoMode) return;
+    setActionLoading(inviteId);
+    try {
+      const res = await fetch(
+        `/api/organizations/${activeOrganization!.organization_id}/invites?id=${inviteId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        }
+      );
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Fehler beim Widerrufen");
+      }
+      await fetchInvites();
+    } catch (err: any) {
+      setStatusMessage({ type: "error", msg: err.message });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   if (!activeOrganization) {
     return (
       <main className="min-h-screen bg-[#355E3B] flex items-center justify-center">
@@ -329,6 +352,14 @@ export default function InvitesPage() {
                   {creating ? <Loader2 size={14} className="animate-spin" /> : null}
                   Einladung senden
                 </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: "member" }); }}
+                  className="w-full h-10 text-white/40 hover:text-white hover:bg-white/5 font-black uppercase tracking-widest text-xs"
+                >
+                  Abbrechen
+                </Button>
                 {isDemoMode && <p className="text-[10px] text-center text-white/20 italic">Im Demo-Modus deaktiviert</p>}
               </form>
             )}
@@ -370,6 +401,15 @@ export default function InvitesPage() {
                   <div className="flex flex-col items-end gap-1 shrink-0">
                     <RoleBadge role={invite.role} />
                     <StatusBadge status={invite.status} />
+                    {invite.status === "pending" && canManage && (
+                      <button
+                        onClick={() => void handleRevokeInvite(invite.id)}
+                        disabled={actionLoading === invite.id || isDemoMode}
+                        className="text-[10px] font-bold text-red-400/60 hover:text-red-400 transition-colors disabled:opacity-30 mt-1"
+                      >
+                        {actionLoading === invite.id ? "..." : "Widerrufen"}
+                      </button>
+                    )}
                   </div>
                 </div>
               </Card>

@@ -216,3 +216,72 @@ export async function POST(request: Request, { params }: RouteParams) {
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }
+
+// DELETE /api/organizations/[organizationId]/invites?id=xxx
+// Revoke a pending invite
+export async function DELETE(request: Request, { params }: RouteParams) {
+    try {
+        const { organizationId } = await params;
+        const authHeader = request.headers.get("Authorization");
+        const accessToken = authHeader?.replace("Bearer ", "");
+
+        if (!accessToken) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const supabase = getAuthenticatedClient(accessToken);
+
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        // Check if user is org manager (owner or admin)
+        const { data: membership, error: membershipError } = await supabase
+            .from("organization_members")
+            .select("role, membership_status")
+            .eq("organization_id", organizationId)
+            .eq("user_id", user.id)
+            .eq("membership_status", "active")
+            .single();
+
+        if (membershipError || !membership) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        const canManage = membership.role === "owner" || membership.role === "admin";
+
+        if (!canManage) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const inviteId = searchParams.get("id");
+
+        if (!inviteId) {
+            return NextResponse.json({ error: "Invite ID is required" }, { status: 400 });
+        }
+
+        // Update invite status to revoked
+        const { error: revokeError } = await supabase
+            .from("organization_invites")
+            .update({ status: "revoked" })
+            .eq("id", inviteId)
+            .eq("organization_id", organizationId)
+            .eq("status", "pending");
+
+        if (revokeError) {
+            console.error("Error revoking invite:", revokeError);
+            return NextResponse.json({
+                error: "Failed to revoke invite",
+                details: revokeError.message
+            }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true });
+
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    }
+}
