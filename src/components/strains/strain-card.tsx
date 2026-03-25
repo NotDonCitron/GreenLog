@@ -39,7 +39,7 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
   return (
     <Link
       href={`/strains/${strain.slug}`}
-      className={`premium-card ${themeClass} ${!isCollected ? 'opacity-70 grayscale-[0.8]' : ''} group relative flex h-full w-full min-w-0 flex-col overflow-hidden rounded-[20px] border-2 bg-[#121212] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]`}
+      className={`premium-card ${themeClass} ${!isCollected ? 'opacity-70 grayscale-[0.8]' : ''} group relative flex w-full min-w-0 flex-col rounded-[20px] border-2 bg-[#121212] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]`}
       style={{
         borderColor: isCollected ? themeColor : '#333',
         animationDelay: `${index * 0.05}s`,
@@ -56,7 +56,7 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
       </div>
 
       <div className="px-3 w-full shrink-0 relative z-10">
-        <div className="relative w-full h-[110px] rounded-xl overflow-hidden border border-white/5 shadow-lg">
+        <div className="relative w-full h-[100px] rounded-xl border border-white/5 shadow-lg">
           <Image 
             src={strain.image_url || "/strains/placeholder-1.svg"} 
             alt={strain.name} 
@@ -75,7 +75,7 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
         </div>
       </div>
 
-      <div className="mt-3 flex w-full min-w-0 flex-grow flex-col justify-end px-3 pb-3.5 relative z-10">
+      <div className="mt-3 flex w-full min-w-0 flex-col justify-end px-3 pb-3.5 relative z-10 min-h-[80px]">
         <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 shadow-inner backdrop-blur-sm">
           {/* Row 1: THC & Taste */}
           <div className="mb-2 grid min-w-0 grid-cols-2 gap-2 border-b border-white/5 pb-2">
