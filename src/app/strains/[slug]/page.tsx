@@ -376,7 +376,7 @@ export default function StrainDetailPage() {
               className="absolute inset-0 backface-hidden rounded-[20px] overflow-hidden bg-[#121212] shadow-2xl flex flex-col border-2"
               style={{ borderColor: themeColor, boxShadow: `0 0 15px ${themeColor}4d` }}
             >
-              <div className="p-6 pb-4">
+              <div className="p-3.5 pb-2">
                 <h2 className="text-[10px] font-bold tracking-[0.2em] uppercase text-white/30 truncate">
                   {farmerDisplay}
                 </h2>
