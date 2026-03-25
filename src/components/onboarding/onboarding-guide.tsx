@@ -57,13 +57,20 @@ const ONBOARDING_STEPS: Step[] = [
 ];
 
 export function OnboardingGuide() {
-    const { user } = useAuth();
+    const { user, isDemoMode } = useAuth();
     const [isVisible, setIsVisible] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
     const [isSaving, setIsLoading] = useState(false);
 
     useEffect(() => {
         async function checkOnboarding() {
+            // In Demo mode, always show onboarding if not explicitly dismissed in session
+            if (isDemoMode) {
+                const dismissed = sessionStorage.getItem("cannalog_onboarding_dismissed");
+                if (!dismissed) setIsVisible(true);
+                return;
+            }
+
             if (!user) return;
 
             const { data, error } = await supabase
@@ -72,19 +79,20 @@ export function OnboardingGuide() {
                 .eq("id", user.id)
                 .single();
 
-            if (!error && data && data.has_completed_onboarding === false) {
+            // Show if value is false OR null (for existing users before the migration)
+            if (!error && (data?.has_completed_onboarding === false || data?.has_completed_onboarding === null)) {
                 setIsVisible(true);
             }
         }
 
         checkOnboarding();
-    }, [user]);
+    }, [user, isDemoMode]);
 
     const handleNext = () => {
         if (currentStep < ONBOARDING_STEPS.length - 1) {
             setCurrentStep(prev => prev + 1);
         } else {
-            completeOnboarding();
+            void completeOnboarding();
         }
     };
 
@@ -95,6 +103,12 @@ export function OnboardingGuide() {
     };
 
     const completeOnboarding = async () => {
+        if (isDemoMode) {
+            sessionStorage.setItem("cannalog_onboarding_dismissed", "true");
+            setIsVisible(false);
+            return;
+        }
+
         if (!user) return;
         setIsLoading(true);
 
