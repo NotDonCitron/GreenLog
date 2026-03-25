@@ -42,7 +42,7 @@ const ONBOARDING_STEPS: Step[] = [
     },
     {
         title: "World Collection",
-        description: "Die globale Datenbank. Suche hier nach Sorten und füge sie mit einem Klick deiner eigenen Sammlung hinzu.",
+        description: "Die globale Datenbank. Suche nach Sorten und füge sie deiner Sammlung hinzu. Falls du deine Sorte nicht findest, kannst du auch eigene Strains erstellen.",
         icon: <Globe size={48} />,
         color: "#fbbf24",
         path: "/strains"
