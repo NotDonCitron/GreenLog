@@ -1,0 +1,1469 @@
+
+> green-log@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.178.38:3000
+- Environments: .env.local
+✓ Ready in 441ms
+
+Error: Can't resolve 'tailwindcss' in 'c:\Users\pasi\Documents'
+    [2m[at finishWithoutResolve (C:\Users\pasi\Documents\green-log\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\pasi\Documents\green-log\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\pasi\Documents\green-log\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\pasi\Documents\green-log\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\pasi\Documents\green-log\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\pasi\Documents\green-log\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\pasi\Documents\green-log\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\pasi\Documents\green-log\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\pasi\Documents\green-log\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\pasi\Documents\green-log\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'c:\\Users\\pasi\\Documents'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in c:\\Users\\pasi\\Documents or above\n' +
+    '  resolve as module\n' +
+    "    c:\\Users\\pasi\\Documents\\node_modules doesn't exist or is not a directory\n" +
+    "    c:\\Users\\pasi\\node_modules doesn't exist or is not a directory\n" +
+    "    c:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    c:\\node_modules doesn't exist or is not a directory"
+}
+Error: Can't resolve 'tailwindcss' in 'c:\Users\pasi\Documents'
+    [2m[at finishWithoutResolve (C:\Users\pasi\Documents\green-log\node_modules\enhanced-resolve\lib\Resolver.js:587:18)][0m
+    [2m[at C:\Users\pasi\Documents\green-log\node_modules\enhanced-resolve\lib\Resolver.js:679:14][0m
+    [2m[at C:\Users\pasi\Documents\green-log\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\pasi\Documents\green-log\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\pasi\Documents\green-log\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\pasi\Documents\green-log\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:16:1)][0m
+    [2m[at C:\Users\pasi\Documents\green-log\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\pasi\Documents\green-log\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m
+    [2m[at C:\Users\pasi\Documents\green-log\node_modules\enhanced-resolve\lib\Resolver.js:740:5][0m
+    [2m[at eval (eval at create (C:\Users\pasi\Documents\green-log\node_modules\tapable\lib\HookCodeFactory.js:31:10), <anonymous>:15:1)][0m {
+  details: "resolve 'tailwindcss' in 'c:\\Users\\pasi\\Documents'\n" +
+    '  Parsed request is a module\n' +
+    '  No description file found in c:\\Users\\pasi\\Documents or above\n' +
+    '  resolve as module\n' +
+    "    c:\\Users\\pasi\\Documents\\node_modules doesn't exist or is not a directory\n" +
+    "    c:\\Users\\pasi\\node_modules doesn't exist or is not a directory\n" +
+    "    c:\\Users\\node_modules doesn't exist or is not a directory\n" +
+    "    c:\\node_modules doesn't exist or is not a directory"
+}
+
+
+thread 'tokio-runtime-worker' (6900) panicked at C:\Users\Administrator\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tokio-1.43.0\src\io\blocking.rs:76:46:
+OS can't spawn worker thread: Die Auslagerungsdatei ist zu klein, um diesen Vorgang durchzuführen. (os error 1455)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<--- Last few GCs --->
+<--- Last few GCs --->
+<--- Last few GCs --->
+<--- Last few GCs --->
+<--- Last few GCs --->
+
+<--- Last few GCs --->
+
+
+
+
+#
+
+
+
+
+
+
+
+
+
+
+
+#
+#
+
+
+<--- Last few GCs --->
+
+
+
+
+
+
+#
+#
+
+<--- Last few GCs --->
+<--- Last few GCs --->
+<--- Last few GCs --->
+# Fatal process out of memory: Re-embedded builtins: set permissions
+<--- Last few GCs --->
+
+<--- Last few GCs --->
+<--- Last few GCs --->
+#
+
+
+<--- Last few GCs --->
+<--- Last few GCs --->
+<--- Last few GCs --->
+
+
+<--- Last few GCs --->
+[23212:000002518BAC2000]     7228 ms: Scavenge 8.7 (11.3) -> 7.4 (9.5) MB, pooled: 2 MB, 66.06 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+<--- Last few GCs --->
+[25408:000001FA7A404000]     7160 ms: Scavenge 8.7 (11.3) -> 7.4 (9.0) MB, pooled: 2 MB, 181.47 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[24744:000002564FF15000]     7478 ms: Scavenge 8.7 (11.3) -> 7.4 (11.3) MB, pooled: 0 MB, 60.72 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+<--- Last few GCs --->
+[20640:000001E1F2D42000]     7850 ms: Scavenge 6.6 (8.7) -> 5.8 (8.5) MB, pooled: 0 MB, 68.92 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[43516:000001968FF53000]     4761 ms: Scavenge 5.9 (7.2) -> 5.4 (10.0) MB, pooled: 0 MB, 116.24 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+# Fatal process out of memory: Re-embedded builtins: set permissions
+<--- Last few GCs --->
+# Fatal process out of memory: Re-embedded builtins: set permissions
+[20560:0000028D059A0000]     5657 ms: Scavenge 8.7 (11.3) -> 7.5 (9.3) MB, pooled: 2 MB, 3.33 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+# Fatal process out of memory: Re-embedded builtins: set permissions
+<--- Last few GCs --->
+[31036:000001CCFF422000]     8687 ms: Scavenge 8.7 (11.3) -> 7.4 (9.3) MB, pooled: 2 MB, 6.94 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+# Fatal process out of memory: Re-embedded builtins: set permissions
+
+
+
+
+# Fatal process out of memory: Re-embedded builtins: set permissions
+
+<--- Last few GCs --->
+
+
+
+
+#
+
+#
+
+
+[23212:000002518BAC2000]    10058 ms: Scavenge 9.5 (10.3) -> 8.9 (13.5) MB, pooled: 0 MB, 3.10 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+
+
+[20560:0000028D059A0000]     7072 ms: Scavenge 9.5 (10.3) -> 8.8 (17.3) MB, pooled: 0 MB, 4.86 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+#
+[25408:000001FA7A404000]     8682 ms: Scavenge 9.5 (10.3) -> 8.9 (17.3) MB, pooled: 0 MB, 75.80 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+#
+[24744:000002564FF15000]     9804 ms: Scavenge 9.5 (12.3) -> 8.8 (17.5) MB, pooled: 0 MB, 275.13 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+#
+[20640:000001E1F2D42000]     9905 ms: Scavenge 6.4 (8.5) -> 6.2 (8.7) MB, pooled: 0 MB, 1.26 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+#
+
+#
+[21472:0000021095132000]     7875 ms: Scavenge 8.7 (11.3) -> 7.4 (9.3) MB, pooled: 2 MB, 42.63 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[24484:0000025A01956000]     8985 ms: Scavenge 6.4 (8.5) -> 6.2 (10.7) MB, pooled: 0 MB, 59.45 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+#
+[33872:00000252105C1000]    10550 ms: Scavenge 8.7 (11.3) -> 7.5 (9.3) MB, pooled: 2 MB, 47.52 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[23280:0000024AD9672000]    10536 ms: Scavenge 8.7 (11.3) -> 7.5 (9.3) MB, pooled: 2 MB, 1.48 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+#
+#
+[30372:0000020968DD8000]     9779 ms: Scavenge 6.6 (9.0) -> 5.8 (8.7) MB, pooled: 0 MB, 335.76 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+#
+[22944:000002219A3FE000]    12200 ms: Scavenge 8.7 (11.8) -> 7.4 (9.8) MB, pooled: 2 MB, 4.45 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[30480:0000023114A20000]    10043 ms: Scavenge 6.6 (8.7) -> 5.8 (8.5) MB, pooled: 0 MB, 2.46 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[35012:000001F19898D000]     7079 ms: Scavenge 6.6 (8.7) -> 5.8 (8.5) MB, pooled: 0 MB, 541.14 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[36448:000001612DAC9000]    10159 ms: Scavenge 6.6 (8.7) -> 5.8 (8.5) MB, pooled: 0 MB, 1.93 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[20320:00000155BA0B2000]     9803 ms: Scavenge 6.6 (8.7) -> 5.8 (8.5) MB, pooled: 0 MB, 1.23 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+# Fatal error in , line 0
+# Fatal process out of memory: Re-embedded builtins: set permissions
+[33976:000002440DA3E000]     8053 ms: Scavenge 6.6 (8.7) -> 5.8 (8.5) MB, pooled: 0 MB, 1.27 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[28136:00000235C7FF0000]     6694 ms: Scavenge 6.6 (8.7) -> 5.8 (8.5) MB, pooled: 0 MB, 1.47 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+
+# Fatal process out of memory: Re-embedded builtins: set permissions
+
+----- Native stack trace -----
+
+----- Native stack trace -----
+
+----- Native stack trace -----
+
+[30676:000002049B435000]     9666 ms: Scavenge 6.6 (8.7) -> 5.8 (8.2) MB, pooled: 0 MB, 518.24 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[22896:0000017F679E1000]     8395 ms: Scavenge 6.6 (9.2) -> 5.8 (8.7) MB, pooled: 0 MB, 7.70 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+----- Native stack trace -----
+
+[24484:0000025A01956000]    10718 ms: Scavenge 10.0 (12.8) -> 9.0 (13.3) MB, pooled: 0 MB, 6.58 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+FATAL ERROR: Zone Allocation failed - process out of memory
+# Fatal process out of memory: Re-embedded builtins: set permissions
+
+----- Native stack trace -----
+[35012:000001F19898D000]     8638 ms: Scavenge 6.4 (8.5) -> 6.2 (8.7) MB, pooled: 0 MB, 1.90 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[26272:00000273E60D2000]     9105 ms: Scavenge 6.6 (8.7) -> 5.8 (8.2) MB, pooled: 0 MB, 1.27 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+# Fatal process out of memory: Re-embedded builtins: set permissions
+[30372:0000020968DD8000]    14041 ms: Scavenge 6.4 (8.7) -> 6.2 (9.0) MB, pooled: 0 MB, 4043.15 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+----- Native stack trace -----
+[22944:000002219A3FE000]    14358 ms: Scavenge 9.5 (10.5) -> 8.8 (17.5) MB, pooled: 0 MB, 1.19 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[20320:00000155BA0B2000]     9812 ms: Scavenge 6.4 (8.5) -> 6.2 (10.7) MB, pooled: 0 MB, 1.30 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[30480:0000023114A20000]    10055 ms: Scavenge 6.4 (8.5) -> 6.2 (10.7) MB, pooled: 0 MB, 2.54 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+[33976:000002440DA3E000]     8062 ms: Scavenge 6.4 (8.5) -> 6.2 (10.7) MB, pooled: 0 MB, 1.28 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+#
+FATAL ERROR: Zone Allocation failed - process out of memory
+
+[22896:0000017F679E1000]     8531 ms: Scavenge 6.5 (8.7) -> 6.2 (11.2) MB, pooled: 0 MB, 2.13 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+[28136:00000235C7FF0000]     6925 ms: Scavenge 6.4 (8.5) -> 6.1 (10.7) MB, pooled: 0 MB, 18.82 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+FATAL ERROR: Zone Allocation failed - process out of memory
+[24484:0000025A01956000]    11799 ms: Scavenge 10.5 (13.5) -> 9.6 (18.3) MB, pooled: 0 MB, 1.92 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+#
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+FATAL ERROR: Zone Allocation failed - process out of memory
+[35012:000001F19898D000]    11802 ms: Scavenge 7.9 (9.5) -> 7.4 (8.8) MB, pooled: 1 MB, 0.69 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+# Out of memory: HashMap::Initialize
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+#
+
+
+#
+
+
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+
+#
+
+[28136:00000235C7FF0000]    10283 ms: Scavenge 10.0 (12.8) -> 9.0 (13.3) MB, pooled: 0 MB, 8.97 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+----- Native stack trace -----
+----- Native stack trace -----
+----- Native stack trace -----
+
+ 1: 00007FF679520ECD node::MultiIsolatePlatform::DisposeIsolate+5341
+ 1: 00007FF679520ECD 
+----- Native stack trace -----
+FATAL ERROR: Zone Allocation failed - process out of memory
+FATAL ERROR: Zone Allocation failed - process out of memory
+#
+FATAL ERROR: Zone Allocation failed - process out of memory
+
+
+ 1: 00007FF679520ECD 
+
+
+
+----- Native stack trace -----
+
+ 1: 00007FF679520ECD node::MultiIsolatePlatform::DisposeIsolate+5341
+
+----- Native stack trace -----
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+ 1: 00007FF679520ECD 
+----- Native stack trace -----
+----- Native stack trace -----
+FATAL ERROR: Zone Allocation failed - process out of memory
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+----- Native stack trace -----
+----- Native stack trace -----
+ 1: 00007FF679520ECD node::MultiIsolatePlatform::DisposeIsolate+5341
+----- Native stack trace -----
+ 2: 00007FF67A982576 v8::base::FatalOOM+54
+
+ 2: 00007FF67A982576 v8::base::FatalOOM+54
+
+ 2: 00007FF67A982576 v8::base::FatalOOM+54
+ 2: 00007FF67A982576 
+
+
+
+----- Native stack trace -----
+FATAL ERROR: Zone Allocation failed - process out of memory
+
+ 2: 00007FF67A982576 
+
+
+
+ 2: 00007FF67A982576 
+----- Native stack trace -----
+----- Native stack trace -----
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+#
+
+ 1: 00007FF679520ECD node::MultiIsolatePlatform::DisposeIsolate+5341
+ 1: 00007FF6795CC36F node::OnFatalError+1343
+ 3: 00007FF67A214D56 v8::Function::NewInstance+390
+ 1: 00007FF679520ECD node::MultiIsolatePlatform::DisposeIsolate+5341
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+----- Native stack trace -----
+----- Native stack trace -----
+ 3: 00007FF67A214D56 v8::Function::NewInstance+390
+ 3: 00007FF67A214D56 v8::Function::NewInstance+390
+ 1: 00007FF6795CC36F node::OnFatalError+1343
+ 3: 00007FF67A214D56 
+
+ 1: 00007FF679520ECD node::MultiIsolatePlatform::DisposeIsolate+5341
+----- Native stack trace -----
+ 3: 00007FF67A214D56 
+ 3: 00007FF67A214D56 
+----- Native stack trace -----
+
+
+----- Native stack trace -----
+#FailureMessage Object: 00000066F77FAE70
+----- Native stack trace -----
+ 2: 00007FF67A982576 v8::base::FatalOOM+54
+
+ 4: 00007FF67A07BCFE v8::CppHeap::CollectGarbageInYoungGenerationForTesting+111438
+ 2: 00007FF67A982576 v8::base::FatalOOM+54
+ 4: 00007FF67A07BCFE v8::CppHeap::CollectGarbageInYoungGenerationForTesting+111438
+ 4: 00007FF67A07BCFE v8::CppHeap::CollectGarbageInYoungGenerationForTesting+111438
+ 2: 00007FF67A214D77 v8::Function::NewInstance+423
+ 4: 00007FF67A07BCFE 
+
+ 2: 00007FF67A214D77 v8::Function::NewInstance+423
+ 4: 00007FF67A07BCFE 
+
+
+ 2: 00007FF67A982576 v8::base::FatalOOM+54
+ 1: 00007FF6795CC36F node::OnFatalError+1343
+
+ 4: 00007FF67A07BCFE 
+----- Native stack trace -----
+
+ 3: 00007FF67A214D56 v8::Function::NewInstance+390
+ 3: 00007FF679B8FBD6 v8::SnapshotCreator::GetIsolate+56566
+ 5: 00007FF67A0AF2DF SSL_CTX_set_default_read_buffer_len+41247
+ 3: 00007FF67A214D56 v8::Function::NewInstance+390
+ 5: 00007FF67A0AF2DF SSL_CTX_set_default_read_buffer_len+41247
+ 3: 00007FF679B8FBD6 v8::SnapshotCreator::GetIsolate+56566
+ 5: 00007FF67A0AF2DF 
+ 5: 00007FF67A0AF2DF 
+ 1: 00007FF6795CC36F 
+ 4: 00007FF67A07BCFE v8::CppHeap::CollectGarbageInYoungGenerationForTesting+111438
+ 6: 00007FF67A0AFD92 SSL_CTX_set_default_read_buffer_len+43986
+ 4: 00007FF67A07BCFE v8::CppHeap::CollectGarbageInYoungGenerationForTesting+111438
+
+ 5: 00007FF67A0AF2DF 
+ 2: 00007FF67A214D77 v8::Function::NewInstance+423
+ 3: 00007FF67A214D56 v8::Function::NewInstance+390
+ 5: 00007FF67A0AF2DF SSL_CTX_set_default_read_buffer_len+41247
+ 4: 00007FF67A9A54D6 v8::base::ieee754::tanh+113030
+ 6: 00007FF67A0AFD92 SSL_CTX_set_default_read_buffer_len+43986
+ 6: 00007FF67A0AFD92 SSL_CTX_set_default_read_buffer_len+43986
+ 4: 00007FF67A9AEFB5 v8::base::ieee754::tanh+152677
+ 4: 00007FF67A07BCFE v8::CppHeap::CollectGarbageInYoungGenerationForTesting+111438
+ 6: 00007FF67A0AFD92 
+ 2: 00007FF67A214D77 
+ 5: 00007FF67A9AF7BB v8::base::ieee754::tanh+154731
+ 3: 00007FF679B8FBD6 v8::SnapshotCreator::GetIsolate+56566
+ 6: 00007FF67A0AFD92 
+ 5: 00007FF67A0AF2DF SSL_CTX_set_default_read_buffer_len+41247
+ 6: 00007FF67A0AFD92 
+ 7: 00007FF67A0B0772 SSL_CTX_set_default_read_buffer_len+46514
+ 5: 00007FF67A0AF2DF SSL_CTX_set_default_read_buffer_len+41247
+ 1: 00007FF679520ECD 
+ 7: 00007FF67A0B0772 SSL_CTX_set_default_read_buffer_len+46514
+ 5: 00007FF67A9AF7BB v8::base::ieee754::tanh+154731
+ 7: 00007FF67A0B0772 
+ 6: 00007FF67A0AFD92 SSL_CTX_set_default_read_buffer_len+43986
+ 7: 00007FF67A0B0772 SSL_CTX_set_default_read_buffer_len+46514
+ 6: 00007FF67A0AFD92 SSL_CTX_set_default_read_buffer_len+43986
+ 6: 00007FF6799BDB41 SSL_CTX_get_client_CA_list+27569
+ 3: 00007FF679B8FBD6 
+ 4: 00007FF679CE7A5B EC_KEY_METHOD_set_verify+394971
+ 5: 00007FF67A0AF2DF SSL_CTX_set_default_read_buffer_len+41247
+ 8: 00007FF679BADDC3 v8::internal::Version::GetSONAME+122307
+ 6: 00007FF67A0AFD92 SSL_CTX_set_default_read_buffer_len+43986
+ 7: 00007FF67A0B0772 
+ 8: 00007FF679BADDC3 
+ 8: 00007FF679BADDC3 
+
+ 7: 00007FF67A0B0772 
+ 8: 00007FF679BADDC3 
+ 4: 00007FF679F2363B 
+ 5: 00007FF679CE7AC1 EC_KEY_METHOD_set_verify+395073
+ 7: 00007FF67A0B0772 SSL_CTX_set_default_read_buffer_len+46514
+ 6: 00007FF6799BDB41 SSL_CTX_get_client_CA_list+27569
+ 7: 00007FF679A67AD3 SSL_CTX_get_client_CA_list+723779
+ 8: 00007FF679BADDC3 v8::internal::Version::GetSONAME+122307
+ 9: 00007FF67A23FEE6 v8::Isolate::Initialize+662
+ 7: 00007FF67A0B0772 SSL_CTX_set_default_read_buffer_len+46514
+ 7: 00007FF679A67AD3 SSL_CTX_get_client_CA_list+723779
+ 9: 00007FF67A23FEE6 
+ 2: 00007FF67A982B0F 
+ 8: 00007FF679BADDC3 v8::internal::Version::GetSONAME+122307
+ 7: 00007FF67A0B0772 SSL_CTX_set_default_read_buffer_len+46514
+ 9: 00007FF67A23FEE6 
+ 9: 00007FF67A23FEE6 
+ 5: 00007FF679F0E697 
+ 6: 00007FF679CD0790 EC_KEY_METHOD_set_verify+300048
+ 8: 00007FF679BADDC3 v8::internal::Version::GetSONAME+122307
+ 8: 00007FF679A659DA SSL_CTX_get_client_CA_list+715338
+10: 00007FF6796DA14D node::SetIsolateUpForNode+749
+ 8: 00007FF679BADDC3 v8::internal::Version::GetSONAME+122307
+10: 00007FF6796DA14D 
+ 9: 00007FF67A23FEE6 v8::Isolate::Initialize+662
+10: 00007FF6796DA14D 
+10: 00007FF6796DA14D 
+ 9: 00007FF67A23FEE6 v8::Isolate::Initialize+662
+ 7: 00007FF679CD1DBB EC_KEY_METHOD_set_verify+305723
+ 8: 00007FF679BADDC3 v8::internal::Version::GetSONAME+122307
+10: 00007FF6796DA14D node::SetIsolateUpForNode+749
+ 9: 00007FF67A23FEE6 v8::Isolate::Initialize+662
+ 9: 00007FF67A23FEE6 v8::Isolate::Initialize+662
+ 3: 00007FF67A212E16 
+ 9: 00007FF67A1889AF X509_STORE_set_get_issuer+200559
+ 8: 00007FF679A659DA SSL_CTX_get_client_CA_list+715338
+11: 00007FF679435B73 RSA_meth_get_flags+222691
+ 6: 00007FF679F0865E 
+ 9: 00007FF67A1889AF X509_STORE_set_get_issuer+200559
+11: 00007FF679435B73 
+ 4: 00007FF67A212502 
+11: 00007FF679435B73 
+11: 00007FF679435B73 
+ 7: 00007FF679F0F429 
+10: 00007FF6796DA14D node::SetIsolateUpForNode+749
+10: 00007FF679A674BB SSL_CTX_get_client_CA_list+722219
+11: 00007FF679435B73 RSA_meth_get_flags+222691
+12: 00007FF679434F09 RSA_meth_get_flags+219513
+10: 00007FF6796DA14D node::SetIsolateUpForNode+749
+10: 00007FF679A674BB SSL_CTX_get_client_CA_list+722219
+12: 00007FF679434F09 
+ 5: 00007FF67A212330 
+ 9: 00007FF67A23FEE6 v8::Isolate::Initialize+662
+ 8: 00007FF679CD0F8E EC_KEY_METHOD_set_verify+302094
+10: 00007FF6796DA14D node::SetIsolateUpForNode+749
+11: 00007FF679435B73 RSA_meth_get_flags+222691
+12: 00007FF679434F09 
+12: 00007FF679434F09 
+ 8: 00007FF679F1047B 
+11: 00007FF67A9F570F v8::platform::DefaultJobHandle::UpdatePriority+591
+12: 00007FF679434F09 RSA_meth_get_flags+219513
+13: 00007FF67943EA90 RSA_meth_get_flags+259328
+11: 00007FF679435B73 RSA_meth_get_flags+222691
+13: 00007FF67943EA90 
+ 6: 00007FF679C9AA9F 
+11: 00007FF67A9F570F v8::platform::DefaultJobHandle::UpdatePriority+591
+12: 00007FF679434F09 RSA_meth_get_flags+219513
+10: 00007FF6796DA14D node::SetIsolateUpForNode+749
+ 9: 00007FF679CE2E62 EC_KEY_METHOD_set_verify+375522
+11: 00007FF679435B73 RSA_meth_get_flags+222691
+11: 00007FF679435B73 RSA_meth_get_flags+222691
+13: 00007FF67943EA90 
+13: 00007FF67943EA90 
+ 9: 00007FF679F17CF9 
+10: 00007FF679CC2935 EC_KEY_METHOD_set_verify+243125
+12: 00007FF679434F09 RSA_meth_get_flags+219513
+12: 00007FF67951CD8E node::GetNodeReport+90334
+13: 00007FF67943EA90 RSA_meth_get_flags+259328
+14: 00007FF67A26A096 uv_thread_detach+150
+12: 00007FF679434F09 RSA_meth_get_flags+219513
+12: 00007FF67951CD8E node::GetNodeReport+90334
+14: 00007FF67A26A096 
+ 7: 00007FF679CDA300 
+13: 00007FF67943EA90 RSA_meth_get_flags+259328
+12: 00007FF679434F09 RSA_meth_get_flags+219513
+14: 00007FF67A26A096 
+14: 00007FF67A26A096 
+10: 00007FF679F091A5 
+11: 00007FF679CCB53B EC_KEY_METHOD_set_verify+278971
+13: 00007FF67943EA90 RSA_meth_get_flags+259328
+13: 00007FF67A26A096 uv_thread_detach+150
+15: 00007FF67B4C92B3 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2904003
+14: 00007FF67A26A096 uv_thread_detach+150
+13: 00007FF67A26A096 uv_thread_detach+150
+ 8: 00007FF679CD90C6 
+13: 00007FF67943EA90 RSA_meth_get_flags+259328
+11: 00007FF679F0741B 
+15: 00007FF67B4C92B3 
+14: 00007FF67A26A096 uv_thread_detach+150
+14: 00007FF67A26A096 uv_thread_detach+150
+15: 00007FF67B4C92B3 
+12: 00007FF679CCAA3A EC_KEY_METHOD_set_verify+276154
+13: 00007FF67943EA90 RSA_meth_get_flags+259328
+15: 00007FF67B4C92B3 
+14: 00007FF67B4C92B3 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2904003
+16: 00007FFC7632E8D7 BaseThreadInitThunk+23
+14: 00007FF67A26A096 uv_thread_detach+150
+14: 00007FF67B4C92B3 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2904003
+16: 00007FFC7632E8D7 BaseThreadInitThunk+23
+15: 00007FF67B4C92B3 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2904003
+13: 00007FF679CBE137 EC_KEY_METHOD_set_verify+224695
+15: 00007FF67B4C92B3 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2904003
+15: 00007FFC7632E8D7 BaseThreadInitThunk+23
+17: 00007FFC77B4C48C RtlUserThreadStart+44
+15: 00007FF67B4C92B3 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2904003
+15: 00007FFC7632E8D7 BaseThreadInitThunk+23
+17: 00007FFC77B4C48C RtlUserThreadStart+44
+14: 00007FF67A26A096 uv_thread_detach+150
+ 9: 00007FF679CD06B6 
+15: 00007FF67B4C92B3 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2904003
+16: 00007FFC7632E8D7 BaseThreadInitThunk+23
+16: 00007FFC7632E8D7 
+12: 00007FF679F077A0 
+10: 00007FF679CD1DBB 
+16: 00007FFC7632E8D7 BaseThreadInitThunk+23
+16: 00007FFC7632E8D7 BaseThreadInitThunk+23
+17: 00007FFC77B4C48C 
+16: 00007FFC77B4C48C RtlUserThreadStart+44
+16: 00007FFC77B4C48C RtlUserThreadStart+44
+13: 00007FF679F069BB 
+17: 00007FFC77B4C48C RtlUserThreadStart+44
+16: 00007FFC7632E8D7 BaseThreadInitThunk+23
+16: 00007FFC7632E8D7 BaseThreadInitThunk+23
+11: 00007FF679CD0F8E 
+15: 00007FF67B4C92B3 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2904003
+14: 00007FF679CBD304 EC_KEY_METHOD_set_verify+221060
+16: 00007FFC7632E8D7 BaseThreadInitThunk+23
+15: 00007FF679CBC5F2 EC_KEY_METHOD_set_verify+217714
+14: 00007FF679F05E2F 
+17: 00007FFC77B4C48C RtlUserThreadStart+44
+17: 00007FFC77B4C48C RtlUserThreadStart+44
+12: 00007FF679CD0C49 
+17: 00007FFC77B4C48C RtlUserThreadStart+44
+17: 00007FFC77B4C48C RtlUserThreadStart+44
+17: 00007FFC77B4C48C RtlUserThreadStart+44
+16: 00007FF679CBC29A EC_KEY_METHOD_set_verify+216858
+15: 00007FF679F0463F 
+13: 00007FF679CD9410 
+16: 00007FF679EFB8E6 
+17: 00007FF679CB78C9 EC_KEY_METHOD_set_verify+197961
+14: 00007FF679CD06B6 
+17: 00007FF67A199A6F 
+15: 00007FF679CD1DBB 
+18: 00007FF67A19271F X509_STORE_set_get_issuer+240863
+19: 00007FF67A195521 X509_STORE_set_get_issuer+252641
+18: 00007FF67A190388 
+16: 00007FF679CD0F8E 
+20: 00007FF67A21E233 v8::ScriptCompiler::CompileFunction+1011
+19: 00007FF67A192B24 
+17: 00007FF679CE2E62 
+20: 00007FF67A195521 
+18: 00007FF679CC2935 
+21: 00007FF6795E8F83 node::GetCurrentEnvironment+20883
+22: 00007FF6795E772E node::GetCurrentEnvironment+14654
+21: 00007FF67A21E233 
+19: 00007FF679CCB53B 
+23: 00000155F27CF64D 
+22: 00007FF6795E8F83 
+20: 00007FF679CCAA3A 
+23: 00007FF6795E772E 
+21: 00007FF679CBE137 
+24: 0000025A39F0F64D 
+22: 00007FF679CBD304 
+23: 00007FF679CBC5F2 
+24: 00007FF679CBC29A 
+25: 00007FF679CB78C9 
+26: 00007FF67A19271F 
+27: 00007FF67A195521 
+28: 00007FF67A21E233 
+29: 00007FF6795E8F83 
+30: 00007FF6795E772E 
+31: 0000016DBCA4F64D 
+
+<--- Last few GCs --->
+
+[23104:00000173A86A4000]    11000 ms: Scavenge 6.6 (9.2) -> 5.8 (8.7) MB, pooled: 0 MB, 2.41 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[23104:00000173A86A4000]    14096 ms: Scavenge 6.4 (8.7) -> 6.2 (11.2) MB, pooled: 0 MB, 3079.29 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+
+ 1: 00007FF679520ECD node::MultiIsolatePlatform::DisposeIsolate+5341
+ 1: 00007FF6795CC36F 
+ 2: 00007FF67A982576 v8::base::FatalOOM+54
+ 3: 00007FF67A214D56 v8::Function::NewInstance+390
+ 2: 00007FF67A214D77 
+ 4: 00007FF67A07BCFE v8::CppHeap::CollectGarbageInYoungGenerationForTesting+111438
+ 3: 00007FF679B8FBD6 
+ 5: 00007FF67A0AF2DF SSL_CTX_set_default_read_buffer_len+41247
+ 4: 00007FF67975106A 
+ 6: 00007FF67A0AFD92 SSL_CTX_set_default_read_buffer_len+43986
+ 5: 00007FF679EFF90A 
+ 7: 00007FF67A0B0772 SSL_CTX_set_default_read_buffer_len+46514
+ 6: 00007FF679EFF230 
+ 8: 00007FF679BADDC3 v8::internal::Version::GetSONAME+122307
+ 7: 00007FF679F2D04D 
+ 9: 00007FF67A23FEE6 v8::Isolate::Initialize+662
+ 8: 00007FF679F1754C 
+10: 00007FF6796DA14D node::SetIsolateUpForNode+749
+ 9: 00007FF679F17D99 
+11: 00007FF679435B73 RSA_meth_get_flags+222691
+10: 00007FF679F091A5 
+12: 00007FF679434F09 RSA_meth_get_flags+219513
+11: 00007FF679F0741B 
+13: 00007FF67943EA90 RSA_meth_get_flags+259328
+12: 00007FF679F077A0 
+14: 00007FF67A26A096 uv_thread_detach+150
+13: 00007FF679F069BB 
+15: 00007FF67B4C92B3 v8::base::UnsignedDivisionByConstant<unsigned __int64>+2904003
+14: 00007FF679F05E2F 
+16: 00007FFC7632E8D7 BaseThreadInitThunk+23
+15: 00007FF679F044C3 
+17: 00007FFC77B4C48C RtlUserThreadStart+44
+16: 00007FF679EFB8E6 
+17: 00007FF67A199A6F 
+18: 00007FF67A190388 
+19: 00007FF67A18FBBD 
+20: 00007FF67A19064C 
+21: 00007FF679C13DBB 
+22: 000002359FE7733A 
+
+<--- Last few GCs --->
+
+[21160:00000195E85C2000]     6549 ms: Scavenge 8.7 (11.8) -> 7.4 (9.8) MB, pooled: 2 MB, 3.28 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+ 1: 00007FF6795CC36F 
+[21160:00000195E85C2000]     9023 ms: Scavenge 9.5 (10.5) -> 8.8 (17.5) MB, pooled: 0 MB, 2.45 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+
+ 2: 00007FF67A214D77 
+FATAL ERROR: Zone Allocation failed - process out of memory
+ 3: 00007FF679B8FBD6 
+----- Native stack trace -----
+ 4: 00007FF679788081 
+
+ 5: 00007FF679F2555E 
+ 6: 00007FF679F358FE 
+ 7: 00007FF679F02169 
+ 8: 00007FF679F2A1FD 
+ 9: 00007FF679F20F8F 
+10: 00007FF679F09810 
+11: 00007FF679F092FD 
+12: 00007FF679F069BB 
+13: 00007FF679F05E2F 
+14: 00007FF679F044C3 
+15: 00007FF679EFB8E6 
+16: 00007FF67A199A6F 
+17: 00007FF67A190388 
+ 1: 00007FF6795CC36F 
+18: 00007FF67A18FBBD 
+
+ 1: 00007FF6795CC36F 
+ 1: 00007FF6795CC36F node::OnFatalError+1343
+19: 00007FF67A19064C 
+<--- Last few GCs --->
+ 2: 00007FF67A214D77 
+ 2: 00007FF67A214D77 
+ 1: 00007FF6795CC36F 
+20: 00007FF679C13DBB 
+
+ 3: 00007FF67A015467 
+ 2: 00007FF67A214D77 v8::Function::NewInstance+423
+ 3: 00007FF679B8FBD6 
+21: 000001FA37E7733A 
+ 2: 00007FF67A214D77 
+ 1: 00007FF6795CC36F node::OnFatalError+1343
+[30232:00000255C13F2000]     6839 ms: Scavenge 6.6 (8.7) -> 5.8 (8.2) MB, pooled: 0 MB, 1.66 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+ 4: 00007FF679FADE8B 
+ 3: 00007FF679B8FBD6 v8::SnapshotCreator::GetIsolate+56566
+
+ 5: 00007FF679F858DE 
+ 2: 00007FF67A214D77 v8::Function::NewInstance+423
+ 4: 00007FF679788081 v8::internal::Version::GetVersion+165025
+ 4: 00007FF6799BE3AE 
+ 3: 00007FF679B8FBD6 
+ 5: 00007FF6799F28A6 
+ 4: 00007FF679788081 
+ 6: 00007FF67A017F02 
+ 3: 00007FF679B8FBD6 v8::SnapshotCreator::GetIsolate+56566
+ 7: 00007FF67A016EB7 
+ 4: 00007FF679CE7A5B EC_KEY_METHOD_set_verify+394971
+ 5: 00007FF679C54B56 v8::base::CPU::has_bmi2+15030
+ 5: 00007FF679C568D7 
+ 6: 00007FF6799F1D8E 
+FATAL ERROR: Zone Allocation failed - process out of memory
+----- Native stack trace -----
+ 6: 00007FF679C5A2EC v8::base::CPU::has_bmi2+37452
+ 7: 00007FF679A052F1 
+ 5: 00007FF679CE7AC1 EC_KEY_METHOD_set_verify+395073
+ 8: 00007FF67A027E22 
+ 7: 00007FF679C3C57B v8::base::CPU::family+39867
+
+ 6: 00007FF679C56514 
+ 8: 00007FF6799DA155 
+ 7: 00007FF679C3C972 
+ 8: 00007FF679C1F9C0 v8::String::Utf8Value::~Utf8Value+220416
+ 9: 00007FF6799F5882 
+ 8: 00007FF679C3D1BA 
+ 9: 00007FF67A02794B 
+ 6: 00007FF679CD0790 EC_KEY_METHOD_set_verify+300048
+10: 00007FF67B4ADAED 
+ 7: 00007FF679CD1DBB EC_KEY_METHOD_set_verify+305723
+ 9: 00007FF679C1F0E2 v8::String::Utf8Value::~Utf8Value+218146
+10: 00007FF679A06F46 
+ 9: 00007FF679C3DC47 
+11: 00007FF67A012F30 
+ 8: 00007FF679CD0F8E EC_KEY_METHOD_set_verify+302094
+10: 00007FF679C1D9D9 v8::String::Utf8Value::~Utf8Value+212249
+11: 00007FF679A07D47 
+10: 00007FF679C440E6 
+12: 00007FF67A02D7BA 
+ 9: 00007FF679CE2E62 EC_KEY_METHOD_set_verify+375522
+11: 00007FF679C1DC6C v8::String::Utf8Value::~Utf8Value+212908
+12: 00007FF679A1C11A 
+11: 00007FF679C41B92 
+13: 00007FF67A039618 
+12: 00007FF679C1DB4B v8::String::Utf8Value::~Utf8Value+212619
+12: 00007FF679C43FAB 
+10: 00007FF679CC2935 EC_KEY_METHOD_set_verify+243125
+13: 00007FF6799F0D5B 
+14: 00007FF67A0556FA 
+11: 00007FF679CCB53B EC_KEY_METHOD_set_verify+278971
+13: 00007FF679BF48D2 v8::String::Utf8Value::~Utf8Value+44050
+14: 00007FF6799F0932 
+13: 00007FF679C42380 
+15: 00007FF679D42785 
+12: 00007FF679CCAA3A EC_KEY_METHOD_set_verify+276154
+14: 00000173E0D3733A 
+15: 00007FF6799F28E5 
+14: 00007FF679C44232 
+16: 00007FF679D4270D 
+13: 00007FF679CBE137 EC_KEY_METHOD_set_verify+224695
+16: 00007FF6799F1D8E 
+15: 00007FF679C44232 
+17: 00007FF679D4E95A 
+17: 00007FF679A052F1 
+16: 00007FF679C41B92 
+18: 00007FF679D514E5 
+14: 00007FF679CBD304 EC_KEY_METHOD_set_verify+221060
+15: 00007FF679CBC5F2 EC_KEY_METHOD_set_verify+217714
+18: 00007FF6799DA155 
+16: 00007FF679CBC29A EC_KEY_METHOD_set_verify+216858
+19: 00007FF6799F5882 
+17: 00007FF679C43FAB 
+19: 00007FF679D4DD84 
+18: 00007FF679C42380 
+20: 00007FF679D4DBCD 
+17: 00007FF679CB78C9 EC_KEY_METHOD_set_verify+197961
+21: 00007FF679D52FE8 
+19: 00007FF679C44232 
+20: 00007FF679A06F46 
+18: 00007FF67A19271F X509_STORE_set_get_issuer+240863
+21: 00007FF679A07D47 
+20: 00007FF679C44232 
+22: 00007FF679D5BBE3 
+19: 00007FF67A195521 X509_STORE_set_get_issuer+252641
+22: 00007FF679A1C11A 
+21: 00007FF679C41B92 
+23: 00007FF679D3FA21 
+20: 00007FF67A21E233 v8::ScriptCompiler::CompileFunction+1011
+23: 00007FF6799F0D5B 
+22: 00007FF679C43FAB 
+24: 00007FF679D3F259 
+21: 00007FF6795E8F83 node::GetCurrentEnvironment+20883
+24: 00007FF679A68EC6 
+23: 00007FF679C42380 
+25: 00007FF679DBC16B 
+22: 00007FF6795E772E node::GetCurrentEnvironment+14654
+25: 00007FF679A67BE0 
+24: 00007FF679C44232 
+26: 00007FF679DC5F74 
+23: 00000196C850F64D 
+26: 00007FF679A659DA 
+25: 00007FF679C44232 
+27: 00007FF67A1889AF 
+27: 00007FF679C093F6 
+26: 00007FF679C41B92 
+28: 00007FF679C07D93 
+28: 00007FF679A674BB 
+27: 00007FF679C43A68 
+29: 000001F1D10B733A 
+29: 00007FF67A9F570F 
+28: 00007FF679C422FF 
+30: 00007FF67951CD8E 
+29: 00007FF679C3D144 
+31: 00007FF67A26A096 
+30: 00007FF679C44232 
+32: 00007FF67B4C92B3 
+31: 00007FF679C44232 
+33: 00007FFC7632E8D7 
+ 1: 00007FF6795CC36F 
+ 1: 00007FF6795CC36F node::OnFatalError+1343
+ 1: 00007FF6795CC36F node::OnFatalError+1343
+ 1: 00007FF6795CC36F node::OnFatalError+1343
+32: 00007FF679C41B92 
+34: 00007FFC77B4C48C 
+ 2: 00007FF67A214D77 
+ 2: 00007FF67A214D77 v8::Function::NewInstance+423
+ 2: 00007FF67A214D77 v8::Function::NewInstance+423
+33: 00007FF679C43A68 
+ 2: 00007FF67A214D77 v8::Function::NewInstance+423
+ 3: 00007FF67A015467 
+ 3: 00007FF679B8FBD6 v8::SnapshotCreator::GetIsolate+56566
+ 3: 00007FF679B8FBD6 v8::SnapshotCreator::GetIsolate+56566
+34: 00007FF679C422FF 
+ 3: 00007FF67A015467 v8::base::AddressSpaceReservation::AddressSpaceReservation+322071
+ 4: 00007FF679FADE8B 
+ 4: 00007FF67971DFEE CrashForExceptionInNonABICompliantCodeRange+25566
+35: 00007FF679C44232 
+ 4: 00007FF679788081 v8::internal::Version::GetVersion+165025
+ 4: 00007FF679FADE8B v8::platform::DefaultPlatform::CurrentClockTimeMillis+491051
+ 5: 00007FF679F858DE 
+ 5: 00007FF679C56158 v8::base::CPU::has_bmi2+20664
+ 5: 00007FF679C562DD v8::base::CPU::has_bmi2+21053
+36: 00007FF679C44232 
+ 5: 00007FF679F858DE v8::platform::DefaultPlatform::CurrentClockTimeMillis+325758
+ 6: 00007FF67A017F02 
+ 6: 00007FF67A017F02 v8::base::AddressSpaceReservation::AddressSpaceReservation+332978
+ 7: 00007FF67A016EB7 
+ 6: 00007FF679C55F65 v8::base::CPU::has_bmi2+20165
+ 6: 00007FF679C3C822 v8::base::CPU::family+40546
+ 7: 00007FF679C43FB9 v8::base::CPU::family+71161
+37: 00007FF679C41B92 
+ 7: 00007FF679C3D1BA v8::base::CPU::family+43002
+38: 00007FF679C43A68 
+ 7: 00007FF67A016EB7 v8::base::AddressSpaceReservation::AddressSpaceReservation+328807
+ 8: 00007FF67A027E22 
+ 8: 00007FF679C42380 v8::base::CPU::family+63936
+39: 00007FF679C422FF 
+ 9: 00007FF67A02794B 
+ 8: 00007FF679C3DC47 v8::base::CPU::family+45703
+ 9: 00007FF679C44232 v8::base::CPU::family+71794
+ 8: 00007FF67A027E22 v8::internal::StrongRootAllocatorBase::deallocate_impl+15858
+ 9: 00007FF679C440E6 v8::base::CPU::family+71462
+40: 00007FF679C44232 
+ 9: 00007FF67A02794B v8::internal::StrongRootAllocatorBase::deallocate_impl+14619
+10: 00007FF67B4ADAED 
+10: 00007FF679C44232 v8::base::CPU::family+71794
+10: 00007FF679C41B92 v8::base::CPU::family+61906
+41: 00007FF679C44232 
+10: 00007FF67B4ADAED v8::base::UnsignedDivisionByConstant<unsigned __int64>+2791421
+11: 00007FF679C41B92 v8::base::CPU::family+61906
+42: 00007FF679C41B92 
+11: 00007FF679C43FAB v8::base::CPU::family+71147
+11: 00007FF67A012F30 
+11: 00007FF67A012F30 v8::base::AddressSpaceReservation::AddressSpaceReservation+312544
+12: 00007FF67A02D7BA 
+12: 00007FF679C43A68 v8::base::CPU::family+69800
+12: 00007FF679C42380 v8::base::CPU::family+63936
+43: 00007FF679C43A68 
+12: 00007FF67A02D7BA X509_STORE_set_cleanup+5098
+13: 00007FF67A039618 
+13: 00007FF679C422FF v8::base::CPU::family+63807
+13: 00007FF679C44232 v8::base::CPU::family+71794
+44: 00007FF679C422FF 
+14: 00007FF67A0556FA 
+13: 00007FF67A039618 uv_timer_set_repeat+19096
+14: 00007FF679C3D144 v8::base::CPU::family+42884
+14: 00007FF679C44232 v8::base::CPU::family+71794
+14: 00007FF67A0556FA uv_timer_set_repeat+134010
+15: 00007FF679D42785 
+15: 00007FF679C44232 v8::base::CPU::family+71794
+45: 00007FF679C44232 
+15: 00007FF679C41B92 v8::base::CPU::family+61906
+46: 00007FF679C44232 
+15: 00007FF679D42785 v8::RegExp::GetFlags+142229
+16: 00007FF679D4270D 
+16: 00007FF679C44232 v8::base::CPU::family+71794
+16: 00007FF679C43FAB v8::base::CPU::family+71147
+47: 00007FF679C41B92 
+17: 00007FF679D4E95A 
+17: 00007FF679C41B92 v8::base::CPU::family+61906
+17: 00007FF679C42380 v8::base::CPU::family+63936
+16: 00007FF679D4270D v8::RegExp::GetFlags+142109
+48: 00007FF679C43A68 
+17: 00007FF679D4E95A v8::RegExp::GetFlags+191850
+18: 00007FF679D514E5 
+18: 00007FF679C43A68 v8::base::CPU::family+69800
+18: 00007FF679C44232 v8::base::CPU::family+71794
+49: 00007FF679C422FF 
+18: 00007FF679D514E5 v8::RegExp::GetFlags+202997
+19: 00007FF679D4DD84 
+19: 00007FF679C44232 v8::base::CPU::family+71794
+19: 00007FF679C422FF v8::base::CPU::family+63807
+50: 00007FF679C44232 
+19: 00007FF679D4DD84 v8::RegExp::GetFlags+188820
+20: 00007FF679D4DBCD 
+20: 00007FF679C44232 v8::base::CPU::family+71794
+20: 00007FF679C41B92 v8::base::CPU::family+61906
+51: 00007FF679C43A68 
+20: 00007FF679D4DBCD v8::RegExp::GetFlags+188381
+21: 00007FF679D52FE8 
+21: 00007FF679C44232 v8::base::CPU::family+71794
+21: 00007FF679C43FAB v8::base::CPU::family+71147
+52: 00007FF679C422FF 
+21: 00007FF679D52FE8 v8::RegExp::GetFlags+209912
+22: 00007FF679D5BBE3 
+22: 00007FF679C41B92 v8::base::CPU::family+61906
+22: 00007FF679C42380 v8::base::CPU::family+63936
+53: 00007FF679C44232 
+22: 00007FF679D5BBE3 v8::RegExp::GetFlags+245747
+23: 00007FF679D3FA21 
+23: 00007FF679C43A68 v8::base::CPU::family+69800
+23: 00007FF679C44232 v8::base::CPU::family+71794
+54: 00007FF679C44232 
+23: 00007FF679D3FA21 v8::RegExp::GetFlags+130609
+24: 00007FF679D3F259 
+24: 00007FF679C422FF v8::base::CPU::family+63807
+24: 00007FF679C44232 v8::base::CPU::family+71794
+55: 00007FF679C43A68 
+24: 00007FF679D3F259 v8::RegExp::GetFlags+128617
+25: 00007FF679DBC16B 
+25: 00007FF679C44232 v8::base::CPU::family+71794
+25: 00007FF679C41B92 v8::base::CPU::family+61906
+25: 00007FF679DBC16B v8::RegExp::GetFlags+640379
+26: 00007FF679DC5F74 
+26: 00007FF679C44232 v8::base::CPU::family+71794
+56: 00007FF679C422FF 
+26: 00007FF679C43A68 v8::base::CPU::family+69800
+57: 00007FF679C3D144 
+26: 00007FF679DC5F74 v8::RegExp::GetFlags+680836
+27: 00007FF679C093F6 
+27: 00007FF679C41B92 v8::base::CPU::family+61906
+27: 00007FF679C422FF v8::base::CPU::family+63807
+58: 00007FF679C44232 
+27: 00007FF679C093F6 v8::String::Utf8Value::~Utf8Value+128822
+28: 00007FF679C07D93 
+28: 00007FF679C43A68 v8::base::CPU::family+69800
+28: 00007FF679C44232 v8::base::CPU::family+71794
+28: 00007FF679C07D93 v8::String::Utf8Value::~Utf8Value+123091
+59: 00007FF679C44232 
+29: 00007FF679C422FF v8::base::CPU::family+63807
+29: 0000024A9FE7733A 
+29: 00007FF679C43A68 v8::base::CPU::family+69800
+60: 00007FF679C40286 
+29: 0000025248C3733A 
+30: 00007FF679C44232 v8::base::CPU::family+71794
+30: 00007FF679C422FF v8::base::CPU::family+63807
+61: 00007FF679C43A68 
+31: 00007FF679C44232 v8::base::CPU::family+71794
+31: 00007FF679C44232 v8::base::CPU::family+71794
+32: 00007FF679C41B92 v8::base::CPU::family+61906
+62: 00007FF679C422FF 
+32: 00007FF679C44232 v8::base::CPU::family+71794
+63: 00007FF679C44232 
+33: 00007FF679C43A68 v8::base::CPU::family+69800
+33: 00007FF679C43A68 v8::base::CPU::family+69800
+34: 00007FF679C422FF v8::base::CPU::family+63807
+64: 00007FF679C44232 
+34: 00007FF679C422FF v8::base::CPU::family+63807
+65: 00007FF679C43A68 
+35: 00007FF679C44232 v8::base::CPU::family+71794
+35: 00007FF679C3D144 v8::base::CPU::family+42884
+66: 00007FF679C422FF 
+36: 00007FF679C43A68 v8::base::CPU::family+69800
+36: 00007FF679C44232 v8::base::CPU::family+71794
+67: 00007FF679C3C4A8 
+37: 00007FF679C422FF v8::base::CPU::family+63807
+37: 00007FF679C44232 v8::base::CPU::family+71794
+68: 00007FF679C1F9C0 
+38: 00007FF679C44232 v8::base::CPU::family+71794
+38: 00007FF679C40286 v8::base::CPU::family+55494
+39: 00007FF679C44232 v8::base::CPU::family+71794
+69: 00007FF679C1F0E2 
+39: 00007FF679C43A68 v8::base::CPU::family+69800
+70: 00007FF679C1D9D9 
+40: 00007FF679C43A68 v8::base::CPU::family+69800
+40: 00007FF679C422FF v8::base::CPU::family+63807
+71: 00007FF679C1DC6C 
+41: 00007FF679C422FF v8::base::CPU::family+63807
+72: 00007FF679C1DB4B 
+42: 00007FF679C3D144 v8::base::CPU::family+42884
+41: 00007FF679C44232 v8::base::CPU::family+71794
+42: 00007FF679C44232 v8::base::CPU::family+71794
+73: 00007FF679BF48D2 
+43: 00007FF679C44232 v8::base::CPU::family+71794
+43: 00007FF679C43A68 v8::base::CPU::family+69800
+74: 000001E1AFE7733A 
+44: 00007FF679C44232 v8::base::CPU::family+71794
+44: 00007FF679C422FF v8::base::CPU::family+63807
+45: 00007FF679C40286 v8::base::CPU::family+55494
+45: 00007FF679C3C4A8 v8::base::CPU::family+39656
+46: 00007FF679C43A68 v8::base::CPU::family+69800
+46: 00007FF679C1F9C0 v8::String::Utf8Value::~Utf8Value+220416
+47: 00007FF679C422FF v8::base::CPU::family+63807
+47: 00007FF679C1F0E2 v8::String::Utf8Value::~Utf8Value+218146
+48: 00007FF679C44232 v8::base::CPU::family+71794
+48: 00007FF679C1D9D9 v8::String::Utf8Value::~Utf8Value+212249
+49: 00007FF679C44232 v8::base::CPU::family+71794
+49: 00007FF679C1DC6C v8::String::Utf8Value::~Utf8Value+212908
+50: 00007FF679C43A68 v8::base::CPU::family+69800
+50: 00007FF679C1DB4B v8::String::Utf8Value::~Utf8Value+212619
+51: 00007FF679C422FF v8::base::CPU::family+63807
+51: 00007FF679BF48D2 v8::String::Utf8Value::~Utf8Value+44050
+52: 00007FF679C3C4A8 v8::base::CPU::family+39656
+52: 0000020927E7733A 
+53: 00007FF679C1F9C0 v8::String::Utf8Value::~Utf8Value+220416
+54: 00007FF679C1F0E2 v8::String::Utf8Value::~Utf8Value+218146
+55: 00007FF679C1D9D9 v8::String::Utf8Value::~Utf8Value+212249
+56: 00007FF679C1DC6C v8::String::Utf8Value::~Utf8Value+212908
+57: 00007FF679C1DB4B v8::String::Utf8Value::~Utf8Value+212619
+58: 00007FF679BF48D2 v8::String::Utf8Value::~Utf8Value+44050
+59: 00000255F9AF733A 
+ 1: 00007FF6795CC36F 
+ 1: 00007FF6795CC36F node::OnFatalError+1343
+ 2: 00007FF67A214D77 v8::Function::NewInstance+423
+ 3: 00007FF679B8FBD6 v8::SnapshotCreator::GetIsolate+56566
+ 4: 00007FF679C55813 v8::base::CPU::has_bmi2+18291
+ 5: 00007FF679C51497 v8::base::CPU::has_bmi2+1015
+ 6: 00007FF679C5A2EC v8::base::CPU::has_bmi2+37452
+ 7: 00007FF679C3C57B v8::base::CPU::family+39867
+ 8: 00007FF679C1F9C0 v8::String::Utf8Value::~Utf8Value+220416
+ 9: 00007FF679C1F0E2 v8::String::Utf8Value::~Utf8Value+218146
+10: 00007FF679C1D9D9 v8::String::Utf8Value::~Utf8Value+212249
+11: 00007FF679C1DC6C v8::String::Utf8Value::~Utf8Value+212908
+12: 00007FF679C1DB4B v8::String::Utf8Value::~Utf8Value+212619
+13: 00007FF679BF48D2 v8::String::Utf8Value::~Utf8Value+44050
+14: 00000161661F733A 
+ 1: 00007FF6795CC36F 
+ 2: 00007FF67A214D77 
+ 3: 00007FF679B8FBD6 
+ 4: 00007FF679788081 
+ 5: 00007FF679C568D7 
+ 6: 00007FF679C56514 
+ 7: 00007FF679C3C972 
+ 8: 00007FF679C3D1BA 
+ 9: 00007FF679C3DC47 
+10: 00007FF679C440E6 
+11: 00007FF679C41B92 
+12: 00007FF679C43FAB 
+13: 00007FF679C42380 
+14: 00007FF679C44232 
+15: 00007FF679C44232 
+16: 00007FF679C41B92 
+17: 00007FF679C43FAB 
+18: 00007FF679C42380 
+19: 00007FF679C44232 
+20: 00007FF679C44232 
+21: 00007FF679C41B92 
+22: 00007FF679C43FAB 
+23: 00007FF679C42380 
+24: 00007FF679C44232 
+25: 00007FF679C44232 
+26: 00007FF679C41B92 
+27: 00007FF679C43A68 
+28: 00007FF679C422FF 
+29: 00007FF679C3D144 
+30: 00007FF679C44232 
+31: 00007FF679C44232 
+32: 00007FF679C41B92 
+33: 00007FF679C43A68 
+34: 00007FF679C422FF 
+35: 00007FF679C44232 
+36: 00007FF679C44232 
+37: 00007FF679C41B92 
+38: 00007FF679C43A68 
+39: 00007FF679C422FF 
+40: 00007FF679C44232 
+41: 00007FF679C44232 
+42: 00007FF679C41B92 
+43: 00007FF679C43A68 
+44: 00007FF679C422FF 
+45: 00007FF679C44232 
+46: 00007FF679C44232 
+47: 00007FF679C41B92 
+48: 00007FF679C43A68 
+49: 00007FF679C422FF 
+50: 00007FF679C44232 
+51: 00007FF679C43A68 
+52: 00007FF679C422FF 
+53: 00007FF679C44232 
+54: 00007FF679C44232 
+55: 00007FF679C43A68 
+56: 00007FF679C422FF 
+57: 00007FF679C3D144 
+58: 00007FF679C44232 
+59: 00007FF679C44232 
+60: 00007FF679C40286 
+61: 00007FF679C43A68 
+62: 00007FF679C422FF 
+63: 00007FF679C44232 
+64: 00007FF679C44232 
+65: 00007FF679C43A68 
+66: 00007FF679C422FF 
+67: 00007FF679C3C4A8 
+68: 00007FF679C1F9C0 
+69: 00007FF679C1F0E2 
+70: 00007FF679C1D9D9 
+71: 00007FF679C1DC6C 
+72: 00007FF679C1DB4B 
+73: 00007FF679BF48D2 
+74: 000002739FE7733A 
+ 1: 00007FF6795CC36F node::OnFatalError+1343
+ 1: 00007FF6795CC36F 
+ 2: 00007FF67A214D77 
+ 3: 00007FF679B8FBD6 
+ 4: 00007FF679CA78D9 
+ 5: 00007FF679CA47E5 
+ 6: 00007FF679CA8DBB 
+ 7: 00007FF679CA8283 
+ 8: 00007FF679CAB1F2 
+ 9: 00007FF679CA668D 
+10: 00007FF679CA4835 
+11: 00007FF679CA8DBB 
+12: 00007FF679CA8283 
+13: 00007FF679CA0F79 
+14: 00007FF679CAABBB 
+15: 00007FF679CA8BE0 
+16: 00007FF679CA82FD 
+17: 00007FF679CA7D24 
+18: 00007FF679CA421B 
+19: 00007FF679CA8E2A 
+20: 00007FF679CA8283 
+21: 00007FF679CA6CDA 
+22: 00007FF679CB2F81 
+23: 00007FF679CA2561 
+24: 00007FF679CB3F2F 
+25: 00007FF679CB0FBE 
+26: 00007FF679CA24A3 
+27: 00007FF679CA1ACD 
+28: 00007FF679CA01FB 
+29: 00007FF679C9F536 
+30: 00007FF679CCA098 
+31: 00007FF679CBE0B0 
+32: 00007FF679CE2633 
+33: 00007FF679CC2AA4 
+34: 00007FF679CCB53B 
+35: 00007FF679CCAA3A 
+36: 00007FF679CBE137 
+37: 00007FF679CBD304 
+38: 00007FF679CBC5F2 
+39: 00007FF679CBC29A 
+40: 00007FF679CB78C9 
+41: 00007FF67A19271F 
+42: 00007FF67A195521 
+43: 00007FF67A21E233 
+44: 00007FF6795E8F83 
+45: 00007FF6795E772E 
+46: 000001CCB91CF64D 
+ 2: 00007FF67A214D77 
+ 3: 00007FF679B8FBD6 
+ 4: 00007FF679788081 
+ 5: 00007FF679C568D7 
+ 6: 00007FF679C56514 
+ 7: 00007FF679C3C972 
+ 8: 00007FF679C3D1BA 
+ 9: 00007FF679C3DC47 
+10: 00007FF679C440E6 
+11: 00007FF679C41B92 
+12: 00007FF679C43FAB 
+13: 00007FF679C42380 
+14: 00007FF679C44232 
+15: 00007FF679C44232 
+16: 00007FF679C41B92 
+17: 00007FF679C43FAB 
+18: 00007FF679C42380 
+19: 00007FF679C44232 
+20: 00007FF679C44232 
+21: 00007FF679C41B92 
+22: 00007FF679C43FAB 
+23: 00007FF679C42380 
+24: 00007FF679C44232 
+25: 00007FF679C44232 
+26: 00007FF679C41B92 
+27: 00007FF679C43A68 
+28: 00007FF679C422FF 
+29: 00007FF679C3D144 
+30: 00007FF679C44232 
+31: 00007FF679C44232 
+32: 00007FF679C41B92 
+33: 00007FF679C43A68 
+34: 00007FF679C422FF 
+35: 00007FF679C44232 
+36: 00007FF679C44232 
+37: 00007FF679C41B92 
+38: 00007FF679C43A68 
+39: 00007FF679C422FF 
+40: 00007FF679C44232 
+41: 00007FF679C44232 
+42: 00007FF679C41B92 
+43: 00007FF679C43A68 
+44: 00007FF679C422FF 
+45: 00007FF679C44232 
+46: 00007FF679C44232 
+47: 00007FF679C41B92 
+48: 00007FF679C43A68 
+49: 00007FF679C422FF 
+50: 00007FF679C44232 
+51: 00007FF679C43A68 
+52: 00007FF679C422FF 
+53: 00007FF679C44232 
+54: 00007FF679C44232 
+55: 00007FF679C43A68 
+56: 00007FF679C422FF 
+57: 00007FF679C3D144 
+58: 00007FF679C44232 
+59: 00007FF679C44232 
+60: 00007FF679C40286 
+61: 00007FF679C43A68 
+62: 00007FF679C422FF 
+63: 00007FF679C44232 
+64: 00007FF679C44232 
+65: 00007FF679C43A68 
+66: 00007FF679C422FF 
+67: 00007FF679C3C4A8 
+68: 00007FF679C1F9C0 
+69: 00007FF679C1F0E2 
+70: 00007FF679C1D9D9 
+71: 00007FF679C1DC6C 
+72: 00007FF679C1DB4B 
+73: 00007FF679BF48D2 
+74: 000002314D0B733A 
+ 2: 00007FF67A214D77 v8::Function::NewInstance+423
+ 3: 00007FF679B8FBD6 v8::SnapshotCreator::GetIsolate+56566
+ 4: 00007FF67A1FBDE6 X509_STORE_set_get_issuer+672678
+ 5: 00007FF679CA6880 EC_KEY_METHOD_set_verify+128256
+ 6: 00007FF679CA4825 EC_KEY_METHOD_set_verify+119973
+ 7: 00007FF679CA8DBB EC_KEY_METHOD_set_verify+137787
+ 8: 00007FF679CA8283 EC_KEY_METHOD_set_verify+134915
+ 9: 00007FF679CA7D24 EC_KEY_METHOD_set_verify+133540
+10: 00007FF679CA5947 EC_KEY_METHOD_set_verify+124359
+11: 00007FF679CA4805 EC_KEY_METHOD_set_verify+119941
+12: 00007FF679CA8DBB EC_KEY_METHOD_set_verify+137787
+13: 00007FF679CA8283 EC_KEY_METHOD_set_verify+134915
+14: 00007FF679CA8917 EC_KEY_METHOD_set_verify+136599
+15: 00007FF679CA82FD EC_KEY_METHOD_set_verify+135037
+16: 00007FF679CA6CDA EC_KEY_METHOD_set_verify+129370
+17: 00007FF679CB2F81 EC_KEY_METHOD_set_verify+179201
+18: 00007FF679CA2561 EC_KEY_METHOD_set_verify+111073
+19: 00007FF679CA1ACD EC_KEY_METHOD_set_verify+108365
+20: 00007FF679CADCAB EC_KEY_METHOD_set_verify+157995
+21: 00007FF679CA2242 EC_KEY_METHOD_set_verify+110274
+22: 00007FF679CB34E9 EC_KEY_METHOD_set_verify+180585
+23: 00007FF679CAF769 EC_KEY_METHOD_set_verify+164841
+24: 00007FF679CA24F6 EC_KEY_METHOD_set_verify+110966
+25: 00007FF679CA1ACD EC_KEY_METHOD_set_verify+108365
+26: 00007FF679CADCAB EC_KEY_METHOD_set_verify+157995
+27: 00007FF679CA25CF EC_KEY_METHOD_set_verify+111183
+ 1: 00007FF6795CC36F node::OnFatalError+1343
+28: 00007FF679CA1ACD EC_KEY_METHOD_set_verify+108365
+ 1: 00007FF6795CC36F node::OnFatalError+1343
+29: 00007FF679CADCAB EC_KEY_METHOD_set_verify+157995
+30: 00007FF679CA25CF EC_KEY_METHOD_set_verify+111183
+ 2: 00007FF67A214D77 v8::Function::NewInstance+423
+31: 00007FF679CA1ACD EC_KEY_METHOD_set_verify+108365
+ 3: 00007FF679B8FBD6 v8::SnapshotCreator::GetIsolate+56566
+32: 00007FF679CA128B EC_KEY_METHOD_set_verify+106251
+ 4: 00007FF67A1FBDE6 X509_STORE_set_get_issuer+672678
+33: 00007FF679CA078C EC_KEY_METHOD_set_verify+103436
+ 5: 00007FF679CB3923 EC_KEY_METHOD_set_verify+181667
+34: 00007FF679CABA84 EC_KEY_METHOD_set_verify+149252
+ 6: 00007FF679CB0FBE EC_KEY_METHOD_set_verify+171070
+35: 00007FF679CA6951 EC_KEY_METHOD_set_verify+128465
+ 7: 00007FF679CA24A3 EC_KEY_METHOD_set_verify+110883
+36: 00007FF679CA4825 EC_KEY_METHOD_set_verify+119973
+ 2: 00007FF67A214D77 v8::Function::NewInstance+423
+ 8: 00007FF679CA1ACD EC_KEY_METHOD_set_verify+108365
+37: 00007FF679CA8DBB EC_KEY_METHOD_set_verify+137787
+ 9: 00007FF679CA01FB EC_KEY_METHOD_set_verify+102011
+ 3: 00007FF679B8FBD6 v8::SnapshotCreator::GetIsolate+56566
+38: 00007FF679CA8283 EC_KEY_METHOD_set_verify+134915
+10: 00007FF679C9F536 EC_KEY_METHOD_set_verify+98742
+ 4: 00007FF679CA78D9 EC_KEY_METHOD_set_verify+132441
+39: 00007FF679CAB1F2 EC_KEY_METHOD_set_verify+147058
+11: 00007FF679CCA098 EC_KEY_METHOD_set_verify+273688
+ 5: 00007FF679CA47E5 EC_KEY_METHOD_set_verify+119909
+40: 00007FF679CA668D EC_KEY_METHOD_set_verify+127757
+12: 00007FF679CBE0B0 EC_KEY_METHOD_set_verify+224560
+ 6: 00007FF679CA8DBB EC_KEY_METHOD_set_verify+137787
+41: 00007FF679CA4835 EC_KEY_METHOD_set_verify+119989
+13: 00007FF679CE2633 EC_KEY_METHOD_set_verify+373427
+ 7: 00007FF679CA8283 EC_KEY_METHOD_set_verify+134915
+42: 00007FF679CA8DBB EC_KEY_METHOD_set_verify+137787
+14: 00007FF679CC2AA4 EC_KEY_METHOD_set_verify+243492
+ 8: 00007FF679CA0F79 EC_KEY_METHOD_set_verify+105465
+43: 00007FF679CA8283 EC_KEY_METHOD_set_verify+134915
+15: 00007FF679CCB53B EC_KEY_METHOD_set_verify+278971
+ 9: 00007FF679CAABBB EC_KEY_METHOD_set_verify+145467
+44: 00007FF679CAB1F2 EC_KEY_METHOD_set_verify+147058
+16: 00007FF679CCAA3A EC_KEY_METHOD_set_verify+276154
+10: 00007FF679CA8BE0 EC_KEY_METHOD_set_verify+137312
+45: 00007FF679CAB7F1 EC_KEY_METHOD_set_verify+148593
+17: 00007FF679CBE137 EC_KEY_METHOD_set_verify+224695
+11: 00007FF679CA82FD EC_KEY_METHOD_set_verify+135037
+46: 00007FF679CA6951 EC_KEY_METHOD_set_verify+128465
+18: 00007FF679CBD304 EC_KEY_METHOD_set_verify+221060
+12: 00007FF679CA7D24 EC_KEY_METHOD_set_verify+133540
+47: 00007FF679CA4825 EC_KEY_METHOD_set_verify+119973
+19: 00007FF679CBC5F2 EC_KEY_METHOD_set_verify+217714
+13: 00007FF679CA421B EC_KEY_METHOD_set_verify+118427
+48: 00007FF679CA8DBB EC_KEY_METHOD_set_verify+137787
+20: 00007FF679CBC29A EC_KEY_METHOD_set_verify+216858
+49: 00007FF679CA8283 EC_KEY_METHOD_set_verify+134915
+14: 00007FF679CA8E2A EC_KEY_METHOD_set_verify+137898
+ 1: 00007FF6795CC36F node::OnFatalError+1343
+21: 00007FF679CB78C9 EC_KEY_METHOD_set_verify+197961
+15: 00007FF679CA8283 EC_KEY_METHOD_set_verify+134915
+22: 00007FF67A19271F X509_STORE_set_get_issuer+240863
+ 1: 00007FF6795CC36F node::OnFatalError+1343
+ 2: 00007FF67A214D77 v8::Function::NewInstance+423
+50: 00007FF679CA6CDA EC_KEY_METHOD_set_verify+129370
+ 2: 00007FF67A214D77 v8::Function::NewInstance+423
+16: 00007FF679CA6CDA EC_KEY_METHOD_set_verify+129370
+23: 00007FF67A195521 X509_STORE_set_get_issuer+252641
+51: 00007FF679CB1E14 EC_KEY_METHOD_set_verify+174740
+ 3: 00007FF679B8FBD6 v8::SnapshotCreator::GetIsolate+56566
+ 3: 00007FF679B8FBD6 v8::SnapshotCreator::GetIsolate+56566
+17: 00007FF679CB2F81 EC_KEY_METHOD_set_verify+179201
+52: 00007FF679CA24EC EC_KEY_METHOD_set_verify+110956
+24: 00007FF67A21E233 v8::ScriptCompiler::CompileFunction+1011
+ 4: 00007FF67975106A X509_get0_tbs_sigalg+9818
+18: 00007FF679CA2561 EC_KEY_METHOD_set_verify+111073
+ 4: 00007FF67ABB3EB0 v8::base::DiyFp::Multiply+40368
+25: 00007FF6795E8F83 node::GetCurrentEnvironment+20883
+53: 00007FF679CA1ACD EC_KEY_METHOD_set_verify+108365
+ 5: 00007FF67A9CD989 v8::internal::compiler::CompilationDependencies::FieldTypeDependencyOffTheRecord+107193
+ 5: 00007FF679EFF90A v8::Promise::MarkAsSilent+538666
+19: 00007FF679CA1ACD EC_KEY_METHOD_set_verify+108365
+54: 00007FF679CA01FB EC_KEY_METHOD_set_verify+102011
+26: 00007FF6795E772E node::GetCurrentEnvironment+14654
+ 6: 00007FF679A87D96 X509_ACERT_get0_notBefore+1782
+ 6: 00007FF679EFF230 v8::Promise::MarkAsSilent+536912
+20: 00007FF679CADCAB EC_KEY_METHOD_set_verify+157995
+ 7: 00007FF679A6568F SSL_CTX_get_client_CA_list+714495
+55: 00007FF679C9F536 EC_KEY_METHOD_set_verify+98742
+ 7: 00007FF679F2D04D v8::Promise::MarkAsSilent+724845
+27: 00000210CD7CF64D 
+21: 00007FF679CA2242 EC_KEY_METHOD_set_verify+110274
+56: 00007FF679CCA098 EC_KEY_METHOD_set_verify+273688
+ 8: 00007FF67A191023 X509_STORE_set_get_issuer+234979
+ 8: 00007FF679F1754C v8::Promise::MarkAsSilent+636012
+22: 00007FF679CA1ACD EC_KEY_METHOD_set_verify+108365
+ 9: 00007FF679F17D99 v8::Promise::MarkAsSilent+638137
+ 9: 00007FF67A1930FA X509_STORE_set_get_issuer+243386
+57: 00007FF679CBE0B0 EC_KEY_METHOD_set_verify+224560
+23: 00007FF679CADCAB EC_KEY_METHOD_set_verify+157995
+58: 00007FF679CE2633 EC_KEY_METHOD_set_verify+373427
+10: 00007FF679C16271 v8::String::Utf8Value::~Utf8Value+181681
+24: 00007FF679CA2242 EC_KEY_METHOD_set_verify+110274
+59: 00007FF679CC2AA4 EC_KEY_METHOD_set_verify+243492
+10: 00007FF679F091A5 v8::Promise::MarkAsSilent+577733
+11: 00007FF679C1436F v8::String::Utf8Value::~Utf8Value+173743
+11: 00007FF679F0741B v8::Promise::MarkAsSilent+570171
+25: 00007FF679CA1ACD EC_KEY_METHOD_set_verify+108365
+60: 00007FF679CCB53B EC_KEY_METHOD_set_verify+278971
+12: 00000204D3B3733A 
+12: 00007FF679F077A0 v8::Promise::MarkAsSilent+571072
+26: 00007FF679CA01FB EC_KEY_METHOD_set_verify+102011
+61: 00007FF679CCAA3A EC_KEY_METHOD_set_verify+276154
+13: 00007FF679F069BB v8::Promise::MarkAsSilent+567515
+27: 00007FF679C9F536 EC_KEY_METHOD_set_verify+98742
+62: 00007FF679CBE137 EC_KEY_METHOD_set_verify+224695
+14: 00007FF679F05E2F v8::Promise::MarkAsSilent+564559
+28: 00007FF679CCA098 EC_KEY_METHOD_set_verify+273688
+63: 00007FF679CBD304 EC_KEY_METHOD_set_verify+221060
+15: 00007FF679F044C3 v8::Promise::MarkAsSilent+558051
+29: 00007FF679CBE0B0 EC_KEY_METHOD_set_verify+224560
+64: 00007FF679CBC5F2 EC_KEY_METHOD_set_verify+217714
+16: 00007FF679EFB8E6 v8::Promise::MarkAsSilent+522246
+30: 00007FF679CE2633 EC_KEY_METHOD_set_verify+373427
+65: 00007FF679CBC29A EC_KEY_METHOD_set_verify+216858
+17: 00007FF67A199A6F X509_STORE_set_get_issuer+270383
+31: 00007FF679CC2AA4 EC_KEY_METHOD_set_verify+243492
+18: 00007FF67A190388 X509_STORE_set_get_issuer+231752
+66: 00007FF679CB78C9 EC_KEY_METHOD_set_verify+197961
+32: 00007FF679CCB53B EC_KEY_METHOD_set_verify+278971
+67: 00007FF67A19271F X509_STORE_set_get_issuer+240863
+19: 00007FF67A18FBBD X509_STORE_set_get_issuer+229757
+33: 00007FF679CCAA3A EC_KEY_METHOD_set_verify+276154
+68: 00007FF67A195521 X509_STORE_set_get_issuer+252641
+20: 00007FF67A19064C X509_STORE_set_get_issuer+232460
+34: 00007FF679CBE137 EC_KEY_METHOD_set_verify+224695
+69: 00007FF67A21E233 v8::ScriptCompiler::CompileFunction+1011
+35: 00007FF679CBD304 EC_KEY_METHOD_set_verify+221060
+70: 00007FF6795E8F83 node::GetCurrentEnvironment+20883
+21: 00007FF679C13DBB v8::String::Utf8Value::~Utf8Value+172283
+22: 00000195A7E7733A 
+36: 00007FF679CBC5F2 EC_KEY_METHOD_set_verify+217714
+71: 00007FF6795E772E node::GetCurrentEnvironment+14654
+37: 00007FF679CBC29A EC_KEY_METHOD_set_verify+216858
+72: 000002444604F64D 
+38: 00007FF679CB78C9 EC_KEY_METHOD_set_verify+197961
+39: 00007FF67A19271F X509_STORE_set_get_issuer+240863
+40: 00007FF67A195521 X509_STORE_set_get_issuer+252641
+41: 00007FF67A21E233 v8::ScriptCompiler::CompileFunction+1011
+42: 00007FF6795E8F83 node::GetCurrentEnvironment+20883
+43: 00007FF6795E772E node::GetCurrentEnvironment+14654
+44: 0000017F27DCF64D 
+
+○ Compiling /profile ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#
+[?25h
+^C^C

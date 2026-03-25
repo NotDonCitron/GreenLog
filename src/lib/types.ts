@@ -124,13 +124,14 @@ export interface ProfileIdentity {
 }
 
 export interface ProfileFavorite {
+  relationId: string;
   id: string;
   name: string;
   slug: string;
   imageUrl: string | null;
   type: Strain['type'] | null;
   thcDisplay: string;
-  favoriteRank: number | null;
+  position: number | null;
 }
 
 export interface ProfileBadge {
@@ -172,7 +173,7 @@ export interface UserStrainRelation {
   strain_id: string;
   is_favorite: boolean;
   is_wishlist: boolean;
-  favorite_rank: number | null;
+  position: number | null;
   created_at: string;
 }
 

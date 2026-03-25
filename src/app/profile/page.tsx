@@ -30,8 +30,24 @@ import {
   Zap,
   Calendar,
   Check,
-  X
+  X,
+  GripVertical
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  DragEndEvent,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
@@ -115,7 +131,104 @@ export default function ProfilePage() {
   const [editData, setEditData] = useState({ displayName: "", bio: "" });
   const [isSaving, setIsSaving] = useState(false);
   const [followersModal, setFollowersModal] = useState<{ isOpen: boolean; mode: "followers" | "following" }>({ isOpen: false, mode: "followers" });
+  const [carouselFavorites, setCarouselFavorites] = useState<ProfileFavorite[]>([]);
+  const [savingOrder, setSavingOrder] = useState(false);
   const currentUserId = user?.id ?? "";
+
+  // Sync carousel favorites with viewModel when profile loads
+  useEffect(() => {
+    setCarouselFavorites(viewModel.favorites);
+  }, [viewModel.favorites]);
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    setCarouselFavorites((items) => {
+      const oldIndex = items.findIndex((f) => f.relationId === active.id);
+      const newIndex = items.findIndex((f) => f.relationId === over.id);
+      if (oldIndex === -1 || newIndex === -1) return items;
+      const reordered = [...items];
+      const [moved] = reordered.splice(oldIndex, 1);
+      reordered.splice(newIndex, 0, moved);
+      return reordered;
+    });
+
+    if (!user || isDemoMode) return;
+    setSavingOrder(true);
+    const newOrder = Array.from(document.querySelectorAll("[data-relation-id]")).map(
+      (el) => el.getAttribute("data-relation-id")!
+    );
+    if (newOrder.length > 0) {
+      fetch("/api/profile/reorder-favorites", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ relationIds: newOrder }),
+      }).finally(() => setSavingOrder(false));
+    } else {
+      setSavingOrder(false);
+    }
+  };
+
+  function SortableFavoriteCard({ favorite }: { favorite: ProfileFavorite }) {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: favorite.relationId });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+      zIndex: isDragging ? 50 : "auto",
+    };
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        data-relation-id={favorite.relationId}
+        className="min-w-[220px] flex-shrink-0"
+      >
+        <Link
+          href={`/strains/${favorite.slug}`}
+          className="block"
+          onClick={(e) => { if (isDragging) e.preventDefault(); }}
+        >
+          <Card
+            className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#1e3a24] p-0 shadow-lg hover:border-[#00F5FF]/30 transition-all cursor-grab active:cursor-grabbing"
+            {...attributes}
+            {...listeners}
+          >
+            <div className="relative h-40 w-full">
+              <img
+                src={favorite.imageUrl || "/strains/placeholder-1.svg"}
+                alt={favorite.name}
+                className="w-full h-full object-cover opacity-80"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#1e3a24] to-transparent" />
+              <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm rounded-full p-1.5">
+                <GripVertical size={14} className="text-white/50" />
+              </div>
+              <div className="absolute bottom-4 left-4 right-4">
+                <p className="text-sm font-black uppercase tracking-tight truncate">{favorite.name}</p>
+                <p className="text-[10px] text-[#00F5FF] font-bold">{favorite.thcDisplay}</p>
+              </div>
+            </div>
+          </Card>
+        </Link>
+      </div>
+    );
+  }
 
   const fetchProfile = async () => {
     if (!user && !isDemoMode) { setPageState("ready"); return; }
@@ -125,7 +238,7 @@ export default function ProfilePage() {
         supabase.from("user_collection").select("*", { count: "exact", head: true }).eq("user_id", user?.id),
         supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", user?.id),
         supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", user?.id),
-        supabase.from("user_strain_relations").select("favorite_rank, strains(*)").eq("user_id", user?.id).eq("is_favorite", true).limit(5),
+        supabase.from("user_strain_relations").select("id, position, strains(*)").eq("user_id", user?.id).eq("is_favorite", true).order("position", { ascending: true }).limit(5),
         supabase.from("user_badges").select("badges(*)").eq("user_id", user?.id)
       ]);
 
@@ -157,13 +270,14 @@ export default function ProfilePage() {
         const customImage = collectionData?.find(c => c.strain_id === s.id)?.user_image_url;
 
         return {
+          relationId: f.id,
           id: s.id,
           name: s.name,
           slug: s.slug,
           imageUrl: customImage || s.image_url || null,
           type: s.type,
           thcDisplay: formatThcDisplay(s),
-          favoriteRank: f.favorite_rank
+          position: f.position
         };
       }).filter((f): f is ProfileFavorite => !!f);
 
@@ -460,28 +574,27 @@ export default function ProfilePage() {
         </section>
 
         <section className="space-y-4">
-          <SectionHeader eyebrow="" title="Favorites" icon={Heart} />
-          {favorites.length > 0 ? (
-            <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-              {favorites.map((favorite) => (
-                <Link key={favorite.id} href={`/strains/${favorite.slug}`} className="min-w-[220px] flex-shrink-0">
-                  <Card className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#1e3a24] p-0 shadow-lg hover:border-[#00F5FF]/30 transition-all">
-                    <div className="relative h-40 w-full">
-                      <img
-                        src={favorite.imageUrl || "/strains/placeholder-1.svg"}
-                        alt={favorite.name}
-                        className="w-full h-full object-cover opacity-80"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#1e3a24] to-transparent" />
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <p className="text-sm font-black uppercase tracking-tight truncate">{favorite.name}</p>
-                        <p className="text-[10px] text-[#00F5FF] font-bold">{favorite.thcDisplay}</p>
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+          <div className="flex items-center justify-between px-1">
+            <SectionHeader eyebrow="" title="Favorites" icon={Heart} />
+            {savingOrder && <Loader2 size={12} className="animate-spin text-white/30" />}
+          </div>
+          {carouselFavorites.length > 0 ? (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={carouselFavorites.map((f) => f.relationId)}
+                strategy={horizontalListSortingStrategy}
+              >
+                <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                  {carouselFavorites.map((favorite) => (
+                    <SortableFavoriteCard key={favorite.relationId} favorite={favorite} />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           ) : (
             <div className="py-10 text-center bg-black/10 rounded-[2rem] border border-dashed border-white/10 text-white/20 text-xs font-bold uppercase tracking-widest">Keine Favoriten gesetzt</div>
           )}

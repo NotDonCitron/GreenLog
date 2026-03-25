@@ -186,7 +186,7 @@ CREATE TABLE user_strain_relations (
   strain_id UUID REFERENCES strains(id) ON DELETE CASCADE NOT NULL,
   is_favorite BOOLEAN DEFAULT false,
   is_wishlist BOOLEAN DEFAULT false,
-  favorite_rank SMALLINT CHECK (favorite_rank BETWEEN 1 AND 5),
+  position INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT now(),
   UNIQUE(user_id, strain_id)
 );
