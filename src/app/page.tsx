@@ -10,6 +10,7 @@ import { Strain } from "@/lib/types";
 import { OnboardingGuide } from "@/components/onboarding/onboarding-guide";
 import Link from "next/link";
 import { normalizeCollectionSource } from "@/lib/strain-display";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const DEMO_SIMULATION_DATA: Strain[] = [
   {
@@ -73,10 +74,13 @@ export default function Home() {
       <div className="relative mx-auto w-full px-4 pt-12 flex flex-col gap-10">
         {/* Header */}
         <header className="flex justify-between items-center">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none font-display text-white hover:text-[#00F5FF] transition-colors duration-500 neon-text-cyan">
-              CannaLog
-            </h1>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <div className="flex flex-col gap-1">
+              <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none font-display text-white hover:text-[#00F5FF] transition-colors duration-500 neon-text-cyan">
+                CannaLog
+              </h1>
+            </div>
           </div>
           <div className="relative group">
             <div className="absolute inset-0 bg-[#00F5FF]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />

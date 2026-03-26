@@ -66,6 +66,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase/client";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type {
   ProfileActivityItem,
   ProfileBadge,
@@ -507,6 +508,7 @@ export default function ProfilePage() {
           </div>
           <div className="flex items-center gap-3">
             <FeedbackButton variant="header" canSee={!!user && FEEDBACK_BUTTON_USER_IDS.includes(user.id)} />
+            <ThemeToggle />
             <Link href="/profile/settings">
               <button className="w-10 h-10 rounded-xl bg-[#1a191b] border border-[#484849]/50 flex items-center justify-center text-[#adaaab] hover:text-[#00F5FF] hover:border-[#00F5FF]/50 transition-all">
                 <Settings size={18} />
