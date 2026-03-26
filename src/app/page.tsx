@@ -5,7 +5,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
-import { Loader2, ArrowRight, Sparkles } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { Strain } from "@/lib/types";
 import { OnboardingGuide } from "@/components/onboarding/onboarding-guide";
 import Link from "next/link";
@@ -77,9 +77,6 @@ export default function Home() {
             <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none font-display text-white hover:text-[#00F5FF] transition-colors duration-500 neon-text-cyan">
               CannaLog
             </h1>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#adaaab]">
-              Neon Vault Edition
-            </p>
           </div>
           <div className="relative group">
             <div className="absolute inset-0 bg-[#00F5FF]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -107,13 +104,9 @@ export default function Home() {
             <section className="flex flex-col gap-5">
               <div className="flex items-center gap-4 px-2">
                 <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-[#484849]" />
-                <div className="flex items-center gap-2">
-                  <Sparkles size={12} className="text-[#00F5FF]" />
-                  <h2 className="text-[11px] font-black tracking-[0.4em] text-[#00F5FF] uppercase italic font-display">
-                    Strain of the Day
-                  </h2>
-                  <Sparkles size={12} className="text-[#00F5FF]" />
-                </div>
+                <h2 className="text-[11px] font-black tracking-[0.4em] text-[#00F5FF] uppercase italic font-display">
+                  Strain of the Day
+                </h2>
                 <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-[#484849]" />
               </div>
 
