@@ -16,6 +16,7 @@ export function FollowButton({ organizationId, className }: FollowButtonProps) {
   const [following, setFollowing] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || !session?.access_token) {
@@ -46,6 +47,12 @@ export function FollowButton({ organizationId, className }: FollowButtonProps) {
     checkFollowStatus();
   }, [user, session, organizationId]);
 
+  useEffect(() => {
+    if (!error) return;
+    const timer = setTimeout(() => setError(null), 3000);
+    return () => clearTimeout(timer);
+  }, [error]);
+
   const handleToggleFollow = async () => {
     if (!session?.access_token) return;
 
@@ -64,6 +71,7 @@ export function FollowButton({ organizationId, className }: FollowButtonProps) {
       }
     } catch (err) {
       console.error("Error toggling follow:", err);
+      setError("Fehler beim Aktualisieren des Follow-Status");
     } finally {
       setLoading(false);
     }
@@ -91,42 +99,48 @@ export function FollowButton({ organizationId, className }: FollowButtonProps) {
   // Following
   if (following) {
     return (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleToggleFollow}
-        disabled={loading}
-        className={`border-[#2FF801]/30 text-[#2FF801] hover:bg-[#2FF801]/10 ${className}`}
-      >
-        {loading ? (
-          <Loader2 size={14} className="animate-spin" />
-        ) : (
-          <>
-            <UserCheck size={14} />
-            Folge ich
-          </>
-        )}
-      </Button>
+      <div className="flex flex-col gap-1">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleToggleFollow}
+          disabled={loading}
+          className={`border-[#2FF801]/30 text-[#2FF801] hover:bg-[#2FF801]/10 ${className}`}
+        >
+          {loading ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <>
+              <UserCheck size={14} />
+              Folge ich
+            </>
+          )}
+        </Button>
+        {error && <p className="text-xs text-red-500">{error}</p>}
+      </div>
     );
   }
 
   // Not following
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleToggleFollow}
-      disabled={loading}
-      className={`border-[#00F5FF]/30 text-[#00F5FF] hover:bg-[#00F5FF]/10 ${className}`}
-    >
-      {loading ? (
-        <Loader2 size={14} className="animate-spin" />
-      ) : (
-        <>
-          <UserPlus size={14} />
-          Folgen
-        </>
-      )}
-    </Button>
+    <div className="flex flex-col gap-1">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleToggleFollow}
+        disabled={loading}
+        className={`border-[#00F5FF]/30 text-[#00F5FF] hover:bg-[#00F5FF]/10 ${className}`}
+      >
+        {loading ? (
+          <Loader2 size={14} className="animate-spin" />
+        ) : (
+          <>
+            <UserPlus size={14} />
+            Folgen
+          </>
+        )}
+      </Button>
+      {error && <p className="text-xs text-red-500">{error}</p>}
+    </div>
   );
 }
