@@ -150,7 +150,7 @@ export default function CommunityDetailPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">
-              Community
+              Deine Community
             </p>
             <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none mt-1">
               {organization.name}
