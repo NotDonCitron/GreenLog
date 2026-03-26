@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { FollowButton } from "@/components/community/follow-button";
 import { CommunityFeed } from "@/components/community/feed";
 import { InviteAdminModal } from "@/components/community/invite-admin-modal";
+import { AdminListModal } from "@/components/community/admin-list-modal";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { useAuth } from "@/components/auth-provider";
 import { Leaf, Building2, Users, Sprout, Loader2, ArrowLeft, Plus, Settings } from "lucide-react";
@@ -61,6 +62,7 @@ export default function CommunityDetailPage() {
   const [notFound, setNotFound] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showInviteAdmin, setShowInviteAdmin] = useState(false);
+  const [showAdminList, setShowAdminList] = useState(false);
 
   const isAdminOrGründer = !!memberships.find(
     (m) => m.organization_id === organizationId && (m.role === "gründer" || m.role === "admin")
@@ -210,7 +212,7 @@ export default function CommunityDetailPage() {
 
             {/* Admin anlegen */}
             <button
-              onClick={() => setShowInviteAdmin(true)}
+              onClick={() => setShowAdminList(true)}
               className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-[#00F5FF]/10 border border-[#00F5FF]/30 hover:bg-[#00F5FF]/20 transition-colors min-h-[100px]"
             >
               <div className="w-10 h-10 rounded-full bg-[#00F5FF]/20 flex items-center justify-center">
@@ -240,6 +242,21 @@ export default function CommunityDetailPage() {
         </h2>
         <CommunityFeed organizationId={organizationId} refreshKey={refreshKey} isAdminOrGründer={isAdminOrGründer} orgLogoUrl={organization.logo_url} />
       </div>
+
+      {showAdminList && (
+        <AdminListModal
+          organizationId={organizationId}
+          onClose={() => setShowAdminList(false)}
+          onSuccess={() => {
+            setShowAdminList(false);
+            setRefreshKey((k) => k + 1);
+          }}
+          onInvite={() => {
+            setShowAdminList(false);
+            setShowInviteAdmin(true);
+          }}
+        />
+      )}
 
       {showInviteAdmin && (
         <InviteAdminModal
