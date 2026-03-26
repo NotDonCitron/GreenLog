@@ -56,7 +56,7 @@ export function BottomNav() {
   return (
     <>
       <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-black/10 bg-white safe-bottom">
-        <div className="mx-auto flex h-20 w-full max-w-lg items-center justify-around px-2 relative">
+        <div className="mx-auto flex h-14 w-full max-w-lg items-center justify-around px-2 relative">
           {navItems.map((item) => {
             const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
@@ -66,7 +66,7 @@ export function BottomNav() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex flex-1 flex-col items-center gap-1 py-2 text-[10px] uppercase font-bold tracking-tighter transition-colors ${isActive ? "text-[#2FF801]" : "text-black"}`}
+                  className={`flex flex-1 flex-col items-center gap-1 py-1 text-[10px] uppercase font-bold tracking-tighter transition-colors ${isActive ? "text-[#2FF801]" : "text-black"}`}
                 >
                   <div className="relative">
                     <item.icon size={22} className={isActive ? "text-[#2FF801]" : "text-black"} />
@@ -85,7 +85,7 @@ export function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-1 flex-col items-center gap-1 py-2 text-[10px] uppercase font-bold tracking-tighter transition-colors ${isActive ? "text-[#2FF801]" : "text-black"
+                className={`flex flex-1 flex-col items-center gap-1 py-1 text-[10px] uppercase font-bold tracking-tighter transition-colors ${isActive ? "text-[#2FF801]" : "text-black"
                   }`}
               >
                 <item.icon size={22} className={isActive ? "text-[#2FF801]" : "text-black"} />
@@ -97,7 +97,7 @@ export function BottomNav() {
           {activeOrganization && (
             <Link
               href="/community"
-              className={`flex flex-1 flex-col items-center gap-1 py-2 text-[10px] uppercase font-bold tracking-tighter transition-colors ${
+              className={`flex flex-1 flex-col items-center gap-1 py-1 text-[10px] uppercase font-bold tracking-tighter transition-colors ${
                 pathname.startsWith("/community") || pathname.startsWith("/settings/organization")
                   ? "text-[#2FF801]"
                   : "text-black"
