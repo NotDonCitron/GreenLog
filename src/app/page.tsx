@@ -185,7 +185,7 @@ export default function Home() {
                           <div className="flex flex-wrap gap-2 mb-4">
                             {strainOfTheDay.terpenes.slice(0, 4).map((t, i) => (
                               <span key={i} className="px-3 py-1 rounded-full bg-[#1a191b] border border-[#484849]/50 text-[#adaaab] text-[10px] font-bold uppercase tracking-wider">
-                                {t}
+                                {typeof t === 'string' ? t : t.name}
                               </span>
                             ))}
                           </div>
