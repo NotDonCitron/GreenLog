@@ -55,8 +55,8 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
         </p>
       </div>
 
-      <div className="flex-1 px-2 w-full relative z-10 flex flex-col min-h-[60px]">
-        <div className="relative w-full flex-1 rounded-xl border border-white/5 shadow-lg">
+      <div className="px-2 w-full relative z-10">
+        <div className="relative w-full h-[100px] rounded-xl border border-white/5 shadow-lg">
           <Image
             src={strain.image_url || "/strains/placeholder-1.svg"}
             alt={strain.name}
