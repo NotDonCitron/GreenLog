@@ -70,7 +70,7 @@ export default function Home() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-[#a1faff]/5 blur-[200px] rounded-full" />
       </div>
 
-      <div className="relative mx-auto max-w-lg px-6 pt-12 flex flex-col gap-10">
+      <div className="relative mx-auto w-full px-4 pt-12 flex flex-col gap-10">
         {/* Header */}
         <header className="flex justify-between items-center">
           <div className="flex flex-col gap-1">
