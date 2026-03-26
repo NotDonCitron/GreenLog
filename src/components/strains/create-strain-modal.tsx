@@ -42,6 +42,7 @@ type StrainPayload = {
     slug?: string;
     created_by?: string;
     is_custom?: boolean;
+    organization_id?: string;
 };
 
 const OPTIONAL_SCHEMA_COLUMNS = new Set<OptionalSchemaColumn>([
@@ -127,9 +128,10 @@ interface StrainFormModalProps {
     strain?: Strain; // Optional: If provided, we are in EDIT mode
     onSuccess?: (id: string, slug: string, source: StrainSource, usedSourceFallback: boolean) => void;
     trigger: React.ReactNode;
+    organizationId?: string; // Optional org context for community strains
 }
 
-export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModalProps) {
+export function CreateStrainModal({ strain, onSuccess, trigger, organizationId }: StrainFormModalProps) {
     const { user } = useAuth();
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -491,12 +493,15 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
                 basePayload.slug = slug;
                 basePayload.created_by = user.id;
                 basePayload.is_custom = true;
+                if (organizationId) {
+                    basePayload.organization_id = organizationId;
+                }
             }
 
             const resultData = await saveStrain(basePayload);
 
-            // Save source & metadata to user_collection
-            const { error: collectionError } = await supabase.from("user_collection").upsert({
+            // Save source & metadata to user_collection (upsert by composite unique key)
+            const collectionPayload = {
                 user_id: user.id,
                 strain_id: resultData.id,
                 batch_info: source,
@@ -504,9 +509,30 @@ export function CreateStrainModal({ strain, onSuccess, trigger }: StrainFormModa
                 user_cbd_percent: parsedCbdEstimate,
                 user_notes: description.trim() || null,
                 user_image_url: importedImageUrl || (isEditMode ? strain.image_url ?? null : null)
-            }, { onConflict: 'user_id,strain_id' });
+            };
 
-            if (collectionError) throw collectionError;
+            // Try insert first, if unique constraint violation, update instead
+            const { error: insertError } = await supabase.from("user_collection").insert(collectionPayload);
+            if (insertError) {
+                if (insertError.code === '23505') {
+                    // Unique constraint violation - row exists, update it
+                    const { error: updateError } = await supabase
+                        .from("user_collection")
+                        .update({
+                            batch_info: source,
+                            user_thc_percent: parsedThcEstimate,
+                            user_cbd_percent: parsedCbdEstimate,
+                            user_notes: description.trim() || null,
+                            user_image_url: importedImageUrl || (isEditMode ? strain.image_url ?? null : null),
+                            updated_at: new Date().toISOString(),
+                        })
+                        .eq("user_id", user.id)
+                        .eq("strain_id", resultData.id);
+                    if (updateError) throw updateError;
+                } else {
+                    throw insertError;
+                }
+            }
 
             if (!isEditMode) resetForm();
             setOpen(false);

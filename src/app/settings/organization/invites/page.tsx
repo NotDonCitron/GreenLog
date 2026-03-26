@@ -343,7 +343,7 @@ export default function InvitesPage() {
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: "member" }); }}
+                  onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: "admin" }); }}
                   className="w-full h-10 text-white/40 hover:text-white hover:bg-white/5 font-black uppercase tracking-widest text-xs"
                 >
                   Abbrechen
@@ -389,7 +389,7 @@ export default function InvitesPage() {
                   <div className="flex flex-col items-end gap-1 shrink-0">
                     <RoleBadge role={invite.role} />
                     <StatusBadge status={invite.status} />
-                    {invite.status === "pending" && canManage && (
+                    {invite.status === "pending" && isOwner && (
                       <button
                         onClick={() => void handleRevokeInvite(invite.id)}
                         disabled={actionLoading === invite.id || isDemoMode}

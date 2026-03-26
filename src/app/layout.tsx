@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth-provider";
 import { OnboardingGuide } from "@/components/onboarding/onboarding-guide";
-import { FeedbackButton } from "@/components/feedback/feedback-button";
 import Head from "next/head";
 
 const geistSans = Geist({
@@ -55,7 +54,6 @@ export default function RootLayout({
             <main className="flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
           </div>
           <OnboardingGuide />
-          <FeedbackButton />
         </AuthProvider>
       </body>
     </html>

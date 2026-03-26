@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase/client";
 
 interface FollowerUser {
   id: string;
@@ -54,7 +55,7 @@ export default function FollowersPage() {
       setLoading(true);
       setError(null);
       try {
-        const { data: followersData, error: followersError } = await window.supabase
+        const { data: followersData, error: followersError } = await supabase
           .from("community_followers")
           .select("id, user_id, created_at")
           .eq("organization_id", activeOrganization.organization_id)
@@ -66,7 +67,7 @@ export default function FollowersPage() {
         let profilesMap = new Map<string, FollowerUser>();
 
         if (userIds.length > 0) {
-          const { data: profilesData } = await window.supabase
+          const { data: profilesData } = await supabase
             .from("profiles")
             .select("id, username, display_name, avatar_url")
             .in("id", userIds);

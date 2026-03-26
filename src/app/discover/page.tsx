@@ -285,8 +285,8 @@ export default function DiscoverPage() {
                                                             </div>
                                                         </div>
                                                         <div className="text-right flex-shrink-0 flex flex-col items-center justify-center bg-black/20 px-4 py-2 rounded-2xl border border-white/5">
-                                                            <span className={`text-xl font-black leading-none italic ${comm.role === "owner" ? "text-yellow-400" : comm.role === "admin" ? "text-red-400" : "text-white/40"}`}>
-                                                                {comm.role === "owner" ? "Owner" : comm.role === "admin" ? "Admin" : "Member"}
+                                                            <span className={`text-xl font-black leading-none italic ${comm.role === "gründer" ? "text-yellow-400" : comm.role === "admin" ? "text-red-400" : "text-white/40"}`}>
+                                                                {comm.role === "gründer" ? "Gründer" : comm.role === "admin" ? "Admin" : "Member"}
                                                             </span>
                                                             <p className="text-[7px] text-white/40 font-black uppercase tracking-tighter mt-1 whitespace-nowrap">rolle</p>
                                                         </div>

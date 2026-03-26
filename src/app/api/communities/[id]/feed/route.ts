@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -76,6 +78,70 @@ export async function GET(request: Request, { params }: RouteParams) {
             }
         });
 
+    } catch (error) {
+        console.error("Unexpected error:", error);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    }
+}
+
+// DELETE /api/communities/[id]/feed?feedId=xxx
+// Admin/Gründer can delete feed entries
+export async function DELETE(request: Request, { params }: RouteParams) {
+    try {
+        const { id: organizationId } = await params;
+        const { searchParams } = new URL(request.url);
+        const feedId = searchParams.get("feedId");
+
+        if (!feedId) {
+            return NextResponse.json({ error: "feedId is required" }, { status: 400 });
+        }
+
+        // Auth: get token from Authorization header (sent by browser client)
+        const authHeader = request.headers.get("Authorization");
+        if (!authHeader?.startsWith("Bearer ")) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        const token = authHeader.slice(7);
+
+        // Create server supabase client with the user's JWT
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+        const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+            global: { headers: { Authorization: `Bearer ${token}` } },
+            auth: { autoRefreshToken: false, persistSession: false },
+        });
+
+        const { data: { user }, error: userError } = await userClient.auth.getUser();
+        if (userError || !user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        // Check if user is gründer or admin of this organization
+        const { data: membership } = await userClient
+            .from("organization_members")
+            .select("role")
+            .eq("organization_id", organizationId)
+            .eq("user_id", user.id)
+            .eq("membership_status", "active")
+            .single();
+
+        if (!membership || !["gründer", "admin"].includes(membership.role)) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+
+        // Delete the feed entry
+        const { error: deleteError } = await userClient
+            .from("community_feed")
+            .delete()
+            .eq("id", feedId)
+            .eq("organization_id", organizationId);
+
+        if (deleteError) {
+            console.error("Error deleting feed entry:", deleteError);
+            return NextResponse.json({ error: "Failed to delete feed entry" }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true });
     } catch (error) {
         console.error("Unexpected error:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -7,7 +7,9 @@ import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { FollowButton } from "@/components/community/follow-button";
 import { CommunityFeed } from "@/components/community/feed";
-import { Leaf, Building2, Users, Sprout, Loader2, ArrowLeft } from "lucide-react";
+import { CreateStrainModal } from "@/components/strains/create-strain-modal";
+import { useAuth } from "@/components/auth-provider";
+import { Leaf, Building2, Users, Sprout, Loader2, ArrowLeft, Plus, Settings } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 
 interface Organization {
@@ -18,6 +20,7 @@ interface Organization {
   license_number: string | null;
   status: string;
   created_at: string;
+  logo_url?: string | null;
 }
 
 interface OrganizationStats {
@@ -49,11 +52,17 @@ function StatCard({ icon: Icon, value, label, color }: { icon: typeof Leaf; valu
 export default function CommunityDetailPage() {
   const params = useParams();
   const organizationId = params.id as string;
+  const { user, memberships, loading: authLoading } = useAuth();
 
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [stats, setStats] = useState<OrganizationStats>({ followerCount: 0, strainCount: 0 });
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const isAdminOrGründer = !!memberships.find(
+    (m) => m.organization_id === organizationId && (m.role === "gründer" || m.role === "admin")
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,7 +70,7 @@ export default function CommunityDetailPage() {
         // Fetch organization
         const { data: orgData, error: orgError } = await supabase
           .from("organizations")
-          .select("id, name, slug, organization_type, license_number, status, created_at")
+          .select("id, name, slug, organization_type, license_number, status, created_at, logo_url")
           .eq("id", organizationId)
           .eq("status", "active")
           .single();
@@ -99,7 +108,7 @@ export default function CommunityDetailPage() {
     };
 
     fetchData();
-  }, [organizationId]);
+  }, [organizationId, refreshKey]);
 
   if (loading) {
     return (
@@ -148,7 +157,28 @@ export default function CommunityDetailPage() {
             </h1>
             <OrgTypeLabel type={organization.organization_type} />
           </div>
-          <FollowButton organizationId={organizationId} />
+          <div className="flex items-center gap-2">
+            {user && isAdminOrGründer && (
+              <CreateStrainModal
+                organizationId={organizationId}
+                trigger={
+                  <button className="w-10 h-10 rounded-full bg-[#2FF801]/20 border border-[#2FF801]/40 flex items-center justify-center text-[#2FF801] hover:bg-[#2FF801]/30 transition-colors">
+                    <Plus size={18} />
+                  </button>
+                }
+                onSuccess={() => setRefreshKey((k) => k + 1)}
+              />
+            )}
+            {user && isAdminOrGründer && (
+              <Link
+                href="/settings/organization"
+                className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-colors"
+              >
+                <Settings size={16} />
+              </Link>
+            )}
+            <FollowButton organizationId={organizationId} />
+          </div>
         </div>
       </header>
 
@@ -185,7 +215,7 @@ export default function CommunityDetailPage() {
         <h2 className="text-sm font-black uppercase tracking-wider text-white/60 mb-4">
           Aktivitaet
         </h2>
-        <CommunityFeed organizationId={organizationId} />
+        <CommunityFeed organizationId={organizationId} refreshKey={refreshKey} isAdminOrGründer={isAdminOrGründer} orgLogoUrl={organization.logo_url} />
       </div>
 
       <BottomNav />

@@ -35,7 +35,7 @@ export async function GET(request: Request, { params }: RouteParams) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        const canManage = membership.role === "owner" || membership.role === "admin";
+        const canManage = membership.role === "gründer" || membership.role === "admin";
 
         // Fetch all members (no join to avoid RLS issues)
         const { data: members, error: membersError } = await supabase
@@ -131,7 +131,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        const isOwner = currentMember.role === "owner";
+        const isOwner = currentMember.role === "gründer";
         const isAdmin = currentMember.role === "admin";
 
         if (!isOwner && !isAdmin) {
@@ -155,21 +155,21 @@ export async function PATCH(request: Request, { params }: RouteParams) {
             return NextResponse.json({ error: "Cannot modify your own membership" }, { status: 400 });
         }
 
-        // Cannot modify owner
-        if (targetMember.role === "owner") {
-            return NextResponse.json({ error: "Cannot modify the owner" }, { status: 400 });
+        // Cannot modify gründer
+        if (targetMember.role === "gründer") {
+            return NextResponse.json({ error: "Cannot modify the gründer" }, { status: 400 });
         }
 
-        // Only owner can promote to admin
-        if (role && (role === "admin" || role === "owner")) {
+        // Only gründer can promote to admin
+        if (role && (role === "admin" || role === "gründer")) {
             if (!isOwner) {
-                return NextResponse.json({ error: "Only owner can assign admin or owner role" }, { status: 403 });
+                return NextResponse.json({ error: "Only gründer can assign admin or gründer role" }, { status: 403 });
             }
         }
 
-        // Only owner can assign admin role to another admin
+        // Only gründer can assign admin role to another admin
         if (targetMember.role === "admin" && !isOwner) {
-            return NextResponse.json({ error: "Only owner can modify admin roles" }, { status: 403 });
+            return NextResponse.json({ error: "Only gründer can modify admin roles" }, { status: 403 });
         }
 
         // Build update payload
@@ -248,7 +248,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        const isOwner = currentMember.role === "owner";
+        const isOwner = currentMember.role === "gründer";
         const isAdmin = currentMember.role === "admin";
 
         if (!isOwner && !isAdmin) {
@@ -272,14 +272,14 @@ export async function DELETE(request: Request, { params }: RouteParams) {
             return NextResponse.json({ error: "Cannot remove yourself. Use leave organization instead." }, { status: 400 });
         }
 
-        // Cannot remove owner
-        if (targetMember.role === "owner") {
-            return NextResponse.json({ error: "Cannot remove the owner" }, { status: 400 });
+        // Cannot remove gründer
+        if (targetMember.role === "gründer") {
+            return NextResponse.json({ error: "Cannot remove the gründer" }, { status: 400 });
         }
 
-        // Only owner can remove admins
+        // Only gründer can remove admins
         if (targetMember.role === "admin" && !isOwner) {
-            return NextResponse.json({ error: "Only owner can remove admins" }, { status: 403 });
+            return NextResponse.json({ error: "Only gründer can remove admins" }, { status: 403 });
         }
 
         const { error: deleteError } = await supabase

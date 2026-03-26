@@ -22,7 +22,7 @@ export function BottomNav() {
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [showRequestsModal, setShowRequestsModal] = useState(false);
 
-  const isAdmin = activeOrganization?.role === "owner" || activeOrganization?.role === "admin";
+  const isAdmin = activeOrganization?.role === "gründer" || activeOrganization?.role === "admin";
 
   useEffect(() => {
     const fetchPendingRequests = async () => {

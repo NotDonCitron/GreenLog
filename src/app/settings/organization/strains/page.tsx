@@ -46,7 +46,7 @@ export default function OrgStrainsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const isAdmin =
-    activeOrganization?.role === "owner" || activeOrganization?.role === "admin";
+    activeOrganization?.role === "gründer" || activeOrganization?.role === "admin";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

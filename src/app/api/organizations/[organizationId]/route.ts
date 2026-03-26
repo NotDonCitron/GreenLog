@@ -75,7 +75,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Check if user is org manager (owner or admin)
+        // Check if user is org manager (gründer or admin)
         const { data: membership, error: membershipError } = await supabase
             .from("organization_members")
             .select("role")
@@ -88,7 +88,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        if (membership.role !== "owner" && membership.role !== "admin") {
+        if (membership.role !== "gründer" && membership.role !== "admin") {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
@@ -103,8 +103,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         }
         if (license_number !== undefined) updates.license_number = license_number;
 
-        // Only owner can change status or license_number
-        if (status !== undefined && membership.role === "owner") {
+        // Only gründer can change status or license_number
+        if (status !== undefined && membership.role === "gründer") {
             if (["active", "inactive", "suspended"].includes(status)) {
                 updates.status = status;
             }
@@ -138,7 +138,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 }
 
 // DELETE /api/organizations/[organizationId]
-// Delete (archive) an organization — owner only
+// Delete (archive) an organization — gründer only
 export async function DELETE(request: Request, { params }: RouteParams) {
     try {
         const { organizationId } = await params;
@@ -156,7 +156,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Must be owner to delete
+        // Must be gründer to delete
         const { data: membership, error: membershipError } = await supabase
             .from("organization_members")
             .select("role")
@@ -169,7 +169,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        if (membership.role !== "owner") {
+        if (membership.role !== "gründer") {
             return NextResponse.json({ error: "Nur der Owner kann die Community löschen" }, { status: 403 });
         }
 

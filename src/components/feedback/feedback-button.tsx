@@ -4,8 +4,30 @@ import React, { useState } from "react";
 import { FeedbackModal } from "./feedback-modal";
 import { MessageSquarePlus } from "lucide-react";
 
-export function FeedbackButton() {
+interface FeedbackButtonProps {
+  variant?: "floating" | "header";
+  canSee?: boolean;
+}
+
+export function FeedbackButton({ variant = "floating", canSee = false }: FeedbackButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  if (!canSee) return null;
+
+  if (variant === "header") {
+    return (
+      <>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600/20 text-emerald-400 transition-all hover:bg-emerald-600/40 hover:text-emerald-300 active:scale-95"
+          aria-label="Feedback"
+        >
+          <MessageSquarePlus size={20} />
+        </button>
+        {isOpen && <FeedbackModal onClose={() => setIsOpen(false)} />}
+      </>
+    );
+  }
 
   return (
     <>

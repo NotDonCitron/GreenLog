@@ -44,7 +44,7 @@ export async function GET(request: Request, { params }: RouteParams) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        const canManage = membership.role === "owner" || membership.role === "admin";
+        const canManage = membership.role === "gründer" || membership.role === "admin";
 
         if (!canManage) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -114,13 +114,13 @@ export async function POST(request: Request, { params }: RouteParams) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        const canManage = membership.role === "owner" || membership.role === "admin";
+        const canManage = membership.role === "gründer" || membership.role === "admin";
 
         if (!canManage) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        // Only owner can invite admins
+        // Only gründer can invite admins
         const body = await request.json();
         const { email, role } = body;
 
@@ -139,9 +139,9 @@ export async function POST(request: Request, { params }: RouteParams) {
             return NextResponse.json({ error: "role must be admin, staff, or member" }, { status: 400 });
         }
 
-        // Only owner can invite admins
-        if (role === "admin" && membership.role !== "owner") {
-            return NextResponse.json({ error: "Only owner can invite admins" }, { status: 403 });
+        // Only gründer can invite admins
+        if (role === "admin" && membership.role !== "gründer") {
+            return NextResponse.json({ error: "Only gründer can invite admins" }, { status: 403 });
         }
 
         // Check if user is already a member (by email → profile → user_id)
@@ -249,7 +249,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        const canManage = membership.role === "owner" || membership.role === "admin";
+        const canManage = membership.role === "gründer" || membership.role === "admin";
 
         if (!canManage) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });

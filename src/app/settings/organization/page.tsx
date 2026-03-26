@@ -16,11 +16,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { OrgLogoUpload } from "@/components/community/org-logo-upload";
+import { Image } from "lucide-react";
 
 export default function SettingsOrganizationPage() {
   const { activeOrganization, session, isDemoMode } = useAuth();
   const router = useRouter();
 
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [showNameForm, setShowNameForm] = useState(false);
   const [newName, setNewName] = useState("");
   const [savingName, setSavingName] = useState(false);
@@ -31,7 +34,7 @@ export default function SettingsOrganizationPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
-  const isOwner = activeOrganization?.role === "owner";
+  const isOwner = activeOrganization?.role === "gründer";
   const orgName = activeOrganization?.organizations?.name || "Organisation";
 
   const handleSaveName = async (e: React.FormEvent) => {
@@ -119,6 +122,25 @@ export default function SettingsOrganizationPage() {
       </header>
 
       <div className="px-8 space-y-6 mt-4">
+        {/* Logo ändern */}
+        <Card className="bg-[#1e3a24] border-white/10 p-5 rounded-3xl">
+          <div className="flex items-center gap-4">
+            <OrgLogoUpload
+              currentLogoUrl={logoUrl || activeOrganization.organizations?.logo_url}
+              organizationId={activeOrganization.organization_id}
+              size={80}
+              onSuccess={(url) => {
+                setLogoUrl(url);
+                router.refresh();
+              }}
+            />
+            <div className="min-w-0 flex-1">
+              <p className="font-black text-sm">Logo ändern</p>
+              <p className="text-[10px] text-white/40">Bild für deine Community</p>
+            </div>
+          </div>
+        </Card>
+
         {nameMessage && (
           <div className={`p-3 rounded-2xl flex items-start gap-2 text-sm font-bold border ${
             nameMessage.type === "success"
@@ -183,7 +205,7 @@ export default function SettingsOrganizationPage() {
         {isOwner && (
           <Card className="bg-[#1e3a24] border-white/10 p-5 rounded-3xl">
             <button
-              onClick={() => router.push("/settings/organization/members")}
+              onClick={() => router.push("/settings/organization/invites")}
               className="w-full flex items-center gap-4 text-left hover:opacity-80 transition-opacity"
             >
               <div className="w-12 h-12 rounded-full bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
@@ -191,7 +213,7 @@ export default function SettingsOrganizationPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm">Admins verwalten</p>
-                <p className="text-[10px] text-white/40">Admin-Rollen zuweisen oder entfernen</p>
+                <p className="text-[10px] text-white/40">Admin einladen oder widerrufen</p>
               </div>
             </button>
           </Card>

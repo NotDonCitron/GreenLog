@@ -5,13 +5,17 @@ import { X, Send, CheckCircle2, AlertCircle, Loader2, Sparkles, ThumbsUp, List }
 import { supabase } from "@/lib/supabase";
 import { usePathname } from "next/navigation";
 
+const ALLOWED_CREATOR_IDS = (
+  process.env.NEXT_PUBLIC_FEEDBACK_ALLOWED_CREATOR_IDS || ""
+).split(",").map(id => id.trim()).filter(Boolean);
+
 interface FeedbackModalProps {
   onClose: () => void;
 }
 
 export function FeedbackModal({ onClose }: FeedbackModalProps) {
   const pathname = usePathname();
-  const [activeTab, setActiveTab] = useState<"create" | "browse">("create");
+  const [activeTab, setActiveTab] = useState<"create" | "browse">("browse");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("bug");
@@ -26,6 +30,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
   const [openTickets, setOpenTickets] = useState<any[]>([]);
   const [isLoadingTickets, setIsLoadingTickets] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [canCreate, setCanCreate] = useState(false);
 
   // Automatischer technischer Kontext
   const [technicalContext, setTechnicalContext] = useState<any>({});
@@ -34,18 +39,20 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
+      const allowed = !!user && ALLOWED_CREATOR_IDS.includes(user.id);
+      setCanCreate(allowed);
+      if (!allowed) setActiveTab("browse");
 
-      if (typeof window !== "undefined") {
-        setTechnicalContext({
-          userAgent: navigator.userAgent,
-          language: navigator.language,
-          screenSize: `${window.innerWidth}x${window.innerHeight}`,
-          url: window.location.href,
-          pathname: pathname,
-          timestamp: new Date().toISOString(),
-          userId: user?.id || null
-        });
-      }
+      const ctx = {
+        userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
+        language: typeof navigator !== "undefined" ? navigator.language : "unknown",
+        screenSize: typeof window !== "undefined" ? `${window.innerWidth}x${window.innerHeight}` : "unknown",
+        url: typeof window !== "undefined" ? window.location.href : "unknown",
+        pathname: pathname,
+        timestamp: new Date().toISOString(),
+        userId: user?.id || null
+      };
+      setTechnicalContext(ctx);
     };
     init();
   }, [pathname]);
@@ -143,19 +150,17 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
     setError(null);
 
     try {
-      const { error: insertError } = await supabase
-        .from("feedback_tickets")
-        .insert({
-          user_id: currentUserId,
-          title,
-          description,
-          category,
-          priority,
-          page_url: technicalContext.url,
-          context: technicalContext,
-        });
+      const response = await fetch("/api/feedback/tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, description, category, priority, page_url: technicalContext.url, context: technicalContext }),
+      });
 
-      if (insertError) throw insertError;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Fehler beim Senden des Feedbacks.");
+      }
 
       setIsSuccess(true);
       setTimeout(() => onClose(), 2000);
@@ -184,14 +189,16 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
       <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-zinc-900 shadow-2xl border border-zinc-800 animate-in zoom-in-95 duration-300">
         <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900 px-6 py-4">
           <div className="flex items-center gap-4">
-            <button 
-              type="button"
-              onClick={() => setActiveTab("create")}
-              className={`text-sm font-bold uppercase tracking-wider transition-all duration-200 border-b-2 pb-1 ${activeTab === "create" ? "text-emerald-500 border-emerald-500" : "text-zinc-500 border-transparent hover:text-zinc-400"}`}
-            >
-              Neues Ticket
-            </button>
-            <button 
+            {canCreate && (
+              <button
+                type="button"
+                onClick={() => setActiveTab("create")}
+                className={`text-sm font-bold uppercase tracking-wider transition-all duration-200 border-b-2 pb-1 ${activeTab === "create" ? "text-emerald-500 border-emerald-500" : "text-zinc-500 border-transparent hover:text-zinc-400"}`}
+              >
+                Neues Ticket
+              </button>
+            )}
+            <button
               type="button"
               onClick={() => setActiveTab("browse")}
               className={`text-sm font-bold uppercase tracking-wider transition-all duration-200 border-b-2 pb-1 ${activeTab === "browse" ? "text-emerald-500 border-emerald-500" : "text-zinc-500 border-transparent hover:text-zinc-400"}`}

@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
-import { Leaf, Building2, Loader2 } from "lucide-react";
+import { Leaf, Building2, Loader2, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth-provider";
+import { useRouter } from "next/navigation";
 
 interface Organization {
   id: string;
@@ -14,6 +16,10 @@ interface Organization {
   organization_type: string;
   license_number: string | null;
   status: string;
+}
+
+interface MemberOrg extends Organization {
+  membership_role?: string;
 }
 
 function OrgTypeLabel({ type }: { type: string }) {
@@ -25,7 +31,7 @@ function OrgTypeLabel({ type }: { type: string }) {
   );
 }
 
-function CommunityCard({ org }: { org: Organization }) {
+function CommunityCard({ org, role }: { org: Organization; role?: string }) {
   return (
     <Link href={`/community/${org.id}`}>
       <Card className="bg-[#1e3a24] border-white/10 p-5 rounded-3xl hover:bg-[#243d2a] transition-colors cursor-pointer">
@@ -37,6 +43,11 @@ function CommunityCard({ org }: { org: Organization }) {
             <p className="font-black text-sm truncate">{org.name}</p>
             <OrgTypeLabel type={org.organization_type} />
           </div>
+          {role && (
+            <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 text-[#00F5FF]">
+              {role === "gründer" ? "Gründer" : role === "admin" ? "Admin" : "Member"}
+            </span>
+          )}
           <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0">
             <Building2 size={14} className="text-white/30" />
           </div>
@@ -46,46 +57,55 @@ function CommunityCard({ org }: { org: Organization }) {
   );
 }
 
-function EmptyState() {
-  return (
-    <div className="text-center py-12 space-y-3">
-      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto">
-        <Building2 size={24} className="text-white/20" />
-      </div>
-      <p className="text-white/40 text-sm">Es gibt noch keine Communities.</p>
-    </div>
-  );
-}
-
 export default function CommunityListPage() {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const { user, memberships } = useAuth();
+  const router = useRouter();
+  const [myOrgs, setMyOrgs] = useState<MemberOrg[]>([]);
+  const [otherOrgs, setOtherOrgs] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchOrganizations = async () => {
-      try {
-        // Fetch all public organizations (status = 'active')
-        const { data, error } = await supabase
+      if (!user) {
+        // Not logged in — only show public communities
+        const { data } = await supabase
           .from("organizations")
           .select("id, name, slug, organization_type, license_number, status")
           .eq("status", "active")
           .order("name", { ascending: true });
-
-        if (error) {
-          console.error("Error fetching organizations:", error);
-          return;
-        }
-
-        setOrganizations(data || []);
-      } catch (err) {
-        console.error("Error:", err);
-      } finally {
+        setOtherOrgs(data || []);
         setLoading(false);
+        return;
       }
+
+      // Fetch all active organizations
+      const { data: allOrgs } = await supabase
+        .from("organizations")
+        .select("id, name, slug, organization_type, license_number, status")
+        .eq("status", "active")
+        .order("name", { ascending: true });
+
+      const myOrgIds = new Set(memberships.map((m) => m.organization_id));
+
+      const mine: MemberOrg[] = [];
+      const others: Organization[] = [];
+
+      for (const org of allOrgs || []) {
+        if (myOrgIds.has(org.id)) {
+          const membership = memberships.find((m) => m.organization_id === org.id);
+          mine.push({ ...org, membership_role: membership?.role });
+        } else {
+          others.push(org);
+        }
+      }
+
+      setMyOrgs(mine);
+      setOtherOrgs(others);
+      setLoading(false);
     };
 
-    fetchOrganizations();
-  }, []);
+    void fetchOrganizations();
+  }, [user, memberships]);
 
   return (
     <main className="min-h-screen bg-[#355E3B] text-white pb-32">
@@ -98,17 +118,64 @@ export default function CommunityListPage() {
         </h1>
       </header>
 
-      <div className="px-8 space-y-3 mt-4">
+      <div className="px-8 space-y-6 mt-4">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 size={24} className="animate-spin text-white/40" />
           </div>
-        ) : organizations.length === 0 ? (
-          <EmptyState />
         ) : (
-          organizations.map((org) => (
-            <CommunityCard key={org.id} org={org} />
-          ))
+          <>
+            {/* My Communities */}
+            {myOrgs.length > 0 && (
+              <section>
+                <h2 className="text-xs font-black uppercase tracking-wider text-white/40 mb-3">
+                  Meine Communities
+                </h2>
+                <div className="space-y-3">
+                  {myOrgs.map((org) => (
+                    <CommunityCard key={org.id} org={org} role={org.membership_role} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Create new community CTA — only if user has no community yet */}
+            {myOrgs.length === 0 && (
+              <Link href="/community/new">
+                <Card className="bg-[#2FF801]/10 border-[#2FF801]/20 p-4 rounded-3xl hover:bg-[#2FF801]/20 transition-colors cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#2FF801]/20 border border-[#2FF801]/40 flex items-center justify-center shrink-0">
+                      <Plus size={16} className="text-[#2FF801]" />
+                    </div>
+                    <p className="font-black text-sm text-[#2FF801]">Community erstellen</p>
+                  </div>
+                </Card>
+              </Link>
+            )}
+
+            {/* Other Communities */}
+            {otherOrgs.length > 0 && (
+              <section>
+                <h2 className="text-xs font-black uppercase tracking-wider text-white/40 mb-3">
+                  {myOrgs.length > 0 ? "Andere Communities" : "Communities"}
+                </h2>
+                <div className="space-y-3">
+                  {otherOrgs.map((org) => (
+                    <CommunityCard key={org.id} org={org} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {myOrgs.length === 0 && otherOrgs.length === 0 && (
+              <div className="text-center py-12 space-y-3">
+                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto">
+                  <Building2 size={24} className="text-white/20" />
+                </div>
+                <p className="text-white/40 text-sm">Es gibt noch keine Communities.</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 

@@ -34,6 +34,6 @@ CREATE POLICY "Admins can update tickets"
   ON feedback_tickets FOR UPDATE USING (auth.uid() IN (SELECT id FROM profiles WHERE username = 'phhttps'));
 
 -- Indexes für Performance
-CREATE INDEX idx_tickets_user ON feedback_tickets(user_id);
-CREATE INDEX idx_tickets_status ON feedback_tickets(status);
-CREATE INDEX idx_tickets_created_at ON feedback_tickets(created_at);
+CREATE INDEX IF NOT EXISTS idx_tickets_user ON feedback_tickets(user_id);
+CREATE INDEX IF NOT EXISTS idx_tickets_status ON feedback_tickets(status);
+CREATE INDEX IF NOT EXISTS idx_tickets_created_at ON feedback_tickets(created_at);

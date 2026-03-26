@@ -9,7 +9,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "MiniMax API Key fehlt" }, { status: 500 });
     }
 
-    // Wir nutzen das MiniMax-Modell, um das Ticket professionell zu formulieren
     const response = await fetch("https://api.minimax.chat/v1/text/chatcompletion_v2", {
       method: "POST",
       headers: {
@@ -17,13 +16,13 @@ export async function POST(req: Request) {
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "abab6.5-chat", // Oder dein bevorzugtes MiniMax Modell
+        model: "abab6.5-chat",
         messages: [
           {
             role: "system",
-            content: `Du bist ein erfahrener QA-Ingenieur für das Projekt 'GreenLog'. 
+            content: `Du bist ein erfahrener QA-Ingenieur für das Projekt 'GreenLog'.
             Deine Aufgabe ist es, unstrukturiertes Feedback von Testern in ein präzises, technisches Ticket für einen Entwickler (Claude Code) umzuformulieren.
-            
+
             Nutze den mitgelieferten Kontext (URL, Browser, etc.), um das Ticket anzureichern.
             Antworte NUR mit dem optimierten JSON-Objekt im Format:
             { "title": "...", "description": "..." }`
@@ -39,11 +38,19 @@ export async function POST(req: Request) {
     });
 
     const result = await response.json();
-    const refinedContent = JSON.parse(result.choices[0].message.content);
+
+    if (!response.ok) {
+      console.error("MiniMax API error:", result);
+      return NextResponse.json({ error: result.error?.message || "MiniMax Fehler" }, { status: 500 });
+    }
+
+    const refinedContent = result.choices?.[0]?.message?.content
+      ? JSON.parse(result.choices[0].message.content)
+      : { title, description };
 
     return NextResponse.json(refinedContent);
   } catch (error: any) {
     console.error("MiniMax Error:", error);
-    return NextResponse.json({ error: "Fehler bei der KI-Optimierung" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Fehler bei der KI-Optimierung" }, { status: 500 });
   }
 }
