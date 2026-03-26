@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Loader2, UserPlus } from "lucide-react";
+import { supabase } from "@/lib/supabase/client";
 
 interface InviteAdminModalProps {
   organizationId: string;
@@ -20,9 +21,15 @@ export function InviteAdminModal({ organizationId, onClose, onSuccess }: InviteA
     setError(null);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+
       const response = await fetch(`/api/organizations/${organizationId}/invites`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({ email: email.trim().toLowerCase(), role: "admin" }),
       });
 
@@ -44,21 +51,21 @@ export function InviteAdminModal({ organizationId, onClose, onSuccess }: InviteA
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl">
+      <div className="relative bg-[var(--card)] rounded-3xl p-6 w-full max-w-md shadow-2xl border border-[var(--border)]">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center text-black/60"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[var(--muted)] hover:bg-[var(--muted-foreground)]/20 flex items-center justify-center text-[var(--muted-foreground)] transition-colors"
         >
           <X size={16} />
         </button>
 
-        <h2 className="text-xl font-black italic tracking-tighter mb-6">
+        <h2 className="text-xl font-black italic tracking-tighter mb-6 text-[var(--foreground)]">
           Admin einladen
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-bold text-black/60 mb-2">
+            <label htmlFor="email" className="block text-sm font-bold text-[var(--muted-foreground)] mb-2">
               E-Mail Adresse
             </label>
             <input
@@ -68,7 +75,7 @@ export function InviteAdminModal({ organizationId, onClose, onSuccess }: InviteA
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@example.com"
               required
-              className="w-full px-4 py-3 rounded-xl border border-black/20 focus:border-[#00F5FF] focus:outline-none focus:ring-2 focus:ring-[#00F5FF]/20 transition-colors"
+              className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--input)] text-[var(--foreground)] focus:border-[#00F5FF] focus:outline-none focus:ring-2 focus:ring-[#00F5FF]/20 transition-colors"
             />
           </div>
 
