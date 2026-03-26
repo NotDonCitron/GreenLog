@@ -31,7 +31,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#0e0e0f",
+  themeColor: "#FFFFFF",
 };
 
 export default function RootLayout({
@@ -42,13 +42,12 @@ export default function RootLayout({
   return (
     <html
       lang="de"
-      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
-      style={{ colorScheme: 'dark' }}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        <meta name="color-scheme" content="dark" />
+        <meta name="color-scheme" content="light" />
       </head>
-      <body className="h-full bg-[#355E3B] text-white overflow-x-hidden">
+      <body className="h-full bg-white text-black overflow-x-hidden">
         <AuthProvider>
           <div className="flex h-full flex-col">
             <main className="flex-1 overflow-y-auto overflow-x-hidden">{children}</main>

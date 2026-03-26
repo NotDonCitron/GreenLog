@@ -9,31 +9,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "MiniMax API Key fehlt" }, { status: 500 });
     }
 
-    const response = await fetch("https://api.minimax.chat/v1/text/chatcompletion_v2", {
+    const response = await fetch("https://api.minimax.io/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "abab6.5-chat",
+        model: "MiniMax-M2",
         messages: [
           {
             role: "system",
             content: `Du bist ein erfahrener QA-Ingenieur für das Projekt 'GreenLog'.
-            Deine Aufgabe ist es, unstrukturiertes Feedback von Testern in ein präzises, technisches Ticket für einen Entwickler (Claude Code) umzuformulieren.
-
-            Nutze den mitgelieferten Kontext (URL, Browser, etc.), um das Ticket anzureichern.
-            Antworte NUR mit dem optimierten JSON-Objekt im Format:
-            { "title": "...", "description": "..." }`
+Deine Aufgabe ist es, vage oder kurze Feedback-Texte von Testern in präzise, technische Ticket-Beschreibungen umzuformulieren.
+Regeln:
+- title: Maximal 10 Wörter, deskriptiv, klar
+- description: 2-4 Sätze, enthält WAS passiert ist und WO (URL/Seite)
+- Ändere NIEMALS die ursprüngliche Bedeutung
+- Wenn das Feedback bereits präzise ist, gib leicht verbesserte Version aus
+Antworte NUR mit JSON im Format: { "title": "...", "description": "..." }`
           },
           {
             role: "user",
-            content: `User Feedback: "${description}" (Titel: ${title})
-            Kontext: ${JSON.stringify(context)}`
+            content: `Feedback: "${description}"
+Titel-Vorschlag: "${title}"
+Seite: ${context?.pathname || "/"}
+User: ${context?.userId || "unbekannt"}`
           }
-        ],
-        response_format: { type: "json_object" }
+        ]
       }),
     });
 
@@ -44,9 +47,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: result.error?.message || "MiniMax Fehler" }, { status: 500 });
     }
 
-    const refinedContent = result.choices?.[0]?.message?.content
-      ? JSON.parse(result.choices[0].message.content)
-      : { title, description };
+    console.log("MiniMax raw response:", JSON.stringify(result, null, 2));
+
+    let refinedContent = { title, description };
+
+    if (result.choices?.[0]?.message?.content) {
+      const raw = result.choices[0].message.content;
+      try {
+        refinedContent = JSON.parse(raw);
+      } catch {
+        console.error("Failed to parse MiniMax response as JSON:", raw);
+        return NextResponse.json({ title, description });
+      }
+    }
 
     return NextResponse.json(refinedContent);
   } catch (error: any) {

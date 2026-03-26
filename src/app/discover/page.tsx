@@ -63,7 +63,7 @@ export default function DiscoverPage() {
 
                             let { data: topData } = await supabase
                                 .from("user_strain_relations")
-                                .select("strains(*)")
+                                .select("strains:strain_id (*)")
                                 .eq("user_id", p.id)
                                 .eq("is_favorite", true)
                                 .limit(5);

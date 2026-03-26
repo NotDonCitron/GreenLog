@@ -8,6 +8,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Activity,
   ArrowRight,
+  ArrowLeft,
   Camera,
   Eye,
   EyeOff,
@@ -141,6 +142,7 @@ export default function ProfilePage() {
   const [followersModal, setFollowersModal] = useState<{ isOpen: boolean; mode: "followers" | "following" }>({ isOpen: false, mode: "followers" });
   const [carouselFavorites, setCarouselFavorites] = useState<ProfileFavorite[]>([]);
   const [savingOrder, setSavingOrder] = useState(false);
+  const [selectedFavoriteIndex, setSelectedFavoriteIndex] = useState<number | null>(null);
   const currentUserId = user?.id ?? "";
 
   // Sync carousel favorites with viewModel when profile loads
@@ -183,7 +185,61 @@ export default function ProfilePage() {
     }
   };
 
-  function SortableFavoriteCard({ favorite }: { favorite: ProfileFavorite }) {
+  const handleReorder = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
+    if (toIndex >= carouselFavorites.length) return;
+
+    setCarouselFavorites((items) => {
+      const reordered = [...items];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, moved);
+      return reordered;
+    });
+
+    if (!user || isDemoMode) return;
+    setSavingOrder(true);
+    const reorderedItems = [...carouselFavorites];
+    const [moved] = reorderedItems.splice(fromIndex, 1);
+    reorderedItems.splice(toIndex, 0, moved);
+    const newOrder = reorderedItems.map((f) => f.relationId);
+    if (newOrder.length > 0) {
+      fetch("/api/profile/reorder-favorites", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ relationIds: newOrder }),
+      }).finally(() => setSavingOrder(false));
+    } else {
+      setSavingOrder(false);
+    }
+  };
+
+  // Keyboard navigation for favorites
+  useEffect(() => {
+    if (selectedFavoriteIndex === null) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        if (selectedFavoriteIndex > 0) {
+          handleReorder(selectedFavoriteIndex, selectedFavoriteIndex - 1);
+          setSelectedFavoriteIndex(selectedFavoriteIndex - 1);
+        }
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        if (selectedFavoriteIndex < carouselFavorites.length - 1) {
+          handleReorder(selectedFavoriteIndex, selectedFavoriteIndex + 1);
+          setSelectedFavoriteIndex(selectedFavoriteIndex + 1);
+        }
+      } else if (e.key === "Escape") {
+        setSelectedFavoriteIndex(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedFavoriteIndex, carouselFavorites.length]);
+
+  function SortableFavoriteCard({ favorite, isSelected, onClick }: { favorite: ProfileFavorite; isSelected?: boolean; onClick?: () => void }) {
     const {
       attributes,
       listeners,
@@ -207,33 +263,38 @@ export default function ProfilePage() {
         data-relation-id={favorite.relationId}
         className="min-w-[220px] flex-shrink-0"
       >
-        <Link
-          href={`/strains/${favorite.slug}`}
-          className="block"
-          onClick={(e) => { if (isDragging) e.preventDefault(); }}
+        <div
+          onClick={onClick}
+          className={`relative cursor-pointer ${isSelected ? "ring-2 ring-[#2FF801] rounded-[2rem]" : ""}`}
         >
-          <Card
-            className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#1e3a24] p-0 shadow-lg hover:border-[#00F5FF]/30 transition-all cursor-grab active:cursor-grabbing"
-            {...attributes}
-            {...listeners}
+          <Link
+            href={`/strains/${favorite.slug}`}
+            className="block"
+            onClick={(e) => { if (isDragging) e.preventDefault(); }}
           >
-            <div className="relative h-40 w-full">
-              <img
-                src={favorite.imageUrl || "/strains/placeholder-1.svg"}
-                alt={favorite.name}
-                className="w-full h-full object-cover opacity-80"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#1e3a24] to-transparent" />
-              <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm rounded-full p-1.5">
-                <GripVertical size={14} className="text-white/50" />
+            <Card
+              className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#1e3a24] p-0 shadow-lg hover:border-[#00F5FF]/30 transition-all cursor-grab active:cursor-grabbing"
+              {...attributes}
+              {...listeners}
+            >
+              <div className="relative h-40 w-full">
+                <img
+                  src={favorite.imageUrl || "/strains/placeholder-1.svg"}
+                  alt={favorite.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1e3a24] to-transparent" />
+                <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm rounded-full p-1.5">
+                  <GripVertical size={14} className="text-white/50" />
+                </div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <p className="text-sm font-black uppercase tracking-tight truncate">{favorite.name}</p>
+                  <p className="text-[10px] text-[#00F5FF] font-bold">{favorite.thcDisplay}</p>
+                </div>
               </div>
-              <div className="absolute bottom-4 left-4 right-4">
-                <p className="text-sm font-black uppercase tracking-tight truncate">{favorite.name}</p>
-                <p className="text-[10px] text-[#00F5FF] font-bold">{favorite.thcDisplay}</p>
-              </div>
-            </div>
-          </Card>
-        </Link>
+            </Card>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -246,7 +307,7 @@ export default function ProfilePage() {
         supabase.from("user_collection").select("*", { count: "exact", head: true }).eq("user_id", user?.id),
         supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", user?.id),
         supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", user?.id),
-        supabase.from("user_strain_relations").select("id, position, strains(*)").eq("user_id", user?.id).eq("is_favorite", true).order("position", { ascending: true }).limit(5),
+        supabase.from("user_strain_relations").select("*, strains:strain_id (*)").eq("user_id", user?.id).eq("is_favorite", true).order("position", { ascending: true }).limit(5),
         supabase.from("user_badges").select("badges(*)").eq("user_id", user?.id)
       ]);
 
@@ -590,22 +651,60 @@ export default function ProfilePage() {
             {savingOrder && <Loader2 size={12} className="animate-spin text-white/30" />}
           </div>
           {carouselFavorites.length > 0 ? (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={carouselFavorites.map((f) => f.relationId)}
-                strategy={horizontalListSortingStrategy}
-              >
-                <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-                  {carouselFavorites.map((favorite) => (
-                    <SortableFavoriteCard key={favorite.relationId} favorite={favorite} />
-                  ))}
+            <div className="relative">
+              {carouselFavorites.length > 1 && selectedFavoriteIndex !== null && (
+                <div className="flex justify-center gap-2 mb-3">
+                  <button
+                    onClick={() => {
+                      if (selectedFavoriteIndex > 0) {
+                        handleReorder(selectedFavoriteIndex, selectedFavoriteIndex - 1);
+                        setSelectedFavoriteIndex(selectedFavoriteIndex - 1);
+                      }
+                    }}
+                    disabled={selectedFavoriteIndex === 0}
+                    className="px-4 py-2 bg-white/10 border border-white/10 rounded-full text-white/70 hover:bg-white/20 disabled:opacity-30 transition-all flex items-center gap-1 text-xs font-bold"
+                  >
+                    <ArrowLeft size={14} /> Links
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (selectedFavoriteIndex < carouselFavorites.length - 1) {
+                        handleReorder(selectedFavoriteIndex, selectedFavoriteIndex + 1);
+                        setSelectedFavoriteIndex(selectedFavoriteIndex + 1);
+                      }
+                    }}
+                    disabled={selectedFavoriteIndex === carouselFavorites.length - 1}
+                    className="px-4 py-2 bg-white/10 border border-white/10 rounded-full text-white/70 hover:bg-white/20 disabled:opacity-30 transition-all flex items-center gap-1 text-xs font-bold"
+                  >
+                    Rechts <ArrowRight size={14} />
+                  </button>
                 </div>
-              </SortableContext>
-            </DndContext>
+              )}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={carouselFavorites.map((f) => f.relationId)}
+                  strategy={horizontalListSortingStrategy}
+                >
+                  <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                    {carouselFavorites.map((favorite, index) => (
+                      <SortableFavoriteCard
+                        key={`${favorite.relationId}-${index}`}
+                        favorite={favorite}
+                        isSelected={selectedFavoriteIndex === index}
+                        onClick={() => setSelectedFavoriteIndex(selectedFavoriteIndex === index ? null : index)}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+              {selectedFavoriteIndex === null && carouselFavorites.length > 1 && (
+                <p className="text-center text-[10px] text-white/30 mt-2">Klicke auf einen Strain um ihn auszuwählen, dann ↑↓ zum Verschieben</p>
+              )}
+            </div>
           ) : (
             <div className="py-10 text-center bg-black/10 rounded-[2rem] border border-dashed border-white/10 text-white/20 text-xs font-bold uppercase tracking-widest">Keine Favoriten gesetzt</div>
           )}

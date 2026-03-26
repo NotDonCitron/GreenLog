@@ -205,30 +205,30 @@ export default function StrainsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+    <main className="min-h-screen bg-white text-black pb-32">
       <Suspense fallback={null}>
         <TabParamReader
           activeOrganization={activeOrganization}
           onTabReady={(tab) => setActiveTab(tab)}
         />
       </Suspense>
-      <header className="p-8 sticky top-0 bg-[#355E3B]/90 backdrop-blur-xl z-50 border-b border-white/5">
+      <header className="p-8 sticky top-0 bg-white z-50 border-b border-black/10">
         <div className="flex justify-between items-end mb-6">
           <div>
-            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">World Collection</h1>
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">Strains</h1>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-white/40 uppercase font-bold">Progress</p>
+            <p className="text-[10px] text-black/40 uppercase font-bold">Progress</p>
             <p className="text-xl font-black text-[#2FF801]">{userCollection.length} / {strains.length || 20}</p>
           </div>
         </div>
 
         <div className="relative">
-          <Search className="absolute left-4 top-3.5 text-white/20" size={18} />
+          <Search className="absolute left-4 top-3.5 text-black/20" size={18} />
           <input
             type="text"
             placeholder="Sorte suchen..."
-            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:border-[#00F5FF]/50 transition-all shadow-inner"
+            className="w-full bg-black/5 border border-black/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:border-[#2FF801]/50 transition-all shadow-inner text-black"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -240,7 +240,7 @@ export default function StrainsPage() {
             className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${
               activeTab === "catalog"
                 ? "bg-[#2FF801] text-black"
-                : "bg-white/5 border border-white/10 text-white/60"
+                : "bg-black/5 border border-black/10 text-black/60"
             }`}
           >
             Katalog
@@ -251,7 +251,7 @@ export default function StrainsPage() {
               className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${
                 activeTab === "org"
                   ? "bg-[#00F5FF] text-black"
-                  : "bg-white/5 border border-white/10 text-white/60"
+                  : "bg-black/5 border border-black/10 text-black/60"
               }`}
             >
               {activeOrganization.organizations?.name || "Organisation"}
@@ -264,7 +264,7 @@ export default function StrainsPage() {
             size="sm"
             variant={sourceFilter === "all" ? "default" : "outline"}
             onClick={() => setSourceFilter("all")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "all" ? "bg-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "all" ? "bg-[#2FF801] text-black" : "bg-black/5 border-black/10 text-black/60"}`}
           >
             Alle
           </Button>
@@ -272,7 +272,7 @@ export default function StrainsPage() {
             size="sm"
             variant={sourceFilter === "pharmacy" ? "default" : "outline"}
             onClick={() => setSourceFilter("pharmacy")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "pharmacy" ? "bg-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "pharmacy" ? "bg-[#2FF801] text-black" : "bg-black/5 border-black/10 text-black/60"}`}
           >
             🧪 Apotheke
           </Button>
@@ -280,7 +280,7 @@ export default function StrainsPage() {
             size="sm"
             variant={sourceFilter === "grow" ? "default" : "outline"}
             onClick={() => setSourceFilter("grow")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "grow" ? "bg-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "grow" ? "bg-[#2FF801] text-black" : "bg-black/5 border-black/10 text-black/60"}`}
           >
             🌱 Eigenanbau
           </Button>
@@ -288,7 +288,7 @@ export default function StrainsPage() {
             size="sm"
             variant={sourceFilter === "csc" ? "default" : "outline"}
             onClick={() => setSourceFilter("csc")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "csc" ? "bg-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "csc" ? "bg-[#2FF801] text-black" : "bg-black/5 border-black/10 text-black/60"}`}
           >
             🏢 CSC
           </Button>
@@ -296,7 +296,7 @@ export default function StrainsPage() {
             size="sm"
             variant={sourceFilter === "other" ? "default" : "outline"}
             onClick={() => setSourceFilter("other")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "other" ? "bg-[#2FF801] text-black" : "bg-white/5 border-white/10 text-white/60"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "other" ? "bg-[#2FF801] text-black" : "bg-black/5 border-black/10 text-black/60"}`}
           >
             📦 Sonstiges
           </Button>
@@ -312,10 +312,10 @@ export default function StrainsPage() {
         ) : loading && strains.length === 0 ? (
           <div className="grid grid-cols-2 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="aspect-[3/4.5] rounded-3xl bg-white/5 border border-white/10 animate-pulse flex flex-col p-4 gap-4">
-                <div className="w-2/3 h-6 bg-white/10 rounded-lg" />
-                <div className="w-full flex-1 bg-white/5 rounded-xl" />
-                <div className="w-full h-12 bg-white/10 rounded-xl mt-auto" />
+              <div key={i} className="aspect-[3/4.5] rounded-3xl bg-black/5 border border-black/10 animate-pulse flex flex-col p-4 gap-4">
+                <div className="w-2/3 h-6 bg-black/10 rounded-lg" />
+                <div className="w-full flex-1 bg-black/5 rounded-xl" />
+                <div className="w-full h-12 bg-black/10 rounded-xl mt-auto" />
               </div>
             ))}
           </div>
