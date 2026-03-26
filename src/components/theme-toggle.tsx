@@ -38,7 +38,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="w-10 h-10 rounded-xl bg-[#1a191b] border border-[#484849]/50 flex items-center justify-center text-[#adaaab] hover:text-[#00F5FF] hover:border-[#00F5FF]/50 transition-all"
+      className="w-10 h-10 rounded-xl bg-[var(--card)] border border-[var(--border)] flex items-center justify-center text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-all"
       title={isDark ? "Light Mode" : "Dark Mode"}
     >
       {isDark ? <Sun size={18} /> : <Moon size={18} />}

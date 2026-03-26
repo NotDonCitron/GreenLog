@@ -41,12 +41,26 @@ export default function RootLayout({
   return (
     <html
       lang="de"
-      className={`${spaceGrotesk.variable} ${inter.variable} h-full antialiased dark`}
+      className={`${spaceGrotesk.variable} ${inter.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <head>
         <meta name="color-scheme" content="dark" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                var theme = localStorage.getItem('cannalog_theme');
+                if (theme === 'light') {
+                  document.documentElement.classList.add('light');
+                  document.documentElement.style.colorScheme = 'light';
+                }
+              })();
+            `,
+          }}
+        />
       </head>
-      <body className="h-full bg-[#0e0e0f] text-white overflow-x-hidden font-body">
+      <body className="h-full bg-[var(--background)] text-[var(--foreground)] overflow-x-hidden font-body">
         <AuthProvider>
           <div className="flex h-full flex-col">
             <main className="flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
