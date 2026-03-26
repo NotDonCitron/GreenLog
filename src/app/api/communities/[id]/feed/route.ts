@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
 // GET /api/communities/[id]/feed
-// Return paginated feed for an organization
+// Return paginated feed for an organization (public via RLS)
 export async function GET(request: Request, { params }: RouteParams) {
     try {
         const { id: organizationId } = await params;
@@ -13,20 +13,6 @@ export async function GET(request: Request, { params }: RouteParams) {
         const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
         const offset = (page - 1) * limit;
-
-        const authHeader = request.headers.get("Authorization");
-        const accessToken = authHeader?.replace("Bearer ", "");
-
-        if (!accessToken) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const supabase = getAuthenticatedClient(accessToken);
-
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
 
         // Fetch paginated feed entries
         const { data: feedEntries, error: feedError, count } = await supabase
