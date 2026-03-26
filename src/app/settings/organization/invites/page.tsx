@@ -101,16 +101,16 @@ export default function InvitesPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; msg: string } | null>(null);
-  const [newInvite, setNewInvite] = useState({ email: "", role: "member" as "admin" | "staff" | "member" });
+  const [newInvite, setNewInvite] = useState({ email: "", role: "admin" as "admin" });
   const [createdInviteToken, setCreatedInviteToken] = useState<string | null>(null);
   const [createdInviteEmail, setCreatedInviteEmail] = useState<string | null>(null);
 
-  const canManage = activeOrganization?.role === "owner" || activeOrganization?.role === "admin";
+  // Only Gründer (owner) can manage invites
   const isOwner = activeOrganization?.role === "owner";
 
   const fetchInvites = useCallback(async () => {
     if (!activeOrganization || !session?.access_token) return;
-    if (!canManage) {
+    if (!isOwner) {
       setLoading(false);
       return;
     }
@@ -133,11 +133,15 @@ export default function InvitesPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeOrganization, session?.access_token, canManage]);
+  }, [activeOrganization, session?.access_token, isOwner]);
 
   useEffect(() => {
     if (!activeOrganization) {
       router.push("/profile");
+      return;
+    }
+    if (activeOrganization.role !== "owner") {
+      router.push("/settings/organization/members");
       return;
     }
     void fetchInvites();
@@ -168,7 +172,7 @@ export default function InvitesPage() {
       setCreatedInviteToken(data.token);
       setCreatedInviteEmail(data.invite.email);
       setStatusMessage({ type: "success", msg: "Einladung erstellt! Bitte Link teilen." });
-      setNewInvite({ email: "", role: "member" });
+      setNewInvite({ email: "", role: "admin" });
       setShowCreateForm(false);
       await fetchInvites();
     } catch (err: any) {
@@ -288,7 +292,7 @@ export default function InvitesPage() {
           </Card>
         )}
 
-        {canManage && (
+        {isOwner && (
           <Card className="bg-[#1e3a24] border-white/10 p-5 rounded-3xl">
             {!showCreateForm ? (
               <Button
@@ -304,7 +308,7 @@ export default function InvitesPage() {
                   <p className="text-xs font-black uppercase tracking-widest text-white/60">Neue Einladung</p>
                   <button
                     type="button"
-                    onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: "member" }); }}
+                    onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: "admin" }); }}
                     className="text-white/40 hover:text-white"
                   >
                     <X size={16} />
@@ -323,26 +327,10 @@ export default function InvitesPage() {
                   />
                 </div>
 
-                <Select
-                  value={newInvite.role}
-                  onValueChange={(value) => setNewInvite(prev => ({ ...prev, role: value as "admin" | "staff" | "member" }))}
-                  disabled={isDemoMode}
-                >
-                  <SelectTrigger className="h-12 bg-black/20 border-white/10 text-white rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#1a191b] border-white/10">
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="staff">Staff</SelectItem>
-                    <SelectItem value="member">Mitglied</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {newInvite.role === "admin" && !isOwner && (
-                  <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20">
-                    <p className="text-xs text-orange-400 font-bold">Nur Owner können Admin-Einladungen versenden</p>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-red-400">Admin</span>
+                  <span className="text-[10px] text-white/40">Nur Admins können eingeladen werden</span>
+                </div>
 
                 <Button
                   type="submit"
@@ -422,10 +410,10 @@ export default function InvitesPage() {
           </div>
         )}
 
-        {!canManage && !loading && (
+        {!isOwner && !loading && (
           <div className="text-center py-6">
             <p className="text-xs text-white/30 font-bold uppercase tracking-wider">
-              Nur Owner und Admins können Einladungen verwalten
+              Nur Owner können Einladungen verwalten
             </p>
           </div>
         )}

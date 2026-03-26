@@ -1,228 +1,99 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import {
   ChevronLeft,
   Loader2,
-  Shield,
-  UserMinus,
-  AlertTriangle,
-  CheckCircle2,
+  Users,
   UserRound,
-  Crown
+  ExternalLink
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
-interface MemberUser {
+interface FollowerUser {
   id: string;
   username: string | null;
   display_name: string | null;
   avatar_url: string | null;
 }
 
-interface Member {
+interface Follower {
   id: string;
-  role: "owner" | "admin" | "staff" | "member";
-  membership_status: "active" | "suspended" | "invited";
-  joined_at: string | null;
-  user: MemberUser | null;
-  invited_by?: string;
+  user_id: string;
+  created_at: string;
+  profile: FollowerUser | null;
 }
 
-function formatRoleLabel(role: string) {
-  switch (role) {
-    case "owner": return "Owner";
-    case "admin": return "Admin";
-    case "staff": return "Staff";
-    case "member": return "Mitglied";
-    default: return role;
-  }
+function formatFollowDate(dateStr: string | null) {
+  if (!dateStr) return "Unbekannt";
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-function RoleBadge({ role }: { role: string }) {
-  const color =
-    role === "owner" ? "text-yellow-400 bg-yellow-400/10 border-yellow-400/20" :
-    role === "admin" ? "text-red-400 bg-red-400/10 border-red-400/20" :
-    role === "staff" ? "text-blue-400 bg-blue-400/10 border-blue-400/20" :
-    "text-white/40 bg-white/5 border-white/10";
-  return (
-    <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${color}`}>
-      {role === "owner" && <Crown size={8} />}
-      {role === "admin" && <Shield size={8} />}
-      {formatRoleLabel(role)}
-    </span>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  if (status === "active") return null;
-  return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 uppercase tracking-wider">
-      <AlertTriangle size={8} />
-      {status}
-    </span>
-  );
-}
-
-export default function MembersPage() {
-  const { user, session, activeOrganization, isDemoMode } = useAuth();
+export default function FollowersPage() {
+  const { user, session, activeOrganization } = useAuth();
   const router = useRouter();
 
-  const [members, setMembers] = useState<Member[]>([]);
+  const [followers, setFollowers] = useState<Follower[]>([]);
+  const [followerCount, setFollowerCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; msg: string } | null>(null);
-
-  const canManage = activeOrganization?.role === "owner" || activeOrganization?.role === "admin";
-  const isOwner = activeOrganization?.role === "owner";
-
-  const fetchMembers = useCallback(async () => {
-    if (!activeOrganization || !session?.access_token) return;
-
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(
-        `/api/organizations/${activeOrganization.organization_id}/members`,
-        { headers: { Authorization: `Bearer ${session.access_token}` } }
-      );
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Fehler beim Laden");
-      }
-      const data = await res.json();
-      setMembers((data.members || []) as Member[]);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [activeOrganization, session?.access_token]);
 
   useEffect(() => {
     if (!activeOrganization) {
       router.push("/profile");
       return;
     }
-    void fetchMembers();
-  }, [activeOrganization, fetchMembers, router]);
 
-  const handleRoleChange = async (memberId: string, newRole: string) => {
-    if (!memberId || !session?.access_token || isDemoMode) return;
-    setActionLoading(memberId);
-    setStatusMessage(null);
-    try {
-      const res = await fetch(
-        `/api/organizations/${activeOrganization!.organization_id}/members`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ member_id: memberId, role: newRole }),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Fehler beim Ändern");
-      setStatusMessage({ type: "success", msg: "Rolle erfolgreich geändert" });
-      await fetchMembers();
-    } catch (err: any) {
-      setStatusMessage({ type: "error", msg: err.message });
-    } finally {
-      setActionLoading(null);
-    }
-  };
+    const fetchFollowers = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const { data: followersData, error: followersError } = await window.supabase
+          .from("community_followers")
+          .select("id, user_id, created_at")
+          .eq("organization_id", activeOrganization.organization_id)
+          .order("created_at", { ascending: false });
 
-  const handleSuspend = async (memberId: string) => {
-    if (!session?.access_token || isDemoMode) return;
-    setActionLoading(memberId);
-    setStatusMessage(null);
-    try {
-      const res = await fetch(
-        `/api/organizations/${activeOrganization!.organization_id}/members`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ member_id: memberId, membership_status: "suspended" }),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Fehler beim Sperren");
-      setStatusMessage({ type: "success", msg: "Mitglied gesperrt" });
-      await fetchMembers();
-    } catch (err: any) {
-      setStatusMessage({ type: "error", msg: err.message });
-    } finally {
-      setActionLoading(null);
-    }
-  };
+        if (followersError) throw followersError;
 
-  const handleActivate = async (memberId: string) => {
-    if (!session?.access_token || isDemoMode) return;
-    setActionLoading(memberId);
-    setStatusMessage(null);
-    try {
-      const res = await fetch(
-        `/api/organizations/${activeOrganization!.organization_id}/members`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ member_id: memberId, membership_status: "active" }),
-        }
-      );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Fehler beim Aktivieren");
-      setStatusMessage({ type: "success", msg: "Mitglied reaktiviert" });
-      await fetchMembers();
-    } catch (err: any) {
-      setStatusMessage({ type: "error", msg: err.message });
-    } finally {
-      setActionLoading(null);
-    }
-  };
+        const userIds = (followersData || []).map((f: any) => f.user_id).filter(Boolean);
+        let profilesMap = new Map<string, FollowerUser>();
 
-  const handleRemove = async (memberId: string) => {
-    if (!session?.access_token || isDemoMode) return;
-    if (!confirm("Mitglied wirklich entfernen? Diese Aktion kann nicht rückgängig gemacht werden.")) return;
-    setActionLoading(memberId);
-    setStatusMessage(null);
-    try {
-      const res = await fetch(
-        `/api/organizations/${activeOrganization!.organization_id}/members?member_id=${memberId}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${session.access_token}` },
+        if (userIds.length > 0) {
+          const { data: profilesData } = await window.supabase
+            .from("profiles")
+            .select("id, username, display_name, avatar_url")
+            .in("id", userIds);
+
+          if (profilesData) {
+            profilesMap = new Map(profilesData.map((p: any) => [p.id, p as FollowerUser]));
+          }
         }
-      );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Fehler beim Entfernen");
-      setStatusMessage({ type: "success", msg: "Mitglied entfernt" });
-      await fetchMembers();
-    } catch (err: any) {
-      setStatusMessage({ type: "error", msg: err.message });
-    } finally {
-      setActionLoading(null);
-    }
-  };
+
+        const followersWithProfiles = (followersData || []).map((f: any) => ({
+          id: f.id,
+          user_id: f.user_id,
+          created_at: f.created_at,
+          profile: profilesMap.get(f.user_id) || null,
+        }));
+
+        setFollowers(followersWithProfiles);
+        setFollowerCount(followersWithProfiles.length);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchFollowers();
+  }, [activeOrganization, router]);
 
   if (!activeOrganization) {
     return (
@@ -246,21 +117,34 @@ export default function MembersPage() {
             {activeOrganization.organizations?.name}
           </p>
           <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none">
-            Mitglieder
+            Follower
           </h1>
         </div>
       </header>
 
       <div className="px-8 space-y-6 mt-4">
-        {statusMessage && (
-          <div className={`p-3 rounded-2xl flex items-start gap-2 text-sm font-bold border ${
-            statusMessage.type === "success"
-              ? "bg-green-500/10 border-green-500/20 text-green-400"
-              : "bg-red-500/10 border-red-500/20 text-red-400"
-          }`}>
-            {statusMessage.type === "success" ? <CheckCircle2 size={16} className="shrink-0" /> : <AlertTriangle size={16} className="shrink-0" />}
-            <span>{statusMessage.msg}</span>
-          </div>
+        {/* Follower count summary */}
+        {!loading && !error && (
+          <Card className="bg-[#1e3a24] border-white/10 p-4 rounded-3xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center">
+                  <Users size={18} className="text-[#00F5FF]" />
+                </div>
+                <div>
+                  <p className="text-sm font-black">{followerCount} Follower</p>
+                  <p className="text-[10px] text-white/40">dieser Community</p>
+                </div>
+              </div>
+              <Link
+                href={`/community/${activeOrganization.organization_id}`}
+                className="flex items-center gap-1 text-[10px] font-bold text-[#00F5FF] hover:text-[#00F5FF]/80 transition-colors"
+              >
+                <ExternalLink size={10} />
+                Community ansehen
+              </Link>
+            </div>
+          </Card>
         )}
 
         {loading ? (
@@ -270,35 +154,40 @@ export default function MembersPage() {
         ) : error ? (
           <Card className="bg-red-500/10 border-red-500/20 p-6 rounded-3xl">
             <p className="text-red-400 font-bold text-center">{error}</p>
-            <Button onClick={() => void fetchMembers()} className="mt-4 w-full bg-white/10">
+            <Button
+              onClick={() => window.location.reload()}
+              className="mt-4 w-full bg-white/10"
+            >
               Erneut versuchen
             </Button>
           </Card>
-        ) : members.length === 0 ? (
+        ) : followers.length === 0 ? (
           <Card className="bg-white/5 border-white/10 p-8 rounded-3xl text-center">
-            <p className="text-white/40 font-bold">Keine Mitglieder gefunden</p>
+            <Users size={32} className="mx-auto text-white/20 mb-3" />
+            <p className="text-white/40 font-bold">Noch keine Follower</p>
+            <p className="text-[10px] text-white/20 mt-1">
+              Alle, die dieser Community folgen, werden hier angezeigt.
+            </p>
           </Card>
         ) : (
           <div className="space-y-3">
-            {members.map((member) => {
-              const isSelf = member.user?.id === user?.id;
-              const isOwnerRole = member.role === "owner";
-              const isSuspended = member.membership_status === "suspended";
+            {followers.map((follower) => {
+              const isSelf = follower.profile?.id === user?.id;
 
               return (
                 <Card
-                  key={member.id}
+                  key={follower.id}
                   className={`bg-[#1e3a24] border-white/10 p-5 rounded-3xl ${
-                    isSuspended ? "opacity-60" : ""
+                    isSelf ? "border-[#00F5FF]/30 bg-[#00F5FF]/5" : ""
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center shrink-0">
-                        {member.user?.avatar_url ? (
+                      <div className="w-10 h-10 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center shrink-0 overflow-hidden">
+                        {follower.profile?.avatar_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
-                            src={member.user.avatar_url}
+                            src={follower.profile.avatar_url}
                             alt=""
                             className="w-full h-full rounded-full object-cover"
                           />
@@ -309,7 +198,7 @@ export default function MembersPage() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-black text-sm truncate">
-                            {member.user?.display_name || member.user?.username || "Unbekannt"}
+                            {follower.profile?.display_name || follower.profile?.username || "Unbekannt"}
                           </p>
                           {isSelf && (
                             <span className="text-[10px] font-bold text-[#00F5FF] bg-[#00F5FF]/10 px-2 py-0.5 rounded-full">
@@ -317,96 +206,23 @@ export default function MembersPage() {
                             </span>
                           )}
                         </div>
-                        {member.user?.username && (
+                        {follower.profile?.username && (
                           <p className="text-[10px] text-white/40 font-mono truncate">
-                            @{member.user.username}
+                            @{follower.profile.username}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
-                      <RoleBadge role={member.role} />
-                      <StatusBadge status={member.membership_status} />
-                    </div>
-                  </div>
-
-                  {canManage && !isSelf && !isOwnerRole && (
-                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-2">
-                      <Select
-                        value={member.role}
-                        onValueChange={(value) => { if (value && member.id) void handleRoleChange(member.id, value); }}
-                        disabled={!!actionLoading}
-                      >
-                        <SelectTrigger className="h-9 bg-black/20 border-white/10 text-xs font-bold flex-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#1a191b] border-white/10">
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="staff">Staff</SelectItem>
-                          <SelectItem value="member">Mitglied</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      {isSuspended ? (
-                        <Button
-                          size="sm"
-                          onClick={() => void handleActivate(member.id)}
-                          disabled={!!actionLoading}
-                          className="h-9 bg-green-600 hover:bg-green-700 text-white font-bold text-xs px-3"
-                        >
-                          {actionLoading === member.id ? (
-                            <Loader2 size={12} className="animate-spin" />
-                          ) : (
-                            "Aktivieren"
-                          )}
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => void handleSuspend(member.id)}
-                          disabled={!!actionLoading}
-                          className="h-9 text-orange-400 hover:bg-orange-500/10 font-bold text-xs px-2"
-                        >
-                          Sperren
-                        </Button>
-                      )}
-
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => void handleRemove(member.id)}
-                        disabled={!!actionLoading}
-                        className="h-9 text-red-400 hover:bg-red-500/10 font-bold text-xs px-2"
-                      >
-                        {actionLoading === member.id ? (
-                          <Loader2 size={12} className="animate-spin" />
-                        ) : (
-                          <UserMinus size={14} />
-                        )}
-                      </Button>
-                    </div>
-                  )}
-
-                  {isOwnerRole && (
-                    <div className="mt-4 pt-4 border-t border-white/5">
-                      <p className="text-[10px] text-yellow-400/60 font-bold uppercase tracking-wider">
-                        Owner kann nicht geändert werden
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <p className="text-[10px] text-white/30 font-mono">
+                        seit {formatFollowDate(follower.created_at)}
                       </p>
                     </div>
-                  )}
+                  </div>
                 </Card>
               );
             })}
-          </div>
-        )}
-
-        {!canManage && !loading && members.length > 0 && (
-          <div className="text-center py-6">
-            <p className="text-xs text-white/30 font-bold uppercase tracking-wider">
-              Nur Owner und Admins können Mitglieder verwalten
-            </p>
           </div>
         )}
       </div>
