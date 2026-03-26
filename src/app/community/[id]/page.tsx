@@ -147,36 +147,12 @@ export default function CommunityDetailPage() {
           <ArrowLeft size={16} />
           <span className="text-sm">Zurueck</span>
         </Link>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">
-              Deine Community
-            </p>
-            <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none mt-1">
-              {organization.name}
-            </h1>
-            <OrgTypeLabel type={organization.organization_type} />
-          </div>
-          <div className="flex items-center gap-2">
-            {user && isAdminOrGründer && (
-              <CreateStrainModal
-                organizationId={organizationId}
-                trigger={
-                  <button className="w-10 h-10 rounded-full bg-[#2FF801]/20 border border-[#2FF801]/40 flex items-center justify-center text-[#2FF801] hover:bg-[#2FF801]/30 transition-colors">
-                    <Plus size={18} />
-                  </button>
-                }
-                onSuccess={() => setRefreshKey((k) => k + 1)}
-              />
-            )}
-            {user && isAdminOrGründer && (
-              <Link
-                href="/settings/organization"
-                className="w-10 h-10 rounded-full bg-black/10 border border-black/20 flex items-center justify-center text-black/60 hover:text-black hover:bg-black/20 transition-colors"
-              >
-                <Settings size={16} />
-              </Link>
-            )}
+        <div>
+          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none">
+            {organization.name}
+          </h1>
+          <OrgTypeLabel type={organization.organization_type} />
+          <div className="mt-2">
             <FollowButton organizationId={organizationId} />
           </div>
         </div>
