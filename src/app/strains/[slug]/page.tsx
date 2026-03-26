@@ -389,10 +389,7 @@ export default function StrainDetailPage() {
               style={{ borderColor: themeColor, boxShadow: `0 0 15px ${themeColor}4d` }}
             >
               <div className="p-3.5 pb-2">
-                <h2 className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#adaaab] truncate">
-                  {farmerDisplay}
-                </h2>
-                <p className="mt-1 title-font italic text-sm font-black leading-tight uppercase text-white break-words line-clamp-2 min-h-[2.5rem]">
+                <p className="title-font italic text-sm font-black leading-tight uppercase text-white break-words line-clamp-2 min-h-[2.5rem]">
                   {normalizedStrainName}
                 </p>
               </div>

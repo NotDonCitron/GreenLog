@@ -47,10 +47,7 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
       }}
     >
       <div className="p-3 pb-1 min-w-0 relative z-10">
-        <h2 className="text-[9px] font-bold tracking-[0.15em] uppercase text-white/30 truncate">
-          {farmerDisplay}
-        </h2>
-        <p className="mt-0.5 title-font italic text-[13px] font-black leading-tight uppercase text-white break-words line-clamp-2">
+        <p className="title-font italic text-[13px] font-black leading-tight uppercase text-white break-words line-clamp-2">
           {normalizedStrainName}
         </p>
       </div>
