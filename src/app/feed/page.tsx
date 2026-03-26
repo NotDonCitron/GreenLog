@@ -18,6 +18,7 @@ export default function FeedPage() {
   const [activeTab, setActiveTab] = useState<FeedTab>("foryou");
   const [followingFilter, setFollowingFilter] = useState<FollowingFilter>("users");
   const [communities, setCommunities] = useState<any[]>([]);
+  const [otherCommunities, setOtherCommunities] = useState<any[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
 
   const tabs: { id: FeedTab; label: string; icon: typeof Sparkles }[] = [
@@ -29,17 +30,32 @@ export default function FeedPage() {
   useEffect(() => {
     if ((activeTab === "discover" || activeTab === "following") && user) {
       setLoadingCommunities(true);
-      // Fetch user's communities
-      supabase
-        .from("organization_memberships")
-        .select("organization_id, role, organizations(*)")
-        .eq("user_id", user.id)
-        .eq("membership_status", "active")
-        .then(({ data }) => {
-          const orgs = (data || []).map((m: any) => m.organizations).filter(Boolean);
-          setCommunities(orgs);
-          setLoadingCommunities(false);
-        });
+
+      Promise.all([
+        // Fetch user's communities
+        supabase
+          .from("organization_memberships")
+          .select("organization_id, role, organizations(*)")
+          .eq("user_id", user.id)
+          .eq("membership_status", "active"),
+        // Fetch other communities (not member of)
+        supabase
+          .from("organizations")
+          .select("*")
+          .eq("status", "active")
+          .order("name", { ascending: true })
+      ]).then(([myCommunitiesRes, allCommunitiesRes]) => {
+        // Set my communities
+        const myOrgs = (myCommunitiesRes.data || []).map((m: any) => m.organizations).filter(Boolean);
+        setCommunities(myOrgs);
+
+        // Filter out communities user is already a member of
+        const myOrgIds = new Set(myOrgs.map((o: any) => o.id));
+        const otherOrgs = (allCommunitiesRes.data || []).filter((org: any) => !myOrgIds.has(org.id));
+        setOtherCommunities(otherOrgs);
+
+        setLoadingCommunities(false);
+      });
     }
   }, [activeTab, user]);
 
@@ -252,6 +268,48 @@ export default function FeedPage() {
                     >
                       Erstelle eine
                     </Link>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Other Communities to Explore */}
+            {user && (
+              <section>
+                <h3 className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
+                  Andere Communities entdecken
+                </h3>
+                {loadingCommunities ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 size={20} className="animate-spin text-[#00F5FF]" />
+                  </div>
+                ) : otherCommunities.length > 0 ? (
+                  <div className="space-y-2">
+                    {otherCommunities.slice(0, 10).map((org: any) => (
+                      <Link
+                        key={org.id}
+                        href={`/community/${org.id}`}
+                        className="flex items-center gap-3 p-3 bg-[var(--card)] rounded-xl border border-[var(--border)] hover:border-[#2FF801]/50 transition-colors"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
+                          {org.logo_url ? (
+                            <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-[#00F5FF] font-bold text-sm">{org.name.charAt(0)}</span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm text-[var(--foreground)] truncate">{org.name}</p>
+                          <p className="text-[10px] text-[var(--muted-foreground)] uppercase">
+                            {org.organization_type}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 bg-[var(--card)] rounded-xl border border-[var(--border)]">
+                    <p className="text-xs text-[var(--muted-foreground)]">Keine weiteren Communities verfügbar</p>
                   </div>
                 )}
               </section>
