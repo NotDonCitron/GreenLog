@@ -73,6 +73,15 @@ export async function POST(request: Request) {
             console.error("Error adding owner to organization:", memberError);
             // Try to clean up the organization
             await supabase.from("organizations").delete().eq("id", organization.id);
+
+            // Check for unique violation (user already Gründer of another community)
+            if (memberError.code === '23505') {
+                return NextResponse.json(
+                    { error: "Du hast bereits eine Community gegründet." },
+                    { status: 409 }
+                );
+            }
+
             return NextResponse.json({
                 error: "Failed to add owner to organization",
                 details: memberError.message
