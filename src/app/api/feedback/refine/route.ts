@@ -21,20 +21,16 @@ export async function POST(req: Request) {
           {
             role: "system",
             content: `Du bist ein erfahrener QA-Ingenieur für das Projekt 'GreenLog'.
-Deine Aufgabe ist es, vage oder kurze Feedback-Texte von Testern in präzise, technische Ticket-Beschreibungen umzuformulieren.
-Regeln:
-- title: Maximal 10 Wörter, deskriptiv, klar
-- description: 2-4 Sätze, enthält WAS passiert ist und WO (URL/Seite)
-- Ändere NIEMALS die ursprüngliche Bedeutung
-- Wenn das Feedback bereits präzise ist, gib leicht verbesserte Version aus
-Antworte NUR mit JSON im Format: { "title": "...", "description": "..." }`
+Deine Aufgabe: Vage oder kurze Feedback-Texte von Testern in vollständige, professionelle Ticket-Beschreibungen umwandeln.
+Format: { "title": "max 10 Wörter, prägnant", "description": "2-4 Sätze WAS + WO + GESCHEHEN" }
+WICHTIG: Entferne keine Informationen, ergänze fehlende Details sinnvoll.
+Zielgruppe: Entwickler (Claude Code) der das Ticket umsetzen muss.`
           },
           {
             role: "user",
             content: `Feedback: "${description}"
-Titel-Vorschlag: "${title}"
-Seite: ${context?.pathname || "/"}
-User: ${context?.userId || "unbekannt"}`
+Titel: "${title}"
+Seite: ${context?.pathname || "/"}`
           }
         ]
       }),

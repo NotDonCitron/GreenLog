@@ -117,7 +117,7 @@ function createFallbackViewModel(isDemoMode: boolean): ProfileViewModel {
   };
 }
 
-function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow: string; title: string; icon?: LucideIcon }) {
+function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow?: string; title: string; icon?: LucideIcon }) {
   return (
     <div className="space-y-1 px-1">
       {eyebrow && <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#A3E4D7]/70">{eyebrow}</p>}
