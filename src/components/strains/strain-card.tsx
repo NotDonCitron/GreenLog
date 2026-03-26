@@ -39,7 +39,7 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
   return (
     <Link
       href={`/strains/${strain.slug}`}
-      className={`premium-card ${themeClass} group relative flex w-full min-w-0 flex-col rounded-[20px] border-2 bg-[#121212] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] min-h-[240px]`}
+      className={`premium-card ${themeClass} group relative flex w-full h-full min-w-0 flex-col rounded-[20px] border-2 bg-[#121212] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] overflow-hidden`}
       style={{
         borderColor: themeColor,
         animationDelay: `${index * 0.05}s`,
@@ -55,8 +55,8 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
         </p>
       </div>
 
-      <div className="px-2 w-full relative z-10">
-        <div className="relative w-full h-[80px] rounded-xl border border-white/5 shadow-lg">
+      <div className="flex-1 px-2 w-full relative z-10 flex flex-col min-h-[60px]">
+        <div className="relative w-full flex-1 rounded-xl border border-white/5 shadow-lg">
           <Image
             src={strain.image_url || "/strains/placeholder-1.svg"}
             alt={strain.name}

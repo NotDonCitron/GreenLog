@@ -70,7 +70,7 @@ export default function Home() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-[#a1faff]/5 blur-[200px] rounded-full" />
       </div>
 
-      <div className="relative mx-auto w-full px-4 pt-12 flex flex-col gap-6 min-h-screen">
+      <div className="relative mx-auto w-full px-4 pt-12 flex flex-col gap-6 h-screen overflow-hidden">
         {/* Header */}
         <header className="flex justify-between items-center shrink-0">
           <div className="flex items-center gap-3">
@@ -108,9 +108,9 @@ export default function Home() {
         ) : (
           <div className="flex-1 flex flex-col">
             {/* Strain of the Day - Full remaining space */}
-            <section className="flex-1 flex flex-col gap-4">
+            <section className="flex-1 flex flex-col gap-4 min-h-0">
               {strainOfTheDay && (
-                <div className="flex-1 flex items-center justify-center">
+                <div className="min-h-0" style={{ height: 'calc(100vh - 340px)' }}>
                   <StrainCard strain={strainOfTheDay} index={0} />
                 </div>
               )}
