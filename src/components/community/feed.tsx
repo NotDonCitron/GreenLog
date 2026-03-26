@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/components/auth-provider";
 import { Leaf, Sprout, Star, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
@@ -126,44 +125,19 @@ function EmptyFeed() {
   );
 }
 
-function UnauthorizedFeed() {
-  return (
-    <div className="text-center py-12 space-y-3">
-      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto">
-        <Leaf size={24} className="text-white/20" />
-      </div>
-      <p className="text-white/40 text-sm">Melde dich an, um den Feed zu sehen.</p>
-    </div>
-  );
-}
-
 export function CommunityFeed({ organizationId }: CommunityFeedProps) {
-  const { session } = useAuth();
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFeed = async () => {
-      if (!session?.access_token) {
-        setLoading(false);
-        return;
-      }
-
       try {
-        const res = await fetch(`/api/communities/${organizationId}/feed`, {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
+        const res = await fetch(`/api/communities/${organizationId}/feed`);
 
         if (res.ok) {
           const data: FeedResponse = await res.json();
           setFeed(data.feed || []);
-        } else if (res.status === 401) {
-          // Not authorized - show message
-          setLoading(false);
-          return;
         } else {
           setError("Feed konnte nicht geladen werden.");
         }
@@ -176,7 +150,7 @@ export function CommunityFeed({ organizationId }: CommunityFeedProps) {
     };
 
     fetchFeed();
-  }, [session, organizationId]);
+  }, [organizationId]);
 
   if (loading) {
     return (
@@ -184,10 +158,6 @@ export function CommunityFeed({ organizationId }: CommunityFeedProps) {
         <Loader2 size={24} className="animate-spin text-white/40" />
       </div>
     );
-  }
-
-  if (!session) {
-    return <UnauthorizedFeed />;
   }
 
   if (error) {
