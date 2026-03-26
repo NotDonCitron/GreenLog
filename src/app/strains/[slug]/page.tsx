@@ -318,11 +318,11 @@ export default function StrainDetailPage() {
     return withoutFarmerPrefix || rawName;
   })();
 
-  if (loading) return <div className="min-h-screen bg-[#0e0e0f] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
-  if (!strain) return <div className="min-h-screen bg-[#0e0e0f] text-white text-center py-20 uppercase font-bold">Strain not found</div>;
+  if (loading) return <div className="min-h-screen bg-[var(--background)] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
+  if (!strain) return <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] text-center py-20 uppercase font-bold">Strain not found</div>;
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
@@ -337,9 +337,9 @@ export default function StrainDetailPage() {
         </div>
       )}
 
-      <div className="sticky top-0 z-50 glass-surface border-b border-[#484849]/50 px-6 py-4 flex justify-between items-center">
-        <button onClick={() => router.back()} className="p-2 rounded-full bg-[#1a191b] border border-[#484849]/50 hover:border-[#00F5FF]/50 transition-all">
-          <ChevronLeft size={24} className="text-white" />
+      <div className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50 px-6 py-4 flex justify-between items-center">
+        <button onClick={() => router.back()} className="p-2 rounded-full bg-[var(--card)] border border-[var(--border)]/50 hover:border-[#00F5FF]/50 transition-all">
+          <ChevronLeft size={24} className="text-[var(--foreground)]" />
         </button>
         <div className="flex gap-2">
           {user && (
@@ -348,7 +348,7 @@ export default function StrainDetailPage() {
               <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
             </label>
           )}
-          <button onClick={toggleFavorite} className={`p-2 rounded-full border transition-all ${isFavorited ? 'bg-red-500/20 border-red-500/40 text-red-500' : 'bg-[#1a191b] border-[#484849]/50 text-[#adaaab] hover:border-red-500/50'}`}>
+          <button onClick={toggleFavorite} className={`p-2 rounded-full border transition-all ${isFavorited ? 'bg-red-500/20 border-red-500/40 text-red-500' : 'bg-[var(--card)] border-[var(--border)]/50 text-[var(--muted-foreground)] hover:border-red-500/50'}`}>
             <Heart size={20} fill={isFavorited ? "currentColor" : "none"} />
           </button>
           {user && strain?.created_by === user.id && (
@@ -369,7 +369,7 @@ export default function StrainDetailPage() {
               ) : (
                 <button
                   onClick={() => alert("Diese Sorte kann nicht mehr gelöscht werden, da sie bereits von anderen Community-Mitgliedern gesammelt wurde.")}
-                  className="p-2 rounded-full border border-[#484849]/50 bg-[#1a191b] text-[#484849]"
+                  className="p-2 rounded-full border border-[var(--border)]/50 bg-[var(--card)] text-[#484849]"
                 >
                   <Lock size={20} />
                 </button>
@@ -389,39 +389,39 @@ export default function StrainDetailPage() {
               style={{ borderColor: themeColor, boxShadow: `0 0 15px ${themeColor}4d` }}
             >
               <div className="p-3.5 pb-2">
-                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[#adaaab] truncate">
+                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[var(--muted-foreground)] truncate">
                   {farmerDisplay}
                 </p>
-                <p className="mt-1 title-font italic text-sm font-black leading-tight uppercase text-white break-words line-clamp-2 min-h-[2.5rem]">
+                <p className="mt-1 title-font italic text-sm font-black leading-tight uppercase text-[var(--foreground)] break-words line-clamp-2 min-h-[2.5rem]">
                   {normalizedStrainName}
                 </p>
               </div>
               <div className="px-5 w-full">
-                <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-[#484849]/50">
+                <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-[var(--border)]/50">
                   <img src={userImageUrl || strain.image_url || "/strains/placeholder-1.svg"} alt={strain.name} className="w-full h-full object-cover" />
                   <div className="absolute bottom-2 left-2 border bg-black/70 backdrop-blur-md uppercase text-[9px] px-2 py-1 rounded-sm font-bold" style={{ borderColor: themeColor, color: themeColor }}>{strain.type || 'HYBRID'}</div>
                 </div>
               </div>
               <div className="px-5 mt-5 w-full mb-5">
-                <div className="bg-[#1a191b] border border-[#484849]/50 rounded-xl p-4">
+                <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-xl p-4">
                   {/* Row 1: THC & Geschmack */}
-                  <div className="grid grid-cols-2 gap-4 border-b border-[#484849]/50 pb-2 mb-2">
+                  <div className="grid grid-cols-2 gap-4 border-b border-[var(--border)]/50 pb-2 mb-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-[#adaaab] text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
-                      <span className="text-sm font-bold tracking-wide text-white">{thcDisplay}</span>
+                      <span className="text-[var(--muted-foreground)] text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">THC</span>
+                      <span className="text-sm font-bold tracking-wide text-[var(--foreground)]">{thcDisplay}</span>
                     </div>
-                    <div className="flex justify-end border-l border-[#484849]/50 pl-4 w-full">
-                      <span className="text-[#adaaab] text-[10px] font-medium tracking-wide truncate">{tasteDisplay}</span>
+                    <div className="flex justify-end border-l border-[var(--border)]/50 pl-4 w-full">
+                      <span className="text-[var(--muted-foreground)] text-[10px] font-medium tracking-wide truncate">{tasteDisplay}</span>
                     </div>
                   </div>
                   {/* Row 2: CBD & Wirkung */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-[#adaaab] text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
-                      <span className="text-sm font-bold tracking-wide text-white">{cbdDisplay}</span>
+                      <span className="text-[var(--muted-foreground)] text-[9px] uppercase tracking-widest font-semibold flex-shrink-0 mr-1">CBD</span>
+                      <span className="text-sm font-bold tracking-wide text-[var(--foreground)]">{cbdDisplay}</span>
                     </div>
-                    <div className="flex justify-end border-l border-[#484849]/50 pl-4 w-full">
-                      <span className="text-[#adaaab] text-[10px] font-medium tracking-wide truncate">{effectDisplay}</span>
+                    <div className="flex justify-end border-l border-[var(--border)]/50 pl-4 w-full">
+                      <span className="text-[var(--muted-foreground)] text-[10px] font-medium tracking-wide truncate">{effectDisplay}</span>
                     </div>
                   </div>
                 </div>
@@ -434,42 +434,42 @@ export default function StrainDetailPage() {
               style={{ borderColor: themeColor }}
             >
               <div className="flex-1 space-y-6">
-                <h3 className="font-serif italic text-xl font-bold uppercase text-white">Sorten Profil</h3>
+                <h3 className="font-serif italic text-xl font-bold uppercase text-[var(--foreground)]">Sorten Profil</h3>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-[9px] font-black uppercase text-[#adaaab] mb-1">Beschreibung</p>
-                    <p className="text-[11px] font-medium italic text-[#adaaab] leading-relaxed line-clamp-6">{strain.description}</p>
+                    <p className="text-[9px] font-black uppercase text-[var(--muted-foreground)] mb-1">Beschreibung</p>
+                    <p className="text-[11px] font-medium italic text-[var(--muted-foreground)] leading-relaxed line-clamp-6">{strain.description}</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#484849]/50">
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[var(--border)]/50">
                     <div>
-                      <p className="text-[9px] font-black uppercase text-[#adaaab] mb-1">Geschmack</p>
-                      <p className="text-[10px] font-bold text-white truncate">{tasteDisplay}</p>
+                      <p className="text-[9px] font-black uppercase text-[var(--muted-foreground)] mb-1">Geschmack</p>
+                      <p className="text-[10px] font-bold text-[var(--foreground)] truncate">{tasteDisplay}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-black uppercase text-[#adaaab] mb-1">Wirkung</p>
-                      <p className="text-[10px] font-bold text-white truncate">{effectDisplay}</p>
+                      <p className="text-[9px] font-black uppercase text-[var(--muted-foreground)] mb-1">Wirkung</p>
+                      <p className="text-[10px] font-bold text-[var(--foreground)] truncate">{effectDisplay}</p>
                     </div>
                   </div>
                   {normalizedTerpenes.length > 0 && (
-                    <div className="pt-4 border-t border-[#484849]/50">
-                      <p className="text-[9px] font-black uppercase text-[#adaaab] mb-2">Terpene</p>
+                    <div className="pt-4 border-t border-[var(--border)]/50">
+                      <p className="text-[9px] font-black uppercase text-[var(--muted-foreground)] mb-2">Terpene</p>
                       <div className="flex flex-wrap gap-1.5">
                         {normalizedTerpenes.slice(0, 6).map((t, i) => (
-                          <span key={i} className="text-[8px] font-bold px-2 py-1 bg-[#1a191b] rounded-md text-[#adaaab] border border-[#484849]/50">{t}</span>
+                          <span key={i} className="text-[8px] font-bold px-2 py-1 bg-[var(--card)] rounded-md text-[var(--muted-foreground)] border border-[var(--border)]/50">{t}</span>
                         ))}
                       </div>
                     </div>
                   )}
                 </div>
                 {(userNotes || batchInfo) && (
-                  <div className="pt-4 border-t border-[#484849]/50 space-y-4">
+                  <div className="pt-4 border-t border-[var(--border)]/50 space-y-4">
                     <div className="flex items-center gap-2 text-[#00F5FF]"><Database size={12} /><h4 className="text-[10px] font-black uppercase">Mein Journal</h4></div>
-                    {batchInfo && <p className="text-[10px] font-bold text-white">{batchInfo}</p>}
-                    {userNotes && <p className="text-[10px] italic text-[#adaaab] bg-[#1a191b] p-3 rounded-xl line-clamp-3">{userNotes}</p>}
+                    {batchInfo && <p className="text-[10px] font-bold text-[var(--foreground)]">{batchInfo}</p>}
+                    {userNotes && <p className="text-[10px] italic text-[var(--muted-foreground)] bg-[var(--card)] p-3 rounded-xl line-clamp-3">{userNotes}</p>}
                   </div>
                 )}
               </div>
-              <div className="mt-auto flex justify-center items-center gap-2 text-[10px] font-bold text-[#adaaab] uppercase tracking-widest">
+              <div className="mt-auto flex justify-center items-center gap-2 text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest">
                 <RefreshCw size={12} className="animate-spin-slow" /> Tap to Flip
               </div>
             </Card>
@@ -486,13 +486,13 @@ export default function StrainDetailPage() {
       {showRatingModal && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowRatingModal(false)} />
-          <Card className="relative w-full max-w-md bg-[#1a191b] border border-[#484849]/50 rounded-t-3xl sm:rounded-3xl p-8 space-y-8 shadow-2xl animate-in slide-in-from-bottom duration-300">
+          <Card className="relative w-full max-w-md bg-[var(--card)] border border-[var(--border)]/50 rounded-t-3xl sm:rounded-3xl p-8 space-y-8 shadow-2xl animate-in slide-in-from-bottom duration-300">
             <h2 className="text-2xl font-black italic uppercase text-[#00F5FF] text-center font-display">Tasting Log</h2>
 
             <div className="space-y-6">
               {(['taste', 'effect', 'look'] as const).map((key) => (
                 <div key={key} className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#adaaab]">{key}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">{key}</span>
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
@@ -512,8 +512,8 @@ export default function StrainDetailPage() {
             </div>
 
             <div className="space-y-4">
-              <input type="text" placeholder="Batch / Apotheke" className="w-full bg-[#131314] border border-[#484849]/50 rounded-xl py-3 px-4 text-xs text-white placeholder:text-[#484849] outline-none focus:border-[#00F5FF]" value={batchInfo} onChange={(e) => setBatchInfo(e.target.value)} />
-              <textarea placeholder="Deine Notizen..." className="w-full bg-[#131314] border border-[#484849]/50 rounded-xl py-3 px-4 text-xs text-white placeholder:text-[#484849] min-h-[100px] outline-none focus:border-[#00F5FF]" value={userNotes} onChange={(e) => setUserNotes(e.target.value)} />
+              <input type="text" placeholder="Batch / Apotheke" className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-xl py-3 px-4 text-xs text-[var(--foreground)] placeholder:text-[#484849] outline-none focus:border-[#00F5FF]" value={batchInfo} onChange={(e) => setBatchInfo(e.target.value)} />
+              <textarea placeholder="Deine Notizen..." className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-xl py-3 px-4 text-xs text-[var(--foreground)] placeholder:text-[#484849] min-h-[100px] outline-none focus:border-[#00F5FF]" value={userNotes} onChange={(e) => setUserNotes(e.target.value)} />
             </div>
             <button onClick={saveRating} disabled={isSaving} className="w-full h-16 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black font-black uppercase rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-[#00F5FF]/20">
               {isSaving ? <Loader2 className="animate-spin" /> : "SAVE LOG"}

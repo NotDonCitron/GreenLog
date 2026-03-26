@@ -49,7 +49,7 @@ function RoleBadge({ role }: { role: string }) {
   const color =
     role === "admin" ? "text-[#ff716c] bg-[#ff716c]/10 border-[#ff716c]/20" :
     role === "staff" ? "text-[#00a3ff] bg-[#00a3ff]/10 border-[#00a3ff]/20" :
-    "text-[#adaaab] bg-[#262627] border-[#484849]/50";
+    "text-[var(--muted-foreground)] bg-[var(--muted)] border-[var(--border)]/50";
   return (
     <span className={`inline-flex items-center text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${color}`}>
       {formatRoleLabel(role)}
@@ -83,7 +83,7 @@ function StatusBadge({ status }: { status: string }) {
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#262627] border border-[#484849]/50 text-[#adaaab]">
+    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--muted)] border border-[var(--border)]/50 text-[var(--muted-foreground)]">
       {status}
     </span>
   );
@@ -217,7 +217,7 @@ export default function InvitesPage() {
 
   if (!activeOrganization) {
     return (
-      <main className="min-h-screen bg-[#0e0e0f] flex items-center justify-center">
+      <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <Loader2 className="animate-spin text-[#00F5FF]" size={32} />
       </main>
     );
@@ -227,7 +227,7 @@ export default function InvitesPage() {
   const inviteLink = createdInviteToken ? `${baseUrl}/invite/${createdInviteToken}` : null;
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
@@ -237,15 +237,15 @@ export default function InvitesPage() {
       <header className="px-6 pt-12 pb-4 flex items-center gap-4 relative z-10">
         <button
           onClick={() => router.back()}
-          className="p-2 rounded-full bg-[#1a191b] border border-[#484849]/50 hover:border-[#00F5FF]/50 transition-all"
+          className="p-2 rounded-full bg-[var(--card)] border border-[var(--border)]/50 hover:border-[#00F5FF]/50 transition-all"
         >
-          <ChevronLeft size={20} className="text-white" />
+          <ChevronLeft size={20} className="text-[var(--foreground)]" />
         </button>
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">
             {activeOrganization.organizations?.name}
           </p>
-          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-white">
+          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
             Admin anlegen
           </h1>
         </div>
@@ -264,7 +264,7 @@ export default function InvitesPage() {
         )}
 
         {createdInviteToken && inviteLink && (
-          <Card className="bg-[#1a191b] border border-[#2FF801]/30 p-5 rounded-3xl space-y-4">
+          <Card className="bg-[var(--card)] border border-[#2FF801]/30 p-5 rounded-3xl space-y-4">
             <div className="flex items-center gap-2">
               <CheckCircle2 size={16} className="text-[#2FF801]" />
               <p className="text-sm font-black text-[#2FF801]">Einladung erstellt für {createdInviteEmail}</p>
@@ -273,7 +273,7 @@ export default function InvitesPage() {
               <Input
                 value={inviteLink}
                 readOnly
-                className="bg-[#131314] border border-[#484849]/50 text-[#adaaab] text-xs font-mono h-10 flex-1"
+                className="bg-[var(--input)] border border-[var(--border)]/50 text-[var(--muted-foreground)] text-xs font-mono h-10 flex-1"
               />
               <Button
                 size="sm"
@@ -290,7 +290,7 @@ export default function InvitesPage() {
               variant="ghost"
               size="sm"
               onClick={() => setCreatedInviteToken(null)}
-              className="w-full text-[#adaaab] hover:text-white"
+              className="w-full text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
             >
               Schließen
             </Button>
@@ -298,7 +298,7 @@ export default function InvitesPage() {
         )}
 
         {isOwner && (
-          <Card className="bg-[#1a191b] border border-[#484849]/50 p-5 rounded-3xl">
+          <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
             {!showCreateForm ? (
               <Button
                 onClick={() => setShowCreateForm(true)}
@@ -310,11 +310,11 @@ export default function InvitesPage() {
             ) : (
               <form onSubmit={(e) => void handleCreateInvite(e)} className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-black uppercase tracking-widest text-[#adaaab]">Neue Einladung</p>
+                  <p className="text-xs font-black uppercase tracking-widest text-[var(--muted-foreground)]">Neue Einladung</p>
                   <button
                     type="button"
                     onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: "admin" }); }}
-                    className="text-[#adaaab] hover:text-white"
+                    className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                   >
                     <X size={16} />
                   </button>
@@ -328,13 +328,13 @@ export default function InvitesPage() {
                     placeholder="email@beispiel.de"
                     required
                     disabled={isDemoMode}
-                    className="bg-[#131314] border border-[#484849]/50 text-white h-12 rounded-xl focus:border-[#00F5FF]"
+                    className="bg-[var(--input)] border border-[var(--border)]/50 text-[var(--foreground)] h-12 rounded-xl focus:border-[#00F5FF]"
                   />
                 </div>
 
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-[#ff716c]/10 border border-[#ff716c]/20">
                   <span className="text-[10px] font-black uppercase tracking-widest text-[#ff716c]">Admin</span>
-                  <span className="text-[10px] text-[#adaaab]">Nur Admins können eingeladen werden</span>
+                  <span className="text-[10px] text-[var(--muted-foreground)]">Nur Admins können eingeladen werden</span>
                 </div>
 
                 <Button
@@ -349,7 +349,7 @@ export default function InvitesPage() {
                   type="button"
                   variant="ghost"
                   onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: "admin" }); }}
-                  className="w-full h-10 text-[#adaaab] hover:text-white bg-[#262627] border border-[#484849]/50 hover:border-[#00F5FF]/50 font-black uppercase tracking-widest text-xs"
+                  className="w-full h-10 text-[var(--muted-foreground)] hover:text-[var(--foreground)] bg-[var(--muted)] border border-[var(--border)]/50 hover:border-[#00F5FF]/50 font-black uppercase tracking-widest text-xs"
                 >
                   Abbrechen
                 </Button>
@@ -366,27 +366,27 @@ export default function InvitesPage() {
         ) : error ? (
           <Card className="bg-[#ff716c]/10 border-[#ff716c]/20 p-6 rounded-3xl">
             <p className="text-[#ff716c] font-bold text-center">{error}</p>
-            <Button onClick={() => void fetchInvites()} className="mt-4 w-full bg-[#262627] border border-[#484849]/50">
+            <Button onClick={() => void fetchInvites()} className="mt-4 w-full bg-[var(--muted)] border border-[var(--border)]/50">
               Erneut versuchen
             </Button>
           </Card>
         ) : invites.length === 0 ? (
-          <Card className="bg-[#1a191b] border border-[#484849]/50 p-8 rounded-3xl text-center">
+          <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-8 rounded-3xl text-center">
             <Mail size={32} className="mx-auto text-[#484849] mb-3" />
-            <p className="text-[#adaaab] font-bold">Keine ausstehenden Einladungen</p>
+            <p className="text-[var(--muted-foreground)] font-bold">Keine ausstehenden Einladungen</p>
           </Card>
         ) : (
           <div className="space-y-3">
             {invites.map((invite) => (
-              <Card key={invite.id} className="bg-[#1a191b] border border-[#484849]/50 p-5 rounded-3xl">
+              <Card key={invite.id} className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center shrink-0">
                       <Mail size={16} className="text-[#00F5FF]" />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-black text-sm truncate text-white">{invite.email}</p>
-                      <p className="text-[10px] text-[#adaaab] font-mono truncate">
+                      <p className="font-black text-sm truncate text-[var(--foreground)]">{invite.email}</p>
+                      <p className="text-[10px] text-[var(--muted-foreground)] font-mono truncate">
                         Läuft ab: {new Date(invite.expires_at).toLocaleDateString("de-DE")}
                       </p>
                     </div>

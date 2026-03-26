@@ -122,7 +122,7 @@ function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow?: string; title
   return (
     <div className="space-y-1 px-1">
       {eyebrow && <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#00F5FF]/70">{eyebrow}</p>}
-      <h2 className="text-lg font-semibold tracking-tight text-white flex items-center gap-2 font-display">
+      <h2 className="text-lg font-semibold tracking-tight text-[var(--foreground)] flex items-center gap-2 font-display">
         {Icon && <Icon size={18} className="text-[#00F5FF]" />}
         {title}
       </h2>
@@ -272,7 +272,7 @@ export default function ProfilePage() {
             onClick={(e) => { if (isDragging) e.preventDefault(); }}
           >
             <Card
-              className="overflow-hidden rounded-[2rem] border border-[#484849]/50 bg-[#1a191b] p-0 shadow-lg hover:border-[#00F5FF]/50 transition-all cursor-grab active:cursor-grabbing"
+              className="overflow-hidden rounded-[2rem] border border-[var(--border)]/50 bg-[var(--card)] p-0 shadow-lg hover:border-[#00F5FF]/50 transition-all cursor-grab active:cursor-grabbing"
               {...attributes}
               {...listeners}
             >
@@ -283,11 +283,11 @@ export default function ProfilePage() {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1a191b] via-transparent to-transparent" />
-                <div className="absolute top-3 right-3 bg-[#0e0e0f]/60 backdrop-blur-sm rounded-full p-1.5">
-                  <GripVertical size={14} className="text-white/50" />
+                <div className="absolute top-3 right-3 bg-[var(--background)]/60 backdrop-blur-sm rounded-full p-1.5">
+                  <GripVertical size={14} className="text-[var(--foreground)]/50" />
                 </div>
                 <div className="absolute bottom-4 left-4 right-4">
-                  <p className="text-sm font-black uppercase tracking-tight truncate text-white font-display">{favorite.name}</p>
+                  <p className="text-sm font-black uppercase tracking-tight truncate text-[var(--foreground)] font-display">{favorite.name}</p>
                   <p className="text-[10px] text-[#00F5FF] font-bold">{favorite.thcDisplay}</p>
                 </div>
               </div>
@@ -418,7 +418,7 @@ export default function ProfilePage() {
   };
 
   if (pageState === "loading") return (
-    <div className="min-h-screen bg-[#0e0e0f] flex items-center justify-center">
+    <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
       <div className="relative">
         <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
         <div className="absolute inset-0 blur-xl bg-[#00F5FF]/20 animate-pulse" />
@@ -432,7 +432,7 @@ export default function ProfilePage() {
   // Not logged in
   if (!user && !isDemoMode) {
     return (
-      <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
           <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#2FF801]/5 blur-[120px] rounded-full" />
@@ -441,10 +441,10 @@ export default function ProfilePage() {
         <header className="px-6 pt-12 pb-4 relative z-10">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-white">Profil</h1>
+              <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">Profil</h1>
             </div>
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[#1a191b] border border-[#484849]/50 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[var(--card)] border border-[var(--border)]/50 flex items-center justify-center">
                 <span className="text-sm font-black text-[#00F5FF]">CL</span>
               </div>
               <Link href="/login" className="px-5 py-2 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
@@ -453,17 +453,17 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="bg-[#1a191b] rounded-[2.5rem] p-8 border border-[#484849]/50 relative overflow-hidden">
+          <div className="bg-[var(--card)] rounded-[2.5rem] p-8 border border-[var(--border)]/50 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-[#00F5FF]/5 via-transparent to-[#2FF801]/5 pointer-events-none" />
 
             <div className="relative z-10 space-y-6">
-              <div className="w-20 h-20 mx-auto rounded-full bg-[#262627] border-2 border-[#484849] flex items-center justify-center">
+              <div className="w-20 h-20 mx-auto rounded-full bg-[var(--muted)] border-2 border-[var(--border)] flex items-center justify-center">
                 <UserRound size={40} className="text-[#484849]" />
               </div>
 
               <div className="space-y-2 text-center">
-                <h2 className="text-2xl font-black uppercase italic tracking-tight font-display text-white">Profil gesperrt</h2>
-                <p className="text-xs text-[#adaaab] font-medium tracking-wide leading-relaxed">
+                <h2 className="text-2xl font-black uppercase italic tracking-tight font-display text-[var(--foreground)]">Profil gesperrt</h2>
+                <p className="text-xs text-[var(--muted-foreground)] font-medium tracking-wide leading-relaxed">
                   Logge dich ein, um deine Sammlung zu verwalten,<br />
                   Achievements zu sammeln und dich mit der<br />
                   Community zu vernetzen.
@@ -477,7 +477,7 @@ export default function ProfilePage() {
                   </button>
                 </Link>
                 <Link href="/login?signup=true">
-                  <button className="w-full py-4 bg-[#1a191b] border border-[#484849]/50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#00F5FF]/50 transition-all">
+                  <button className="w-full py-4 bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#00F5FF]/50 transition-all">
                     Neues Konto erstellen
                   </button>
                 </Link>
@@ -492,7 +492,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
@@ -502,7 +502,7 @@ export default function ProfilePage() {
       <header className="px-6 pt-12 pb-4 relative z-10">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-white">
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
               Profil
             </h1>
           </div>
@@ -510,7 +510,7 @@ export default function ProfilePage() {
             <FeedbackButton variant="header" canSee={!!user && FEEDBACK_BUTTON_USER_IDS.includes(user.id)} />
             <ThemeToggle />
             <Link href="/profile/settings">
-              <button className="w-10 h-10 rounded-xl bg-[#1a191b] border border-[#484849]/50 flex items-center justify-center text-[#adaaab] hover:text-[#00F5FF] hover:border-[#00F5FF]/50 transition-all">
+              <button className="w-10 h-10 rounded-xl bg-[var(--card)] border border-[var(--border)]/50 flex items-center justify-center text-[var(--muted-foreground)] hover:text-[#00F5FF] hover:border-[#00F5FF]/50 transition-all">
                 <Settings size={18} />
               </button>
             </Link>
@@ -527,13 +527,13 @@ export default function ProfilePage() {
         )}
 
         {/* Profile Card */}
-        <div className="bg-[#1a191b] rounded-[2rem] p-5 border border-[#484849]/50 relative overflow-hidden">
+        <div className="bg-[var(--card)] rounded-[2rem] p-5 border border-[var(--border)]/50 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-[#00F5FF]/5 via-transparent to-[#2FF801]/5 pointer-events-none" />
 
           <div className="flex items-start gap-5 relative z-10">
             {/* Avatar */}
             <div className="relative">
-              <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#00F5FF]/50 bg-[#262627] flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#00F5FF]/50 bg-[var(--muted)] flex items-center justify-center">
                 {identity.avatarUrl ? (
                   <img src={identity.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -551,15 +551,15 @@ export default function ProfilePage() {
               <div className="grid grid-cols-3 gap-2 mb-4">
                 <button onClick={() => setFollowersModal({ isOpen: true, mode: "followers" })} className="text-center px-1">
                   <p className="text-xl font-black text-[#00F5FF] font-display">{stats.followers}</p>
-                  <p className="text-[7px] font-semibold uppercase tracking-wider text-[#adaaab] mt-0.5">Follower</p>
+                  <p className="text-[7px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mt-0.5">Follower</p>
                 </button>
-                <button onClick={() => setFollowersModal({ isOpen: true, mode: "following" })} className="text-center px-1 border-x border-[#484849]/30">
+                <button onClick={() => setFollowersModal({ isOpen: true, mode: "following" })} className="text-center px-1 border-x border-[var(--border)]/30">
                   <p className="text-xl font-black text-[#2FF801] font-display">{stats.following}</p>
-                  <p className="text-[7px] font-semibold uppercase tracking-wider text-[#adaaab] mt-0.5">Following</p>
+                  <p className="text-[7px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mt-0.5">Following</p>
                 </button>
                 <div className="text-center px-1">
-                  <p className="text-xl font-black text-white font-display">{stats.totalStrains}</p>
-                  <p className="text-[7px] font-semibold uppercase tracking-wider text-[#adaaab] mt-0.5">Strains</p>
+                  <p className="text-xl font-black text-[var(--foreground)] font-display">{stats.totalStrains}</p>
+                  <p className="text-[7px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mt-0.5">Strains</p>
                 </div>
               </div>
 
@@ -569,12 +569,12 @@ export default function ProfilePage() {
                   <button onClick={handleSaveProfile} disabled={isSaving} className="flex-1 py-2 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1">
                     {isSaving ? <Loader2 size={12} className="animate-spin" /> : <><Check size={12} /> Save</>}
                   </button>
-                  <button onClick={() => setIsEditing(false)} className="w-10 py-2 bg-[#262627] border border-[#484849]/50 rounded-xl flex items-center justify-center text-[#adaaab]">
+                  <button onClick={() => setIsEditing(false)} className="w-10 py-2 bg-[var(--muted)] border border-[var(--border)]/50 rounded-xl flex items-center justify-center text-[var(--muted-foreground)]">
                     <X size={12} />
                   </button>
                 </div>
               ) : (
-                <button onClick={() => setIsEditing(true)} className="w-full py-2 bg-[#262627] border border-[#484849]/50 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:border-[#00F5FF]/50 transition-all">
+                <button onClick={() => setIsEditing(true)} className="w-full py-2 bg-[var(--muted)] border border-[var(--border)]/50 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:border-[#00F5FF]/50 transition-all">
                   Profil bearbeiten
                 </button>
               )}
@@ -589,27 +589,27 @@ export default function ProfilePage() {
                   value={editData.displayName}
                   onChange={(e) => setEditData({ ...editData, displayName: e.target.value })}
                   placeholder="Anzeigename"
-                  className="w-full bg-[#131314] border border-[#484849]/50 rounded-xl px-4 py-2 text-sm font-bold text-white placeholder:text-[#484849] focus:border-[#00F5FF]/50 outline-none"
+                  className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-xl px-4 py-2 text-sm font-bold text-[var(--foreground)] placeholder:text-[#484849] focus:border-[#00F5FF]/50 outline-none"
                 />
                 <textarea
                   value={editData.bio}
                   onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
                   placeholder="Deine Bio..."
                   rows={2}
-                  className="w-full bg-[#131314] border border-[#484849]/50 rounded-xl px-4 py-2 text-xs text-[#adaaab] placeholder:text-[#484849] focus:border-[#00F5FF]/50 outline-none resize-none"
+                  className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-xl px-4 py-2 text-xs text-[var(--muted-foreground)] placeholder:text-[#484849] focus:border-[#00F5FF]/50 outline-none resize-none"
                 />
               </div>
             ) : (
               <>
-                <h2 className="text-xl font-black uppercase tracking-tight font-display text-white">{identity.displayName}</h2>
+                <h2 className="text-xl font-black uppercase tracking-tight font-display text-[var(--foreground)]">{identity.displayName}</h2>
                 <p className="text-xs text-[#2FF801] font-semibold tracking-widest">{identity.username}</p>
-                {identity.bio && <p className="text-sm text-[#adaaab] mt-2 leading-relaxed">{identity.bio}</p>}
+                {identity.bio && <p className="text-sm text-[var(--muted-foreground)] mt-2 leading-relaxed">{identity.bio}</p>}
               </>
             )}
           </div>
 
           {/* Meta row */}
-          <div className="mt-4 flex items-center justify-between text-[10px] font-semibold text-[#adaaab] uppercase tracking-wider relative z-10">
+          <div className="mt-4 flex items-center justify-between text-[10px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wider relative z-10">
             <span className="flex items-center gap-1"><Calendar size={12} /> Member seit März 2026</span>
           </div>
         </div>
@@ -644,14 +644,14 @@ export default function ProfilePage() {
 
               return (
                 <div key={b.id} className={`rounded-2xl p-4 flex flex-col items-center text-center gap-2 transition-all border ${isUnlocked
-                  ? "bg-[#1a191b] border-[#2FF801]/30"
-                  : "bg-[#131314] border-[#484849]/30 opacity-50 grayscale"
+                  ? "bg-[var(--card)] border-[#2FF801]/30"
+                  : "bg-[var(--input)] border-[var(--border)]/30 opacity-50 grayscale"
                   }`}>
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-1 ${isUnlocked ? "bg-[#2FF801]/10 text-[#ffd76a]" : "bg-[#262627] text-[#484849]"
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-1 ${isUnlocked ? "bg-[#2FF801]/10 text-[#ffd76a]" : "bg-[var(--muted)] text-[#484849]"
                     }`}>
                     <b.icon size={28} />
                   </div>
-                  <p className={`text-[11px] font-black uppercase tracking-tight leading-none ${isUnlocked ? "text-white" : "text-[#484849]"
+                  <p className={`text-[11px] font-black uppercase tracking-tight leading-none ${isUnlocked ? "text-[var(--foreground)]" : "text-[#484849]"
                     }`}>{b.name}</p>
                   <p className={`text-[8px] font-semibold uppercase tracking-tighter ${isUnlocked ? "text-[#2FF801]" : "text-[#484849]"
                     }`}>
@@ -667,7 +667,7 @@ export default function ProfilePage() {
         <section className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <SectionHeader eyebrow="" title="Favorites" icon={Heart} />
-            {savingOrder && <Loader2 size={12} className="animate-spin text-[#adaaab]" />}
+            {savingOrder && <Loader2 size={12} className="animate-spin text-[var(--muted-foreground)]" />}
           </div>
           {carouselFavorites.length > 0 ? (
             <div className="relative">
@@ -681,7 +681,7 @@ export default function ProfilePage() {
                       }
                     }}
                     disabled={selectedFavoriteIndex === 0}
-                    className="px-4 py-2 bg-[#1a191b] border border-[#484849]/50 rounded-full text-[#adaaab] hover:border-[#00F5FF]/50 disabled:opacity-30 transition-all flex items-center gap-1 text-xs font-semibold"
+                    className="px-4 py-2 bg-[var(--card)] border border-[var(--border)]/50 rounded-full text-[var(--muted-foreground)] hover:border-[#00F5FF]/50 disabled:opacity-30 transition-all flex items-center gap-1 text-xs font-semibold"
                   >
                     <ArrowLeft size={14} /> Links
                   </button>
@@ -693,7 +693,7 @@ export default function ProfilePage() {
                       }
                     }}
                     disabled={selectedFavoriteIndex === carouselFavorites.length - 1}
-                    className="px-4 py-2 bg-[#1a191b] border border-[#484849]/50 rounded-full text-[#adaaab] hover:border-[#00F5FF]/50 disabled:opacity-30 transition-all flex items-center gap-1 text-xs font-semibold"
+                    className="px-4 py-2 bg-[var(--card)] border border-[var(--border)]/50 rounded-full text-[var(--muted-foreground)] hover:border-[#00F5FF]/50 disabled:opacity-30 transition-all flex items-center gap-1 text-xs font-semibold"
                   >
                     Rechts <ArrowRight size={14} />
                   </button>
@@ -725,20 +725,20 @@ export default function ProfilePage() {
               )}
             </div>
           ) : (
-            <div className="py-10 text-center bg-[#1a191b] rounded-[2rem] border border-dashed border-[#484849]/50 text-[#484849] text-xs font-bold uppercase tracking-widest">Keine Favoriten gesetzt</div>
+            <div className="py-10 text-center bg-[var(--card)] rounded-[2rem] border border-dashed border-[var(--border)]/50 text-[#484849] text-xs font-bold uppercase tracking-widest">Keine Favoriten gesetzt</div>
           )}
         </section>
 
         {/* Visibility Toggle */}
-        <section className="bg-[#1a191b] rounded-2xl p-5 border border-[#484849]/50">
+        <section className="bg-[var(--card)] rounded-2xl p-5 border border-[var(--border)]/50">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h3 className="text-sm font-black uppercase tracking-widest text-white font-display">Profil Sichtbarkeit</h3>
-              <p className="text-[10px] text-[#adaaab]">{isPublic ? "Dein Profil ist für alle sichtbar" : "Nur du siehst dein Profil"}</p>
+              <h3 className="text-sm font-black uppercase tracking-widest text-[var(--foreground)] font-display">Profil Sichtbarkeit</h3>
+              <p className="text-[10px] text-[var(--muted-foreground)]">{isPublic ? "Dein Profil ist für alle sichtbar" : "Nur du siehst dein Profil"}</p>
             </div>
             <button
               onClick={handleToggleVisibility}
-              className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${isPublic ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]' : 'bg-[#262627] border-[#484849]/50 text-[#adaaab]'}`}
+              className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${isPublic ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]' : 'bg-[var(--muted)] border-[var(--border)]/50 text-[var(--muted-foreground)]'}`}
             >
               {isPublic ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>

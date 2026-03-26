@@ -94,14 +94,14 @@ export default function SettingsOrganizationPage() {
 
   if (!activeOrganization) {
     return (
-      <main className="min-h-screen bg-[#0e0e0f] flex items-center justify-center">
+      <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <Loader2 className="animate-spin text-[#00F5FF]" size={32} />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
@@ -111,15 +111,15 @@ export default function SettingsOrganizationPage() {
       <header className="px-6 pt-12 pb-4 flex items-center gap-4 relative z-10">
         <button
           onClick={() => router.back()}
-          className="p-2 rounded-full bg-[#1a191b] border border-[#484849]/50 hover:border-[#00F5FF]/50 transition-all"
+          className="p-2 rounded-full bg-[var(--card)] border border-[var(--border)]/50 hover:border-[#00F5FF]/50 transition-all"
         >
-          <ChevronLeft size={20} className="text-white" />
+          <ChevronLeft size={20} className="text-[var(--foreground)]" />
         </button>
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">
             {orgName}
           </p>
-          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-white">
+          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
             Einstellungen
           </h1>
         </div>
@@ -127,7 +127,7 @@ export default function SettingsOrganizationPage() {
 
       <div className="px-6 space-y-6 mt-4 relative z-10">
         {/* Logo ändern */}
-        <Card className="bg-[#1a191b] border border-[#484849]/50 p-5 rounded-3xl">
+        <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
           <div className="flex items-center gap-4">
             <OrgLogoUpload
               currentLogoUrl={logoUrl || activeOrganization.organizations?.logo_url}
@@ -139,8 +139,8 @@ export default function SettingsOrganizationPage() {
               }}
             />
             <div className="min-w-0 flex-1">
-              <p className="font-black text-sm text-white">Logo ändern</p>
-              <p className="text-[10px] text-[#adaaab]">Bild für deine Community</p>
+              <p className="font-black text-sm text-[var(--foreground)]">Logo ändern</p>
+              <p className="text-[10px] text-[var(--muted-foreground)]">Bild für deine Community</p>
             </div>
           </div>
         </Card>
@@ -157,7 +157,7 @@ export default function SettingsOrganizationPage() {
         )}
 
         {/* Name ändern */}
-        <Card className="bg-[#1a191b] border border-[#484849]/50 p-5 rounded-3xl">
+        <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
           {!showNameForm ? (
             <button
               onClick={() => { setShowNameForm(true); setNewName(orgName); }}
@@ -167,20 +167,20 @@ export default function SettingsOrganizationPage() {
                 <Type size={20} className="text-[#00F5FF]" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-black text-sm text-white">Name ändern</p>
-                <p className="text-[10px] text-[#adaaab]">Community-Namen anpassen</p>
+                <p className="font-black text-sm text-[var(--foreground)]">Name ändern</p>
+                <p className="text-[10px] text-[var(--muted-foreground)]">Community-Namen anpassen</p>
               </div>
             </button>
           ) : (
             <form onSubmit={(e) => void handleSaveName(e)} className="space-y-4">
-              <p className="text-xs font-black uppercase tracking-widest text-[#adaaab]">Name ändern</p>
+              <p className="text-xs font-black uppercase tracking-widest text-[var(--muted-foreground)]">Name ändern</p>
               <Input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Neuer Name"
                 required
                 disabled={isDemoMode}
-                className="bg-[#131314] border border-[#484849]/50 text-white h-12 rounded-xl focus:border-[#00F5FF]"
+                className="bg-[var(--input)] border border-[var(--border)]/50 text-[var(--foreground)] h-12 rounded-xl focus:border-[#00F5FF]"
               />
               <div className="flex gap-3">
                 <Button
@@ -195,7 +195,7 @@ export default function SettingsOrganizationPage() {
                   type="button"
                   variant="ghost"
                   onClick={() => { setShowNameForm(false); setNameMessage(null); }}
-                  className="flex-1 h-12 bg-[#262627] border border-[#484849]/50 hover:border-[#00F5FF]/50 text-[#adaaab] font-black uppercase tracking-widest text-xs"
+                  className="flex-1 h-12 bg-[var(--muted)] border border-[var(--border)]/50 hover:border-[#00F5FF]/50 text-[var(--muted-foreground)] font-black uppercase tracking-widest text-xs"
                 >
                   Abbrechen
                 </Button>
@@ -207,7 +207,7 @@ export default function SettingsOrganizationPage() {
 
         {/* Admins verwalten — Owner only */}
         {isOwner && (
-          <Card className="bg-[#1a191b] border border-[#484849]/50 p-5 rounded-3xl">
+          <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
             <button
               onClick={() => router.push("/settings/organization/invites")}
               className="w-full flex items-center gap-4 text-left hover:opacity-80 transition-opacity"
@@ -216,8 +216,8 @@ export default function SettingsOrganizationPage() {
                 <Shield size={20} className="text-[#ffd76a]" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-black text-sm text-white">Admins verwalten</p>
-                <p className="text-[10px] text-[#adaaab]">Admin einladen oder widerrufen</p>
+                <p className="font-black text-sm text-[var(--foreground)]">Admins verwalten</p>
+                <p className="text-[10px] text-[var(--muted-foreground)]">Admin einladen oder widerrufen</p>
               </div>
             </button>
           </Card>
@@ -225,7 +225,7 @@ export default function SettingsOrganizationPage() {
 
         {/* Community löschen — Owner only */}
         {isOwner && (
-          <Card className="bg-[#1a191b] border border-[#484849]/50 p-5 rounded-3xl">
+          <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
             {!showDeleteConfirm ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
@@ -236,7 +236,7 @@ export default function SettingsOrganizationPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-black text-sm text-[#ff716c]">Community löschen</p>
-                  <p className="text-[10px] text-[#adaaab]">Organisation dauerhaft entfernen</p>
+                  <p className="text-[10px] text-[var(--muted-foreground)]">Organisation dauerhaft entfernen</p>
                 </div>
               </button>
             ) : (
@@ -252,7 +252,7 @@ export default function SettingsOrganizationPage() {
                   onChange={(e) => setDeleteConfirmText(e.target.value)}
                   placeholder={orgName}
                   disabled={isDemoMode}
-                  className="bg-[#131314] border border-[#484849]/50 text-white h-12 rounded-xl focus:border-[#ff716c]"
+                  className="bg-[var(--input)] border border-[var(--border)]/50 text-[var(--foreground)] h-12 rounded-xl focus:border-[#ff716c]"
                 />
                 {deleteMessage && (
                   <div className={`p-3 rounded-xl text-xs font-bold border ${
@@ -267,7 +267,7 @@ export default function SettingsOrganizationPage() {
                   <Button
                     onClick={() => void handleDeleteOrg()}
                     disabled={deleteConfirmText !== orgName || deleting || isDemoMode}
-                    className="flex-1 h-12 bg-[#ff716c] hover:bg-[#ff716c]/80 text-white font-black uppercase tracking-widest text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 h-12 bg-[#ff716c] hover:bg-[#ff716c]/80 text-[var(--foreground)] font-black uppercase tracking-widest text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {deleting ? <Loader2 size={14} className="animate-spin" /> : null}
                     Löschen
@@ -275,7 +275,7 @@ export default function SettingsOrganizationPage() {
                   <Button
                     variant="ghost"
                     onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); setDeleteMessage(null); }}
-                    className="flex-1 h-12 bg-[#262627] border border-[#484849]/50 hover:border-[#00F5FF]/50 text-[#adaaab] font-black uppercase tracking-widest text-xs"
+                    className="flex-1 h-12 bg-[var(--muted)] border border-[var(--border)]/50 hover:border-[#00F5FF]/50 text-[var(--muted-foreground)] font-black uppercase tracking-widest text-xs"
                   >
                     Abbrechen
                   </Button>

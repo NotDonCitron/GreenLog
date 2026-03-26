@@ -181,7 +181,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
       <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-300">
         <div className="w-full max-w-md rounded-2xl bg-zinc-900 p-8 text-center shadow-2xl border border-emerald-500/30">
           <CheckCircle2 className="mx-auto mb-4 text-emerald-500" size={64} />
-          <h2 className="text-2xl font-bold text-white mb-2">Danke für dein Feedback!</h2>
+          <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">Danke für dein Feedback!</h2>
           <p className="text-zinc-400">Deine Freunde (und Claude Code) kümmern sich darum.</p>
         </div>
       </div>
@@ -210,7 +210,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
               Absegnen
             </button>
           </div>
-          <button onClick={onClose} className="text-zinc-400 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-zinc-400 hover:text-[var(--foreground)] transition-colors">
             <X size={24} />
           </button>
         </div>
@@ -225,7 +225,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="z.B. Fehler beim Strain-Login"
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-white placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-[var(--foreground)] placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
             </div>
 
@@ -235,7 +235,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-white focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-[var(--foreground)] focus:border-emerald-500 focus:outline-none"
                 >
                   <option value="bug">Bug 🐛</option>
                   <option value="feature">Wunsch / Feature ✨</option>
@@ -249,7 +249,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-white focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-[var(--foreground)] focus:border-emerald-500 focus:outline-none"
                 >
                   <option value="low">Niedrig (Schön wärs)</option>
                   <option value="medium">Mittel (Wichtig)</option>
@@ -281,7 +281,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
                   if (aiSuggestion) setAiSuggestion(null);
                 }}
                 placeholder="Was genau ist passiert? Was hast du gemacht?"
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-white placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-[var(--foreground)] placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
             </div>
 
@@ -292,7 +292,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
                   <span className="text-xs font-bold uppercase tracking-widest text-emerald-500">Vorschlag von MiniMax</span>
                 </div>
                 <div className="space-y-2 mb-4">
-                  <p className="text-sm font-bold text-white leading-tight">
+                  <p className="text-sm font-bold text-[var(--foreground)] leading-tight">
                     <span className="text-zinc-500 font-normal mr-1">Titel:</span> {aiSuggestion.title}
                   </p>
                   <p className="text-xs text-zinc-300 leading-relaxed italic">
@@ -300,8 +300,8 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <button type="button" onClick={applySuggestion} className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white transition-all hover:bg-emerald-500 active:scale-95">Übernehmen</button>
-                  <button type="button" onClick={() => setAiSuggestion(null)} className="flex-1 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs font-bold text-zinc-400 transition-all hover:text-white hover:border-zinc-700 active:scale-95">Ignorieren</button>
+                  <button type="button" onClick={applySuggestion} className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-[var(--foreground)] transition-all hover:bg-emerald-500 active:scale-95">Übernehmen</button>
+                  <button type="button" onClick={() => setAiSuggestion(null)} className="flex-1 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs font-bold text-zinc-400 transition-all hover:text-[var(--foreground)] hover:border-zinc-700 active:scale-95">Ignorieren</button>
                 </div>
               </div>
             )}
@@ -321,7 +321,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-white transition-all hover:bg-emerald-500 disabled:opacity-50 active:scale-95 shadow-lg shadow-emerald-900/20"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 font-semibold text-[var(--foreground)] transition-all hover:bg-emerald-500 disabled:opacity-50 active:scale-95 shadow-lg shadow-emerald-900/20"
             >
               {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <><Send size={20} /><span>Ticket senden</span></>}
             </button>
@@ -339,7 +339,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
                   <div key={ticket.id} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 space-y-3 transition-all hover:border-zinc-700">
                     <div className="flex justify-between items-start gap-2">
                       <div className="text-left">
-                        <h3 className="text-sm font-bold text-white mb-1 leading-tight">{ticket.title}</h3>
+                        <h3 className="text-sm font-bold text-[var(--foreground)] mb-1 leading-tight">{ticket.title}</h3>
                         <p className="text-[10px] text-zinc-500 font-mono text-left">von @{ticket.profiles?.username || "unbekannt"} • {ticket.category}</p>
                       </div>
                       <div className="flex flex-col items-end gap-1">
@@ -353,7 +353,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
                         <div className="flex -space-x-1.5">{ticket.ticket_approvals?.map((a: any, i: number) => <div key={i} title="Abgesegnet" className="w-5 h-5 rounded-full bg-emerald-600 border border-zinc-950 flex items-center justify-center text-[8px] font-bold shadow-sm">✓</div>)}</div>
                         {ticket.ticket_approvals?.length > 0 && <span className="text-[10px] text-emerald-500 font-black tracking-tight">{ticket.ticket_approvals.length} OK</span>}
                       </div>
-                      <button type="button" onClick={() => toggleApproval(ticket.id, !!isApprovedByMe)} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all ${isApprovedByMe ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/40" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"}`}><ThumbsUp size={12} className={isApprovedByMe ? "fill-white" : ""} /><span>{isApprovedByMe ? "Abgesegnet" : "Absegnen"}</span></button>
+                      <button type="button" onClick={() => toggleApproval(ticket.id, !!isApprovedByMe)} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all ${isApprovedByMe ? "bg-emerald-600 text-[var(--foreground)] shadow-lg shadow-emerald-900/40" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-[var(--foreground)]"}`}><ThumbsUp size={12} className={isApprovedByMe ? "fill-white" : ""} /><span>{isApprovedByMe ? "Abgesegnet" : "Absegnen"}</span></button>
                     </div>
                   </div>
                 );

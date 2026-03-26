@@ -74,12 +74,12 @@ export function FollowersListModal({
             <div className="relative w-full max-w-md bg-[#101214] border border-white/10 rounded-t-3xl sm:rounded-3xl max-h-[85vh] overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-white/10">
-                    <h2 className="text-lg font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-[var(--foreground)]">
                         {mode === "followers" ? "Followers" : "Following"}
                     </h2>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                        className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[var(--foreground)]/60 hover:text-[var(--foreground)] transition-colors"
                     >
                         <X size={18} />
                     </button>
@@ -89,11 +89,11 @@ export function FollowersListModal({
                 <div className="flex-1 overflow-y-auto">
                     {isLoading ? (
                         <div className="flex items-center justify-center py-12">
-                            <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+                            <Loader2 className="h-8 w-8 animate-spin text-[var(--foreground)]/40" />
                         </div>
                     ) : users.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
-                            <p className="text-white/60 text-sm">
+                            <p className="text-[var(--foreground)]/60 text-sm">
                                 {mode === "followers" ? "No followers yet" : "Not following anyone yet"}
                             </p>
                         </div>
@@ -115,7 +115,7 @@ export function FollowersListModal({
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
-                                            <span className="text-lg font-bold text-white/50">
+                                            <span className="text-lg font-bold text-[var(--foreground)]/50">
                                                 {profile.username?.[0]?.toUpperCase() || "?"}
                                             </span>
                                         )}
@@ -123,10 +123,10 @@ export function FollowersListModal({
 
                                     {/* Info */}
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-white truncate">
+                                        <p className="text-sm font-semibold text-[var(--foreground)] truncate">
                                             {profile.display_name || profile.username}
                                         </p>
-                                        <p className="text-xs text-white/50 truncate">
+                                        <p className="text-xs text-[var(--foreground)]/50 truncate">
                                             @{profile.username}
                                         </p>
                                     </div>

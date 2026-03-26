@@ -63,7 +63,7 @@ export default function Home() {
   }, [user, authLoading, isDemoMode]);
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32 overflow-hidden selection:bg-[#00F5FF]/30">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32 overflow-hidden selection:bg-[#00F5FF]/30">
       {/* Ambient neon glow background effects */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#00F5FF]/8 blur-[150px] rounded-full animate-pulse" />
@@ -77,14 +77,14 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <div className="flex flex-col gap-1">
-              <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none font-display text-white hover:text-[#00F5FF] transition-colors duration-500 neon-text-cyan">
+              <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none font-display text-[var(--foreground)] hover:text-[#00F5FF] transition-colors duration-500 neon-text-cyan">
                 CannaLog
               </h1>
             </div>
           </div>
           <div className="relative group">
             <div className="absolute inset-0 bg-[#00F5FF]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="w-14 h-14 relative rounded-2xl glass-surface border border-[#484849]/50 flex items-center justify-center transform group-hover:rotate-6 transition-transform duration-500 overflow-hidden">
+            <div className="w-14 h-14 relative rounded-2xl glass-surface border border-[var(--border)]/50 flex items-center justify-center transform group-hover:rotate-6 transition-transform duration-500 overflow-hidden">
               <Image
                 src="/logo.png"
                 alt="CannaLog Logo"
@@ -102,7 +102,7 @@ export default function Home() {
               <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
               <div className="absolute inset-0 blur-xl bg-[#00F5FF]/30 animate-pulse" />
             </div>
-            <p className="text-[11px] font-black text-[#adaaab] uppercase tracking-[0.3em] animate-pulse">
+            <p className="text-[11px] font-black text-[var(--muted-foreground)] uppercase tracking-[0.3em] animate-pulse">
               System wird initialisiert...
             </p>
           </div>
@@ -125,7 +125,7 @@ export default function Home() {
                     <div className="absolute inset-0 bg-[#00F5FF]/15 blur-[80px] rounded-3xl transform -translate-y-12 opacity-70 group-hover:opacity-100 transition-opacity" />
 
                     {/* Main card - full width hero */}
-                    <div className="relative glass-surface rounded-3xl overflow-hidden border border-[#484849]/30 hover:border-[#00F5FF]/50 transition-all duration-500">
+                    <div className="relative glass-surface rounded-3xl overflow-hidden border border-[var(--border)]/30 hover:border-[#00F5FF]/50 transition-all duration-500">
                       {/* Background gradient */}
                       <div className="absolute inset-0 bg-gradient-to-br from-[#00F5FF]/5 via-transparent to-[#2FF801]/5 pointer-events-none" />
 
@@ -162,7 +162,7 @@ export default function Home() {
 
                         {/* THC badge on image */}
                         <div className="absolute top-4 right-4">
-                          <span className="px-4 py-1.5 rounded-full bg-[#0e0e0f]/80 backdrop-blur-md text-[#00F5FF] text-sm font-black uppercase tracking-wider border border-[#00F5FF]/30">
+                          <span className="px-4 py-1.5 rounded-full bg-[var(--background)]/80 backdrop-blur-md text-[#00F5FF] text-sm font-black uppercase tracking-wider border border-[#00F5FF]/30">
                             {strainOfTheDay.thc_max || '?'}% THC
                           </span>
                         </div>
@@ -177,7 +177,7 @@ export default function Home() {
 
                       {/* Content below image */}
                       <div className="relative p-6 -mt-2">
-                        <h3 className="text-3xl font-black uppercase tracking-tight font-display text-white leading-tight mb-3">
+                        <h3 className="text-3xl font-black uppercase tracking-tight font-display text-[var(--foreground)] leading-tight mb-3">
                           {strainOfTheDay.name}
                         </h3>
 
@@ -185,7 +185,7 @@ export default function Home() {
                         {strainOfTheDay.terpenes && strainOfTheDay.terpenes.length > 0 && (
                           <div className="flex flex-wrap gap-2 mb-4">
                             {strainOfTheDay.terpenes.slice(0, 4).map((t, i) => (
-                              <span key={i} className="px-3 py-1 rounded-full bg-[#1a191b] border border-[#484849]/50 text-[#adaaab] text-[10px] font-bold uppercase tracking-wider">
+                              <span key={i} className="px-3 py-1 rounded-full bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider">
                                 {typeof t === 'string' ? t : t.name}
                               </span>
                             ))}
@@ -193,7 +193,7 @@ export default function Home() {
                         )}
 
                         {/* Effects & Flavors */}
-                        <div className="flex gap-4 text-[11px] text-[#adaaab]">
+                        <div className="flex gap-4 text-[11px] text-[var(--muted-foreground)]">
                           {strainOfTheDay.effects && strainOfTheDay.effects.length > 0 && (
                             <div className="flex items-center gap-1">
                               <span className="text-[#2FF801]">●</span>
@@ -231,7 +231,7 @@ export default function Home() {
                   <div className="absolute inset-0 bg-gradient-to-r from-[#00F5FF]/20 via-[#00F5FF]/10 to-[#2FF801]/20 transition-all duration-500 group-hover:from-[#00F5FF]/30 group-hover:via-[#00F5FF]/20 group-hover:to-[#2FF801]/30" />
 
                   {/* Neon border glow on hover */}
-                  <div className="absolute inset-0 rounded-2xl border border-[#484849]/50 group-hover:border-[#00F5FF]/50 transition-all duration-500" />
+                  <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#00F5FF]/50 transition-all duration-500" />
 
                   {/* Glow orb */}
                   <div className="absolute top-0 right-8 w-32 h-32 bg-[#00F5FF]/20 rounded-full blur-2xl transform -translate-y-1/2 group-hover:scale-150 transition-transform duration-700" />
@@ -239,10 +239,10 @@ export default function Home() {
                   {/* Content */}
                   <div className="relative flex items-center justify-between px-8 h-full">
                     <div className="flex flex-col items-start gap-1">
-                      <span className="text-white text-lg font-black uppercase tracking-tighter italic font-display">
+                      <span className="text-[var(--foreground)] text-lg font-black uppercase tracking-tighter italic font-display">
                         Meine Sammlung
                       </span>
-                      <span className="text-[#adaaab] text-[9px] font-semibold uppercase tracking-widest">
+                      <span className="text-[var(--muted-foreground)] text-[9px] font-semibold uppercase tracking-widest">
                         {isDemoMode ? "Demo Mode Active" : "Straindaten verwalten"}
                       </span>
                     </div>
@@ -257,12 +257,12 @@ export default function Home() {
                 <Link href="/discover" className="block">
                   <button className="relative w-full h-20 group overflow-hidden rounded-2xl transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]">
                     <div className="absolute inset-0 bg-[#2FF801]/10 transition-all duration-500 group-hover:bg-[#2FF801]/20" />
-                    <div className="absolute inset-0 rounded-2xl border border-[#484849]/50 group-hover:border-[#2FF801]/50 transition-all duration-500" />
+                    <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#2FF801]/50 transition-all duration-500" />
                     <div className="relative flex items-center gap-3 px-6 h-full">
                       <div className="w-10 h-10 rounded-xl bg-[#2FF801]/20 flex items-center justify-center">
                         <span className="text-lg">🔍</span>
                       </div>
-                      <span className="text-white text-sm font-bold uppercase tracking-tight font-display">
+                      <span className="text-[var(--foreground)] text-sm font-bold uppercase tracking-tight font-display">
                         Entdecken
                       </span>
                     </div>
@@ -272,12 +272,12 @@ export default function Home() {
                 <Link href="/grows" className="block">
                   <button className="relative w-full h-20 group overflow-hidden rounded-2xl transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]">
                     <div className="absolute inset-0 bg-[#a1faff]/10 transition-all duration-500 group-hover:bg-[#a1faff]/20" />
-                    <div className="absolute inset-0 rounded-2xl border border-[#484849]/50 group-hover:border-[#a1faff]/50 transition-all duration-500" />
+                    <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#a1faff]/50 transition-all duration-500" />
                     <div className="relative flex items-center gap-3 px-6 h-full">
                       <div className="w-10 h-10 rounded-xl bg-[#a1faff]/20 flex items-center justify-center">
                         <span className="text-lg">🌱</span>
                       </div>
-                      <span className="text-white text-sm font-bold uppercase tracking-tight font-display">
+                      <span className="text-[var(--foreground)] text-sm font-bold uppercase tracking-tight font-display">
                         Grows
                       </span>
                     </div>

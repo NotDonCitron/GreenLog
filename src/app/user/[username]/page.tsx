@@ -232,7 +232,7 @@ export default function UserProfilePage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[#0e0e0f] flex items-center justify-center">
+            <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-[#00F5FF]" />
             </div>
         );
@@ -240,11 +240,11 @@ export default function UserProfilePage() {
 
     if (error || !profile) {
         return (
-            <div className="min-h-screen bg-[#0e0e0f] flex flex-col items-center justify-center p-4">
-                <h1 className="text-2xl font-bold text-white mb-2">User Not Found</h1>
-                <p className="text-[#adaaab] mb-4">The user @{username} doesn&apos;t exist or their profile is private.</p>
+            <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center p-4">
+                <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">User Not Found</h1>
+                <p className="text-[var(--muted-foreground)] mb-4">The user @{username} doesn&apos;t exist or their profile is private.</p>
                 <Link href="/">
-                    <button className="px-6 py-3 bg-[#1a191b] text-white font-semibold rounded-xl border border-[#484849]/50">
+                    <button className="px-6 py-3 bg-[var(--card)] text-[var(--foreground)] font-semibold rounded-xl border border-[var(--border)]/50">
                         <ArrowLeft className="h-4 w-4 inline mr-2" />
                         Go Home
                     </button>
@@ -254,7 +254,7 @@ export default function UserProfilePage() {
     }
 
     return (
-        <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#0e0e0f] pb-24">
+        <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[var(--background)] pb-24">
             {/* Ambient glow */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
                 <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
@@ -262,19 +262,19 @@ export default function UserProfilePage() {
             </div>
 
             {/* Header with back button */}
-            <div className="sticky top-0 z-20 w-full max-w-full glass-surface border-b border-[#484849]/50 backdrop-blur-md">
+            <div className="sticky top-0 z-20 w-full max-w-full glass-surface border-b border-[var(--border)]/50 backdrop-blur-md">
                 <div className="mx-auto w-full max-w-lg px-4 py-4">
                     <div className="flex min-w-0 items-center gap-4">
                         <Link href="/discover" className="flex-shrink-0">
-                            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1a191b] border border-[#484849]/50">
-                                <ArrowLeft className="h-5 w-5 text-white" />
+                            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--card)] border border-[var(--border)]/50">
+                                <ArrowLeft className="h-5 w-5 text-[var(--foreground)]" />
                             </button>
                         </Link>
                         <div className="min-w-0 flex-1">
-                            <h1 className="truncate text-lg font-bold text-white">
+                            <h1 className="truncate text-lg font-bold text-[var(--foreground)]">
                                 {profile.display_name || profile.username}
                             </h1>
-                            <p className="truncate text-xs text-[#adaaab]">@{profile.username}</p>
+                            <p className="truncate text-xs text-[var(--muted-foreground)]">@{profile.username}</p>
                         </div>
                     </div>
                 </div>
@@ -295,7 +295,7 @@ export default function UserProfilePage() {
                     <div className="flex items-center gap-4 min-w-0">
                         {/* Avatar */}
                         <div className="flex-shrink-0">
-                            <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-[#00F5FF]/50 bg-[#262627] shadow-xl">
+                            <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-[#00F5FF]/50 bg-[var(--muted)] shadow-xl">
                                 {profile.avatar_url ? (
                                     <Image
                                         src={profile.avatar_url}
@@ -313,10 +313,10 @@ export default function UserProfilePage() {
 
                         {/* Name Info */}
                         <div className="min-w-0 flex-1">
-                            <h2 className="truncate text-xl font-black tracking-tight text-white">
+                            <h2 className="truncate text-xl font-black tracking-tight text-[var(--foreground)]">
                                 {profile.display_name || profile.username}
                             </h2>
-                            <p className="truncate text-sm font-medium text-[#adaaab]">@{profile.username}</p>
+                            <p className="truncate text-sm font-medium text-[var(--muted-foreground)]">@{profile.username}</p>
                         </div>
                     </div>
 
@@ -345,27 +345,27 @@ export default function UserProfilePage() {
                 )}
 
                 {/* Stats Bar */}
-                <div className="mt-6 grid grid-cols-3 divide-x divide-[#484849]/30 rounded-[2rem] border border-[#484849]/50 bg-[#1a191b] py-5 shadow-2xl backdrop-blur-md">
+                <div className="mt-6 grid grid-cols-3 divide-x divide-[#484849]/30 rounded-[2rem] border border-[var(--border)]/50 bg-[var(--card)] py-5 shadow-2xl backdrop-blur-md">
                     <div className="flex flex-col items-center justify-center">
                         <p className="text-xl font-black text-[#00F5FF] tracking-tighter">{followersCount}</p>
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#adaaab]">Follower</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Follower</p>
                     </div>
                     <div className="flex flex-col items-center justify-center">
-                        <p className="text-xl font-black text-[#adaaab] tracking-tighter">{followingCount}</p>
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#adaaab]">Gefolgt</p>
+                        <p className="text-xl font-black text-[var(--muted-foreground)] tracking-tighter">{followingCount}</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Gefolgt</p>
                     </div>
                     <div className="flex flex-col items-center justify-center">
                         <p className="text-xl font-black text-[#2FF801] tracking-tighter">{stats?.totalStrains ?? 0}</p>
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#adaaab]">Ratings</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Ratings</p>
                     </div>
                 </div>
 
                 {/* Bio and Meta */}
                 {profile.bio && (
-                    <p className="mt-6 w-full break-words text-sm leading-relaxed text-[#adaaab] [overflow-wrap:anywhere]">{profile.bio}</p>
+                    <p className="mt-6 w-full break-words text-sm leading-relaxed text-[var(--muted-foreground)] [overflow-wrap:anywhere]">{profile.bio}</p>
                 )}
 
-                <div className="mt-4 flex w-full min-w-0 flex-wrap gap-4 text-[11px] font-medium text-[#adaaab]">
+                <div className="mt-4 flex w-full min-w-0 flex-wrap gap-4 text-[11px] font-medium text-[var(--muted-foreground)]">
                     {profile.location && (
                         <span className="flex min-w-0 items-center gap-1 break-words [overflow-wrap:anywhere]">
                             <MapPin className="h-3 w-3 flex-shrink-0" />
@@ -391,12 +391,12 @@ export default function UserProfilePage() {
                                 return (
                                     <div
                                         key={ub.id}
-                                        className="flex flex-col items-center gap-1.5 min-w-[70px] bg-[#1a191b] border border-[#484849]/50 rounded-2xl p-2.5 shadow-lg"
+                                        className="flex flex-col items-center gap-1.5 min-w-[70px] bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-2.5 shadow-lg"
                                     >
                                         <div className="w-10 h-10 rounded-xl bg-[#2FF801]/10 flex items-center justify-center text-[#ffd700]">
                                             <Icon size={24} />
                                         </div>
-                                        <p className="text-[8px] font-black uppercase tracking-tighter text-white truncate w-full text-center">
+                                        <p className="text-[8px] font-black uppercase tracking-tighter text-[var(--foreground)] truncate w-full text-center">
                                             {badge.name}
                                         </p>
                                     </div>
@@ -410,24 +410,24 @@ export default function UserProfilePage() {
             {/* Tabs & Content */}
             <div className="mx-auto w-full max-w-lg px-4 relative z-10">
                 {isPrivateAndNotFollowing ? (
-                    <div className="mt-4 w-full max-w-full rounded-[2.5rem] border border-[#484849]/50 bg-[#1a191b] px-8 py-20 text-center">
-                        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-[#484849]/50 bg-[#262627] shadow-2xl">
-                            <Lock size={32} className="text-[#adaaab]" />
+                    <div className="mt-4 w-full max-w-full rounded-[2.5rem] border border-[var(--border)]/50 bg-[var(--card)] px-8 py-20 text-center">
+                        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-[var(--border)]/50 bg-[var(--muted)] shadow-2xl">
+                            <Lock size={32} className="text-[var(--muted-foreground)]" />
                         </div>
-                        <h2 className="mb-2 text-xl font-bold uppercase tracking-tight text-white">This Account is Private</h2>
-                        <p className="text-sm leading-relaxed text-[#adaaab]">
+                        <h2 className="mb-2 text-xl font-bold uppercase tracking-tight text-[var(--foreground)]">This Account is Private</h2>
+                        <p className="text-sm leading-relaxed text-[var(--muted-foreground)]">
                             Follow this user to see their ratings, grows, and collection progress.
                         </p>
                     </div>
                 ) : (
                     <>
-                        <div className="w-full max-w-full overflow-x-auto border-b border-[#484849]/50 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <div className="w-full max-w-full overflow-x-auto border-b border-[var(--border)]/50 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             <div className="flex w-max min-w-max gap-6 pr-4">
                                 <button
                                     onClick={() => setActiveTab("activity")}
                                     className={`whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${activeTab === "activity"
                                         ? "text-[#00F5FF] border-b-2 border-[#00F5FF]"
-                                        : "text-[#adaaab]"
+                                        : "text-[var(--muted-foreground)]"
                                         }`}
                                 >
                                     Activity
@@ -436,7 +436,7 @@ export default function UserProfilePage() {
                                     onClick={() => setActiveTab("favorites")}
                                     className={`whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${activeTab === "favorites"
                                         ? "text-[#00F5FF] border-b-2 border-[#00F5FF]"
-                                        : "text-[#adaaab]"
+                                        : "text-[var(--muted-foreground)]"
                                         }`}
                                 >
                                     Favorites
@@ -445,7 +445,7 @@ export default function UserProfilePage() {
                                     onClick={() => setActiveTab("collections")}
                                     className={`whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${activeTab === "collections"
                                         ? "text-[#00F5FF] border-b-2 border-[#00F5FF]"
-                                        : "text-[#adaaab]"
+                                        : "text-[var(--muted-foreground)]"
                                         }`}
                                 >
                                     Sammlung
@@ -454,7 +454,7 @@ export default function UserProfilePage() {
                                     onClick={() => setActiveTab("grows")}
                                     className={`whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${activeTab === "grows"
                                         ? "text-[#00F5FF] border-b-2 border-[#00F5FF]"
-                                        : "text-[#adaaab]"
+                                        : "text-[var(--muted-foreground)]"
                                         }`}
                                 >
                                     Grows
@@ -466,7 +466,7 @@ export default function UserProfilePage() {
                         <div className="min-w-0 py-4">
                             {activeTab === "activity" && (
                                 activities.length > 0 ? (
-                                    <div className="bg-[#1a191b] border border-[#484849]/50 rounded-2xl overflow-hidden">
+                                    <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl overflow-hidden">
                                         {activities.map((activity) => (
                                             <ActivityItem
                                                 key={activity.id}
@@ -477,7 +477,7 @@ export default function UserProfilePage() {
                                     </div>
                                 ) : (
                                     <div className="text-center py-12">
-                                        <p className="text-[#adaaab] text-sm">No recent activity</p>
+                                        <p className="text-[var(--muted-foreground)] text-sm">No recent activity</p>
                                     </div>
                                 )
                             )}
@@ -487,7 +487,7 @@ export default function UserProfilePage() {
                                     <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3">
                                         {favorites.map((fav) => (
                                             <Link key={fav.id} href={`/strains/${fav.strains?.slug}`} className="min-w-0">
-                                                <div className="relative aspect-square overflow-hidden rounded-xl border border-[#484849]/50 bg-[#1a191b]">
+                                                <div className="relative aspect-square overflow-hidden rounded-xl border border-[var(--border)]/50 bg-[var(--card)]">
                                                     {fav.strains?.image_url && (
                                                         <Image
                                                             src={fav.strains.image_url}
@@ -498,7 +498,7 @@ export default function UserProfilePage() {
                                                     )}
                                                     <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0f]/80 to-transparent" />
                                                     <div className="absolute bottom-2 left-2 right-2">
-                                                        <p className="text-xs font-semibold text-white truncate">
+                                                        <p className="text-xs font-semibold text-[var(--foreground)] truncate">
                                                             {fav.strains?.name}
                                                         </p>
                                                     </div>
@@ -508,7 +508,7 @@ export default function UserProfilePage() {
                                     </div>
                                 ) : (
                                     <div className="text-center py-12">
-                                        <p className="text-[#adaaab] text-sm">No favorites yet</p>
+                                        <p className="text-[var(--muted-foreground)] text-sm">No favorites yet</p>
                                     </div>
                                 )
                             )}
@@ -526,17 +526,17 @@ export default function UserProfilePage() {
                                     <div className="space-y-3">
                                         {grows.map((grow) => (
                                             <Link key={grow.id} href={`/grows/${grow.id}`}>
-                                                <div className="bg-[#1a191b] border border-[#484849]/50 rounded-xl p-4 flex items-center gap-3">
+                                                <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-xl p-4 flex items-center gap-3">
                                                     <div className="bg-[#2FF801]/10 w-10 h-10 rounded-full flex items-center justify-center">
                                                         <span className="text-lg">🌱</span>
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <h3 className="font-semibold text-white text-sm truncate">{grow.title}</h3>
-                                                        <p className="text-xs text-[#adaaab] truncate">
+                                                        <h3 className="font-semibold text-[var(--foreground)] text-sm truncate">{grow.title}</h3>
+                                                        <p className="text-xs text-[var(--muted-foreground)] truncate">
                                                             {grow.strains?.name} • {grow.grow_type}
                                                         </p>
                                                     </div>
-                                                    <span className="text-xs px-2 py-1 bg-[#262627] text-[#adaaab] rounded-full">
+                                                    <span className="text-xs px-2 py-1 bg-[var(--muted)] text-[var(--muted-foreground)] rounded-full">
                                                         {grow.status}
                                                     </span>
                                                 </div>
@@ -545,7 +545,7 @@ export default function UserProfilePage() {
                                     </div>
                                 ) : (
                                     <div className="text-center py-12">
-                                        <p className="text-[#adaaab] text-sm">No public grows yet</p>
+                                        <p className="text-[var(--muted-foreground)] text-sm">No public grows yet</p>
                                     </div>
                                 )
                             )}

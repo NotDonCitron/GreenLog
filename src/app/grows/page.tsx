@@ -79,18 +79,18 @@ export default function GrowsPage() {
   }, [user, isDemoMode, authLoading]);
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[80px] rounded-full" />
       </div>
 
-      <header className="sticky top-0 z-50 glass-surface border-b border-[#484849]/50 px-6 pt-12 pb-4">
+      <header className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50 px-6 pt-12 pb-4">
         <div className="flex justify-between items-end mb-6">
           <div>
             <span className="text-[10px] text-[#2FF801] font-black uppercase tracking-[0.4em]">Grow Tracker</span>
-            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-white">Meine Grows</h1>
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">Meine Grows</h1>
           </div>
           <Link href="/grows/new">
             <Button size="icon" className="bg-gradient-to-br from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black rounded-full shadow-lg shadow-[#2FF801]/30">
@@ -104,32 +104,32 @@ export default function GrowsPage() {
         {loading || authLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
-            <p className="text-[10px] font-bold text-[#adaaab] uppercase tracking-[0.2em]">Lade Grows...</p>
+            <p className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-[0.2em]">Lade Grows...</p>
           </div>
         ) : grows.length > 0 ? (
           <div className="space-y-4">
             {grows.map((grow) => (
-              <Card key={grow.id} className="bg-[#1a191b] border border-[#484849]/50 overflow-hidden group active:scale-[0.98] transition-all">
+              <Card key={grow.id} className="bg-[var(--card)] border border-[var(--border)]/50 overflow-hidden group active:scale-[0.98] transition-all">
                 <div className="p-5 flex flex-col gap-4">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${grow.status === 'active' ? 'bg-[#2FF801]/10 text-[#2FF801]' : 'bg-[#262627] text-[#adaaab]'}`}>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${grow.status === 'active' ? 'bg-[#2FF801]/10 text-[#2FF801]' : 'bg-[var(--muted)] text-[var(--muted-foreground)]'}`}>
                         <Sprout size={24} />
                       </div>
                       <div>
-                        <h3 className="font-black text-lg uppercase tracking-tight leading-none text-white font-display">{grow.title}</h3>
-                        <p className="text-[10px] text-[#adaaab] font-bold uppercase tracking-widest mt-1">
+                        <h3 className="font-black text-lg uppercase tracking-tight leading-none text-[var(--foreground)] font-display">{grow.title}</h3>
+                        <p className="text-[10px] text-[var(--muted-foreground)] font-bold uppercase tracking-widest mt-1">
                           {grow.strains?.name || 'Unbekannte Sorte'} • {grow.grow_type}
                         </p>
                       </div>
                     </div>
-                    <Badge className={grow.status === 'active' ? 'bg-[#2FF801] text-black border-none font-bold' : 'bg-[#262627] text-[#adaaab] border-none font-bold'}>
+                    <Badge className={grow.status === 'active' ? 'bg-[#2FF801] text-black border-none font-bold' : 'bg-[var(--muted)] text-[var(--muted-foreground)] border-none font-bold'}>
                       {grow.status.toUpperCase()}
                     </Badge>
                   </div>
 
-                  <div className="flex justify-between items-center pt-2 border-t border-[#484849]/50">
-                    <div className="flex items-center gap-2 text-[#adaaab]">
+                  <div className="flex justify-between items-center pt-2 border-t border-[var(--border)]/50">
+                    <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
                       <Calendar size={12} />
                       <span className="text-[10px] font-bold uppercase">{grow.start_date || 'Kein Startdatum'}</span>
                     </div>
@@ -143,12 +143,12 @@ export default function GrowsPage() {
           </div>
         ) : (
           <div className="text-center py-20 space-y-6">
-            <div className="w-20 h-20 bg-[#1a191b] rounded-3xl flex items-center justify-center mx-auto border border-[#484849]/50 shadow-2xl">
+            <div className="w-20 h-20 bg-[var(--card)] rounded-3xl flex items-center justify-center mx-auto border border-[var(--border)]/50 shadow-2xl">
               <Sprout size={32} className="text-[#2FF801]" />
             </div>
             <div>
-              <h2 className="text-xl font-bold uppercase tracking-tight text-white font-display">Keine aktiven Grows</h2>
-              <p className="text-[#adaaab] text-sm mt-2 max-w-[200px] mx-auto">Starte jetzt deinen ersten Grow und tracke deinen Fortschritt!</p>
+              <h2 className="text-xl font-bold uppercase tracking-tight text-[var(--foreground)] font-display">Keine aktiven Grows</h2>
+              <p className="text-[var(--muted-foreground)] text-sm mt-2 max-w-[200px] mx-auto">Starte jetzt deinen ersten Grow und tracke deinen Fortschritt!</p>
             </div>
             <Link href="/grows/new">
               <Button className="bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] hover:opacity-90 text-black font-black uppercase tracking-widest text-xs px-8 py-6 rounded-2xl shadow-lg shadow-[#00F5FF]/20">

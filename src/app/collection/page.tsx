@@ -135,36 +135,36 @@ export default function CollectionPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
       </div>
 
-      <header className="sticky top-0 z-50 glass-surface border-b border-[#484849]/30 px-6 pt-12 pb-4">
+      <header className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/30 px-6 pt-12 pb-4">
         <div className="flex justify-between items-end mb-5">
           <div>
-            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-white">
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
               Sammlung
             </h1>
-            <p className="text-[10px] text-[#adaaab] uppercase tracking-[0.2em] mt-1 font-medium">
+            <p className="text-[10px] text-[var(--muted-foreground)] uppercase tracking-[0.2em] mt-1 font-medium">
               Deine Strains
             </p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-[#adaaab] uppercase font-semibold tracking-wider">Anzahl</p>
+            <p className="text-[10px] text-[var(--muted-foreground)] uppercase font-semibold tracking-wider">Anzahl</p>
             <p className="text-2xl font-black text-[#2FF801] neon-text-green font-display">{strains.length}</p>
           </div>
         </div>
 
         {/* Search bar */}
         <div className="relative mb-4">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#adaaab]" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" size={18} />
           <input
             type="text"
             placeholder="In Sammlung suchen..."
-            className="w-full bg-[#131314] border border-[#484849]/50 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-white placeholder:text-[#484849] focus:outline-none focus:border-[#00F5FF]/50 focus:ring-1 focus:ring-[#00F5FF]/30 transition-all"
+            className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-[var(--foreground)] placeholder:text-[#484849] focus:outline-none focus:border-[#00F5FF]/50 focus:ring-1 focus:ring-[#00F5FF]/30 transition-all"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -179,7 +179,7 @@ export default function CollectionPage() {
               className={`px-4 py-2 rounded-xl text-[10px] font-bold whitespace-nowrap transition-all duration-300 ${
                 sourceFilter === f.id
                   ? "bg-[#2FF801] text-black"
-                  : "bg-[#1a191b] text-[#adaaab] border border-[#484849]/50 hover:border-[#00F5FF]/50"
+                  : "bg-[var(--card)] text-[var(--muted-foreground)] border border-[var(--border)]/50 hover:border-[#00F5FF]/50"
               }`}
             >
               {f.label}
@@ -196,7 +196,7 @@ export default function CollectionPage() {
                 Gefiltert: {format(selectedDate, "dd. MMMM yyyy", { locale: de })}
               </p>
             </div>
-            <button onClick={() => setSelectedDate(undefined)} className="text-[#00F5FF] hover:text-white transition-colors">
+            <button onClick={() => setSelectedDate(undefined)} className="text-[#00F5FF] hover:text-[var(--foreground)] transition-colors">
               <X size={14} />
             </button>
           </div>
@@ -210,7 +210,7 @@ export default function CollectionPage() {
               <Loader2 className="animate-spin text-[#00F5FF]" size={40} />
               <div className="absolute inset-0 blur-xl bg-[#00F5FF]/20 animate-pulse" />
             </div>
-            <p className="text-[10px] font-bold text-[#adaaab] uppercase tracking-[0.2em]">Lade Archiv...</p>
+            <p className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-[0.2em]">Lade Archiv...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-[#ff716c]">
@@ -225,10 +225,10 @@ export default function CollectionPage() {
           </div>
         ) : (
           <div className="text-center py-20">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-[#1a191b] border border-[#484849]/50 flex items-center justify-center">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-[var(--card)] border border-[var(--border)]/50 flex items-center justify-center">
               <span className="text-4xl">🌿</span>
             </div>
-            <p className="text-[#adaaab] font-bold uppercase tracking-widest text-sm">Keine Treffer</p>
+            <p className="text-[var(--muted-foreground)] font-bold uppercase tracking-widest text-sm">Keine Treffer</p>
             <p className="text-[#484849] text-xs mt-2">Füge neue Strains hinzu</p>
           </div>
         )}
@@ -241,14 +241,14 @@ export default function CollectionPage() {
 
       {/* Calendar Dialog */}
       <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-        <DialogContent className="max-w-[360px] w-[95vw] bg-[#1a191b] border border-[#484849]/50 text-white rounded-3xl p-6 flex flex-col items-center">
+        <DialogContent className="max-w-[360px] w-[95vw] bg-[var(--card)] border border-[var(--border)]/50 text-[var(--foreground)] rounded-3xl p-6 flex flex-col items-center">
           <DialogHeader className="w-full mb-4">
             <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-[#2FF801] text-center font-display">
               Archiv Datum
             </DialogTitle>
           </DialogHeader>
 
-          <div className="w-full bg-[#131314] rounded-2xl p-2 border border-[#484849]/50">
+          <div className="w-full bg-[var(--input)] rounded-2xl p-2 border border-[var(--border)]/50">
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -257,7 +257,7 @@ export default function CollectionPage() {
                 setIsCalendarOpen(false);
               }}
               initialFocus
-              className="text-white"
+              className="text-[var(--foreground)]"
             />
           </div>
 
@@ -268,7 +268,7 @@ export default function CollectionPage() {
                 setSelectedDate(undefined);
                 setIsCalendarOpen(false);
               }}
-              className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-[#00F5FF] hover:bg-[#00F5FF]/10 h-10 w-full rounded-xl border border-[#484849]/50"
+              className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-[#00F5FF] hover:bg-[#00F5FF]/10 h-10 w-full rounded-xl border border-[var(--border)]/50"
             >
               Filter zurücksetzen
             </Button>

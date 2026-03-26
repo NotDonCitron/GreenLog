@@ -216,7 +216,7 @@ export default function GrowDetailPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0e0e0f] flex items-center justify-center">
+            <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
                 <Loader2 className="animate-spin text-[#00F5FF]" size={40} />
             </div>
         );
@@ -224,7 +224,7 @@ export default function GrowDetailPage() {
 
     if (!grow) {
         return (
-            <main className="min-h-screen bg-[#0e0e0f] text-white flex flex-col items-center justify-center gap-4">
+            <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col items-center justify-center gap-4">
                 <XCircle className="text-[#ff716c]" size={48} />
                 <p className="font-bold uppercase tracking-wider">Grow nicht gefunden</p>
                 <Link href="/grows">
@@ -235,35 +235,35 @@ export default function GrowDetailPage() {
     }
 
     return (
-        <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+        <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
             {/* Ambient glow */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
                 <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
                 <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[80px] rounded-full" />
             </div>
 
-            <header className="sticky top-0 z-50 glass-surface border-b border-[#484849]/50 px-6 py-4">
+            <header className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50 px-6 py-4">
                 <div className="flex items-center gap-4">
                     <Link href="/grows">
-                        <Button variant="ghost" size="icon" className="text-[#adaaab] hover:text-white hover:bg-[#1a191b] rounded-full transition-all">
+                        <Button variant="ghost" size="icon" className="text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--card)] rounded-full transition-all">
                             <ChevronLeft size={24} />
                         </Button>
                     </Link>
                     <div className="flex-1">
                         <span className="text-[10px] text-[#00F5FF] font-black uppercase tracking-[0.4em]">Grow Details</span>
-                        <h1 className="text-xl font-black italic tracking-tighter uppercase leading-none font-display text-white">{grow.title}</h1>
+                        <h1 className="text-xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">{grow.title}</h1>
                     </div>
                     {!isEditing && (
                         <div className="flex gap-2">
                             <Button
                                 onClick={() => setIsEditing(true)}
-                                variant="ghost" size="icon" className="text-[#adaaab] hover:text-[#00F5FF] rounded-full transition-all"
+                                variant="ghost" size="icon" className="text-[var(--muted-foreground)] hover:text-[#00F5FF] rounded-full transition-all"
                             >
                                 <Edit2 size={18} />
                             </Button>
                             <Button
                                 onClick={handleDeleteGrow}
-                                variant="ghost" size="icon" className="text-[#adaaab] hover:text-[#ff716c] rounded-full transition-all"
+                                variant="ghost" size="icon" className="text-[var(--muted-foreground)] hover:text-[#ff716c] rounded-full transition-all"
                             >
                                 <Trash2 size={18} />
                             </Button>
@@ -274,19 +274,19 @@ export default function GrowDetailPage() {
 
             <div className="p-6 space-y-6 relative z-10">
                 {/* Status Card */}
-                <Card className="bg-[#1a191b] border border-[#484849]/50 p-5">
+                <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5">
                     {isEditing ? (
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] text-[#adaaab] font-black uppercase tracking-wider">Titel</label>
+                                <label className="text-[10px] text-[var(--muted-foreground)] font-black uppercase tracking-wider">Titel</label>
                                 <Input
                                     value={editTitle}
                                     onChange={(e) => setEditTitle(e.target.value)}
-                                    className="bg-[#131314] border border-[#484849]/50 text-white"
+                                    className="bg-[var(--input)] border border-[var(--border)]/50 text-[var(--foreground)]"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] text-[#adaaab] font-black uppercase tracking-wider">Status</label>
+                                <label className="text-[10px] text-[var(--muted-foreground)] font-black uppercase tracking-wider">Status</label>
                                 <div className="flex gap-2">
                                     {['active', 'completed', 'abandoned'].map((s) => (
                                         <button
@@ -294,7 +294,7 @@ export default function GrowDetailPage() {
                                             onClick={() => setEditStatus(s)}
                                             className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${editStatus === s
                                                 ? s === 'active' ? 'bg-[#2FF801] text-black' : s === 'completed' ? 'bg-[#00F5FF] text-black' : 'bg-[#ff716c] text-black'
-                                                : 'bg-[#262627] text-[#adaaab]'
+                                                : 'bg-[var(--muted)] text-[var(--muted-foreground)]'
                                                 }`}
                                         >
                                             {s}
@@ -306,7 +306,7 @@ export default function GrowDetailPage() {
                                 <Button onClick={handleUpdateGrow} disabled={isSaving} className="flex-1 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black font-black">
                                     {isSaving ? <Loader2 className="animate-spin" size={16} /> : "Speichern"}
                                 </Button>
-                                <Button onClick={() => setIsEditing(false)} variant="ghost" className="text-[#adaaab]">Abbrechen</Button>
+                                <Button onClick={() => setIsEditing(false)} variant="ghost" className="text-[var(--muted-foreground)]">Abbrechen</Button>
                             </div>
                         </div>
                     ) : (
@@ -315,38 +315,38 @@ export default function GrowDetailPage() {
                                 <Badge className={grow.status === 'active' ? 'bg-[#2FF801] text-black border-none' : grow.status === 'completed' ? 'bg-[#00F5FF] text-black border-none' : 'bg-[#ff716c] text-black border-none'}>
                                     {grow.status.toUpperCase()}
                                 </Badge>
-                                <Badge variant="outline" className="border-[#484849]/50 text-[#adaaab] text-[10px]">
+                                <Badge variant="outline" className="border-[var(--border)]/50 text-[var(--muted-foreground)] text-[10px]">
                                     {grow.grow_type.toUpperCase()}
                                 </Badge>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 {grow.strains && (
-                                    <Link href={`/strains/${grow.strains.slug}`} className="flex items-center gap-2 p-3 bg-[#262627] border border-[#484849]/50 rounded-xl hover:border-[#00F5FF]/50 transition-all">
+                                    <Link href={`/strains/${grow.strains.slug}`} className="flex items-center gap-2 p-3 bg-[var(--muted)] border border-[var(--border)]/50 rounded-xl hover:border-[#00F5FF]/50 transition-all">
                                         <Leaf size={16} className="text-[#2FF801]" />
-                                        <span className="text-xs font-bold text-white">{grow.strains.name}</span>
+                                        <span className="text-xs font-bold text-[var(--foreground)]">{grow.strains.name}</span>
                                     </Link>
                                 )}
                                 {grow.start_date && (
-                                    <div className="flex items-center gap-2 p-3 bg-[#262627] border border-[#484849]/50 rounded-xl">
+                                    <div className="flex items-center gap-2 p-3 bg-[var(--muted)] border border-[var(--border)]/50 rounded-xl">
                                         <Calendar size={16} className="text-[#00F5FF]" />
-                                        <span className="text-xs font-bold text-white">{grow.start_date}</span>
+                                        <span className="text-xs font-bold text-[var(--foreground)]">{grow.start_date}</span>
                                     </div>
                                 )}
                             </div>
 
                             {grow.medium && (
-                                <div className="flex items-center gap-2 text-[#adaaab] text-xs">
+                                <div className="flex items-center gap-2 text-[var(--muted-foreground)] text-xs">
                                     <Droplets size={14} /> Medium: {grow.medium}
                                 </div>
                             )}
                             {grow.light_type && (
-                                <div className="flex items-center gap-2 text-[#adaaab] text-xs">
+                                <div className="flex items-center gap-2 text-[var(--muted-foreground)] text-xs">
                                     <Sun size={14} /> Licht: {grow.light_type}
                                 </div>
                             )}
                             {grow.yield_grams && (
-                                <div className="flex items-center gap-2 text-[#adaaab] text-xs">
+                                <div className="flex items-center gap-2 text-[var(--muted-foreground)] text-xs">
                                     <CheckCircle2 size={14} className="text-[#2FF801]" /> Ertrag: {grow.yield_grams}g
                                 </div>
                             )}
@@ -357,7 +357,7 @@ export default function GrowDetailPage() {
                 {/* Entries Section */}
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-sm font-black uppercase tracking-wider text-[#adaaab]">Grow Tagebuch</h2>
+                        <h2 className="text-sm font-black uppercase tracking-wider text-[var(--muted-foreground)]">Grow Tagebuch</h2>
                         <Button
                             onClick={() => setIsAddingEntry(true)}
                             size="sm"
@@ -368,27 +368,27 @@ export default function GrowDetailPage() {
                     </div>
 
                     {isAddingEntry && (
-                        <Card className="bg-[#1a191b] border border-[#484849]/50 p-5 space-y-4">
+                        <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 space-y-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] text-[#adaaab] font-black uppercase tracking-wider">Titel</label>
+                                <label className="text-[10px] text-[var(--muted-foreground)] font-black uppercase tracking-wider">Titel</label>
                                 <Input
                                     value={newEntryTitle}
                                     onChange={(e) => setNewEntryTitle(e.target.value)}
                                     placeholder="z.B. Tag 5 - Keimling"
-                                    className="bg-[#131314] border border-[#484849]/50 text-white placeholder:text-[#484849]"
+                                    className="bg-[var(--input)] border border-[var(--border)]/50 text-[var(--foreground)] placeholder:text-[#484849]"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] text-[#adaaab] font-black uppercase tracking-wider">Tag Nummer</label>
+                                <label className="text-[10px] text-[var(--muted-foreground)] font-black uppercase tracking-wider">Tag Nummer</label>
                                 <Input
                                     type="number"
                                     value={newEntryDayNumber}
                                     onChange={(e) => setNewEntryDayNumber(parseInt(e.target.value) || 1)}
-                                    className="bg-[#131314] border border-[#484849]/50 text-white"
+                                    className="bg-[var(--input)] border border-[var(--border)]/50 text-[var(--foreground)]"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] text-[#adaaab] font-black uppercase tracking-wider">Foto</label>
+                                <label className="text-[10px] text-[var(--muted-foreground)] font-black uppercase tracking-wider">Foto</label>
                                 <div className="flex gap-3 items-center">
                                     <input
                                         type="file"
@@ -400,7 +400,7 @@ export default function GrowDetailPage() {
                                     <button
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={isUploading}
-                                        className="w-20 h-20 rounded-xl border border-[#484849]/50 bg-[#262627] flex items-center justify-center text-[#adaaab] hover:bg-[#303030] transition-all overflow-hidden"
+                                        className="w-20 h-20 rounded-xl border border-[var(--border)]/50 bg-[var(--muted)] flex items-center justify-center text-[var(--muted-foreground)] hover:bg-[#303030] transition-all overflow-hidden"
                                     >
                                         {isUploading ? (
                                             <Loader2 className="animate-spin" size={20} />
@@ -421,12 +421,12 @@ export default function GrowDetailPage() {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] text-[#adaaab] font-black uppercase tracking-wider">Notizen</label>
+                                <label className="text-[10px] text-[var(--muted-foreground)] font-black uppercase tracking-wider">Notizen</label>
                                 <textarea
                                     value={newEntryNotes}
                                     onChange={(e) => setNewEntryNotes(e.target.value)}
                                     placeholder="Wie entwickelt sich die Pflanze?"
-                                    className="w-full bg-[#131314] border border-[#484849]/50 rounded-xl py-3 px-4 text-xs text-white placeholder:text-[#484849] focus:outline-none focus:border-[#00F5FF]/50"
+                                    className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-xl py-3 px-4 text-xs text-[var(--foreground)] placeholder:text-[#484849] focus:outline-none focus:border-[#00F5FF]/50"
                                     rows={3}
                                 />
                             </div>
@@ -434,7 +434,7 @@ export default function GrowDetailPage() {
                                 <Button onClick={handleAddEntry} disabled={isSaving} className="flex-1 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black font-black">
                                     {isSaving ? <Loader2 className="animate-spin" size={16} /> : "Speichern"}
                                 </Button>
-                                <Button onClick={() => { setIsAddingEntry(false); setPreviewImage(null); }} variant="ghost" className="text-[#adaaab]">Abbrechen</Button>
+                                <Button onClick={() => { setIsAddingEntry(false); setPreviewImage(null); }} variant="ghost" className="text-[var(--muted-foreground)]">Abbrechen</Button>
                             </div>
                         </Card>
                     )}
@@ -442,7 +442,7 @@ export default function GrowDetailPage() {
                     {entries.length > 0 ? (
                         <div className="space-y-3">
                             {entries.map((entry) => (
-                                <Card key={entry.id} className="bg-[#1a191b] border border-[#484849]/50 p-4">
+                                <Card key={entry.id} className="bg-[var(--card)] border border-[var(--border)]/50 p-4">
                                     {entry.image_url && (
                                         <div className="-mx-4 mb-3 overflow-hidden bg-[#0a0a0b] flex items-center justify-center" style={{ height: '200px' }}>
                                             <img
@@ -457,17 +457,17 @@ export default function GrowDetailPage() {
                                             <Badge className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold uppercase">
                                                 {entry.title || `Tag ${entry.day_number}`}
                                             </Badge>
-                                            <span className="text-[10px] text-[#adaaab]">
+                                            <span className="text-[10px] text-[var(--muted-foreground)]">
                                                 {new Date(entry.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
                                             </span>
                                         </div>
-                                        <span className="text-[10px] text-[#adaaab] font-bold">Tag {entry.day_number}</span>
+                                        <span className="text-[10px] text-[var(--muted-foreground)] font-bold">Tag {entry.day_number}</span>
                                     </div>
                                     {entry.notes && (
-                                        <p className="text-xs text-[#adaaab] italic leading-relaxed">{entry.notes}</p>
+                                        <p className="text-xs text-[var(--muted-foreground)] italic leading-relaxed">{entry.notes}</p>
                                     )}
                                     {entry.height_cm && (
-                                        <div className="flex items-center gap-1 mt-2 text-[10px] text-[#adaaab]">
+                                        <div className="flex items-center gap-1 mt-2 text-[10px] text-[var(--muted-foreground)]">
                                             <Wind size={12} /> {entry.height_cm}cm
                                         </div>
                                     )}
@@ -478,7 +478,7 @@ export default function GrowDetailPage() {
                         !isAddingEntry && (
                             <div className="text-center py-8 space-y-3">
                                 <Sprout className="mx-auto text-[#484849]" size={32} />
-                                <p className="text-[#adaaab] text-xs font-bold uppercase tracking-wider">Noch keine Einträge</p>
+                                <p className="text-[var(--muted-foreground)] text-xs font-bold uppercase tracking-wider">Noch keine Einträge</p>
                                 <p className="text-[#484849] text-[10px]">Dokumentiere deinen Grow mit dem Tagebuch</p>
                             </div>
                         )

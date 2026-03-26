@@ -99,7 +99,7 @@ export function ActivityFeed({
     if (isLoading) {
         return (
             <div className={`flex items-center justify-center py-12 ${className}`}>
-                <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+                <Loader2 className="h-8 w-8 animate-spin text-[var(--foreground)]/40" />
             </div>
         );
     }
@@ -107,10 +107,10 @@ export function ActivityFeed({
     if (error) {
         return (
             <div className={`text-center py-12 ${className}`}>
-                <p className="text-white/60 mb-4">{error}</p>
+                <p className="text-[var(--foreground)]/60 mb-4">{error}</p>
                 <button
                     onClick={handleRefresh}
-                    className="px-4 py-2 bg-white/10 rounded-lg text-sm font-semibold text-white hover:bg-white/20"
+                    className="px-4 py-2 bg-white/10 rounded-lg text-sm font-semibold text-[var(--foreground)] hover:bg-white/20"
                 >
                     <RefreshCw className="h-4 w-4 inline mr-2" />
                     Try Again
@@ -123,10 +123,10 @@ export function ActivityFeed({
         return (
             <div className={`text-center py-12 ${className}`}>
                 <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <ActivityIcon className="h-8 w-8 text-white/40" />
+                    <ActivityIcon className="h-8 w-8 text-[var(--foreground)]/40" />
                 </div>
-                <p className="text-white/60 mb-2">No activities yet</p>
-                <p className="text-sm text-white/40 mb-4">
+                <p className="text-[var(--foreground)]/60 mb-2">No activities yet</p>
+                <p className="text-sm text-[var(--foreground)]/40 mb-4">
                     {showDiscover
                         ? "Public activities will appear here"
                         : "Follow other users to see their activities here"}
@@ -161,7 +161,7 @@ export function ActivityFeed({
                 <button
                     onClick={handleRefresh}
                     disabled={isRefreshing}
-                    className="px-4 py-2 text-sm text-white/60 hover:text-white flex items-center gap-2 mx-auto"
+                    className="px-4 py-2 text-sm text-[var(--foreground)]/60 hover:text-[var(--foreground)] flex items-center gap-2 mx-auto"
                 >
                     <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
                     {isRefreshing ? "Loading..." : "Load more"}

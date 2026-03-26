@@ -118,7 +118,7 @@ export default function ColorPreviewPage() {
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="font-semibold text-card-foreground">{strain.name}</h3>
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full text-white ${typeColors[strain.type]}`}>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full text-[var(--foreground)] ${typeColors[strain.type]}`}>
                           {strain.type}
                         </span>
                       </div>
@@ -149,7 +149,7 @@ export default function ColorPreviewPage() {
                 <button className="px-6 py-2.5 bg-accent text-accent-foreground rounded-lg font-medium hover:opacity-90 transition-opacity">
                   Accent Button
                 </button>
-                <button className="px-6 py-2.5 bg-destructive text-white rounded-lg font-medium hover:opacity-90 transition-opacity">
+                <button className="px-6 py-2.5 bg-destructive text-[var(--foreground)] rounded-lg font-medium hover:opacity-90 transition-opacity">
                   Destructive
                 </button>
                 <button className="px-6 py-2.5 bg-background text-foreground border border-border rounded-lg font-medium hover:bg-secondary transition-colors">

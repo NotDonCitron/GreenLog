@@ -47,10 +47,10 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
       }}
     >
       <div className="p-3 pb-1 min-w-0 relative z-10">
-        <p className="text-[9px] font-bold tracking-[0.15em] uppercase text-white/30 truncate">
+        <p className="text-[9px] font-bold tracking-[0.15em] uppercase text-[var(--foreground)]/30 truncate">
           {farmerDisplay}
         </p>
-        <p className="title-font italic text-[13px] font-black leading-tight uppercase text-white break-words line-clamp-2">
+        <p className="title-font italic text-[13px] font-black leading-tight uppercase text-[var(--foreground)] break-words line-clamp-2">
           {normalizedStrainName}
         </p>
       </div>
@@ -81,22 +81,22 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
           {/* Row 1: THC & Taste */}
           <div className="mb-2 grid min-w-0 grid-cols-2 gap-2 border-b border-white/5 pb-2">
             <div className="flex min-w-0 items-center gap-1">
-              <span className="text-[7px] font-bold uppercase tracking-widest text-white/20">THC</span>
+              <span className="text-[7px] font-bold uppercase tracking-widest text-[var(--foreground)]/20">THC</span>
               <span className="text-[9px] font-black tracking-wide" style={{ color: themeColor }}>{thcDisplay}</span>
             </div>
             <div className="flex min-w-0 items-center justify-end border-l border-white/5 pl-2 text-right">
-              <span className="text-[8px] font-medium tracking-wide text-white/80 leading-tight">{tasteDisplay}</span>
+              <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/80 leading-tight">{tasteDisplay}</span>
             </div>
           </div>
 
           {/* Row 2: CBD & Effect */}
           <div className="grid min-w-0 grid-cols-2 gap-2">
             <div className="flex min-w-0 items-center gap-1">
-              <span className="text-[7px] font-bold uppercase tracking-widest text-white/20">CBD</span>
+              <span className="text-[7px] font-bold uppercase tracking-widest text-[var(--foreground)]/20">CBD</span>
               <span className="text-[9px] font-black tracking-wide" style={{ color: themeColor }}>{cbdDisplay}</span>
             </div>
             <div className="flex min-w-0 items-center justify-end border-l border-white/5 pl-2 text-right">
-              <span className="text-[8px] font-medium tracking-wide text-white/80 leading-tight">{effectDisplay}</span>
+              <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/80 leading-tight">{effectDisplay}</span>
             </div>
           </div>
         </div>

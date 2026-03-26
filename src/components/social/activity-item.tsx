@@ -80,7 +80,7 @@ export const ActivityItem = memo(function ActivityItem({ activity, user, classNa
                             className="object-cover"
                         />
                     ) : (
-                        <span className="text-sm font-bold text-white/50">
+                        <span className="text-sm font-bold text-[var(--foreground)]/50">
                             {user.username?.[0]?.toUpperCase() || "?"}
                         </span>
                     )}
@@ -94,13 +94,13 @@ export const ActivityItem = memo(function ActivityItem({ activity, user, classNa
                         <Icon className="h-4 w-4 text-[#00F5FF]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white break-words [overflow-wrap:anywhere]">
+                        <p className="text-sm text-[var(--foreground)] break-words [overflow-wrap:anywhere]">
                             <Link href={`/user/${user.username}`} className="font-semibold hover:underline">
                                 {user.display_name || user.username}
                             </Link>{" "}
-                            <span className="text-white/60">{activityText}</span>
+                            <span className="text-[var(--foreground)]/60">{activityText}</span>
                         </p>
-                        <p className="text-xs text-white/40 mt-1">
+                        <p className="text-xs text-[var(--foreground)]/40 mt-1">
                             {formatTimeAgo(activity.created_at)}
                         </p>
                     </div>

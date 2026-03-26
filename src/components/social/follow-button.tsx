@@ -181,7 +181,7 @@ export function FollowButton({
             <button
                 onClick={handleFollow}
                 disabled={isLoading}
-                className={`${sizeClasses} rounded-full font-semibold transition-all bg-white/10 text-white border border-white/20 hover:bg-white/20 disabled:opacity-50 ${className}`}
+                className={`${sizeClasses} rounded-full font-semibold transition-all bg-white/10 text-[var(--foreground)] border border-white/20 hover:bg-white/20 disabled:opacity-50 ${className}`}
             >
                 {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin inline" />
@@ -197,7 +197,7 @@ export function FollowButton({
             <button
                 onClick={handleFollow}
                 disabled={isLoading}
-                className={`${sizeClasses} rounded-full font-semibold transition-all bg-white/10 text-white border border-white/20 hover:bg-white/20 disabled:opacity-50 ${className}`}
+                className={`${sizeClasses} rounded-full font-semibold transition-all bg-white/10 text-[var(--foreground)] border border-white/20 hover:bg-white/20 disabled:opacity-50 ${className}`}
             >
                 {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin inline" />

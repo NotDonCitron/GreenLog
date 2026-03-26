@@ -233,10 +233,10 @@ export function OnboardingGuide() {
                             </div>
                             
                             <div className="flex-1 min-w-0 pt-1">
-                                <h2 className="text-sm font-black italic tracking-tighter uppercase text-white mb-1">
+                                <h2 className="text-sm font-black italic tracking-tighter uppercase text-[var(--foreground)] mb-1">
                                     {step.title}
                                 </h2>
-                                <p className="text-white/50 text-[11px] leading-snug">
+                                <p className="text-[var(--foreground)]/50 text-[11px] leading-snug">
                                     {step.description}
                                 </p>
                             </div>
@@ -257,7 +257,7 @@ export function OnboardingGuide() {
                                 {currentStep > 0 && (
                                     <button
                                         onClick={handleBack}
-                                        className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-white flex items-center justify-center hover:bg-white/10 transition-colors"
+                                        className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-[var(--foreground)] flex items-center justify-center hover:bg-white/10 transition-colors"
                                     >
                                         <ChevronLeft size={16} />
                                     </button>
@@ -280,7 +280,7 @@ export function OnboardingGuide() {
 
                         <button 
                             onClick={completeOnboarding}
-                            className="w-full mt-4 text-[8px] font-black uppercase tracking-[0.2em] text-white/20 hover:text-white/40 transition-colors text-center"
+                            className="w-full mt-4 text-[8px] font-black uppercase tracking-[0.2em] text-[var(--foreground)]/20 hover:text-[var(--foreground)]/40 transition-colors text-center"
                         >
                             Überspringen
                         </button>

@@ -69,7 +69,7 @@ export function CollectionStack({
           style={{ borderColor: themeColor, boxShadow: `0 0 15px ${themeColor}4d` }}
         >
           <div className="p-6 pb-4">
-            <h2 className="font-serif italic text-2xl text-white font-bold leading-tight uppercase line-clamp-2">{currentStrain.name}</h2>
+            <h2 className="font-serif italic text-2xl text-[var(--foreground)] font-bold leading-tight uppercase line-clamp-2">{currentStrain.name}</h2>
             <div className="w-12 h-0.5 mt-2 opacity-70" style={{ backgroundColor: themeColor }}></div>
           </div>
 
@@ -118,21 +118,21 @@ export function CollectionStack({
           style={{ borderColor: themeColor }}
         >
           <div className="flex-1 space-y-6">
-            <h3 className="font-serif italic text-xl font-bold uppercase text-white">Sorten Profil</h3>
+            <h3 className="font-serif italic text-xl font-bold uppercase text-[var(--foreground)]">Sorten Profil</h3>
 
             <div>
-              <p className="text-[9px] font-black uppercase text-white/30 mb-1">Beschreibung</p>
-              <p className="text-[11px] font-medium italic text-white/70 leading-relaxed line-clamp-6">
+              <p className="text-[9px] font-black uppercase text-[var(--foreground)]/30 mb-1">Beschreibung</p>
+              <p className="text-[11px] font-medium italic text-[var(--foreground)]/70 leading-relaxed line-clamp-6">
                 {currentStrain.user_review || currentStrain.description || "Noch keine Informationen hinterlegt."}
               </p>
             </div>
 
             {normalizedTerpenes.length > 0 && (
               <div className="pt-4 border-t border-white/5">
-                <p className="text-[9px] font-black uppercase text-white/30 mb-2">Terpene</p>
+                <p className="text-[9px] font-black uppercase text-[var(--foreground)]/30 mb-2">Terpene</p>
                 <div className="flex flex-wrap gap-1.5">
                   {normalizedTerpenes.slice(0, 6).map((t, i) => (
-                    <span key={i} className="text-[8px] font-bold px-2 py-1 bg-white/5 rounded-md text-white/60 border border-white/5">{t}</span>
+                    <span key={i} className="text-[8px] font-bold px-2 py-1 bg-white/5 rounded-md text-[var(--foreground)]/60 border border-white/5">{t}</span>
                   ))}
                 </div>
               </div>
@@ -140,16 +140,16 @@ export function CollectionStack({
 
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
               <div>
-                <p className="text-[9px] font-black uppercase text-white/30">Method</p>
-                <p className="text-xs font-bold text-white/80">{currentStrain.user_consumption_method || "—"}</p>
+                <p className="text-[9px] font-black uppercase text-[var(--foreground)]/30">Method</p>
+                <p className="text-xs font-bold text-[var(--foreground)]/80">{currentStrain.user_consumption_method || "—"}</p>
               </div>
               <div>
-                <p className="text-[9px] font-black uppercase text-white/30">Source</p>
+                <p className="text-[9px] font-black uppercase text-[var(--foreground)]/30">Source</p>
                 <p className="text-xs font-bold uppercase" style={{ color: themeColor }}>{currentStrain.source || "Unknown"}</p>
               </div>
             </div>
           </div>
-          <div className="mt-auto flex justify-center items-center gap-2 text-[10px] font-bold text-white/20 uppercase tracking-widest">
+          <div className="mt-auto flex justify-center items-center gap-2 text-[10px] font-bold text-[var(--foreground)]/20 uppercase tracking-widest">
             <RefreshCw size={12} className="animate-spin-slow" /> Tap to Flip
           </div>
         </Card>

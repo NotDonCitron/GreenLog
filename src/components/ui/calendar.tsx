@@ -27,15 +27,15 @@ function Calendar({
         nav: "flex items-center justify-between absolute w-full left-0 top-2 px-1 z-10",
         button_previous: cn(
           buttonVariants({ variant: "outline" }),
-          "h-8 w-8 bg-black/20 p-0 opacity-80 hover:opacity-100 border-white/10 text-white rounded-lg hover:bg-[#2FF801] hover:text-black transition-all"
+          "h-8 w-8 bg-black/20 p-0 opacity-80 hover:opacity-100 border-white/10 text-[var(--foreground)] rounded-lg hover:bg-[#2FF801] hover:text-black transition-all"
         ),
         button_next: cn(
           buttonVariants({ variant: "outline" }),
-          "h-8 w-8 bg-black/20 p-0 opacity-80 hover:opacity-100 border-white/10 text-white rounded-lg hover:bg-[#2FF801] hover:text-black transition-all"
+          "h-8 w-8 bg-black/20 p-0 opacity-80 hover:opacity-100 border-white/10 text-[var(--foreground)] rounded-lg hover:bg-[#2FF801] hover:text-black transition-all"
         ),
         month_grid: "w-full border-collapse space-y-2",
         weekdays: "flex justify-between mb-2",
-        weekday: "text-white/30 w-10 font-black uppercase text-[10px] tracking-widest text-center",
+        weekday: "text-[var(--foreground)]/30 w-10 font-black uppercase text-[10px] tracking-widest text-center",
         week: "flex w-full justify-between mt-1",
         day: "h-10 w-10 text-center text-sm p-0 relative flex items-center justify-center",
         day_button: cn(
@@ -46,8 +46,8 @@ function Calendar({
           "bg-[#2FF801] text-black hover:bg-[#2FF801] hover:text-black focus:bg-[#2FF801] focus:text-black shadow-[0_0_20px_#2FF80166] rounded-xl",
         today: "text-[#2FF801] font-black border-2 border-[#2FF801]/40 rounded-xl",
         outside:
-          "day-outside text-white/5 opacity-30",
-        disabled: "text-white/10 opacity-20",
+          "day-outside text-[var(--foreground)]/5 opacity-30",
+        disabled: "text-[var(--foreground)]/10 opacity-20",
         hidden: "invisible",
         ...classNames,
       }}

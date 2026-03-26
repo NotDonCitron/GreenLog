@@ -135,7 +135,7 @@ export default function ScannerPage() {
   };
 
   return (
-    <main className="h-[100dvh] bg-[#0e0e0f] text-white relative overflow-hidden flex flex-col">
+    <main className="h-[100dvh] bg-[var(--background)] text-[var(--foreground)] relative overflow-hidden flex flex-col">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#00F5FF]/10 blur-[150px] rounded-full" />
@@ -175,18 +175,18 @@ export default function ScannerPage() {
           <h2 className="text-xs font-black tracking-[0.3em] uppercase text-[#00F5FF]">
             {status === "processing" ? "Analysiere..." : "Smart Scanner"}
           </h2>
-          <p className="text-[9px] text-[#adaaab] uppercase tracking-widest font-bold">
+          <p className="text-[9px] text-[var(--muted-foreground)] uppercase tracking-widest font-bold">
             {status === "error" ? result : "Ziele auf den Namen der Sorte"}
           </p>
           {debugText && (
-            <p className="text-[8px] text-[#ff716c] font-mono mt-1 bg-[#1a191b] px-2 py-0.5 rounded">Gelesen: {debugText}</p>
+            <p className="text-[8px] text-[#ff716c] font-mono mt-1 bg-[var(--card)] px-2 py-0.5 rounded">Gelesen: {debugText}</p>
           )}
         </div>
 
         <button
           onClick={captureAndRecognize}
           disabled={status === "processing" || status === "success"}
-          className={`w-16 h-16 rounded-full border-4 border-[#00F5FF]/30 p-1 bg-[#1a191b] transition-all active:scale-95 ${status === "processing" ? "opacity-20" : "opacity-100"}`}
+          className={`w-16 h-16 rounded-full border-4 border-[#00F5FF]/30 p-1 bg-[var(--card)] transition-all active:scale-95 ${status === "processing" ? "opacity-20" : "opacity-100"}`}
         >
           <div className="w-full h-full rounded-full bg-gradient-to-br from-[#00F5FF] to-[#2FF801] flex items-center justify-center shadow-lg shadow-[#00F5FF]/30">
             <Camera size={28} className="text-black" />

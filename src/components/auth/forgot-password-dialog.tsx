@@ -52,10 +52,10 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="bg-[#1a191b] border-white/10">
+      <DialogContent className="bg-[var(--card)] border-white/10">
         <DialogHeader>
-          <DialogTitle className="text-white">Passwort zurücksetzen</DialogTitle>
-          <DialogDescription className="text-white/60">
+          <DialogTitle className="text-[var(--foreground)]">Passwort zurücksetzen</DialogTitle>
+          <DialogDescription className="text-[var(--foreground)]/60">
             {success
               ? "Gehe zu deinem Posteingang und klicke auf den Link in der E-Mail."
               : "Gib deine E-Mail-Adresse ein. Wir senden dir einen Link zum Zurücksetzen."}
@@ -65,13 +65,13 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
         {success ? (
           <div className="flex flex-col items-center gap-4 py-4">
             <CheckCircle className="h-12 w-12 text-[#2FF801]" />
-            <p className="text-white/80 text-sm text-center">
+            <p className="text-[var(--foreground)]/80 text-sm text-center">
               E-Mail gesendet — bitte checke deinen Posteingang (auch Spam-Ordner).
             </p>
             <Button
               onClick={() => handleOpenChange(false)}
               variant="ghost"
-              className="text-white/60 hover:text-white"
+              className="text-[var(--foreground)]/60 hover:text-[var(--foreground)]"
             >
               Zurück zum Login
             </Button>
@@ -80,11 +80,11 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <div className="relative">
-                <Mail className="absolute left-3 top-3 text-white/20" size={18} />
+                <Mail className="absolute left-3 top-3 text-[var(--foreground)]/20" size={18} />
                 <Input
                   type="email"
                   placeholder="name@example.com"
-                  className="bg-white/5 border-white/10 pl-10 h-12 text-white placeholder:text-white/20"
+                  className="bg-white/5 border-white/10 pl-10 h-12 text-[var(--foreground)] placeholder:text-[var(--foreground)]/20"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

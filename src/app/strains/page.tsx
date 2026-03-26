@@ -201,7 +201,7 @@ export default function StrainsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
@@ -215,13 +215,13 @@ export default function StrainsPage() {
         />
       </Suspense>
 
-      <header className="sticky top-0 z-50 glass-surface border-b border-[#484849]/50 px-6 pt-12 pb-4">
+      <header className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50 px-6 pt-12 pb-4">
         <div className="flex justify-between items-end mb-5">
           <div>
-            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-white">Strains</h1>
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">Strains</h1>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-[#adaaab] uppercase font-bold tracking-wider">Progress</p>
+            <p className="text-[10px] text-[var(--muted-foreground)] uppercase font-bold tracking-wider">Progress</p>
             <p className="text-xl font-black text-[#2FF801] neon-text-green font-display">{userCollection.length} / {strains.length || 20}</p>
           </div>
         </div>
@@ -231,7 +231,7 @@ export default function StrainsPage() {
           <input
             type="text"
             placeholder="Sorte suchen..."
-            className="w-full bg-[#131314] border border-[#484849]/50 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-white placeholder:text-[#484849] focus:outline-none focus:border-[#00F5FF]/50 transition-all"
+            className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-[var(--foreground)] placeholder:text-[#484849] focus:outline-none focus:border-[#00F5FF]/50 transition-all"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -243,7 +243,7 @@ export default function StrainsPage() {
             className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${
               activeTab === "catalog"
                 ? "bg-[#2FF801] text-black"
-                : "bg-[#1a191b] border border-[#484849]/50 text-[#adaaab] hover:border-[#00F5FF]/50"
+                : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)] hover:border-[#00F5FF]/50"
             }`}
           >
             Katalog
@@ -254,7 +254,7 @@ export default function StrainsPage() {
               className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${
                 activeTab === "org"
                   ? "bg-[#00F5FF] text-black"
-                  : "bg-[#1a191b] border border-[#484849]/50 text-[#adaaab] hover:border-[#00F5FF]/50"
+                  : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)] hover:border-[#00F5FF]/50"
               }`}
             >
               {activeOrganization.organizations?.name || "Organisation"}
@@ -267,7 +267,7 @@ export default function StrainsPage() {
             size="sm"
             variant={sourceFilter === "all" ? "default" : "outline"}
             onClick={() => setSourceFilter("all")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "all" ? "bg-[#2FF801] text-black" : "bg-[#1a191b] border border-[#484849]/50 text-[#adaaab]"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "all" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
           >
             Alle
           </Button>
@@ -275,7 +275,7 @@ export default function StrainsPage() {
             size="sm"
             variant={sourceFilter === "pharmacy" ? "default" : "outline"}
             onClick={() => setSourceFilter("pharmacy")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "pharmacy" ? "bg-[#2FF801] text-black" : "bg-[#1a191b] border border-[#484849]/50 text-[#adaaab]"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "pharmacy" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
           >
             Apotheke
           </Button>
@@ -283,7 +283,7 @@ export default function StrainsPage() {
             size="sm"
             variant={sourceFilter === "grow" ? "default" : "outline"}
             onClick={() => setSourceFilter("grow")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "grow" ? "bg-[#2FF801] text-black" : "bg-[#1a191b] border border-[#484849]/50 text-[#adaaab]"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "grow" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
           >
             Eigenanbau
           </Button>
@@ -291,7 +291,7 @@ export default function StrainsPage() {
             size="sm"
             variant={sourceFilter === "csc" ? "default" : "outline"}
             onClick={() => setSourceFilter("csc")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "csc" ? "bg-[#2FF801] text-black" : "bg-[#1a191b] border border-[#484849]/50 text-[#adaaab]"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "csc" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
           >
             CSC
           </Button>
@@ -299,7 +299,7 @@ export default function StrainsPage() {
             size="sm"
             variant={sourceFilter === "other" ? "default" : "outline"}
             onClick={() => setSourceFilter("other")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "other" ? "bg-[#2FF801] text-black" : "bg-[#1a191b] border border-[#484849]/50 text-[#adaaab]"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "other" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
           >
             Sonstiges
           </Button>
@@ -315,10 +315,10 @@ export default function StrainsPage() {
         ) : loading && strains.length === 0 ? (
           <div className="grid grid-cols-2 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="aspect-[3/4.5] rounded-3xl bg-[#1a191b] border border-[#484849]/50 animate-pulse flex flex-col p-4 gap-4">
-                <div className="w-2/3 h-6 bg-[#262627] rounded-lg" />
-                <div className="w-full flex-1 bg-[#262627] rounded-xl" />
-                <div className="w-full h-12 bg-[#262627] rounded-xl mt-auto" />
+              <div key={i} className="aspect-[3/4.5] rounded-3xl bg-[var(--card)] border border-[var(--border)]/50 animate-pulse flex flex-col p-4 gap-4">
+                <div className="w-2/3 h-6 bg-[var(--muted)] rounded-lg" />
+                <div className="w-full flex-1 bg-[var(--muted)] rounded-xl" />
+                <div className="w-full h-12 bg-[var(--muted)] rounded-xl mt-auto" />
               </div>
             ))}
           </div>

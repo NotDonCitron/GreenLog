@@ -26,7 +26,7 @@ interface MemberOrg extends Organization {
 function OrgTypeLabel({ type }: { type: string }) {
   const label = type === "club" ? "Club" : type === "pharmacy" ? "Apotheke" : type;
   return (
-    <span className="text-[10px] text-[#adaaab] font-mono uppercase tracking-wider">
+    <span className="text-[10px] text-[var(--muted-foreground)] font-mono uppercase tracking-wider">
       {label}
     </span>
   );
@@ -35,9 +35,9 @@ function OrgTypeLabel({ type }: { type: string }) {
 function CommunityCard({ org, role }: { org: Organization; role?: string }) {
   return (
     <Link href={`/community/${org.id}`}>
-      <Card className="bg-[#1a191b] border border-[#484849]/50 p-5 rounded-3xl hover:border-[#00F5FF]/50 transition-all cursor-pointer">
+      <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl hover:border-[#00F5FF]/50 transition-all cursor-pointer">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-[#262627] border border-[#484849]/50 flex items-center justify-center shrink-0 overflow-hidden">
+          <div className="w-12 h-12 rounded-full bg-[var(--muted)] border border-[var(--border)]/50 flex items-center justify-center shrink-0 overflow-hidden">
             {org.logo_url ? (
               <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
             ) : (
@@ -45,7 +45,7 @@ function CommunityCard({ org, role }: { org: Organization; role?: string }) {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-black text-sm truncate text-white">{org.name}</p>
+            <p className="font-black text-sm truncate text-[var(--foreground)]">{org.name}</p>
             <OrgTypeLabel type={org.organization_type} />
           </div>
           {role && (
@@ -53,8 +53,8 @@ function CommunityCard({ org, role }: { org: Organization; role?: string }) {
               {role === "gründer" ? "Gründer" : role === "admin" ? "Admin" : "Member"}
             </span>
           )}
-          <div className="w-8 h-8 rounded-full bg-[#262627] border border-[#484849]/50 flex items-center justify-center shrink-0">
-            <Building2 size={14} className="text-[#adaaab]" />
+          <div className="w-8 h-8 rounded-full bg-[var(--muted)] border border-[var(--border)]/50 flex items-center justify-center shrink-0">
+            <Building2 size={14} className="text-[var(--muted-foreground)]" />
           </div>
         </div>
       </Card>
@@ -111,7 +111,7 @@ export default function CommunityListPage() {
   }, [user, memberships]);
 
   return (
-    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
@@ -119,7 +119,7 @@ export default function CommunityListPage() {
       </div>
 
       <header className="px-6 pt-12 pb-4 relative z-10">
-        <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-white">
+        <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
           Communities
         </h1>
       </header>
@@ -134,7 +134,7 @@ export default function CommunityListPage() {
             {/* My Communities */}
             {myOrgs.length > 0 && (
               <section>
-                <h2 className="text-xs font-black uppercase tracking-wider text-[#adaaab] mb-3">
+                <h2 className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
                   Meine Communities
                 </h2>
                 <div className="space-y-3">
@@ -162,7 +162,7 @@ export default function CommunityListPage() {
             {/* Other Communities */}
             {otherOrgs.length > 0 && (
               <section>
-                <h2 className="text-xs font-black uppercase tracking-wider text-[#adaaab] mb-3">
+                <h2 className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
                   {myOrgs.length > 0 ? "Andere Communities" : "Communities"}
                 </h2>
                 <div className="space-y-3">
@@ -175,10 +175,10 @@ export default function CommunityListPage() {
 
             {myOrgs.length === 0 && otherOrgs.length === 0 && (
               <div className="text-center py-12 space-y-3">
-                <div className="w-16 h-16 rounded-full bg-[#1a191b] border border-[#484849]/50 flex items-center justify-center mx-auto">
+                <div className="w-16 h-16 rounded-full bg-[var(--card)] border border-[var(--border)]/50 flex items-center justify-center mx-auto">
                   <Building2 size={24} className="text-[#484849]" />
                 </div>
-                <p className="text-[#adaaab] text-sm">Es gibt noch keine Communities.</p>
+                <p className="text-[var(--muted-foreground)] text-sm">Es gibt noch keine Communities.</p>
               </div>
             )}
           </>

@@ -250,7 +250,7 @@ export function SuggestedUsers({
         return (
             <div className={`py-6 ${className}`}>
                 <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-6 w-6 animate-spin text-white/40" />
+                    <Loader2 className="h-6 w-6 animate-spin text-[var(--foreground)]/40" />
                 </div>
             </div>
         );
@@ -286,7 +286,7 @@ export function SuggestedUsers({
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <span className="text-2xl font-bold text-white/50">
+                                        <span className="text-2xl font-bold text-[var(--foreground)]/50">
                                             {suggestedUser.username?.[0]?.toUpperCase() || "?"}
                                         </span>
                                     )}
@@ -315,10 +315,10 @@ export function SuggestedUsers({
                             </div>
 
                             {/* Username */}
-                            <p className="text-xs font-semibold text-white truncate">
+                            <p className="text-xs font-semibold text-[var(--foreground)] truncate">
                                 {suggestedUser.display_name || suggestedUser.username}
                             </p>
-                            <p className="text-[10px] text-white/50 truncate">
+                            <p className="text-[10px] text-[var(--foreground)]/50 truncate">
                                 @{suggestedUser.username}
                             </p>
                         </Link>
@@ -354,7 +354,7 @@ export function SuggestedUsers({
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <Building2 size={28} className="text-white/50" />
+                                        <Building2 size={28} className="text-[var(--foreground)]/50" />
                                     )}
                                 </div>
                                 {/* Join/Member Button */}
@@ -380,10 +380,10 @@ export function SuggestedUsers({
                             </div>
 
                             {/* Community Name */}
-                            <p className="text-xs font-semibold text-white truncate">
+                            <p className="text-xs font-semibold text-[var(--foreground)] truncate">
                                 {community.name}
                             </p>
-                            <p className="text-[10px] text-white/50 truncate">
+                            <p className="text-[10px] text-[var(--foreground)]/50 truncate">
                                 {community.organization_type === "club" ? "Club" : community.organization_type === "pharmacy" ? "Apotheke" : "Community"}
                             </p>
                         </Link>
@@ -395,7 +395,7 @@ export function SuggestedUsers({
                 <div className="mt-4 text-center">
                     <Link
                         href="/discover"
-                        className="inline-flex items-center gap-2 px-6 py-2.5 bg-white/10 hover:bg-white/20 rounded-full text-sm font-semibold text-white transition-colors"
+                        className="inline-flex items-center gap-2 px-6 py-2.5 bg-white/10 hover:bg-white/20 rounded-full text-sm font-semibold text-[var(--foreground)] transition-colors"
                     >
                         <UserPlus size={16} />
                         See All Suggestions
