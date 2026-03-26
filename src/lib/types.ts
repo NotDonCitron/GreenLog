@@ -19,7 +19,7 @@ export interface OrganizationMembership {
   id: string;
   organization_id: string;
   user_id: string;
-  role: 'owner' | 'admin' | 'staff' | 'member';
+  role: 'gründer' | 'admin';
   membership_status: 'invited' | 'active' | 'suspended';
   joined_at: string | null;
   invited_by: string | null;
@@ -32,7 +32,7 @@ export interface OrganizationInvite {
   id: string;
   organization_id: string;
   email: string;
-  role: 'admin' | 'staff' | 'member';
+  role: 'admin';
   token_hash: string;
   status: 'pending' | 'accepted' | 'revoked' | 'expired';
   expires_at: string;
@@ -261,6 +261,24 @@ export interface FollowStatus {
   is_following: boolean;
   is_following_me: boolean;
   has_pending_request: boolean;
+}
+
+// Community Features Types
+export interface CommunityFollower {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface CommunityFeedEntry {
+  id: string;
+  organization_id: string;
+  event_type: "strain_created" | "grow_logged" | "rating_added";
+  reference_id: string | null;
+  user_id: string;
+  created_at: string;
+  profiles?: ProfileRow;
 }
 
 export interface ProfileRow {
