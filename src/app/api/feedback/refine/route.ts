@@ -47,17 +47,26 @@ User: ${context?.userId || "unbekannt"}`
       return NextResponse.json({ error: result.error?.message || "MiniMax Fehler" }, { status: 500 });
     }
 
-    console.log("MiniMax raw response:", JSON.stringify(result, null, 2));
-
     let refinedContent = { title, description };
 
-    if (result.choices?.[0]?.message?.content) {
-      const raw = result.choices[0].message.content;
+    const raw = result.choices?.[0]?.message?.content;
+    if (raw && typeof raw === "string") {
+      // MiniMax-M2 includes thinking tokens (<think>...</think>) - strip them
+      const cleanRaw = raw.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
       try {
-        refinedContent = JSON.parse(raw);
-      } catch {
-        console.error("Failed to parse MiniMax response as JSON:", raw);
-        return NextResponse.json({ title, description });
+        refinedContent = JSON.parse(cleanRaw);
+      } catch (e) {
+        // If still invalid, try to extract JSON from the text
+        const jsonMatch = cleanRaw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            refinedContent = JSON.parse(jsonMatch[0]);
+          } catch {
+            return NextResponse.json({ error: "MiniMax Antwort konnte nicht verarbeitet werden." }, { status: 500 });
+          }
+        } else {
+          return NextResponse.json({ error: "MiniMax Antwort konnte nicht verarbeitet werden." }, { status: 500 });
+        }
       }
     }
 
