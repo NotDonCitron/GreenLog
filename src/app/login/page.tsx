@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Loader2, LogIn, Mail, Lock, UserPlus, AlertCircle } from "lucide-react";
+import { ForgotPasswordDialog } from "@/components/auth/forgot-password-dialog";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -16,6 +17,7 @@ function LoginForm() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -201,7 +203,17 @@ function LoginForm() {
         </form>
       </Card>
 
+      <button
+          type="button"
+          onClick={() => setForgotPasswordOpen(true)}
+          className="text-center text-[10px] text-black/30 uppercase tracking-[0.2em] hover:text-[#00F5FF] transition-colors"
+        >
+          Passwort vergessen?
+        </button>
+
       <p className="text-center text-[10px] text-black/20 uppercase tracking-[0.3em]">Authorized Access Only</p>
+
+      <ForgotPasswordDialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen} />
     </div>
   );
 }
