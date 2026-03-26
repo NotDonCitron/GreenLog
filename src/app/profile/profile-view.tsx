@@ -516,7 +516,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Owner Badge */}
-        {(identity.username === '@fabian.gebert' || identity.username === '@lars' || identity.username === '@lars.fieber' || identity.username === '@test' || identity.username === '@pascal') && (
+        {(identity.username === '@fabian.gebert' || identity.username === '@lars' || identity.username === '@lars.fieber' || identity.username === '@test' || identity.username === '@pascal' || identity.username === '@hintermaier.pascal') && (
           <div className="flex justify-center mb-4">
             <span className="inline-flex items-center gap-1 rounded-full border border-[#F39C12]/30 bg-[#F39C12]/10 px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#F39C12]">
               <Shield size={12} /> CannaLog Owner
