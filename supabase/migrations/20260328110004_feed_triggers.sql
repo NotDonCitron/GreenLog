@@ -12,6 +12,9 @@
 CREATE OR REPLACE FUNCTION create_community_feed_entry()
 RETURNS TRIGGER AS $$
 BEGIN
+  -- Required for SECURITY DEFINER functions to prevent privilege escalation
+  PERFORM pg_catalog.set_config('search_path', '', false);
+
   -- Only create feed entry if organization_id is set
   IF NEW.organization_id IS NOT NULL THEN
     IF TG_TABLE_NAME = 'strains' THEN
