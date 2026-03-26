@@ -1,19 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { decodeToken } from "@/lib/auth/utils";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-// Helper to decode JWT and get user ID without API call
-function decodeToken(token: string): string | null {
-    try {
-        const payload = token.split(".")[1];
-        const decoded = JSON.parse(Buffer.from(payload, "base64").toString());
-        return decoded.sub || null;
-    } catch {
-        return null;
-    }
-}
 
 export async function POST(
     request: Request,

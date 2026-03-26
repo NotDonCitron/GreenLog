@@ -1,18 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { decodeToken } from "@/lib/auth/utils";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-function decodeToken(token: string): string | null {
-    try {
-        const payload = token.split(".")[1];
-        const decoded = JSON.parse(Buffer.from(payload, "base64").toString());
-        return decoded.sub || null;
-    } catch {
-        return null;
-    }
-}
 
 export async function POST(
     request: Request,
@@ -89,7 +80,13 @@ export async function POST(
                     joined_at: new Date().toISOString()
                 });
 
+            // Handle race condition: unique constraint violation means another request
+            // already created the membership between our check and insert
             if (insertError) {
+                if (insertError.code === "23505") {
+                    // Unique constraint violation - membership was created by concurrent request
+                    return NextResponse.json({ error: "already_member" }, { status: 400 });
+                }
                 return NextResponse.json({ error: insertError.message }, { status: 500 });
             }
         }
