@@ -11,6 +11,7 @@ import { OnboardingGuide } from "@/components/onboarding/onboarding-guide";
 import Link from "next/link";
 import { normalizeCollectionSource } from "@/lib/strain-display";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 
 const DEMO_SIMULATION_DATA: Strain[] = [
   {
@@ -76,6 +77,7 @@ export default function Home() {
         <header className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             <ThemeToggle />
+            <NotificationBell />
             <div className="flex flex-col gap-1">
               <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none font-display text-[var(--foreground)] hover:text-[#00F5FF] transition-colors duration-500 neon-text-cyan">
                 CannaLog

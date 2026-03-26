@@ -67,6 +67,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase/client";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import type {
   ProfileActivityItem,
   ProfileBadge,
@@ -508,6 +509,7 @@ export default function ProfilePage() {
           </div>
           <div className="flex items-center gap-3">
             <FeedbackButton variant="header" canSee={!!user && FEEDBACK_BUTTON_USER_IDS.includes(user.id)} />
+            <NotificationBell />
             <ThemeToggle />
             <Link href="/profile/settings">
               <button className="w-10 h-10 rounded-xl bg-[var(--card)] border border-[var(--border)]/50 flex items-center justify-center text-[var(--muted-foreground)] hover:text-[#00F5FF] hover:border-[#00F5FF]/50 transition-all">
