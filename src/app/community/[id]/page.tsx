@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { FollowButton } from "@/components/community/follow-button";
 import { CommunityFeed } from "@/components/community/feed";
+import { InviteAdminModal } from "@/components/community/invite-admin-modal";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { useAuth } from "@/components/auth-provider";
 import { Leaf, Building2, Users, Sprout, Loader2, ArrowLeft, Plus, Settings } from "lucide-react";
@@ -59,6 +60,7 @@ export default function CommunityDetailPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showInviteAdmin, setShowInviteAdmin] = useState(false);
 
   const isAdminOrGründer = !!memberships.find(
     (m) => m.organization_id === organizationId && (m.role === "gründer" || m.role === "admin")
@@ -186,6 +188,48 @@ export default function CommunityDetailPage() {
         </Card>
       </div>
 
+      {user && isAdminOrGründer && (
+        <div className="px-8 mt-6">
+          <div className="grid grid-cols-3 gap-3">
+            {/* Strains hinzufügen */}
+            <CreateStrainModal
+              organizationId={organizationId}
+              trigger={
+                <button className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-[#2FF801]/10 border border-[#2FF801]/30 hover:bg-[#2FF801]/20 transition-colors min-h-[100px]">
+                  <div className="w-10 h-10 rounded-full bg-[#2FF801]/20 flex items-center justify-center">
+                    <Plus size={18} className="text-[#2FF801]" />
+                  </div>
+                  <span className="text-xs font-bold text-[#2FF801]">Strains</span>
+                </button>
+              }
+              onSuccess={() => setRefreshKey((k) => k + 1)}
+            />
+
+            {/* Admin anlegen */}
+            <button
+              onClick={() => setShowInviteAdmin(true)}
+              className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-[#00F5FF]/10 border border-[#00F5FF]/30 hover:bg-[#00F5FF]/20 transition-colors min-h-[100px]"
+            >
+              <div className="w-10 h-10 rounded-full bg-[#00F5FF]/20 flex items-center justify-center">
+                <Users size={18} className="text-[#00F5FF]" />
+              </div>
+              <span className="text-xs font-bold text-[#00F5FF]">Admin</span>
+            </button>
+
+            {/* Einstellungen */}
+            <Link
+              href="/settings/organization"
+              className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-black/5 border border-black/20 hover:bg-black/10 transition-colors min-h-[100px]"
+            >
+              <div className="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center">
+                <Settings size={18} className="text-black/60" />
+              </div>
+              <span className="text-xs font-bold text-black/60">Einstellungen</span>
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Feed */}
       <div className="px-8 mt-8">
         <h2 className="text-sm font-black uppercase tracking-wider text-black/60 mb-4">
@@ -193,6 +237,17 @@ export default function CommunityDetailPage() {
         </h2>
         <CommunityFeed organizationId={organizationId} refreshKey={refreshKey} isAdminOrGründer={isAdminOrGründer} orgLogoUrl={organization.logo_url} />
       </div>
+
+      {showInviteAdmin && (
+        <InviteAdminModal
+          organizationId={organizationId}
+          onClose={() => setShowInviteAdmin(false)}
+          onSuccess={() => {
+            setShowInviteAdmin(false);
+            setRefreshKey((k) => k + 1);
+          }}
+        />
+      )}
 
       <BottomNav />
     </main>
