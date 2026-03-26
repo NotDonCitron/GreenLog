@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { X, Loader2, UserPlus } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
 
 interface InviteAdminModalProps {
   organizationId: string;
@@ -21,18 +20,16 @@ export function InviteAdminModal({ organizationId, onClose, onSuccess }: InviteA
     setError(null);
 
     try {
-      const { data, error: inviteError } = await supabase
-        .from("organization_invites")
-        .insert({
-          organization_id: organizationId,
-          email: email.trim().toLowerCase(),
-          role: "admin",
-        })
-        .select()
-        .single();
+      const response = await fetch(`/api/organizations/${organizationId}/invites`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), role: "admin" }),
+      });
 
-      if (inviteError) {
-        setError(inviteError.message);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Ein Fehler ist aufgetreten.");
         return;
       }
 
