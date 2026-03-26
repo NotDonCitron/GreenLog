@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Building2, Check, Loader2, Plus, Shield, Users, X } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { Card } from "@/components/ui/card";
@@ -52,11 +53,14 @@ export function OrganizationSwitcher() {
         refreshMemberships,
     } = useAuth();
 
+    const router = useRouter();
+
     const [isCreating, setIsCreating] = useState(false);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [newOrg, setNewOrg] = useState({ name: "", slug: "", type: "club" as "club" | "pharmacy" });
 
     const hasMemberships = memberships.length > 0;
+    const isAlreadyGründer = memberships.some((m) => m.role === "gründer");
 
     const activeMeta = useMemo(() => {
         if (!activeOrganization?.organizations) {
@@ -142,15 +146,18 @@ export function OrganizationSwitcher() {
                             <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">Workspace</p>
                             <p className="text-sm font-semibold text-white">Noch keine Organisation aktiv</p>
                             <p className="text-xs text-white/50">
-                                Erstelle einen Workspace für deinen Club oder deine Apotheke.
+                                {isAlreadyGründer
+                                    ? "Du hast bereits eine Community gegründet."
+                                    : "Erstelle einen Workspace für deinen Club oder deine Apotheke."}
                             </p>
                         </div>
                         <Button
-                            onClick={() => setShowCreateForm(true)}
-                            className="w-full bg-[#2FF801] hover:bg-[#2FF801]/80 text-black text-[10px] font-black uppercase tracking-widest"
+                            onClick={() => router.push("/community/new")}
+                            disabled={isAlreadyGründer}
+                            className="w-full bg-[#2FF801] hover:bg-[#2FF801]/80 text-black text-[10px] font-black uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Plus size={14} className="mr-2" />
-                            Organisation erstellen
+                            Community gründen
                         </Button>
                     </div>
                 </div>
