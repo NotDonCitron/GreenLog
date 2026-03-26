@@ -3,14 +3,16 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { FollowButton } from "@/components/community/follow-button";
 import { CommunityFeed } from "@/components/community/feed";
 import { InviteAdminModal } from "@/components/community/invite-admin-modal";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
+import { StatsBar } from "@/components/social/stats-bar";
 import { useAuth } from "@/components/auth-provider";
-import { Leaf, Building2, Users, Sprout, Loader2, ArrowLeft, Plus, Settings } from "lucide-react";
+import { Users, Leaf, Sprout, Loader2, ArrowLeft, Plus, Settings } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 
 interface Organization {
@@ -24,39 +26,13 @@ interface Organization {
   logo_url?: string | null;
 }
 
-interface OrganizationStats {
-  followerCount: number;
-  strainCount: number;
-}
-
-function OrgTypeLabel({ type }: { type: string }) {
-  const label = type === "club" ? "Club" : type === "pharmacy" ? "Apotheke" : type;
-  return (
-    <span className="text-[10px] text-black/40 font-mono uppercase tracking-wider">
-      {label}
-    </span>
-  );
-}
-
-function StatCard({ icon: Icon, value, label, color }: { icon: typeof Leaf; value: number | string; label: string; color: string }) {
-  return (
-    <div className="flex flex-col items-center gap-1 p-3">
-      <div className={`w-10 h-10 rounded-full bg-black/5 flex items-center justify-center ${color}`}>
-        <Icon size={18} />
-      </div>
-      <p className="font-black text-lg">{value}</p>
-      <p className="text-[10px] text-black/40 uppercase tracking-wider">{label}</p>
-    </div>
-  );
-}
-
 export default function CommunityDetailPage() {
   const params = useParams();
   const organizationId = params.id as string;
-  const { user, memberships, loading: authLoading } = useAuth();
+  const { user, memberships } = useAuth();
 
   const [organization, setOrganization] = useState<Organization | null>(null);
-  const [stats, setStats] = useState<OrganizationStats>({ followerCount: 0, strainCount: 0 });
+  const [stats, setStats] = useState({ followerCount: 0, strainCount: 0, growCount: 0 });
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -69,7 +45,6 @@ export default function CommunityDetailPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch organization
         const { data: orgData, error: orgError } = await supabase
           .from("organizations")
           .select("id, name, slug, organization_type, license_number, status, created_at, logo_url")
@@ -85,24 +60,18 @@ export default function CommunityDetailPage() {
 
         setOrganization(orgData);
 
-        // Fetch follower count
-        const { count: followerCount } = await supabase
-          .from("community_followers")
-          .select("*", { count: "exact", head: true })
-          .eq("organization_id", organizationId);
-
-        // Fetch strain count
-        const { count: strainCount } = await supabase
-          .from("strains")
-          .select("*", { count: "exact", head: true })
-          .eq("organization_id", organizationId);
+        const [{ count: followerCount }, { count: strainCount }, { count: growCount }] = await Promise.all([
+          supabase.from("community_followers").select("*", { count: "exact", head: true }).eq("organization_id", organizationId),
+          supabase.from("strains").select("*", { count: "exact", head: true }).eq("organization_id", organizationId),
+          supabase.from("grows").select("*", { count: "exact", head: true }).eq("organization_id", organizationId),
+        ]);
 
         setStats({
           followerCount: followerCount || 0,
           strainCount: strainCount || 0,
+          growCount: growCount || 0,
         });
-      } catch (err) {
-        console.error("Error fetching community data:", err);
+      } catch {
         setNotFound(true);
       } finally {
         setLoading(false);
@@ -114,27 +83,27 @@ export default function CommunityDetailPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-white text-black pb-32 flex items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-black/40" />
+      <main className="min-h-screen bg-white flex items-center justify-center pb-32">
+        <Loader2 size={32} className="animate-spin text-[#999]" />
       </main>
     );
   }
 
   if (notFound || !organization) {
     return (
-      <main className="min-h-screen bg-white text-black pb-32">
-        <header className="p-8 pb-4">
-          <Link href="/community" className="inline-flex items-center gap-2 text-black/40 hover:text-black mb-4">
+      <main className="min-h-screen bg-white pb-32">
+        <header className="p-6 pb-4">
+          <Link href="/community" className="inline-flex items-center gap-2 text-[#999] hover:text-[#1A1A1A] mb-4">
             <ArrowLeft size={16} />
-            <span className="text-sm">Zurueck</span>
+            <span className="text-sm">Zurück</span>
           </Link>
-          <h1 className="text-2xl font-black italic tracking-tighter uppercase">
+          <h1 className="text-2xl font-black italic uppercase tracking-tight">
             Community nicht gefunden
           </h1>
         </header>
-        <div className="px-8">
-          <Card className="bg-white border-black/10 p-8 rounded-3xl text-center">
-            <p className="text-black/60">Diese Community existiert nicht oder wurde entfernt.</p>
+        <div className="px-6">
+          <Card className="bg-[#FAFAFA] border-[#E5E5E5] p-8 rounded-2xl text-center">
+            <p className="text-[#666]">Diese Community existiert nicht oder wurde entfernt.</p>
           </Card>
         </div>
         <BottomNav />
@@ -143,99 +112,109 @@ export default function CommunityDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white text-black pb-32">
-      <header className="p-8 pb-4">
-        <Link href="/community" className="inline-flex items-center gap-2 text-black/40 hover:text-black mb-4">
+    <main className="min-h-screen bg-white pb-32">
+      <header className="p-6 pb-4">
+        <Link href="/community" className="inline-flex items-center gap-2 text-[#999] hover:text-[#1A1A1A] mb-4">
           <ArrowLeft size={16} />
-          <span className="text-sm">Zurueck</span>
+          <span className="text-sm">Zurück</span>
         </Link>
-        <div>
-          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none">
-            {organization.name}
-          </h1>
-          <OrgTypeLabel type={organization.organization_type} />
-          <div className="mt-2">
-            <FollowButton organizationId={organizationId} />
-          </div>
-        </div>
       </header>
 
-      {/* Stats */}
-      <div className="px-8 mt-4">
-        <Card className="bg-white border-black/10 p-4 rounded-3xl">
-          <div className="flex items-center justify-around">
-            <StatCard
-              icon={Users}
-              value={stats.followerCount}
-              label="Follower"
-              color="text-[#00F5FF]"
-            />
-            <div className="w-px h-12 bg-black/10" />
-            <StatCard
-              icon={Leaf}
-              value={stats.strainCount}
-              label="Sorten"
-              color="text-[#2FF801]"
-            />
-            <div className="w-px h-12 bg-black/10" />
-            <StatCard
-              icon={Sprout}
-              value="--"
-              label="Grows"
-              color="text-black/40"
-            />
+      {/* Community Header */}
+      <div className="px-6">
+        {/* Logo and Name */}
+        <div className="flex items-start gap-4 mb-6">
+          <div className="w-20 h-20 rounded-2xl overflow-hidden bg-[#FAFAFA] border border-[#E5E5E5] flex items-center justify-center flex-shrink-0">
+            {organization.logo_url ? (
+              <Image
+                src={organization.logo_url}
+                alt={organization.name}
+                width={80}
+                height={80}
+                className="object-cover"
+              />
+            ) : (
+              <Leaf size={32} className="text-[#2FF801]" />
+            )}
           </div>
-        </Card>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-black italic uppercase tracking-tight text-[#1A1A1A] leading-none mb-2">
+              {organization.name}
+            </h1>
+            <span className="inline-block text-[10px] font-mono uppercase tracking-wider px-2 py-1 rounded-full border border-[#00F5FF] text-[#00F5FF]">
+              {organization.organization_type === "club" ? "Club" : "Apotheke"}
+            </span>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <StatsBar
+          stats={[
+            { value: stats.followerCount, label: "Follower" },
+            { value: stats.strainCount, label: "Sorten" },
+            { value: stats.growCount, label: "Grows" },
+          ]}
+          highlightIndex={0}
+          className="mb-6"
+        />
+
+        {/* Follow Button */}
+        <div className="mb-6">
+          <FollowButton organizationId={organizationId} />
+        </div>
       </div>
 
+      {/* Admin Actions */}
       {user && isAdminOrGründer && (
-        <div className="px-8 mt-6">
-          <div className="grid grid-cols-3 gap-3">
-            {/* Strains hinzufügen */}
+        <div className="px-6 mb-6">
+          <div className="flex gap-3">
             <CreateStrainModal
               organizationId={organizationId}
               trigger={
-                <button className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-[#2FF801]/10 border border-[#2FF801]/30 hover:bg-[#2FF801]/20 transition-colors min-h-[100px]">
-                  <div className="w-10 h-10 rounded-full bg-[#2FF801]/20 flex items-center justify-center">
+                <button className="flex-1 flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-[#FAFAFA] border border-[#E5E5E5] hover:border-[#2FF801]/30 transition-colors min-h-[80px]">
+                  <div className="w-10 h-10 rounded-full bg-[#2FF801]/10 flex items-center justify-center">
                     <Plus size={18} className="text-[#2FF801]" />
                   </div>
-                  <span className="text-xs font-bold text-[#2FF801]">Strains</span>
+                  <span className="text-xs font-semibold text-[#1A1A1A]">Strain</span>
                 </button>
               }
-              onSuccess={() => setRefreshKey((k) => k + 1)}
+              onSuccess={() => setRefreshKey(k => k + 1)}
             />
 
-            {/* Admin anlegen */}
             <button
               onClick={() => setShowInviteAdmin(true)}
-              className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-[#00F5FF]/10 border border-[#00F5FF]/30 hover:bg-[#00F5FF]/20 transition-colors min-h-[100px]"
+              className="flex-1 flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-[#FAFAFA] border border-[#E5E5E5] hover:border-[#00F5FF]/30 transition-colors min-h-[80px]"
             >
-              <div className="w-10 h-10 rounded-full bg-[#00F5FF]/20 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-[#00F5FF]/10 flex items-center justify-center">
                 <Users size={18} className="text-[#00F5FF]" />
               </div>
-              <span className="text-xs font-bold text-[#00F5FF]">Admin</span>
+              <span className="text-xs font-semibold text-[#1A1A1A]">Admin</span>
             </button>
 
-            {/* Einstellungen */}
             <Link
               href="/settings/organization"
-              className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-black/5 border border-black/20 hover:bg-black/10 transition-colors min-h-[100px]"
+              className="flex-1 flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-[#FAFAFA] border border-[#E5E5E5] hover:border-[#999]/30 transition-colors min-h-[80px]"
             >
-              <div className="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center">
-                <Settings size={18} className="text-black/60" />
+              <div className="w-10 h-10 rounded-full bg-[#F5F5F5] flex items-center justify-center">
+                <Settings size={18} className="text-[#666]" />
               </div>
-              <span className="text-xs font-bold text-black/60">Einstellungen</span>
+              <span className="text-xs font-semibold text-[#1A1A1A]">Settings</span>
             </Link>
           </div>
         </div>
       )}
 
-      {/* Feed */}
-      <div className="px-8 mt-8">
-        <h2 className="text-sm font-black uppercase tracking-wider text-black/60 mb-4">
-          Aktivitaet
+      {/* Activity Feed */}
+      <div className="px-6">
+        <h2 className="text-[10px] font-bold uppercase tracking-widest text-[#999] mb-4">
+          Aktivitäten
         </h2>
-        <CommunityFeed organizationId={organizationId} refreshKey={refreshKey} isAdminOrGründer={isAdminOrGründer} orgLogoUrl={organization.logo_url} />
+        <CommunityFeed
+          organizationId={organizationId}
+          refreshKey={refreshKey}
+          isAdminOrGründer={isAdminOrGründer}
+          orgLogoUrl={organization.logo_url}
+        />
       </div>
 
       {showInviteAdmin && (
@@ -244,7 +223,7 @@ export default function CommunityDetailPage() {
           onClose={() => setShowInviteAdmin(false)}
           onSuccess={() => {
             setShowInviteAdmin(false);
-            setRefreshKey((k) => k + 1);
+            setRefreshKey(k => k + 1);
           }}
         />
       )}
