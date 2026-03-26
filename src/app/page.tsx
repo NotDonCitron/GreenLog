@@ -5,12 +5,10 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
-import { Loader2, ArrowRight } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Strain } from "@/lib/types";
-import { OnboardingGuide } from "@/components/onboarding/onboarding-guide";
 import Link from "next/link";
 import { normalizeCollectionSource } from "@/lib/strain-display";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { StrainCard } from "@/components/strains/strain-card";
 
@@ -35,7 +33,6 @@ export default function Home() {
   const { user, loading: authLoading, isDemoMode } = useAuth();
   const [strainOfTheDay, setStrainOfTheDay] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isFlipped, setIsFlipped] = useState(false);
 
   useEffect(() => {
     async function fetchHomeData() {
@@ -65,19 +62,18 @@ export default function Home() {
   }, [user, authLoading, isDemoMode]);
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32 overflow-hidden selection:bg-[#00F5FF]/30">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-24">
       {/* Ambient neon glow background effects */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#00F5FF]/8 blur-[150px] rounded-full animate-pulse" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-[#2FF801]/6 blur-[180px] rounded-full animate-pulse [animation-delay:3s]" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-[#a1faff]/5 blur-[200px] rounded-full" />
       </div>
 
-      <div className="relative mx-auto w-full px-4 pt-12 flex flex-col gap-10">
+      <div className="relative mx-auto w-full px-4 pt-12 flex flex-col gap-6 min-h-screen">
         {/* Header */}
-        <header className="flex justify-between items-center">
+        <header className="flex justify-between items-center shrink-0">
           <div className="flex items-center gap-3">
-            <ThemeToggle />
             <NotificationBell />
             <div className="flex flex-col gap-1">
               <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none font-display text-[var(--foreground)] hover:text-[#00F5FF] transition-colors duration-500 neon-text-cyan">
@@ -100,7 +96,7 @@ export default function Home() {
         </header>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-40 gap-6">
+          <div className="flex-1 flex flex-col items-center justify-center gap-6">
             <div className="relative">
               <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
               <div className="absolute inset-0 blur-xl bg-[#00F5FF]/30 animate-pulse" />
@@ -110,57 +106,19 @@ export default function Home() {
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-10">
-            {/* Strain of the Day Section - Full Width Hero */}
-            <section className="flex flex-col gap-5">
-              <div className="flex items-center gap-4 px-2">
-                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-[#484849]" />
-                <h2 className="text-[11px] font-black tracking-[0.4em] text-[#00F5FF] uppercase italic font-display">
-                  Strain of the Day
-                </h2>
-                <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-[#484849]" />
-              </div>
-
+          <div className="flex-1 flex flex-col">
+            {/* Strain of the Day - Full remaining space */}
+            <section className="flex-1 flex flex-col gap-4">
               {strainOfTheDay && (
-                <div className="px-2">
+                <div className="flex-1 flex items-center justify-center">
                   <StrainCard strain={strainOfTheDay} index={0} />
                 </div>
               )}
-            </section>
 
-            {/* Quick Actions */}
-            <section className="flex flex-col gap-4 px-2">
-              <Link href="/collection" className="block">
-                <button className="relative w-full h-24 group overflow-hidden rounded-2xl transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]">
-                  {/* Gradient background */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#00F5FF]/20 via-[#00F5FF]/10 to-[#2FF801]/20 transition-all duration-500 group-hover:from-[#00F5FF]/30 group-hover:via-[#00F5FF]/20 group-hover:to-[#2FF801]/30" />
-
-                  {/* Neon border glow on hover */}
-                  <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#00F5FF]/50 transition-all duration-500" />
-
-                  {/* Glow orb */}
-                  <div className="absolute top-0 right-8 w-32 h-32 bg-[#00F5FF]/20 rounded-full blur-2xl transform -translate-y-1/2 group-hover:scale-150 transition-transform duration-700" />
-
-                  {/* Content */}
-                  <div className="relative flex items-center justify-between px-8 h-full">
-                    <div className="flex flex-col items-start gap-1">
-                      <span className="text-[var(--foreground)] text-lg font-black uppercase tracking-tighter italic font-display">
-                        Meine Sammlung
-                      </span>
-                      <span className="text-[var(--muted-foreground)] text-[9px] font-semibold uppercase tracking-widest">
-                        {isDemoMode ? "Demo Mode Active" : "Straindaten verwalten"}
-                      </span>
-                    </div>
-                    <div className="w-12 h-12 rounded-full bg-[#00F5FF]/20 flex items-center justify-center group-hover:bg-[#00F5FF]/40 transition-all duration-500 group-hover:scale-110">
-                      <ArrowRight className="text-[#00F5FF] group-hover:translate-x-1 transition-transform" size={24} />
-                    </div>
-                  </div>
-                </button>
-              </Link>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Link href="/discover" className="block">
-                  <button className="relative w-full h-20 group overflow-hidden rounded-2xl transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]">
+              {/* Quick Actions - Entdecken & Grows */}
+              <div className="grid grid-cols-2 gap-4 py-4">
+                <Link href="/feed" className="block">
+                  <button className="relative w-full h-20 group overflow-hidden rounded-2xl transition-all duration-500 active:scale-[0.98]">
                     <div className="absolute inset-0 bg-[#2FF801]/10 transition-all duration-500 group-hover:bg-[#2FF801]/20" />
                     <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#2FF801]/50 transition-all duration-500" />
                     <div className="relative flex items-center gap-3 px-6 h-full">
@@ -175,7 +133,7 @@ export default function Home() {
                 </Link>
 
                 <Link href="/grows" className="block">
-                  <button className="relative w-full h-20 group overflow-hidden rounded-2xl transition-all duration-500 hover:scale-[1.02] active:scale-[0.98]">
+                  <button className="relative w-full h-20 group overflow-hidden rounded-2xl transition-all duration-500 active:scale-[0.98]">
                     <div className="absolute inset-0 bg-[#a1faff]/10 transition-all duration-500 group-hover:bg-[#a1faff]/20" />
                     <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#a1faff]/50 transition-all duration-500" />
                     <div className="relative flex items-center gap-3 px-6 h-full">
@@ -190,7 +148,6 @@ export default function Home() {
                 </Link>
               </div>
             </section>
-
           </div>
         )}
       </div>
