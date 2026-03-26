@@ -137,7 +137,7 @@ export default function CollectionPage() {
 
   return (
     <main className="min-h-screen bg-white text-black pb-32">
-      <header className="p-8 sticky top-0 bg-black/90 backdrop-blur-xl z-50 border-b border-black/5">
+      <header className="p-8 sticky top-0 bg-white z-50 border-b border-black/10">
         <div className="flex justify-between items-end mb-6">
           <div>
             <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">Deine Sammlung</h1>
@@ -225,12 +225,12 @@ export default function CollectionPage() {
       </div>
 
       <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-        <DialogContent className="max-w-[360px] w-[95vw] bg-[#1a191b] border-black/10 text-black rounded-[2.5rem] p-6 flex flex-col items-center shadow-2xl">
+        <DialogContent className="max-w-[360px] w-[95vw] bg-white border-black/10 text-black rounded-[2.5rem] p-6 flex flex-col items-center shadow-2xl">
           <DialogHeader className="w-full mb-4">
             <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-[#2FF801] text-center">Archiv Datum</DialogTitle>
           </DialogHeader>
 
-          <div className="w-full bg-black/20 rounded-3xl p-2 border border-black/5 shadow-inner">
+          <div className="w-full bg-black/5 rounded-3xl p-2 border border-black/10 shadow-inner">
             <Calendar
               mode="single"
               selected={selectedDate}
