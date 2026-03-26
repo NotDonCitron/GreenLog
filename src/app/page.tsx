@@ -110,7 +110,7 @@ export default function Home() {
             {/* Strain of the Day - Full remaining space */}
             <section className="flex-1 flex flex-col gap-4 min-h-0">
               {strainOfTheDay && (
-                <div className="min-h-0" style={{ height: 'calc(100vh - 340px)' }}>
+                <div className="min-h-0 flex items-center justify-center" style={{ height: 'calc(100vh - 340px)' }}>
                   <StrainCard strain={strainOfTheDay} index={0} />
                 </div>
               )}
