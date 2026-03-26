@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Leaf, Sprout, Star, Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { supabase } from "@/lib/supabase/client";
 
 interface FeedItem {
   id: string;
@@ -79,10 +81,25 @@ function FeedItemCard({ item }: { item: FeedItem }) {
   };
   const Icon = config.icon;
 
+  const [strainSlug, setStrainSlug] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (item.event_type === "strain_created" && item.reference_id) {
+      supabase
+        .from("strains")
+        .select("slug")
+        .eq("id", item.reference_id)
+        .single()
+        .then(({ data }) => {
+          if (data?.slug) setStrainSlug(data.slug);
+        });
+    }
+  }, [item.event_type, item.reference_id]);
+
   const displayName = item.user?.display_name || item.user?.username || "Unbekannter User";
   const avatarUrl = item.user?.avatar_url;
 
-  return (
+  const cardContent = (
     <Card className="bg-[#1e3a24] border-white/10 p-4 rounded-2xl">
       <div className="flex items-start gap-3">
         {/* Avatar */}
@@ -112,6 +129,16 @@ function FeedItemCard({ item }: { item: FeedItem }) {
       </div>
     </Card>
   );
+
+  if (item.event_type === "strain_created" && strainSlug) {
+    return (
+      <Link href={`/strains/${strainSlug}`} className="block">
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return cardContent;
 }
 
 function EmptyFeed() {
