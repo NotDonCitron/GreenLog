@@ -64,7 +64,7 @@ export async function POST(request: Request) {
             .insert({
                 organization_id: organization.id,
                 user_id: user.id,
-                role: 'owner',
+                role: 'gründer',
                 membership_status: 'active',
                 joined_at: new Date().toISOString()
             });
