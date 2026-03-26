@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Loader2, Search, UserPlus, Building2 } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
+import { SuggestedUsers } from "@/components/social/suggested-users";
 import { useAuth } from "@/components/auth-provider";
 import { supabase } from "@/lib/supabase";
 import type { ProfileRow } from "@/lib/types";
@@ -299,6 +300,14 @@ export default function DiscoverPage() {
                     </div>
                 ) : (
                     <div>
+                        {/* Suggested Users & Communities - Stories Style */}
+                        <SuggestedUsers
+                            limit={8}
+                            showViewAll={false}
+                            showCommunities={true}
+                            className="mb-6"
+                        />
+
                         {/* Search Field */}
                         <div className="relative mb-6">
                             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-black/30 pointer-events-none" />
