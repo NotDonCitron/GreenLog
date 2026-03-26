@@ -59,8 +59,7 @@ export function SuggestedUsers({
 
             if (result.success) {
                 setFollowingUsers(prev => new Set([...prev, targetUserId]));
-                // Refresh the page to update state
-                window.location.reload();
+                fetchSuggestedUsers();
             }
         } catch (err) {
             console.error("Follow action failed:", err);
@@ -87,7 +86,7 @@ export function SuggestedUsers({
 
             if (result.success) {
                 setJoinedCommunityIds(prev => new Set([...prev, communityId]));
-                window.location.reload();
+                fetchSuggestedUsers();
             }
         } catch (err) {
             console.error("Join community failed:", err);
@@ -245,7 +244,7 @@ export function SuggestedUsers({
 
     useEffect(() => {
         fetchSuggestedUsers();
-    }, [user]);
+    }, [user, limit, showCommunities]);
 
     if (isLoading) {
         return (
