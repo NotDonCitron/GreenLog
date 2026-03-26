@@ -64,7 +64,7 @@ export default function Home() {
   }, [user, authLoading, isDemoMode]);
 
   return (
-    <main className="min-h-screen bg-[#355E3B] text-white pb-32 overflow-hidden selection:bg-[#00F5FF]/30">
+    <main className="min-h-screen bg-white text-black pb-32 overflow-hidden selection:bg-[#00F5FF]/30">
       {/* Dynamic Background Elements */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/10 blur-[120px] rounded-full animate-pulse" />
@@ -79,7 +79,7 @@ export default function Home() {
               CannaLog
             </h1>
           </div>
-          <div className="w-14 h-14 relative p-1 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-xl shadow-2xl transform group-hover:rotate-6 transition-transform duration-500">
+          <div className="w-14 h-14 relative p-1 bg-black/5 rounded-2xl border border-black/10 backdrop-blur-xl shadow-2xl transform group-hover:rotate-6 transition-transform duration-500">
             <Image 
               src="/logo.png" 
               alt="CannaLog Logo" 
@@ -96,7 +96,7 @@ export default function Home() {
               <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
               <div className="absolute inset-0 blur-xl bg-[#00F5FF]/20 animate-pulse" />
             </div>
-            <p className="text-[11px] font-black text-white/30 uppercase tracking-[0.3em] animate-pulse">
+            <p className="text-[11px] font-black text-black/30 uppercase tracking-[0.3em] animate-pulse">
               System wird initialisiert...
             </p>
           </div>
@@ -105,11 +105,11 @@ export default function Home() {
             {/* Featured Section: Strain of the Day */}
             <section className="flex flex-col gap-6">
               <div className="flex items-center gap-4 px-2">
-                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/10" />
+                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-black/10" />
                 <h2 className="text-[11px] font-black tracking-[0.4em] text-[#00F5FF] uppercase italic">
                   Strain of the Day
                 </h2>
-                <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/10" />
+                <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-black/10" />
               </div>
               
               {strainOfTheDay && (
@@ -129,7 +129,7 @@ export default function Home() {
               
               <div className="flex items-center justify-center gap-3 pt-2">
                 <div className="w-1 h-1 rounded-full bg-[#00F5FF] animate-pulse" />
-                <p className="text-[9px] text-white/30 uppercase font-black tracking-[0.25em]">
+                <p className="text-[9px] text-black/30 uppercase font-black tracking-[0.25em]">
                   Tippe auf die Karte für Details
                 </p>
                 <div className="w-1 h-1 rounded-full bg-[#00F5FF] animate-pulse [animation-delay:0.5s]" />
@@ -157,7 +157,7 @@ export default function Home() {
                       </span>
                     </div>
                     <div className="w-12 h-12 rounded-full bg-black/5 flex items-center justify-center group-hover:bg-black transition-colors duration-500">
-                      <ArrowRight className="text-black group-hover:text-white transition-all group-hover:translate-x-1" size={24} />
+                      <ArrowRight className="text-black group-hover:text-black transition-all group-hover:translate-x-1" size={24} />
                     </div>
                   </div>
                 </button>

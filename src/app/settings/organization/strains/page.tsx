@@ -119,8 +119,8 @@ export default function OrgStrainsPage() {
   // Not logged in or no organization
   if (!activeOrganization) {
     return (
-      <main className="min-h-screen bg-[#355E3B] flex items-center justify-center">
-        <Loader2 className="animate-spin text-white/40" size={32} />
+      <main className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="animate-spin text-black/40" size={32} />
       </main>
     );
   }
@@ -128,11 +128,11 @@ export default function OrgStrainsPage() {
   // Admin guard
   if (!isAdmin) {
     return (
-      <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+      <main className="min-h-screen bg-white text-black pb-32">
         <header className="p-8 pb-4 flex items-center gap-4">
           <button
             onClick={() => router.back()}
-            className="p-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+            className="p-2 rounded-full bg-black/5 border border-black/10 hover:bg-black/10 transition-colors"
           >
             <ChevronLeft size={20} />
           </button>
@@ -153,7 +153,7 @@ export default function OrgStrainsPage() {
           <h2 className="text-xl font-black uppercase tracking-tight mb-2">
             Kein Zugriff
           </h2>
-          <p className="text-white/40 text-sm font-medium max-w-[280px]">
+          <p className="text-black/40 text-sm font-medium max-w-[280px]">
             Nur Owner und Admins können Sorten für die Organisation erstellen.
           </p>
         </div>
@@ -164,11 +164,11 @@ export default function OrgStrainsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+    <main className="min-h-screen bg-white text-black pb-32">
       <header className="p-8 pb-4 flex items-center gap-4">
         <button
           onClick={() => router.back()}
-          className="p-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+          className="p-2 rounded-full bg-black/5 border border-black/10 hover:bg-black/10 transition-colors"
         >
           <ChevronLeft size={20} />
         </button>
@@ -192,7 +192,7 @@ export default function OrgStrainsPage() {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-white/60">
+              <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-black/60">
                 Name *
               </Label>
               <Input
@@ -200,12 +200,12 @@ export default function OrgStrainsPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="z.B. Outdoor Green"
-                className="bg-white/5 border-white/10 rounded-xl h-12 text-base font-semibold focus:border-[#2FF801]"
+                className="bg-black/5 border-black/10 rounded-xl h-12 text-base font-semibold focus:border-[#2FF801]"
               />
             </div>
 
             <div className="space-y-3">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-black/60">
                 Typ *
               </Label>
               <div className="grid grid-cols-4 gap-2">
@@ -217,7 +217,7 @@ export default function OrgStrainsPage() {
                     className={`py-3 rounded-xl text-[10px] font-bold uppercase border transition-all ${
                       type === t
                         ? "bg-[#2FF801] border-[#2FF801] text-black shadow-[0_0_15px_#2FF80144]"
-                        : "bg-white/5 border-white/10 text-white/40"
+                        : "bg-black/5 border-black/10 text-black/40"
                     }`}
                   >
                     {t}
@@ -228,7 +228,7 @@ export default function OrgStrainsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="thcMin" className="text-[10px] font-black uppercase tracking-widest text-white/60">
+                <Label htmlFor="thcMin" className="text-[10px] font-black uppercase tracking-widest text-black/60">
                   THC Min (%)
                 </Label>
                 <Input
@@ -238,11 +238,11 @@ export default function OrgStrainsPage() {
                   value={thcMin}
                   onChange={(e) => setThcMin(e.target.value)}
                   placeholder="z.B. 15"
-                  className="bg-white/5 border-white/10 rounded-xl h-12 focus:border-[#2FF801]"
+                  className="bg-black/5 border-black/10 rounded-xl h-12 focus:border-[#2FF801]"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="thcMax" className="text-[10px] font-black uppercase tracking-widest text-white/60">
+                <Label htmlFor="thcMax" className="text-[10px] font-black uppercase tracking-widest text-black/60">
                   THC Max (%)
                 </Label>
                 <Input
@@ -252,14 +252,14 @@ export default function OrgStrainsPage() {
                   value={thcMax}
                   onChange={(e) => setThcMax(e.target.value)}
                   placeholder="z.B. 22"
-                  className="bg-white/5 border-white/10 rounded-xl h-12 focus:border-[#2FF801]"
+                  className="bg-black/5 border-black/10 rounded-xl h-12 focus:border-[#2FF801]"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="cbdMin" className="text-[10px] font-black uppercase tracking-widest text-white/60">
+                <Label htmlFor="cbdMin" className="text-[10px] font-black uppercase tracking-widest text-black/60">
                   CBD Min (%)
                 </Label>
                 <Input
@@ -269,11 +269,11 @@ export default function OrgStrainsPage() {
                   value={cbdMin}
                   onChange={(e) => setCbdMin(e.target.value)}
                   placeholder="z.B. 0.5"
-                  className="bg-white/5 border-white/10 rounded-xl h-12 focus:border-[#2FF801]"
+                  className="bg-black/5 border-black/10 rounded-xl h-12 focus:border-[#2FF801]"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="cbdMax" className="text-[10px] font-black uppercase tracking-widest text-white/60">
+                <Label htmlFor="cbdMax" className="text-[10px] font-black uppercase tracking-widest text-black/60">
                   CBD Max (%)
                 </Label>
                 <Input
@@ -283,13 +283,13 @@ export default function OrgStrainsPage() {
                   value={cbdMax}
                   onChange={(e) => setCbdMax(e.target.value)}
                   placeholder="z.B. 2"
-                  className="bg-white/5 border-white/10 rounded-xl h-12 focus:border-[#2FF801]"
+                  className="bg-black/5 border-black/10 rounded-xl h-12 focus:border-[#2FF801]"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="effects" className="text-[10px] font-black uppercase tracking-widest text-white/60">
+              <Label htmlFor="effects" className="text-[10px] font-black uppercase tracking-widest text-black/60">
                 Wirkungen
               </Label>
               <Input
@@ -297,12 +297,12 @@ export default function OrgStrainsPage() {
                 value={effects}
                 onChange={(e) => setEffects(e.target.value)}
                 placeholder="z.B. Entspannt, Kreativ, Glücklich (kommagetrennt)"
-                className="bg-white/5 border-white/10 rounded-xl h-12 focus:border-[#2FF801]"
+                className="bg-black/5 border-black/10 rounded-xl h-12 focus:border-[#2FF801]"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="flavors" className="text-[10px] font-black uppercase tracking-widest text-white/60">
+              <Label htmlFor="flavors" className="text-[10px] font-black uppercase tracking-widest text-black/60">
                 Geschmack
               </Label>
               <Input
@@ -310,12 +310,12 @@ export default function OrgStrainsPage() {
                 value={flavors}
                 onChange={(e) => setFlavors(e.target.value)}
                 placeholder="z.B. Süß, Erdbeeren, Zitrone (kommagetrennt)"
-                className="bg-white/5 border-white/10 rounded-xl h-12 focus:border-[#2FF801]"
+                className="bg-black/5 border-black/10 rounded-xl h-12 focus:border-[#2FF801]"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-[10px] font-black uppercase tracking-widest text-white/60">
+              <Label htmlFor="description" className="text-[10px] font-black uppercase tracking-widest text-black/60">
                 Beschreibung
               </Label>
               <Textarea
@@ -323,7 +323,7 @@ export default function OrgStrainsPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Beschreibe Wirkung, Geschmack oder besondere Eigenschaften..."
-                className="min-h-[120px] bg-white/5 border-white/10 rounded-2xl text-sm text-white placeholder:text-white/30 focus:border-[#2FF801]"
+                className="min-h-[120px] bg-black/5 border-black/10 rounded-2xl text-sm text-black placeholder:text-black/30 focus:border-[#2FF801]"
               />
             </div>
           </div>

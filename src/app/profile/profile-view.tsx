@@ -121,7 +121,7 @@ function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow: string; title:
   return (
     <div className="space-y-1 px-1">
       {eyebrow && <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#A3E4D7]/70">{eyebrow}</p>}
-      <h2 className="text-lg font-semibold tracking-tight text-white flex items-center gap-2">
+      <h2 className="text-lg font-semibold tracking-tight text-black flex items-center gap-2">
         {Icon && <Icon size={18} className="text-[#ff4757]" />}
         {title}
       </h2>
@@ -273,7 +273,7 @@ export default function ProfilePage() {
             onClick={(e) => { if (isDragging) e.preventDefault(); }}
           >
             <Card
-              className="overflow-hidden rounded-[2rem] border border-white/10 bg-[#1e3a24] p-0 shadow-lg hover:border-[#00F5FF]/30 transition-all cursor-grab active:cursor-grabbing"
+              className="overflow-hidden rounded-[2rem] border border-black/10 bg-[#1e3a24] p-0 shadow-lg hover:border-[#00F5FF]/30 transition-all cursor-grab active:cursor-grabbing"
               {...attributes}
               {...listeners}
             >
@@ -285,7 +285,7 @@ export default function ProfilePage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1e3a24] to-transparent" />
                 <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm rounded-full p-1.5">
-                  <GripVertical size={14} className="text-white/50" />
+                  <GripVertical size={14} className="text-black/50" />
                 </div>
                 <div className="absolute bottom-4 left-4 right-4">
                   <p className="text-sm font-black uppercase tracking-tight truncate">{favorite.name}</p>
@@ -420,7 +420,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (pageState === "loading") return <div className="min-h-screen bg-[#355E3B] flex items-center justify-center"><Loader2 className="animate-spin text-white" /></div>;
+  if (pageState === "loading") return <div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="animate-spin text-black" /></div>;
 
   const { identity, stats, favorites, badges } = viewModel;
   const isPublic = identity.profileVisibility === "public";
@@ -428,7 +428,7 @@ export default function ProfilePage() {
   // Wenn nicht eingeloggt und kein Demo-Modus -> Login Aufforderung
   if (!user && !isDemoMode) {
     return (
-      <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+      <main className="min-h-screen bg-white text-black pb-32">
         <header className="p-8 pb-4">
           <div className="flex justify-between items-center mb-8">
             <div>
@@ -444,17 +444,17 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="bg-[#1e3a24] rounded-[2.5rem] p-8 border border-white/10 shadow-2xl relative overflow-hidden text-center">
+          <div className="bg-[#1e3a24] rounded-[2.5rem] p-8 border border-black/10 shadow-2xl relative overflow-hidden text-center">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,245,255,0.05),transparent_50%)]" />
 
             <div className="relative z-10 space-y-6">
-              <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto border border-white/10">
-                <UserRound size={40} className="text-white/20" />
+              <div className="w-20 h-20 bg-black/5 rounded-full flex items-center justify-center mx-auto border border-black/10">
+                <UserRound size={40} className="text-black/20" />
               </div>
 
               <div className="space-y-2">
                 <h2 className="text-2xl font-black uppercase italic tracking-tight">Profil gesperrt</h2>
-                <p className="text-xs text-white/40 font-bold tracking-widest leading-relaxed">
+                <p className="text-xs text-black/40 font-bold tracking-widest leading-relaxed">
                   Logge dich ein, um deine Sammlung zu verwalten,<br />
                   Achievements zu sammeln und dich mit der<br />
                   Community zu vernetzen.
@@ -468,7 +468,7 @@ export default function ProfilePage() {
                   </button>
                 </Link>
                 <Link href="/login?signup=true">
-                  <button className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                  <button className="w-full py-4 bg-black/5 border border-black/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black/10 transition-all">
                     Neues Konto erstellen
                   </button>
                 </Link>
@@ -478,8 +478,8 @@ export default function ProfilePage() {
         </header>
 
         <div className="px-8 mt-4">
-          <div className="bg-black/10 rounded-3xl p-6 border border-dashed border-white/5 text-center">
-            <p className="text-[8px] font-bold text-white/20 uppercase tracking-[0.3em]">Authorized Access Only</p>
+          <div className="bg-black/10 rounded-3xl p-6 border border-dashed border-black/10 text-center">
+            <p className="text-[8px] font-bold text-black/20 uppercase tracking-[0.3em]">Authorized Access Only</p>
           </div>
         </div>
         <BottomNav />
@@ -488,7 +488,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+    <main className="min-h-screen bg-white text-black pb-32">
       <header className="p-8 pb-4">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -511,7 +511,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div className="bg-[#1e3a24] rounded-[2.5rem] p-6 border border-white/10 shadow-2xl relative overflow-hidden">
+        <div className="bg-[#1e3a24] rounded-[2.5rem] p-6 border border-black/10 shadow-2xl relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,245,255,0.05),transparent_50%)]" />
 
           <div className="flex items-start gap-6 relative z-10">
@@ -520,7 +520,7 @@ export default function ProfilePage() {
                 {identity.avatarUrl ? (
                   <img src={identity.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-3xl font-black text-white/20">{identity.initials}</span>
+                  <span className="text-3xl font-black text-black/20">{identity.initials}</span>
                 )}
               </div>
               <button className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#2FF801] text-black flex items-center justify-center border-4 border-[#1e3a24]">
@@ -532,15 +532,15 @@ export default function ProfilePage() {
               <div className="grid grid-cols-3 gap-2 mb-4">
                 <button onClick={() => setFollowersModal({ isOpen: true, mode: "followers" })} className="text-center px-1">
                   <p className="text-lg font-black leading-none">{stats.followers}</p>
-                  <p className="text-[7px] font-black uppercase tracking-wider text-white/40 mt-1">Follower</p>
+                  <p className="text-[7px] font-black uppercase tracking-wider text-black/40 mt-1">Follower</p>
                 </button>
-                <button onClick={() => setFollowersModal({ isOpen: true, mode: "following" })} className="text-center px-1 border-x border-white/5">
+                <button onClick={() => setFollowersModal({ isOpen: true, mode: "following" })} className="text-center px-1 border-x border-black/10">
                   <p className="text-lg font-black leading-none">{stats.following}</p>
-                  <p className="text-[7px] font-black uppercase tracking-wider text-white/40 mt-1">Following</p>
+                  <p className="text-[7px] font-black uppercase tracking-wider text-black/40 mt-1">Following</p>
                 </button>
                 <div className="text-center px-1">
                   <p className="text-lg font-black leading-none">{stats.totalStrains}</p>
-                  <p className="text-[7px] font-black uppercase tracking-wider text-white/40 mt-1">Strains</p>
+                  <p className="text-[7px] font-black uppercase tracking-wider text-black/40 mt-1">Strains</p>
                 </div>
               </div>
 
@@ -549,12 +549,12 @@ export default function ProfilePage() {
                   <button onClick={handleSaveProfile} disabled={isSaving} className="flex-1 py-2 bg-[#2FF801] text-black rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1">
                     {isSaving ? <Loader2 size={12} className="animate-spin" /> : <><Check size={12} /> Save</>}
                   </button>
-                  <button onClick={() => setIsEditing(false)} className="w-10 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-white/40">
+                  <button onClick={() => setIsEditing(false)} className="w-10 py-2 bg-black/5 border border-black/10 rounded-xl flex items-center justify-center text-black/40">
                     <X size={12} />
                   </button>
                 </div>
               ) : (
-                <button onClick={() => setIsEditing(true)} className="w-full py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                <button onClick={() => setIsEditing(true)} className="w-full py-2 bg-black/5 border border-black/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black/10 transition-all">
                   Profil bearbeiten
                 </button>
               )}
@@ -568,29 +568,29 @@ export default function ProfilePage() {
                   value={editData.displayName}
                   onChange={(e) => setEditData({ ...editData, displayName: e.target.value })}
                   placeholder="Anzeigename"
-                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-sm font-bold text-white focus:border-[#2FF801] outline-none"
+                  className="w-full bg-black/20 border border-black/10 rounded-xl px-4 py-2 text-sm font-bold text-black focus:border-[#2FF801] outline-none"
                 />
                 <textarea
                   value={editData.bio}
                   onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
                   placeholder="Deine Bio / Caption..."
                   rows={2}
-                  className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-xs text-white/70 focus:border-[#2FF801] outline-none resize-none"
+                  className="w-full bg-black/20 border border-black/10 rounded-xl px-4 py-2 text-xs text-black/70 focus:border-[#2FF801] outline-none resize-none"
                 />
               </div>
             ) : (
               <>
                 <h2 className="text-2xl font-black uppercase tracking-tight">{identity.displayName}</h2>
                 <p className="text-xs text-[#2FF801] font-bold tracking-widest">{identity.username}</p>
-                {identity.bio && <p className="text-sm text-white/60 mt-2 leading-relaxed">{identity.bio}</p>}
+                {identity.bio && <p className="text-sm text-black/60 mt-2 leading-relaxed">{identity.bio}</p>}
               </>
             )}
           </div>
 
-          <div className="mt-4 flex items-center justify-between text-[10px] font-bold text-white/40 uppercase tracking-widest relative z-10">
+          <div className="mt-4 flex items-center justify-between text-[10px] font-bold text-black/40 uppercase tracking-widest relative z-10">
             <span className="flex items-center gap-1"><Calendar size={12} /> Joined March 2026</span>
             <Link href="/profile/settings">
-              <button className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 hover:text-[#00F5FF] transition-colors">
+              <button className="w-8 h-8 rounded-full bg-black/5 border border-black/10 flex items-center justify-center text-black/60 hover:text-[#00F5FF] transition-colors">
                 <Settings size={14} />
               </button>
             </Link>
@@ -627,15 +627,15 @@ export default function ProfilePage() {
               return (
                 <div key={b.id} className={`rounded-3xl p-4 flex flex-col items-center text-center gap-2 transition-all border ${isUnlocked
                   ? "bg-[#1e3a24] border-[#2FF801]/30"
-                  : "bg-black/20 border-white/5 opacity-40 grayscale"
+                  : "bg-black/20 border-black/10 opacity-40 grayscale"
                   }`}>
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-1 ${isUnlocked ? "bg-[#2FF801]/10 text-[#ffd76a]" : "bg-white/5 text-white/10"
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-1 ${isUnlocked ? "bg-[#2FF801]/10 text-[#ffd76a]" : "bg-black/5 text-black/10"
                     }`}>
                     <b.icon size={32} />
                   </div>
-                  <p className={`text-[11px] font-black uppercase tracking-tight leading-none ${isUnlocked ? "text-white" : "text-white/40"
+                  <p className={`text-[11px] font-black uppercase tracking-tight leading-none ${isUnlocked ? "text-black" : "text-black/40"
                     }`}>{b.name}</p>
-                  <p className={`text-[8px] font-bold uppercase tracking-tighter ${isUnlocked ? "text-[#2FF801]" : "text-white/20"
+                  <p className={`text-[8px] font-bold uppercase tracking-tighter ${isUnlocked ? "text-[#2FF801]" : "text-black/20"
                     }`}>
                     {isUnlocked ? b.req : `Ziel: ${b.req}`}
                   </p>
@@ -648,7 +648,7 @@ export default function ProfilePage() {
         <section className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <SectionHeader eyebrow="" title="Favorites" icon={Heart} />
-            {savingOrder && <Loader2 size={12} className="animate-spin text-white/30" />}
+            {savingOrder && <Loader2 size={12} className="animate-spin text-black/30" />}
           </div>
           {carouselFavorites.length > 0 ? (
             <div className="relative">
@@ -662,7 +662,7 @@ export default function ProfilePage() {
                       }
                     }}
                     disabled={selectedFavoriteIndex === 0}
-                    className="px-4 py-2 bg-white/10 border border-white/10 rounded-full text-white/70 hover:bg-white/20 disabled:opacity-30 transition-all flex items-center gap-1 text-xs font-bold"
+                    className="px-4 py-2 bg-black/10 border border-black/10 rounded-full text-black/70 hover:bg-black/20 disabled:opacity-30 transition-all flex items-center gap-1 text-xs font-bold"
                   >
                     <ArrowLeft size={14} /> Links
                   </button>
@@ -674,7 +674,7 @@ export default function ProfilePage() {
                       }
                     }}
                     disabled={selectedFavoriteIndex === carouselFavorites.length - 1}
-                    className="px-4 py-2 bg-white/10 border border-white/10 rounded-full text-white/70 hover:bg-white/20 disabled:opacity-30 transition-all flex items-center gap-1 text-xs font-bold"
+                    className="px-4 py-2 bg-black/10 border border-black/10 rounded-full text-black/70 hover:bg-black/20 disabled:opacity-30 transition-all flex items-center gap-1 text-xs font-bold"
                   >
                     Rechts <ArrowRight size={14} />
                   </button>
@@ -702,23 +702,23 @@ export default function ProfilePage() {
                 </SortableContext>
               </DndContext>
               {selectedFavoriteIndex === null && carouselFavorites.length > 1 && (
-                <p className="text-center text-[10px] text-white/30 mt-2">Klicke auf einen Strain um ihn auszuwählen, dann ↑↓ zum Verschieben</p>
+                <p className="text-center text-[10px] text-black/30 mt-2">Klicke auf einen Strain um ihn auszuwählen, dann ↑↓ zum Verschieben</p>
               )}
             </div>
           ) : (
-            <div className="py-10 text-center bg-black/10 rounded-[2rem] border border-dashed border-white/10 text-white/20 text-xs font-bold uppercase tracking-widest">Keine Favoriten gesetzt</div>
+            <div className="py-10 text-center bg-black/10 rounded-[2rem] border border-dashed border-black/10 text-black/20 text-xs font-bold uppercase tracking-widest">Keine Favoriten gesetzt</div>
           )}
         </section>
 
-        <section className="bg-black/20 rounded-[2rem] p-6 border border-white/10">
+        <section className="bg-black/20 rounded-[2rem] p-6 border border-black/10">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h3 className="text-sm font-black uppercase tracking-widest">Profil Sichtbarkeit</h3>
-              <p className="text-[10px] text-white/40">{isPublic ? "Dein Profil ist für alle sichtbar" : "Nur du siehst dein Profil"}</p>
+              <p className="text-[10px] text-black/40">{isPublic ? "Dein Profil ist für alle sichtbar" : "Nur du siehst dein Profil"}</p>
             </div>
             <button
               onClick={handleToggleVisibility}
-              className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${isPublic ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]' : 'bg-white/5 border-white/10 text-white/40'}`}
+              className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${isPublic ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]' : 'bg-black/5 border-black/10 text-black/40'}`}
             >
               {isPublic ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>

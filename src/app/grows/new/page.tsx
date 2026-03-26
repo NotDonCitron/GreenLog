@@ -119,18 +119,18 @@ export default function NewGrowPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#355E3B] flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <Loader2 className="animate-spin text-[#00F5FF]" size={40} />
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#355E3B] text-white pb-32">
-      <header className="p-6 sticky top-0 bg-[#355E3B]/90 backdrop-blur-xl z-50 border-b border-white/5">
+    <main className="min-h-screen bg-white text-black pb-32">
+      <header className="p-6 sticky top-0 bg-white/90 backdrop-blur-xl z-50 border-b border-black/10">
         <div className="flex items-center gap-4">
           <Link href="/grows">
-            <Button variant="ghost" size="icon" className="text-white/60 hover:text-white hover:bg-white/5 rounded-full">
+            <Button variant="ghost" size="icon" className="text-black/60 hover:text-black hover:bg-black/5 rounded-full">
               <ChevronLeft size={24} />
             </Button>
           </Link>
@@ -142,7 +142,7 @@ export default function NewGrowPage() {
       </header>
 
       <div className="p-6 max-w-md mx-auto">
-        <Card className="bg-[#1a191b] border-white/5 p-6 shadow-2xl">
+        <Card className="bg-[#1a191b] border-black/10 p-6 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-bold uppercase tracking-wider text-center">
@@ -157,26 +157,26 @@ export default function NewGrowPage() {
             )}
 
             <div className="space-y-2">
-              <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
+              <label className="text-[10px] text-black/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <Tag size={12} className="text-[#00F5FF]" /> Grow Name
               </label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. My First Grow"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/20 h-12 rounded-xl focus:border-[#00F5FF] transition-all"
+                className="bg-black/5 border-black/10 text-black placeholder:text-black/20 h-12 rounded-xl focus:border-[#00F5FF] transition-all"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
+              <label className="text-[10px] text-black/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <Sprout size={12} className="text-[#00F5FF]" /> Strain
               </label>
               <Select value={strainId} onValueChange={(val) => setStrainId(val ?? "")}>
-                <SelectTrigger className="w-full bg-white/5 border-white/10 text-white h-12 rounded-xl focus:border-[#00F5FF] transition-all">
+                <SelectTrigger className="w-full bg-black/5 border-black/10 text-black h-12 rounded-xl focus:border-[#00F5FF] transition-all">
                   <SelectValue placeholder="Select a strain" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a191b] border-white/10 text-white">
+                <SelectContent className="bg-[#1a191b] border-black/10 text-black">
                   {loadingStrains ? (
                     <div className="p-4 flex justify-center">
                       <Loader2 className="animate-spin text-[#00F5FF]" size={20} />
@@ -193,14 +193,14 @@ export default function NewGrowPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
+              <label className="text-[10px] text-black/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <Layout size={12} className="text-[#00F5FF]" /> Grow Type
               </label>
               <Select value={growType} onValueChange={(val) => setGrowType(val ?? "indoor")}>
-                <SelectTrigger className="w-full bg-white/5 border-white/10 text-white h-12 rounded-xl focus:border-[#00F5FF] transition-all">
+                <SelectTrigger className="w-full bg-black/5 border-black/10 text-black h-12 rounded-xl focus:border-[#00F5FF] transition-all">
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a191b] border-white/10 text-white">
+                <SelectContent className="bg-[#1a191b] border-black/10 text-black">
                   <SelectItem value="indoor">Indoor</SelectItem>
                   <SelectItem value="outdoor">Outdoor</SelectItem>
                   <SelectItem value="greenhouse">Greenhouse</SelectItem>
@@ -209,14 +209,14 @@ export default function NewGrowPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
+              <label className="text-[10px] text-black/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <Calendar size={12} className="text-[#00F5FF]" /> Start Date
               </label>
               <Input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="bg-white/5 border-white/10 text-white h-12 rounded-xl focus:border-[#00F5FF] transition-all [color-scheme:dark]"
+                className="bg-black/5 border-black/10 text-black h-12 rounded-xl focus:border-[#00F5FF] transition-all [color-scheme:dark]"
               />
             </div>
 

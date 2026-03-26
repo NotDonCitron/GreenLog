@@ -11,11 +11,11 @@ export default function FeedPage() {
     const { user } = useAuth();
 
     return (
-        <div className="min-h-screen bg-[#355E3B] pb-24">
+        <div className="min-h-screen bg-white pb-24">
             {/* Header - Instagram Style */}
-            <div className="sticky top-0 z-20 bg-[#355E3B]/95 backdrop-blur-md border-b border-white/10">
+            <div className="sticky top-0 z-20 bg-white backdrop-blur-md border-b border-black/10">
                 <div className="max-w-lg mx-auto px-4 py-4">
-                    <h1 className="text-xl font-black text-white tracking-tight">Activity</h1>
+                    <h1 className="text-xl font-black text-black tracking-tight">Activity</h1>
                 </div>
             </div>
 
@@ -23,11 +23,11 @@ export default function FeedPage() {
             <div className="max-w-lg mx-auto">
                 {!user ? (
                     <div className="px-4 py-16 text-center">
-                        <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Activity size={24} className="text-white/40" />
+                        <div className="w-16 h-16 bg-black/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Activity size={24} className="text-black/40" />
                         </div>
-                        <h3 className="text-lg font-bold text-white mb-2">Sign in to see your feed</h3>
-                        <p className="text-white/60 text-sm mb-6">
+                        <h3 className="text-lg font-bold text-black mb-2">Sign in to see your feed</h3>
+                        <p className="text-black/60 text-sm mb-6">
                             Follow other users to see their latest ratings, grows, and achievements.
                         </p>
                         <Link href="/login">
@@ -46,7 +46,7 @@ export default function FeedPage() {
 
                         {/* Main activity feed */}
                         <div className="mt-6">
-                            <h2 className="text-sm font-semibold text-white/80 mb-4">From people you follow</h2>
+                            <h2 className="text-sm font-semibold text-black/80 mb-4">From people you follow</h2>
                             <ActivityFeed showDiscover={false} />
                         </div>
                     </div>

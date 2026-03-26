@@ -136,25 +136,25 @@ export default function CollectionPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#355E3B] text-white pb-32">
-      <header className="p-8 sticky top-0 bg-[#355E3B]/90 backdrop-blur-xl z-50 border-b border-white/5">
+    <main className="min-h-screen bg-white text-black pb-32">
+      <header className="p-8 sticky top-0 bg-black/90 backdrop-blur-xl z-50 border-b border-black/5">
         <div className="flex justify-between items-end mb-6">
           <div>
             <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">Deine Sammlung</h1>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-white/40 uppercase font-bold">Anzahl</p>
+            <p className="text-[10px] text-black/40 uppercase font-bold">Anzahl</p>
             <p className="text-xl font-black text-[#2FF801]">{strains.length}</p>
           </div>
         </div>
 
         <div className="flex gap-3 mb-4">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-3.5 text-white/20" size={18} />
+            <Search className="absolute left-4 top-3.5 text-black/20" size={18} />
             <input
               type="text"
               placeholder="In Sammlung suchen..."
-              className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:border-[#00F5FF]/50 transition-all shadow-inner"
+              className="w-full bg-black/5 border border-black/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:border-[#00F5FF]/50 transition-all shadow-inner"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -162,7 +162,7 @@ export default function CollectionPage() {
           <Button
             variant="outline"
             onClick={() => setIsCalendarOpen(true)}
-            className={`h-12 w-12 rounded-2xl border-white/10 shrink-0 transition-all ${selectedDate ? 'bg-[#2FF801] border-[#2FF801] text-black' : 'bg-white/5 text-[#2FF801]'}`}
+            className={`h-12 w-12 rounded-2xl border-black/10 shrink-0 transition-all ${selectedDate ? 'bg-[#2FF801] border-[#2FF801] text-black' : 'bg-black/5 text-[#2FF801]'}`}
           >
             <CalendarDays size={20} />
           </Button>
@@ -176,7 +176,7 @@ export default function CollectionPage() {
                 Gefiltert: {format(selectedDate, "dd. MMMM yyyy", { locale: de })}
               </p>
             </div>
-            <button onClick={() => setSelectedDate(undefined)} className="text-[#2FF801] hover:text-white transition-colors">
+            <button onClick={() => setSelectedDate(undefined)} className="text-[#2FF801] hover:text-black transition-colors">
               <X size={14} />
             </button>
           </div>
@@ -191,7 +191,7 @@ export default function CollectionPage() {
               onClick={() => setSourceFilter(f.id)}
               className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === f.id
                 ? "bg-[#2FF801] text-black"
-                : "bg-white/5 border-white/10 text-white/60"
+                : "bg-black/5 border-black/10 text-black/60"
                 }`}
             >
               {f.label}
@@ -204,7 +204,7 @@ export default function CollectionPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="animate-spin text-[#00F5FF]" size={40} />
-            <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Lade Archiv...</p>
+            <p className="text-[10px] font-bold text-black/20 uppercase tracking-[0.2em]">Lade Archiv...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-red-400">
@@ -219,18 +219,18 @@ export default function CollectionPage() {
           </div>
         ) : (
           <div className="text-center py-20">
-            <p className="text-white/20 font-bold uppercase tracking-widest text-sm">Keine Treffer in der Sammlung</p>
+            <p className="text-black/20 font-bold uppercase tracking-widest text-sm">Keine Treffer in der Sammlung</p>
           </div>
         )}
       </div>
 
       <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-        <DialogContent className="max-w-[360px] w-[95vw] bg-[#1a191b] border-white/10 text-white rounded-[2.5rem] p-6 flex flex-col items-center shadow-2xl">
+        <DialogContent className="max-w-[360px] w-[95vw] bg-[#1a191b] border-black/10 text-black rounded-[2.5rem] p-6 flex flex-col items-center shadow-2xl">
           <DialogHeader className="w-full mb-4">
             <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-[#2FF801] text-center">Archiv Datum</DialogTitle>
           </DialogHeader>
 
-          <div className="w-full bg-black/20 rounded-3xl p-2 border border-white/5 shadow-inner">
+          <div className="w-full bg-black/20 rounded-3xl p-2 border border-black/5 shadow-inner">
             <Calendar
               mode="single"
               selected={selectedDate}

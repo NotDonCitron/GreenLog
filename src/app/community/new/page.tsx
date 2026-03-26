@@ -82,9 +82,9 @@ export default function NewCommunityPage() {
 
   if (membershipsLoading) {
     return (
-      <div className="min-h-screen bg-[#355E3B] flex items-center justify-center">
-        <Card className="bg-[#1e3a24] border-white/10 p-8">
-          <div className="flex items-center gap-3 text-white">
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Card className="bg-white border-black/10 p-8">
+          <div className="flex items-center gap-3 text-black">
             <Loader2 className="animate-spin text-[#2FF801]" size={20} />
             <span>Lädt...</span>
           </div>
@@ -95,9 +95,9 @@ export default function NewCommunityPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#355E3B] flex items-center justify-center">
-        <Card className="bg-[#1e3a24] border-white/10 p-8">
-          <p className="text-white/70">Bitte melde dich an, um eine Community zu erstellen.</p>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Card className="bg-white border-black/10 p-8">
+          <p className="text-black/70">Bitte melde dich an, um eine Community zu erstellen.</p>
         </Card>
       </div>
     );
@@ -105,16 +105,16 @@ export default function NewCommunityPage() {
 
   if (isAlreadyGründer) {
     return (
-      <div className="min-h-screen bg-[#355E3B] flex items-center justify-center p-4">
-        <Card className="bg-[#1e3a24] border-white/10 p-8 max-w-md w-full">
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <Card className="bg-white border-black/10 p-8 max-w-md w-full">
           <div className="text-center space-y-4">
             <div className="mx-auto w-16 h-16 rounded-full bg-[#2FF801]/10 flex items-center justify-center">
               <Building2 className="text-[#2FF801]" size={32} />
             </div>
-            <h1 className="text-xl font-black text-white uppercase tracking-tight">
+            <h1 className="text-xl font-black text-black uppercase tracking-tight">
               Du bist bereits Gründer
             </h1>
-            <p className="text-white/60 text-sm">
+            <p className="text-black/60 text-sm">
               Du hast bereits eine Community gegründet. Du kannst nur eine Community pro Account erstellen.
             </p>
             <Button
@@ -130,18 +130,18 @@ export default function NewCommunityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#355E3B] flex items-center justify-center p-4">
-      <Card className="bg-[#1e3a24] border-white/10 p-8 max-w-md w-full backdrop-blur-xl">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <Card className="bg-white border-black/10 p-8 max-w-md w-full backdrop-blur-xl">
         <div className="space-y-6">
           {/* Header */}
           <div className="text-center space-y-2">
             <div className="mx-auto w-14 h-14 rounded-full bg-[#2FF801]/10 flex items-center justify-center mb-4">
               <Building2 className="text-[#2FF801]" size={28} />
             </div>
-            <h1 className="text-xl font-black text-white uppercase tracking-tight">
+            <h1 className="text-xl font-black text-black uppercase tracking-tight">
               Community gründen
             </h1>
-            <p className="text-white/50 text-sm">
+            <p className="text-black/50 text-sm">
               Erstelle eine Community für deinen Club oder deine Apotheke.
             </p>
           </div>
@@ -156,20 +156,20 @@ export default function NewCommunityPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1.5 block">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-black/60 mb-1.5 block">
                 Name
               </label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Mein Club"
-                className="bg-black/20 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl"
+                className="bg-black/20 border-black/10 text-black placeholder:text-black/30 h-12 rounded-xl"
                 disabled={isSubmitting}
               />
             </div>
 
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1.5 block">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-black/60 mb-1.5 block">
                 Typ
               </label>
               <Select
@@ -177,10 +177,10 @@ export default function NewCommunityPage() {
                 onValueChange={(value) => setOrgType(value as "club" | "pharmacy")}
                 disabled={isSubmitting}
               >
-                <SelectTrigger className="bg-black/20 border-white/10 text-white h-12 rounded-xl">
+                <SelectTrigger className="bg-black/20 border-black/10 text-black h-12 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a191b] border-white/10 text-white">
+                <SelectContent className="bg-[#1a191b] border-black/10 text-black">
                   <SelectItem value="club">Club</SelectItem>
                   <SelectItem value="pharmacy">Apotheke</SelectItem>
                 </SelectContent>
@@ -206,7 +206,7 @@ export default function NewCommunityPage() {
           </form>
 
           {/* Note */}
-          <p className="text-center text-white/30 text-[10px]">
+          <p className="text-center text-black/30 text-[10px]">
             Als Gründer erhältst du automatisch alle Rechte.
           </p>
         </div>

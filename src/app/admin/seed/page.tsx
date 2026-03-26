@@ -61,17 +61,17 @@ export default function AdminSeedPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#355E3B] text-white flex flex-col items-center justify-center p-6 relative">
-      <Link href="/profile" className="absolute top-8 left-8 p-3 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
+    <main className="min-h-screen bg-white text-black flex flex-col items-center justify-center p-6 relative">
+      <Link href="/profile" className="absolute top-8 left-8 p-3 rounded-full bg-black/5 border border-black/10 hover:bg-black/10 transition-all flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
         <ChevronLeft size={14} /> Back
       </Link>
 
-      <Card className="max-w-md w-full p-10 bg-[#1a191b] border-white/10 text-center space-y-8 shadow-2xl border-t-4 border-t-[#2FF801]">
+      <Card className="max-w-md w-full p-10 bg-[#1a191b] border-black/10 text-center space-y-8 shadow-2xl border-t-4 border-t-[#2FF801]">
         <Database className="text-[#2FF801] mx-auto animate-pulse" size={64} />
 
         <div className="space-y-2">
           <h1 className="text-xl font-black uppercase tracking-tighter italic">AI <span className="text-[#2FF801]">Visual Sync</span></h1>
-          <p className="text-white/30 text-[10px] uppercase tracking-widest leading-relaxed">
+          <p className="text-black/30 text-[10px] uppercase tracking-widest leading-relaxed">
             Generates high-fidelity photorealistic bud images for all legendary strains.
           </p>
         </div>

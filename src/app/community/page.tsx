@@ -26,7 +26,7 @@ interface MemberOrg extends Organization {
 function OrgTypeLabel({ type }: { type: string }) {
   const label = type === "club" ? "Club" : type === "pharmacy" ? "Apotheke" : type;
   return (
-    <span className="text-[10px] text-white/40 font-mono uppercase tracking-wider">
+    <span className="text-[10px] text-black/40 font-mono uppercase tracking-wider">
       {label}
     </span>
   );
@@ -35,7 +35,7 @@ function OrgTypeLabel({ type }: { type: string }) {
 function CommunityCard({ org, role }: { org: Organization; role?: string }) {
   return (
     <Link href={`/community/${org.id}`}>
-      <Card className="bg-[#1e3a24] border-white/10 p-5 rounded-3xl hover:bg-[#243d2a] transition-colors cursor-pointer">
+      <Card className="bg-[#1e3a24] border-black/10 p-5 rounded-3xl hover:bg-[#243d2a] transition-colors cursor-pointer">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-[#2FF801]/10 border border-[#2FF801]/20 flex items-center justify-center shrink-0 overflow-hidden">
             {org.logo_url ? (
@@ -53,8 +53,8 @@ function CommunityCard({ org, role }: { org: Organization; role?: string }) {
               {role === "gründer" ? "Gründer" : role === "admin" ? "Admin" : "Member"}
             </span>
           )}
-          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center shrink-0">
-            <Building2 size={14} className="text-white/30" />
+          <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center shrink-0">
+            <Building2 size={14} className="text-black/30" />
           </div>
         </div>
       </Card>
@@ -113,7 +113,7 @@ export default function CommunityListPage() {
   }, [user, memberships]);
 
   return (
-    <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+    <main className="min-h-screen bg-white text-black pb-32">
       <header className="p-8 pb-4">
         <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none">
           Communities
@@ -123,14 +123,14 @@ export default function CommunityListPage() {
       <div className="px-8 space-y-6 mt-4">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 size={24} className="animate-spin text-white/40" />
+            <Loader2 size={24} className="animate-spin text-black/40" />
           </div>
         ) : (
           <>
             {/* My Communities */}
             {myOrgs.length > 0 && (
               <section>
-                <h2 className="text-xs font-black uppercase tracking-wider text-white/40 mb-3">
+                <h2 className="text-xs font-black uppercase tracking-wider text-black/40 mb-3">
                   Meine Communities
                 </h2>
                 <div className="space-y-3">
@@ -158,7 +158,7 @@ export default function CommunityListPage() {
             {/* Other Communities */}
             {otherOrgs.length > 0 && (
               <section>
-                <h2 className="text-xs font-black uppercase tracking-wider text-white/40 mb-3">
+                <h2 className="text-xs font-black uppercase tracking-wider text-black/40 mb-3">
                   {myOrgs.length > 0 ? "Andere Communities" : "Communities"}
                 </h2>
                 <div className="space-y-3">
@@ -171,10 +171,10 @@ export default function CommunityListPage() {
 
             {myOrgs.length === 0 && otherOrgs.length === 0 && (
               <div className="text-center py-12 space-y-3">
-                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto">
-                  <Building2 size={24} className="text-white/20" />
+                <div className="w-16 h-16 rounded-full bg-black/5 flex items-center justify-center mx-auto">
+                  <Building2 size={24} className="text-black/20" />
                 </div>
-                <p className="text-white/40 text-sm">Es gibt noch keine Communities.</p>
+                <p className="text-black/40 text-sm">Es gibt noch keine Communities.</p>
               </div>
             )}
           </>

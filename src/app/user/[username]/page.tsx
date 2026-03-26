@@ -232,19 +232,19 @@ export default function UserProfilePage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[#355E3B] flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-white/60" />
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-black/60" />
             </div>
         );
     }
 
     if (error || !profile) {
         return (
-            <div className="min-h-screen bg-[#355E3B] flex flex-col items-center justify-center p-4">
-                <h1 className="text-2xl font-bold text-white mb-2">User Not Found</h1>
-                <p className="text-white/60 mb-4">The user @{username} doesn&apos;t exist or their profile is private.</p>
+            <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+                <h1 className="text-2xl font-bold text-black mb-2">User Not Found</h1>
+                <p className="text-black/60 mb-4">The user @{username} doesn&apos;t exist or their profile is private.</p>
                 <Link href="/">
-                    <button className="px-6 py-3 bg-white/10 text-white font-semibold rounded-xl">
+                    <button className="px-6 py-3 bg-black/10 text-black font-semibold rounded-xl">
                         <ArrowLeft className="h-4 w-4 inline mr-2" />
                         Go Home
                     </button>
@@ -254,21 +254,21 @@ export default function UserProfilePage() {
     }
 
     return (
-        <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#355E3B] pb-24">
+        <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-white pb-24">
             {/* Header with back button */}
-            <div className="sticky top-0 z-20 w-full max-w-full bg-[#355E3B]/95 border-b border-white/10 backdrop-blur-md">
+            <div className="sticky top-0 z-20 w-full max-w-full bg-white/95 border-b border-black/10 backdrop-blur-md">
                 <div className="mx-auto w-full max-w-lg px-4 py-4">
                     <div className="flex min-w-0 items-center gap-4">
                         <Link href="/discover" className="flex-shrink-0">
-                            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
-                                <ArrowLeft className="h-5 w-5 text-white" />
+                            <button className="flex h-10 w-10 items-center justify-center rounded-full bg-black/10">
+                                <ArrowLeft className="h-5 w-5 text-black" />
                             </button>
                         </Link>
                         <div className="min-w-0 flex-1">
-                            <h1 className="truncate text-lg font-bold text-white">
+                            <h1 className="truncate text-lg font-bold text-black">
                                 {profile.display_name || profile.username}
                             </h1>
-                            <p className="truncate text-xs text-white/60">@{profile.username}</p>
+                            <p className="truncate text-xs text-black/60">@{profile.username}</p>
                         </div>
                     </div>
                 </div>
@@ -289,7 +289,7 @@ export default function UserProfilePage() {
                     <div className="flex items-center gap-4 min-w-0">
                         {/* Avatar */}
                         <div className="flex-shrink-0">
-                            <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-white/20 bg-white/10 shadow-xl">
+                            <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-black/20 bg-black/10 shadow-xl">
                                 {profile.avatar_url ? (
                                     <Image
                                         src={profile.avatar_url}
@@ -298,7 +298,7 @@ export default function UserProfilePage() {
                                         className="object-cover"
                                     />
                                 ) : (
-                                    <span className="text-2xl font-bold text-white/50">
+                                    <span className="text-2xl font-bold text-black/50">
                                         {profile.username?.[0]?.toUpperCase() || "?"}
                                     </span>
                                 )}
@@ -307,10 +307,10 @@ export default function UserProfilePage() {
 
                         {/* Name Info */}
                         <div className="min-w-0 flex-1">
-                            <h2 className="truncate text-xl font-black tracking-tight text-white">
+                            <h2 className="truncate text-xl font-black tracking-tight text-black">
                                 {profile.display_name || profile.username}
                             </h2>
-                            <p className="truncate text-sm font-medium text-white/40">@{profile.username}</p>
+                            <p className="truncate text-sm font-medium text-black/40">@{profile.username}</p>
                         </div>
                     </div>
 
@@ -339,27 +339,27 @@ export default function UserProfilePage() {
                 )}
 
                 {/* Stats Bar */}
-                <div className="mt-6 grid grid-cols-3 divide-x divide-white/10 rounded-[2rem] border border-white/10 bg-white/5 py-5 shadow-2xl backdrop-blur-md">
+                <div className="mt-6 grid grid-cols-3 divide-x divide-white/10 rounded-[2rem] border border-black/10 bg-black/5 py-5 shadow-2xl backdrop-blur-md">
                     <div className="flex flex-col items-center justify-center">
-                        <p className="text-xl font-black text-white tracking-tighter">{followersCount}</p>
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Follower</p>
+                        <p className="text-xl font-black text-black tracking-tighter">{followersCount}</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-black/40">Follower</p>
                     </div>
                     <div className="flex flex-col items-center justify-center">
-                        <p className="text-xl font-black text-white tracking-tighter">{followingCount}</p>
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Gefolgt</p>
+                        <p className="text-xl font-black text-black tracking-tighter">{followingCount}</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-black/40">Gefolgt</p>
                     </div>
                     <div className="flex flex-col items-center justify-center">
                         <p className="text-xl font-black text-[#2FF801] tracking-tighter">{stats?.totalStrains ?? 0}</p>
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Ratings</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-black/40">Ratings</p>
                     </div>
                 </div>
 
                 {/* Bio and Meta */}
                 {profile.bio && (
-                    <p className="mt-6 w-full break-words text-sm leading-relaxed text-white/80 [overflow-wrap:anywhere]">{profile.bio}</p>
+                    <p className="mt-6 w-full break-words text-sm leading-relaxed text-black/80 [overflow-wrap:anywhere]">{profile.bio}</p>
                 )}
 
-                <div className="mt-4 flex w-full min-w-0 flex-wrap gap-4 text-[11px] font-medium text-white/40">
+                <div className="mt-4 flex w-full min-w-0 flex-wrap gap-4 text-[11px] font-medium text-black/40">
                     {profile.location && (
                         <span className="flex min-w-0 items-center gap-1 break-words [overflow-wrap:anywhere]">
                             <MapPin className="h-3 w-3 flex-shrink-0" />
@@ -385,12 +385,12 @@ export default function UserProfilePage() {
                                 return (
                                     <div
                                         key={ub.id}
-                                        className="flex flex-col items-center gap-1.5 min-w-[70px] bg-white/5 border border-white/10 rounded-2xl p-2.5 shadow-lg"
+                                        className="flex flex-col items-center gap-1.5 min-w-[70px] bg-black/5 border border-black/10 rounded-2xl p-2.5 shadow-lg"
                                     >
                                         <div className="w-10 h-10 rounded-xl bg-[#2FF801]/10 flex items-center justify-center text-[#ffd700]">
                                             <Icon size={24} />
                                         </div>
-                                        <p className="text-[8px] font-black uppercase tracking-tighter text-white truncate w-full text-center">
+                                        <p className="text-[8px] font-black uppercase tracking-tighter text-black truncate w-full text-center">
                                             {badge.name}
                                         </p>
                                     </div>
@@ -405,23 +405,23 @@ export default function UserProfilePage() {
             <div className="mx-auto w-full max-w-lg px-4">
                 {isPrivateAndNotFollowing ? (
                     <div className="mt-4 w-full max-w-full rounded-[2.5rem] border border-[#427249]/50 bg-[#2D5032] px-8 py-20 text-center">
-                        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-white/10 bg-white/5 shadow-2xl">
-                            <Lock size={32} className="text-white/20" />
+                        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border border-black/10 bg-black/5 shadow-2xl">
+                            <Lock size={32} className="text-black/20" />
                         </div>
-                        <h2 className="mb-2 text-xl font-bold uppercase tracking-tight text-white">This Account is Private</h2>
-                        <p className="text-sm leading-relaxed text-white/40">
+                        <h2 className="mb-2 text-xl font-bold uppercase tracking-tight text-black">This Account is Private</h2>
+                        <p className="text-sm leading-relaxed text-black/40">
                             Follow this user to see their ratings, grows, and collection progress.
                         </p>
                     </div>
                 ) : (
                     <>
-                        <div className="w-full max-w-full overflow-x-auto border-b border-white/10 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <div className="w-full max-w-full overflow-x-auto border-b border-black/10 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             <div className="flex w-max min-w-max gap-6 pr-4">
                                 <button
                                     onClick={() => setActiveTab("activity")}
                                     className={`whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${activeTab === "activity"
                                         ? "text-[#A3E4D7] border-b-2 border-[#A3E4D7]"
-                                        : "text-white/40"
+                                        : "text-black/40"
                                         }`}
                                 >
                                     Activity
@@ -430,7 +430,7 @@ export default function UserProfilePage() {
                                     onClick={() => setActiveTab("favorites")}
                                     className={`whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${activeTab === "favorites"
                                         ? "text-[#A3E4D7] border-b-2 border-[#A3E4D7]"
-                                        : "text-white/40"
+                                        : "text-black/40"
                                         }`}
                                 >
                                     Favorites
@@ -439,7 +439,7 @@ export default function UserProfilePage() {
                                     onClick={() => setActiveTab("collections")}
                                     className={`whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${activeTab === "collections"
                                         ? "text-[#A3E4D7] border-b-2 border-[#A3E4D7]"
-                                        : "text-white/40"
+                                        : "text-black/40"
                                         }`}
                                 >
                                     Sammlung
@@ -448,7 +448,7 @@ export default function UserProfilePage() {
                                     onClick={() => setActiveTab("grows")}
                                     className={`whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${activeTab === "grows"
                                         ? "text-[#A3E4D7] border-b-2 border-[#A3E4D7]"
-                                        : "text-white/40"
+                                        : "text-black/40"
                                         }`}
                                 >
                                     Grows
@@ -471,7 +471,7 @@ export default function UserProfilePage() {
                                     </div>
                                 ) : (
                                     <div className="text-center py-12">
-                                        <p className="text-white/40 text-sm">No recent activity</p>
+                                        <p className="text-black/40 text-sm">No recent activity</p>
                                     </div>
                                 )
                             )}
@@ -492,7 +492,7 @@ export default function UserProfilePage() {
                                                     )}
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                                                     <div className="absolute bottom-2 left-2 right-2">
-                                                        <p className="text-xs font-semibold text-white truncate">
+                                                        <p className="text-xs font-semibold text-black truncate">
                                                             {fav.strains?.name}
                                                         </p>
                                                     </div>
@@ -502,7 +502,7 @@ export default function UserProfilePage() {
                                     </div>
                                 ) : (
                                     <div className="text-center py-12">
-                                        <p className="text-white/40 text-sm">No favorites yet</p>
+                                        <p className="text-black/40 text-sm">No favorites yet</p>
                                     </div>
                                 )
                             )}
@@ -525,12 +525,12 @@ export default function UserProfilePage() {
                                                         <span className="text-lg">🌱</span>
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <h3 className="font-semibold text-white text-sm truncate">{grow.title}</h3>
-                                                        <p className="text-xs text-white/50 truncate">
+                                                        <h3 className="font-semibold text-black text-sm truncate">{grow.title}</h3>
+                                                        <p className="text-xs text-black/50 truncate">
                                                             {grow.strains?.name} • {grow.grow_type}
                                                         </p>
                                                     </div>
-                                                    <span className="text-xs px-2 py-1 bg-white/10 text-white/70 rounded-full">
+                                                    <span className="text-xs px-2 py-1 bg-black/10 text-black/70 rounded-full">
                                                         {grow.status}
                                                     </span>
                                                 </div>
@@ -539,7 +539,7 @@ export default function UserProfilePage() {
                                     </div>
                                 ) : (
                                     <div className="text-center py-12">
-                                        <p className="text-white/40 text-sm">No public grows yet</p>
+                                        <p className="text-black/40 text-sm">No public grows yet</p>
                                     </div>
                                 )
                             )}

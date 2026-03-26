@@ -218,7 +218,7 @@ export default function GrowDetailPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#355E3B] flex items-center justify-center">
+            <div className="min-h-screen bg-white flex items-center justify-center">
                 <Loader2 className="animate-spin text-[#00F5FF]" size={40} />
             </div>
         );
@@ -226,7 +226,7 @@ export default function GrowDetailPage() {
 
     if (!grow) {
         return (
-            <main className="min-h-screen bg-[#355E3B] text-white flex flex-col items-center justify-center gap-4">
+            <main className="min-h-screen bg-white text-black flex flex-col items-center justify-center gap-4">
                 <XCircle className="text-red-500" size={48} />
                 <p className="font-bold uppercase tracking-wider">Grow nicht gefunden</p>
                 <Link href="/grows">
@@ -237,11 +237,11 @@ export default function GrowDetailPage() {
     }
 
     return (
-        <main className="min-h-screen bg-[#355E3B] text-white pb-32">
-            <header className="p-6 sticky top-0 bg-[#355E3B]/90 backdrop-blur-xl z-50 border-b border-white/5">
+        <main className="min-h-screen bg-white text-black pb-32">
+            <header className="p-6 sticky top-0 bg-white/90 backdrop-blur-xl z-50 border-b border-black/10">
                 <div className="flex items-center gap-4">
                     <Link href="/grows">
-                        <Button variant="ghost" size="icon" className="text-white/60 hover:text-white hover:bg-white/5 rounded-full">
+                        <Button variant="ghost" size="icon" className="text-black/60 hover:text-black hover:bg-black/5 rounded-full">
                             <ChevronLeft size={24} />
                         </Button>
                     </Link>
@@ -253,13 +253,13 @@ export default function GrowDetailPage() {
                         <div className="flex gap-2">
                             <Button
                                 onClick={() => setIsEditing(true)}
-                                variant="ghost" size="icon" className="text-white/60 hover:text-[#00F5FF] rounded-full"
+                                variant="ghost" size="icon" className="text-black/60 hover:text-[#00F5FF] rounded-full"
                             >
                                 <Edit2 size={18} />
                             </Button>
                             <Button
                                 onClick={handleDeleteGrow}
-                                variant="ghost" size="icon" className="text-white/60 hover:text-red-500 rounded-full"
+                                variant="ghost" size="icon" className="text-black/60 hover:text-red-500 rounded-full"
                             >
                                 <Trash2 size={18} />
                             </Button>
@@ -270,27 +270,27 @@ export default function GrowDetailPage() {
 
             <div className="p-6 space-y-6">
                 {/* Status Card */}
-                <Card className="bg-[#1a191b] border-white/5 p-5">
+                <Card className="bg-[#1a191b] border-black/10 p-5">
                     {isEditing ? (
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Titel</label>
+                                <label className="text-[10px] text-black/40 font-black uppercase tracking-wider">Titel</label>
                                 <Input
                                     value={editTitle}
                                     onChange={(e) => setEditTitle(e.target.value)}
-                                    className="bg-white/5 border-white/10 text-white"
+                                    className="bg-black/5 border-black/10 text-black"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Status</label>
+                                <label className="text-[10px] text-black/40 font-black uppercase tracking-wider">Status</label>
                                 <div className="flex gap-2">
                                     {['active', 'completed', 'abandoned'].map((s) => (
                                         <button
                                             key={s}
                                             onClick={() => setEditStatus(s)}
                                             className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${editStatus === s
-                                                ? s === 'active' ? 'bg-[#2FF801] text-black' : s === 'completed' ? 'bg-[#00F5FF] text-black' : 'bg-red-500 text-white'
-                                                : 'bg-white/5 text-white/40'
+                                                ? s === 'active' ? 'bg-[#2FF801] text-black' : s === 'completed' ? 'bg-[#00F5FF] text-black' : 'bg-red-500 text-black'
+                                                : 'bg-black/5 text-black/40'
                                                 }`}
                                         >
                                             {s}
@@ -302,29 +302,29 @@ export default function GrowDetailPage() {
                                 <Button onClick={handleUpdateGrow} disabled={isSaving} className="flex-1 bg-[#00F5FF] text-black font-black">
                                     {isSaving ? <Loader2 className="animate-spin" size={16} /> : "Speichern"}
                                 </Button>
-                                <Button onClick={() => setIsEditing(false)} variant="ghost" className="text-white/60">Abbrechen</Button>
+                                <Button onClick={() => setIsEditing(false)} variant="ghost" className="text-black/60">Abbrechen</Button>
                             </div>
                         </div>
                     ) : (
                         <div className="space-y-4">
                             <div className="flex justify-between items-center">
-                                <Badge className={grow.status === 'active' ? 'bg-[#2FF801] text-black border-none' : grow.status === 'completed' ? 'bg-[#00F5FF] text-black border-none' : 'bg-red-500 text-white border-none'}>
+                                <Badge className={grow.status === 'active' ? 'bg-[#2FF801] text-black border-none' : grow.status === 'completed' ? 'bg-[#00F5FF] text-black border-none' : 'bg-red-500 text-black border-none'}>
                                     {grow.status.toUpperCase()}
                                 </Badge>
-                                <Badge variant="outline" className="border-white/10 text-white/40 text-[10px]">
+                                <Badge variant="outline" className="border-black/10 text-black/40 text-[10px]">
                                     {grow.grow_type.toUpperCase()}
                                 </Badge>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 {grow.strains && (
-                                    <Link href={`/strains/${grow.strains.slug}`} className="flex items-center gap-2 p-3 bg-white/5 rounded-xl">
+                                    <Link href={`/strains/${grow.strains.slug}`} className="flex items-center gap-2 p-3 bg-black/5 rounded-xl">
                                         <Leaf size={16} className="text-[#2FF801]" />
                                         <span className="text-xs font-bold">{grow.strains.name}</span>
                                     </Link>
                                 )}
                                 {grow.start_date && (
-                                    <div className="flex items-center gap-2 p-3 bg-white/5 rounded-xl">
+                                    <div className="flex items-center gap-2 p-3 bg-black/5 rounded-xl">
                                         <Calendar size={16} className="text-[#00F5FF]" />
                                         <span className="text-xs font-bold">{grow.start_date}</span>
                                     </div>
@@ -332,17 +332,17 @@ export default function GrowDetailPage() {
                             </div>
 
                             {grow.medium && (
-                                <div className="flex items-center gap-2 text-white/60 text-xs">
+                                <div className="flex items-center gap-2 text-black/60 text-xs">
                                     <Droplets size={14} /> Medium: {grow.medium}
                                 </div>
                             )}
                             {grow.light_type && (
-                                <div className="flex items-center gap-2 text-white/60 text-xs">
+                                <div className="flex items-center gap-2 text-black/60 text-xs">
                                     <Sun size={14} /> Licht: {grow.light_type}
                                 </div>
                             )}
                             {grow.yield_grams && (
-                                <div className="flex items-center gap-2 text-white/60 text-xs">
+                                <div className="flex items-center gap-2 text-black/60 text-xs">
                                     <CheckCircle2 size={14} className="text-[#2FF801]" /> Ertrag: {grow.yield_grams}g
                                 </div>
                             )}
@@ -353,7 +353,7 @@ export default function GrowDetailPage() {
                 {/* Entries Section */}
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-sm font-black uppercase tracking-wider text-white/60">Grow Tagebuch</h2>
+                        <h2 className="text-sm font-black uppercase tracking-wider text-black/60">Grow Tagebuch</h2>
                         <Button
                             onClick={() => setIsAddingEntry(true)}
                             size="sm"
@@ -364,27 +364,27 @@ export default function GrowDetailPage() {
                     </div>
 
                     {isAddingEntry && (
-                        <Card className="bg-[#1a191b] border-white/5 p-5 space-y-4">
+                        <Card className="bg-[#1a191b] border-black/10 p-5 space-y-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Titel</label>
+                                <label className="text-[10px] text-black/40 font-black uppercase tracking-wider">Titel</label>
                                 <Input
                                     value={newEntryTitle}
                                     onChange={(e) => setNewEntryTitle(e.target.value)}
                                     placeholder="z.B. Tag 5 - Keimling"
-                                    className="bg-white/5 border-white/10 text-white"
+                                    className="bg-black/5 border-black/10 text-black"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Tag Nummer</label>
+                                <label className="text-[10px] text-black/40 font-black uppercase tracking-wider">Tag Nummer</label>
                                 <Input
                                     type="number"
                                     value={newEntryDayNumber}
                                     onChange={(e) => setNewEntryDayNumber(parseInt(e.target.value) || 1)}
-                                    className="bg-white/5 border-white/10 text-white"
+                                    className="bg-black/5 border-black/10 text-black"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Foto</label>
+                                <label className="text-[10px] text-black/40 font-black uppercase tracking-wider">Foto</label>
                                 <div className="flex gap-3 items-center">
                                     <input
                                         type="file"
@@ -396,7 +396,7 @@ export default function GrowDetailPage() {
                                     <button
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={isUploading}
-                                        className="w-20 h-20 rounded-xl border border-white/10 bg-white/5 flex items-center justify-center text-white/40 hover:bg-white/10 transition-all overflow-hidden"
+                                        className="w-20 h-20 rounded-xl border border-black/10 bg-black/5 flex items-center justify-center text-black/40 hover:bg-black/10 transition-all overflow-hidden"
                                     >
                                         {isUploading ? (
                                             <Loader2 className="animate-spin" size={20} />
@@ -417,12 +417,12 @@ export default function GrowDetailPage() {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] text-white/40 font-black uppercase tracking-wider">Notizen</label>
+                                <label className="text-[10px] text-black/40 font-black uppercase tracking-wider">Notizen</label>
                                 <textarea
                                     value={newEntryNotes}
                                     onChange={(e) => setNewEntryNotes(e.target.value)}
                                     placeholder="Wie entwickelt sich die Pflanze?"
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-xs text-white placeholder:text-white/20 focus:outline-none focus:border-[#00F5FF]/50"
+                                    className="w-full bg-black/5 border border-black/10 rounded-xl py-3 px-4 text-xs text-black placeholder:text-black/20 focus:outline-none focus:border-[#00F5FF]/50"
                                     rows={3}
                                 />
                             </div>
@@ -430,7 +430,7 @@ export default function GrowDetailPage() {
                                 <Button onClick={handleAddEntry} disabled={isSaving} className="flex-1 bg-[#00F5FF] text-black font-black">
                                     {isSaving ? <Loader2 className="animate-spin" size={16} /> : "Speichern"}
                                 </Button>
-                                <Button onClick={() => { setIsAddingEntry(false); setPreviewImage(null); }} variant="ghost" className="text-white/60">Abbrechen</Button>
+                                <Button onClick={() => { setIsAddingEntry(false); setPreviewImage(null); }} variant="ghost" className="text-black/60">Abbrechen</Button>
                             </div>
                         </Card>
                     )}
@@ -438,7 +438,7 @@ export default function GrowDetailPage() {
                     {entries.length > 0 ? (
                         <div className="space-y-3">
                             {entries.map((entry) => (
-                                <Card key={entry.id} className="bg-[#1a191b] border-white/5 p-4">
+                                <Card key={entry.id} className="bg-[#1a191b] border-black/10 p-4">
                                     {entry.image_url && (
                                         <div className="-mx-4 mb-3 overflow-hidden bg-[#0a0a0b] flex items-center justify-center" style={{ height: '200px' }}>
                                             <img
@@ -453,17 +453,17 @@ export default function GrowDetailPage() {
                                             <Badge className="bg-[#2FF801]/10 text-[#2FF801] border-none text-[9px] font-bold uppercase">
                                                 {entry.title || `Tag ${entry.day_number}`}
                                             </Badge>
-                                            <span className="text-[10px] text-white/40">
+                                            <span className="text-[10px] text-black/40">
                                                 {new Date(entry.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })}
                                             </span>
                                         </div>
-                                        <span className="text-[10px] text-white/40 font-bold">Tag {entry.day_number}</span>
+                                        <span className="text-[10px] text-black/40 font-bold">Tag {entry.day_number}</span>
                                     </div>
                                     {entry.notes && (
-                                        <p className="text-xs text-white/70 italic leading-relaxed">{entry.notes}</p>
+                                        <p className="text-xs text-black/70 italic leading-relaxed">{entry.notes}</p>
                                     )}
                                     {entry.height_cm && (
-                                        <div className="flex items-center gap-1 mt-2 text-[10px] text-white/40">
+                                        <div className="flex items-center gap-1 mt-2 text-[10px] text-black/40">
                                             <Wind size={12} /> {entry.height_cm}cm
                                         </div>
                                     )}
@@ -473,9 +473,9 @@ export default function GrowDetailPage() {
                     ) : (
                         !isAddingEntry && (
                             <div className="text-center py-8 space-y-3">
-                                <Sprout className="mx-auto text-white/20" size={32} />
-                                <p className="text-white/40 text-xs font-bold uppercase tracking-wider">Noch keine Einträge</p>
-                                <p className="text-white/20 text-[10px]">Dokumentiere deinen Grow mit dem Tagebuch</p>
+                                <Sprout className="mx-auto text-black/20" size={32} />
+                                <p className="text-black/40 text-xs font-bold uppercase tracking-wider">Noch keine Einträge</p>
+                                <p className="text-black/20 text-[10px]">Dokumentiere deinen Grow mit dem Tagebuch</p>
                             </div>
                         )
                     )}

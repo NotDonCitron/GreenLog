@@ -98,24 +98,24 @@ function LoginForm() {
           <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
         </div>
         <span className="text-[12px] text-[#00F5FF] tracking-[0.5em] font-bold uppercase">CannaLog</span>
-        <h1 className="text-3xl font-bold text-white mt-2">{isSignUp ? "Konto erstellen" : "Willkommen"}</h1>
-        <p className="text-white/40 mt-2">{isSignUp ? "Wähle deinen Benutzernamen und leg los." : "Deine Reise zur perfekten Sammlung beginnt hier."}</p>
+        <h1 className="text-3xl font-bold text-black mt-2">{isSignUp ? "Konto erstellen" : "Willkommen"}</h1>
+        <p className="text-black/40 mt-2">{isSignUp ? "Wähle deinen Benutzernamen und leg los." : "Deine Reise zur perfekten Sammlung beginnt hier."}</p>
       </div>
 
-      <Card className="p-6 bg-[#1a191b] border-white/10 shadow-2xl relative overflow-hidden">
+      <Card className="p-6 bg-white border-black/10 shadow-2xl relative overflow-hidden">
         {/* Accent Glow */}
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#00F5FF]/10 blur-3xl rounded-full" />
 
         <form onSubmit={isSignUp ? undefined : handleLogin} className="space-y-4 relative z-10">
           {isSignUp && (
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1 font-mono">Benutzername</label>
+              <label className="text-[10px] font-bold text-black/40 uppercase tracking-widest ml-1 font-mono">Benutzername</label>
               <div className="relative">
-                <UserPlus className="absolute left-3 top-3 text-white/20" size={18} />
+                <UserPlus className="absolute left-3 top-3 text-black/20" size={18} />
                 <Input
                   type="text"
                   placeholder="dein_name"
-                  className="bg-black/40 border-white/5 pl-10 h-12 focus:ring-1 focus:ring-[#00F5FF]/50 transition-all text-white placeholder:text-white/10"
+                  className="bg-black/5 border-black/10 pl-10 h-12 focus:ring-1 focus:ring-[#00F5FF]/50 transition-all text-black placeholder:text-black/10"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required={isSignUp}
@@ -125,13 +125,13 @@ function LoginForm() {
           )}
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1 font-mono">Terminal Access: User ID</label>
+            <label className="text-[10px] font-bold text-black/40 uppercase tracking-widest ml-1 font-mono">Terminal Access: User ID</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 text-white/20" size={18} />
+              <Mail className="absolute left-3 top-3 text-black/20" size={18} />
               <Input
                 type="email"
                 placeholder="name@example.com"
-                className="bg-black/40 border-white/5 pl-10 h-12 focus:ring-1 focus:ring-[#00F5FF]/50 transition-all text-white placeholder:text-white/10"
+                className="bg-black/5 border-black/10 pl-10 h-12 focus:ring-1 focus:ring-[#00F5FF]/50 transition-all text-black placeholder:text-black/10"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -140,13 +140,13 @@ function LoginForm() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1 font-mono">Terminal Access: Passcode</label>
+            <label className="text-[10px] font-bold text-black/40 uppercase tracking-widest ml-1 font-mono">Terminal Access: Passcode</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 text-white/20" size={18} />
+              <Lock className="absolute left-3 top-3 text-black/20" size={18} />
               <Input
                 type="password"
                 placeholder="••••••••"
-                className="bg-black/40 border-white/5 pl-10 h-12 focus:ring-1 focus:ring-[#00F5FF]/50 transition-all text-white placeholder:text-white/10"
+                className="bg-black/5 border-black/10 pl-10 h-12 focus:ring-1 focus:ring-[#00F5FF]/50 transition-all text-black placeholder:text-black/10"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -183,9 +183,9 @@ function LoginForm() {
             </Button>
 
             <div className="relative flex items-center py-2">
-              <div className="flex-grow border-t border-white/5"></div>
-              <span className="flex-shrink mx-4 text-[10px] text-white/20 uppercase font-bold tracking-widest">OR</span>
-              <div className="flex-grow border-t border-white/5"></div>
+              <div className="flex-grow border-t border-black/10"></div>
+              <span className="flex-shrink mx-4 text-[10px] text-black/20 uppercase font-bold tracking-widest">OR</span>
+              <div className="flex-grow border-t border-black/10"></div>
             </div>
 
             <Button
@@ -193,7 +193,7 @@ function LoginForm() {
               variant="ghost"
               onClick={toggleMode}
               disabled={loading}
-              className="w-full h-12 text-white/60 hover:text-[#2FF801] hover:bg-[#2FF801]/5 border border-transparent hover:border-[#2FF801]/20 transition-all uppercase text-[10px] font-bold tracking-widest"
+              className="w-full h-12 text-black/60 hover:text-[#2FF801] hover:bg-[#2FF801]/5 border border-transparent hover:border-[#2FF801]/20 transition-all uppercase text-[10px] font-bold tracking-widest"
             >
               {isSignUp ? <><LogIn size={16} className="mr-2" /> Zurück zum Login</> : <><UserPlus size={16} className="mr-2" /> Neues Konto erstellen</>}
             </Button>
@@ -201,18 +201,18 @@ function LoginForm() {
         </form>
       </Card>
 
-      <p className="text-center text-[10px] text-white/20 uppercase tracking-[0.3em]">Authorized Access Only</p>
+      <p className="text-center text-[10px] text-black/20 uppercase tracking-[0.3em]">Authorized Access Only</p>
     </div>
   );
 }
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen bg-[#355E3B] flex items-center justify-center p-6">
+    <main className="min-h-screen bg-white flex items-center justify-center p-6">
       <Suspense fallback={
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="animate-spin text-[#00F5FF]" size={40} />
-          <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">Lade Login-Interface...</p>
+          <p className="text-[10px] font-bold text-black/20 uppercase tracking-[0.2em]">Lade Login-Interface...</p>
         </div>
       }>
         <LoginForm />

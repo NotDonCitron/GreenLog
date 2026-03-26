@@ -96,18 +96,18 @@ export default function SettingsOrganizationPage() {
 
   if (!activeOrganization) {
     return (
-      <main className="min-h-screen bg-[#355E3B] flex items-center justify-center">
-        <Loader2 className="animate-spin text-white/40" size={32} />
+      <main className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="animate-spin text-black/40" size={32} />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#355E3B] text-white pb-32">
+    <main className="min-h-screen bg-white text-black pb-32">
       <header className="p-8 pb-4 flex items-center gap-4">
         <button
           onClick={() => router.back()}
-          className="p-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+          className="p-2 rounded-full bg-black/5 border border-black/10 hover:bg-black/10 transition-colors"
         >
           <ChevronLeft size={20} />
         </button>
@@ -123,7 +123,7 @@ export default function SettingsOrganizationPage() {
 
       <div className="px-8 space-y-6 mt-4">
         {/* Logo ändern */}
-        <Card className="bg-[#1e3a24] border-white/10 p-5 rounded-3xl">
+        <Card className="bg-[#1e3a24] border-black/10 p-5 rounded-3xl">
           <div className="flex items-center gap-4">
             <OrgLogoUpload
               currentLogoUrl={logoUrl || activeOrganization.organizations?.logo_url}
@@ -136,7 +136,7 @@ export default function SettingsOrganizationPage() {
             />
             <div className="min-w-0 flex-1">
               <p className="font-black text-sm">Logo ändern</p>
-              <p className="text-[10px] text-white/40">Bild für deine Community</p>
+              <p className="text-[10px] text-black/40">Bild für deine Community</p>
             </div>
           </div>
         </Card>
@@ -153,7 +153,7 @@ export default function SettingsOrganizationPage() {
         )}
 
         {/* Name ändern */}
-        <Card className="bg-[#1e3a24] border-white/10 p-5 rounded-3xl">
+        <Card className="bg-[#1e3a24] border-black/10 p-5 rounded-3xl">
           {!showNameForm ? (
             <button
               onClick={() => { setShowNameForm(true); setNewName(orgName); }}
@@ -164,19 +164,19 @@ export default function SettingsOrganizationPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm">Name ändern</p>
-                <p className="text-[10px] text-white/40">Community-Namen anpassen</p>
+                <p className="text-[10px] text-black/40">Community-Namen anpassen</p>
               </div>
             </button>
           ) : (
             <form onSubmit={(e) => void handleSaveName(e)} className="space-y-4">
-              <p className="text-xs font-black uppercase tracking-widest text-white/60">Name ändern</p>
+              <p className="text-xs font-black uppercase tracking-widest text-black/60">Name ändern</p>
               <Input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Neuer Name"
                 required
                 disabled={isDemoMode}
-                className="bg-black/20 border-white/10 text-white h-12 rounded-xl focus:border-[#00F5FF]"
+                className="bg-black/20 border-black/10 text-black h-12 rounded-xl focus:border-[#00F5FF]"
               />
               <div className="flex gap-3">
                 <Button
@@ -191,19 +191,19 @@ export default function SettingsOrganizationPage() {
                   type="button"
                   variant="ghost"
                   onClick={() => { setShowNameForm(false); setNameMessage(null); }}
-                  className="flex-1 h-12 bg-white/5 hover:bg-white/10 text-white/60 font-black uppercase tracking-widest text-xs"
+                  className="flex-1 h-12 bg-black/5 hover:bg-black/10 text-black/60 font-black uppercase tracking-widest text-xs"
                 >
                   Abbrechen
                 </Button>
               </div>
-              {isDemoMode && <p className="text-[10px] text-center text-white/20 italic">Im Demo-Modus deaktiviert</p>}
+              {isDemoMode && <p className="text-[10px] text-center text-black/20 italic">Im Demo-Modus deaktiviert</p>}
             </form>
           )}
         </Card>
 
         {/* Admins verwalten — Owner only */}
         {isOwner && (
-          <Card className="bg-[#1e3a24] border-white/10 p-5 rounded-3xl">
+          <Card className="bg-[#1e3a24] border-black/10 p-5 rounded-3xl">
             <button
               onClick={() => router.push("/settings/organization/invites")}
               className="w-full flex items-center gap-4 text-left hover:opacity-80 transition-opacity"
@@ -213,7 +213,7 @@ export default function SettingsOrganizationPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm">Admins verwalten</p>
-                <p className="text-[10px] text-white/40">Admin einladen oder widerrufen</p>
+                <p className="text-[10px] text-black/40">Admin einladen oder widerrufen</p>
               </div>
             </button>
           </Card>
@@ -221,7 +221,7 @@ export default function SettingsOrganizationPage() {
 
         {/* Community löschen — Owner only */}
         {isOwner && (
-          <Card className="bg-[#1e3a24] border-white/10 p-5 rounded-3xl">
+          <Card className="bg-[#1e3a24] border-black/10 p-5 rounded-3xl">
             {!showDeleteConfirm ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
@@ -232,7 +232,7 @@ export default function SettingsOrganizationPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-black text-sm text-red-400">Community löschen</p>
-                  <p className="text-[10px] text-white/40">Organisation dauerhaft entfernen</p>
+                  <p className="text-[10px] text-black/40">Organisation dauerhaft entfernen</p>
                 </div>
               </button>
             ) : (
@@ -248,7 +248,7 @@ export default function SettingsOrganizationPage() {
                   onChange={(e) => setDeleteConfirmText(e.target.value)}
                   placeholder={orgName}
                   disabled={isDemoMode}
-                  className="bg-black/20 border-white/10 text-white h-12 rounded-xl focus:border-red-500"
+                  className="bg-black/20 border-black/10 text-black h-12 rounded-xl focus:border-red-500"
                 />
                 {deleteMessage && (
                   <div className={`p-3 rounded-xl text-xs font-bold border ${
@@ -263,7 +263,7 @@ export default function SettingsOrganizationPage() {
                   <Button
                     onClick={() => void handleDeleteOrg()}
                     disabled={deleteConfirmText !== orgName || deleting || isDemoMode}
-                    className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-black font-black uppercase tracking-widest text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {deleting ? <Loader2 size={14} className="animate-spin" /> : null}
                     Löschen
@@ -271,12 +271,12 @@ export default function SettingsOrganizationPage() {
                   <Button
                     variant="ghost"
                     onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); setDeleteMessage(null); }}
-                    className="flex-1 h-12 bg-white/5 hover:bg-white/10 text-white/60 font-black uppercase tracking-widest text-xs"
+                    className="flex-1 h-12 bg-black/5 hover:bg-black/10 text-black/60 font-black uppercase tracking-widest text-xs"
                   >
                     Abbrechen
                   </Button>
                 </div>
-                {isDemoMode && <p className="text-[10px] text-center text-white/20 italic">Im Demo-Modus deaktiviert</p>}
+                {isDemoMode && <p className="text-[10px] text-center text-black/20 italic">Im Demo-Modus deaktiviert</p>}
               </div>
             )}
           </Card>
