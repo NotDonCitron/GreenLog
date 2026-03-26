@@ -256,34 +256,6 @@ export default function Home() {
               </div>
             </section>
 
-            {/* Stats preview */}
-            <section className="glass-surface rounded-2xl p-5 border border-[#484849]/30">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-[#2FF801] animate-pulse" />
-                  <span className="text-[#adaaab] text-xs font-medium uppercase tracking-wider">
-                    System Status
-                  </span>
-                </div>
-                <span className="text-[#2FF801] text-xs font-bold">
-                  {isDemoMode ? 'DEMO' : 'ONLINE'}
-                </span>
-              </div>
-              <div className="mt-3 grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-black font-display text-[#00F5FF]">42</p>
-                  <p className="text-[9px] text-[#adaaab] uppercase tracking-wider">Strains</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-black font-display text-[#2FF801]">3</p>
-                  <p className="text-[9px] text-[#adaaab] uppercase tracking-wider">Grows</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-black font-display text-[#a1faff]">89</p>
-                  <p className="text-[9px] text-[#adaaab] uppercase tracking-wider">Follower</p>
-                </div>
-              </div>
-            </section>
           </div>
         )}
       </div>
