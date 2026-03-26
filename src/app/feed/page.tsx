@@ -29,7 +29,7 @@ export default function FeedPage() {
       setLoadingCommunities(true);
       // Fetch user's communities
       supabase
-        .from("organization_members")
+        .from("organization_memberships")
         .select("organization_id, role, organizations(*)")
         .eq("user_id", user.id)
         .eq("membership_status", "active")
