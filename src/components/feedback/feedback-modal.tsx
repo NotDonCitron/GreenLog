@@ -17,6 +17,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
   const [priority, setPriority] = useState("medium");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRefining, setIsRefining] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<{ title: string; description: string } | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,6 +45,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
 
     setIsRefining(true);
     setError(null);
+    setAiSuggestion(null);
 
     try {
       const response = await fetch("/api/feedback/refine", {
@@ -59,13 +61,22 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
       if (!response.ok) throw new Error("KI-Optimierung fehlgeschlagen.");
 
       const data = await response.json();
-      if (data.title) setTitle(data.title);
-      if (data.description) setDescription(data.description);
+      if (data.title && data.description) {
+        setAiSuggestion(data);
+      }
       
     } catch (err: any) {
       setError(err.message || "MiniMax konnte das Ticket nicht optimieren.");
     } finally {
       setIsRefining(false);
+    }
+  };
+
+  const applySuggestion = () => {
+    if (aiSuggestion) {
+      setTitle(aiSuggestion.title);
+      setDescription(aiSuggestion.description);
+      setAiSuggestion(null);
     }
   };
 
@@ -175,7 +186,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
               <button 
                 type="button"
                 onClick={refineWithAI}
-                disabled={isRefining || !description}
+                disabled={isRefining || !description || !!aiSuggestion}
                 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-500 hover:text-emerald-400 disabled:opacity-30 transition-colors"
               >
                 {isRefining ? (
@@ -190,11 +201,48 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
               required
               rows={4}
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                if (aiSuggestion) setAiSuggestion(null);
+              }}
               placeholder="Was genau ist passiert? Was hast du gemacht?"
               className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2 text-white placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
+
+          {/* KI-Vorschlag Vorschau */}
+          {aiSuggestion && (
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 animate-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles size={16} className="text-emerald-500" />
+                <span className="text-xs font-bold uppercase tracking-widest text-emerald-500">Vorschlag von MiniMax</span>
+              </div>
+              <div className="space-y-2 mb-4">
+                <p className="text-sm font-bold text-white leading-tight">
+                  <span className="text-zinc-500 font-normal mr-1">Titel:</span> {aiSuggestion.title}
+                </p>
+                <p className="text-xs text-zinc-300 leading-relaxed italic">
+                  "{aiSuggestion.description}"
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={applySuggestion}
+                  className="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white transition-all hover:bg-emerald-500 active:scale-95"
+                >
+                  Übernehmen
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAiSuggestion(null)}
+                  className="flex-1 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs font-bold text-zinc-400 transition-all hover:text-white hover:border-zinc-700 active:scale-95"
+                >
+                  Ignorieren
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="rounded-lg bg-zinc-950 p-3 border border-zinc-800/50">
             <p className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold mb-1">Technischer Kontext (Auto-Capture)</p>
