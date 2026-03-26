@@ -80,10 +80,14 @@ export default function Home() {
           </div>
           <div className="relative group">
             <div className="absolute inset-0 bg-[#00F5FF]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="w-14 h-14 relative rounded-2xl glass-surface border border-[#484849]/50 flex items-center justify-center transform group-hover:rotate-6 transition-transform duration-500">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00F5FF] to-[#2FF801] flex items-center justify-center">
-                <span className="text-black font-black text-sm">CL</span>
-              </div>
+            <div className="w-14 h-14 relative rounded-2xl glass-surface border border-[#484849]/50 flex items-center justify-center transform group-hover:rotate-6 transition-transform duration-500 overflow-hidden">
+              <Image
+                src="/logo.png"
+                alt="CannaLog Logo"
+                fill
+                className="object-contain p-1.5"
+                priority
+              />
             </div>
           </div>
         </header>
