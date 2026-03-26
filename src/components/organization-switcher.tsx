@@ -241,7 +241,7 @@ export function OrganizationSwitcher() {
             <div className="space-y-4">
                 <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--foreground)]/40">Aktiver Workspace</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--foreground)]/40">Community</p>
                         <h3 className="text-base font-black uppercase tracking-tight text-[var(--foreground)]">
                             {activeMeta?.name ?? "Organisation auswählen"}
                         </h3>
