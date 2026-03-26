@@ -258,6 +258,16 @@ export interface SuggestedUser {
   request_status?: 'pending' | 'approved' | 'rejected' | null;
 }
 
+export interface SuggestedCommunity {
+  id: string;
+  name: string;
+  slug?: string;
+  logo_url?: string | null;
+  organization_type: 'club' | 'pharmacy';
+  members_count?: number;
+  is_following?: boolean;
+}
+
 export interface FollowStatus {
   is_following: boolean;
   is_following_me: boolean;
