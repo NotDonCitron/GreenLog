@@ -65,9 +65,9 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
             sizes="(max-width: 768px) 50vw, 33vw"
           />
           {isCollected && (
-            <div className="absolute top-1 right-1 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#2FF801]/20 backdrop-blur-md border border-[#2FF801]/30">
-              <CheckCircle2 className="text-[#2FF801]" size={10} />
-              <span className="text-[6px] font-bold uppercase tracking-wider text-[#2FF801]">In Sammlung</span>
+            <div className="absolute top-1 right-1 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#00F5FF]/20 backdrop-blur-md border border-[#00F5FF]/30">
+              <CheckCircle2 className="text-[#00F5FF]" size={10} />
+              <span className="text-[6px] font-bold uppercase tracking-wider text-[#00F5FF]">In Sammlung</span>
             </div>
           )}
           <div className="absolute bottom-1 left-1 border bg-black/80 backdrop-blur-md uppercase text-[6px] px-1 py-0.5 rounded-sm font-bold tracking-widest shadow-lg" style={{ borderColor: themeColor, color: themeColor }}>
