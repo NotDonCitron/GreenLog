@@ -1,146 +1,89 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { supabase } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Loader2, UserPlus, UserCheck } from "lucide-react";
 
 interface FollowButtonProps {
   organizationId: string;
   className?: string;
 }
 
-export function FollowButton({ organizationId, className }: FollowButtonProps) {
-  const { user, session } = useAuth();
-  const [following, setFollowing] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function FollowButton({ organizationId, className = "" }: FollowButtonProps) {
+  const { user } = useAuth();
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user || !session?.access_token) {
-      setFollowing(null);
-      setChecking(false);
+    if (!user) {
+      setIsLoading(false);
       return;
     }
 
     const checkFollowStatus = async () => {
-      try {
-        const res = await fetch(`/api/communities/${organizationId}/follow`, {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
+      const { data } = await supabase
+        .from("community_followers")
+        .select("id")
+        .eq("organization_id", organizationId)
+        .eq("user_id", user.id)
+        .single();
 
-        if (res.ok) {
-          const data = await res.json();
-          setFollowing(data.following);
-        }
-      } catch (err) {
-        console.error("Error checking follow status:", err);
-      } finally {
-        setChecking(false);
-      }
+      setIsFollowing(!!data);
+      setIsLoading(false);
     };
 
     checkFollowStatus();
-  }, [user, session, organizationId]);
-
-  useEffect(() => {
-    if (!error) return;
-    const timer = setTimeout(() => setError(null), 3000);
-    return () => clearTimeout(timer);
-  }, [error]);
+  }, [organizationId, user]);
 
   const handleToggleFollow = async () => {
-    if (!session?.access_token) return;
+    if (!user) return;
 
-    setLoading(true);
+    setIsLoading(true);
     try {
-      const res = await fetch(`/api/communities/${organizationId}/follow`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setFollowing(data.following);
+      if (isFollowing) {
+        await supabase
+          .from("community_followers")
+          .delete()
+          .eq("organization_id", organizationId)
+          .eq("user_id", user.id);
+        setIsFollowing(false);
+      } else {
+        await supabase
+          .from("community_followers")
+          .insert({ organization_id: organizationId, user_id: user.id });
+        setIsFollowing(true);
       }
-    } catch (err) {
-      console.error("Error toggling follow:", err);
-      setError("Fehler beim Aktualisieren des Follow-Status");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // Not logged in - show nothing
-  if (!user) {
-    return null;
-  }
-
-  // Checking status
-  if (checking) {
+  if (isLoading) {
     return (
-      <Button
-        variant="outline"
-        size="sm"
-        disabled
-        className={className}
-      >
-        <Loader2 size={14} className="animate-spin" />
-      </Button>
+      <button className={`h-10 px-6 rounded-full bg-[#FAFAFA] border border-[#E5E5E5] ${className}`}>
+        <Loader2 className="h-4 w-4 animate-spin text-[#999]" />
+      </button>
     );
   }
 
-  // Following
-  if (following) {
+  if (isFollowing) {
     return (
-      <div className="flex flex-col gap-1">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleToggleFollow}
-          disabled={loading}
-          className={`border-[#2FF801]/30 text-[#2FF801] hover:bg-[#2FF801]/10 ${className}`}
-        >
-          {loading ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <>
-              <UserCheck size={14} />
-              Folge ich
-            </>
-          )}
-        </Button>
-        {error && <p className="text-xs text-red-500">{error}</p>}
-      </div>
-    );
-  }
-
-  // Not following
-  return (
-    <div className="flex flex-col gap-1">
-      <Button
-        variant="outline"
-        size="sm"
+      <button
         onClick={handleToggleFollow}
-        disabled={loading}
-        className={`border-[#00F5FF]/30 text-[#00F5FF] hover:bg-[#00F5FF]/10 ${className}`}
+        className={`h-10 px-6 rounded-full bg-white border border-[#E5E5E5] text-[#1A1A1A] font-semibold text-sm hover:bg-[#FAFAFA] transition-colors ${className}`}
       >
-        {loading ? (
-          <Loader2 size={14} className="animate-spin" />
-        ) : (
-          <>
-            <UserPlus size={14} />
-            Folgen
-          </>
-        )}
-      </Button>
-      {error && <p className="text-xs text-red-500">{error}</p>}
-    </div>
+        Following
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={handleToggleFollow}
+      className={`h-10 px-6 rounded-full bg-[#2FF801] text-[#1A1A1A] font-semibold text-sm hover:bg-[#2FF801]/90 transition-colors ${className}`}
+    >
+      Follow
+    </button>
   );
 }
