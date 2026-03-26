@@ -286,7 +286,7 @@ export default function UserProfilePage() {
                 {(profile.username === 'fabian.gebert' || profile.username === 'lars' || profile.username === 'lars.fieber' || profile.username === 'test' || profile.username === 'pascal' || profile.username === 'hintermaier.pascal') && (
                     <div className="flex justify-center mb-4">
                         <span className="inline-flex items-center gap-1 rounded-full border border-[#F39C12]/30 bg-[#F39C12]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#F39C12]">
-                            <Shield size={10} /> Owner
+                            <Shield size={10} /> CannaLog Owner
                         </span>
                     </div>
                 )}
