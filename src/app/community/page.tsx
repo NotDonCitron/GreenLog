@@ -16,6 +16,7 @@ interface Organization {
   organization_type: string;
   license_number: string | null;
   status: string;
+  logo_url?: string | null;
 }
 
 interface MemberOrg extends Organization {
@@ -36,8 +37,12 @@ function CommunityCard({ org, role }: { org: Organization; role?: string }) {
     <Link href={`/community/${org.id}`}>
       <Card className="bg-[#1e3a24] border-white/10 p-5 rounded-3xl hover:bg-[#243d2a] transition-colors cursor-pointer">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-[#2FF801]/10 border border-[#2FF801]/20 flex items-center justify-center shrink-0">
-            <Leaf size={20} className="text-[#2FF801]" />
+          <div className="w-12 h-12 rounded-full bg-[#2FF801]/10 border border-[#2FF801]/20 flex items-center justify-center shrink-0 overflow-hidden">
+            {org.logo_url ? (
+              <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
+            ) : (
+              <Leaf size={20} className="text-[#2FF801]" />
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-black text-sm truncate">{org.name}</p>
@@ -70,7 +75,7 @@ export default function CommunityListPage() {
         // Not logged in — only show public communities
         const { data } = await supabase
           .from("organizations")
-          .select("id, name, slug, organization_type, license_number, status")
+          .select("id, name, slug, organization_type, license_number, status, logo_url")
           .eq("status", "active")
           .order("name", { ascending: true });
         setOtherOrgs(data || []);
@@ -81,7 +86,7 @@ export default function CommunityListPage() {
       // Fetch all active organizations
       const { data: allOrgs } = await supabase
         .from("organizations")
-        .select("id, name, slug, organization_type, license_number, status")
+        .select("id, name, slug, organization_type, license_number, status, logo_url")
         .eq("status", "active")
         .order("name", { ascending: true });
 
