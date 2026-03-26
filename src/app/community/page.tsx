@@ -110,9 +110,6 @@ export default function CommunityListPage() {
   return (
     <main className="min-h-screen bg-[#355E3B] text-white pb-32">
       <header className="p-8 pb-4">
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">
-          Discover
-        </p>
         <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none">
           Communities
         </h1>
