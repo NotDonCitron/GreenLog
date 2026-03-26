@@ -12,7 +12,7 @@ const navItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/strains", label: "Strains", icon: Leaf },
   { href: "/collection", label: "Sammlung", icon: BookMarked },
-  { href: "/discover", label: "Social", icon: Users, showBadge: true },
+  { href: "/feed", label: "Feed", icon: Users, showBadge: true },
   { href: "/profile", label: "Profil", icon: User },
 ];
 

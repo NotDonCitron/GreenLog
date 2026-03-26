@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { ActivityItem } from "./activity-item";
@@ -27,7 +27,7 @@ export function ActivityFeed({
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchActivities = async (isRefresh = false) => {
+    const fetchActivities = useCallback(async (isRefresh = false) => {
         if (isRefresh) setIsRefreshing(true);
         else setIsLoading(true);
         setError(null);
@@ -84,16 +84,57 @@ export function ActivityFeed({
             setIsLoading(false);
             setIsRefreshing(false);
         }
-    };
+    }, [user, userId, showDiscover]);
 
+    // Initial fetch
     useEffect(() => {
         if (user || showDiscover) {
-            fetchActivities();
+            void fetchActivities();
         }
     }, [user, showDiscover]);
 
+    // Realtime subscription for new activities
+    useEffect(() => {
+        if (!user && !showDiscover) return;
+
+        const channel = supabase
+            .channel('user_activities_realtime')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'user_activities',
+                    filter: showDiscover ? 'is_public=eq.true' : undefined,
+                },
+                async (payload) => {
+                    // Fetch the full activity with user profile
+                    const { data: newActivity } = await supabase
+                        .from("user_activities")
+                        .select(`*, user:profiles!user_id(*)`)
+                        .eq("id", payload.new.id)
+                        .single();
+
+                    if (newActivity && newActivity.user) {
+                        const feedItem: SocialFeedItem = {
+                            activity: newActivity as any,
+                            user: newActivity.user as any,
+                        };
+
+                        // Add to beginning of list (newest first)
+                        setActivities((prev) => [feedItem, ...prev.slice(0, 49)]);
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            void supabase.removeChannel(channel);
+        };
+    }, [user, showDiscover]);
+
     const handleRefresh = () => {
-        fetchActivities(true);
+        void fetchActivities(true);
     };
 
     if (isLoading) {
@@ -110,10 +151,10 @@ export function ActivityFeed({
                 <p className="text-[var(--foreground)]/60 mb-4">{error}</p>
                 <button
                     onClick={handleRefresh}
-                    className="px-4 py-2 bg-white/10 rounded-lg text-sm font-semibold text-[var(--foreground)] hover:bg-white/20"
+                    className="px-4 py-2 bg-[var(--muted)] rounded-lg text-sm font-semibold text-[var(--foreground)] hover:bg-[var(--muted-foreground)]/20"
                 >
                     <RefreshCw className="h-4 w-4 inline mr-2" />
-                    Try Again
+                    Erneut versuchen
                 </button>
             </div>
         );
@@ -122,21 +163,21 @@ export function ActivityFeed({
     if (activities.length === 0) {
         return (
             <div className={`text-center py-12 ${className}`}>
-                <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-[var(--muted)] rounded-full flex items-center justify-center mx-auto mb-4">
                     <ActivityIcon className="h-8 w-8 text-[var(--foreground)]/40" />
                 </div>
-                <p className="text-[var(--foreground)]/60 mb-2">No activities yet</p>
-                <p className="text-sm text-[var(--foreground)]/40 mb-4">
+                <p className="text-[var(--foreground)]/60 mb-2">Noch keine Aktivitäten</p>
+                <p className="text-sm text-[var(--muted-foreground)] mb-4">
                     {showDiscover
-                        ? "Public activities will appear here"
-                        : "Follow other users to see their activities here"}
+                        ? "Öffentliche Aktivitäten erscheinen hier"
+                        : "Folge anderen Usern um ihre Aktivitäten zu sehen"}
                 </p>
                 {!showDiscover && (
                     <Link
                         href="/discover"
                         className="inline-block px-6 py-2.5 bg-[#00F5FF] text-black font-bold rounded-full text-sm"
                     >
-                        Discover Users
+                        User entdecken
                     </Link>
                 )}
             </div>
@@ -145,8 +186,14 @@ export function ActivityFeed({
 
     return (
         <div className={`${className}`}>
-            {/* Instagram-style activity list */}
-            <div className="bg-white/5 rounded-2xl overflow-hidden">
+            {/* Live indicator */}
+            <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 rounded-full bg-[#2FF801] animate-pulse" />
+                <span className="text-[10px] text-[var(--muted-foreground)] uppercase tracking-wider font-bold">Live</span>
+            </div>
+
+            {/* Activity list */}
+            <div className="bg-[var(--card)] rounded-2xl overflow-hidden border border-[var(--border)]">
                 {activities.map((item) => (
                     <ActivityItem
                         key={item.activity.id}
@@ -161,10 +208,10 @@ export function ActivityFeed({
                 <button
                     onClick={handleRefresh}
                     disabled={isRefreshing}
-                    className="px-4 py-2 text-sm text-[var(--foreground)]/60 hover:text-[var(--foreground)] flex items-center gap-2 mx-auto"
+                    className="px-4 py-2 text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] flex items-center gap-2 mx-auto"
                 >
                     <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                    {isRefreshing ? "Loading..." : "Load more"}
+                    {isRefreshing ? "Laden..." : "Mehr laden"}
                 </button>
             </div>
         </div>
