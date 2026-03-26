@@ -11,10 +11,12 @@ import { supabase } from "@/lib/supabase/client";
 import { useEffect } from "react";
 
 type FeedTab = "foryou" | "following" | "discover";
+type FollowingFilter = "users" | "communities";
 
 export default function FeedPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<FeedTab>("foryou");
+  const [followingFilter, setFollowingFilter] = useState<FollowingFilter>("users");
   const [communities, setCommunities] = useState<any[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
 
@@ -25,7 +27,7 @@ export default function FeedPage() {
   ];
 
   useEffect(() => {
-    if (activeTab === "discover" && user) {
+    if ((activeTab === "discover" || activeTab === "following") && user) {
       setLoadingCommunities(true);
       // Fetch user's communities
       supabase
@@ -98,25 +100,105 @@ export default function FeedPage() {
           </div>
         )}
         {activeTab === "following" && user && (
-          <>
-            <ActivityFeed showDiscover={false} />
-            {/* Empty state */}
-            <div className="mt-4 text-center py-8 px-6 bg-[var(--card)] rounded-3xl border border-[var(--border)]">
-              <div className="w-12 h-12 rounded-full bg-[#00F5FF]/10 flex items-center justify-center mx-auto mb-3">
-                <Users size={20} className="text-[#00F5FF]" />
-              </div>
-              <p className="text-sm font-bold text-[var(--foreground)] mb-1">Noch niemanden folgen?</p>
-              <p className="text-xs text-[var(--muted-foreground)] mb-4">
-                Finde neue Leute und sieh was sie sammeln!
-              </p>
+          <div className="space-y-4">
+            {/* Filter buttons */}
+            <div className="flex gap-2 p-1 bg-[var(--muted)] rounded-xl">
               <button
-                onClick={() => setActiveTab("discover")}
-                className="inline-block px-5 py-2 bg-[#00F5FF] text-black font-bold rounded-full text-xs"
+                onClick={() => setFollowingFilter("users")}
+                className={`flex-1 py-2 px-4 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                  followingFilter === "users"
+                    ? "bg-[#00F5FF] text-black"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                }`}
               >
-                User entdecken
+                Following
+              </button>
+              <button
+                onClick={() => setFollowingFilter("communities")}
+                className={`flex-1 py-2 px-4 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                  followingFilter === "communities"
+                    ? "bg-[#2FF801] text-black"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                }`}
+              >
+                Communities
               </button>
             </div>
-          </>
+
+            {/* Following users feed */}
+            {followingFilter === "users" && (
+              <>
+                <ActivityFeed showDiscover={false} />
+                {/* Empty state */}
+                <div className="text-center py-8 px-6 bg-[var(--card)] rounded-3xl border border-[var(--border)]">
+                  <div className="w-12 h-12 rounded-full bg-[#00F5FF]/10 flex items-center justify-center mx-auto mb-3">
+                    <Users size={20} className="text-[#00F5FF]" />
+                  </div>
+                  <p className="text-sm font-bold text-[var(--foreground)] mb-1">Noch niemanden folgen?</p>
+                  <p className="text-xs text-[var(--muted-foreground)] mb-4">
+                    Finde neue Leute und sieh was sie sammeln!
+                  </p>
+                  <button
+                    onClick={() => setActiveTab("discover")}
+                    className="inline-block px-5 py-2 bg-[#00F5FF] text-black font-bold rounded-full text-xs"
+                  >
+                    User entdecken
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Following communities */}
+            {followingFilter === "communities" && (
+              <>
+                {loadingCommunities ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 size={24} className="animate-spin text-[#00F5FF]" />
+                  </div>
+                ) : communities.length > 0 ? (
+                  <div className="space-y-2">
+                    {communities.map((org: any) => (
+                      <Link
+                        key={org.id}
+                        href={`/community/${org.id}`}
+                        className="flex items-center gap-3 p-4 bg-[var(--card)] rounded-xl border border-[var(--border)] hover:border-[#00F5FF]/50 transition-colors"
+                      >
+                        <div className="w-12 h-12 rounded-full bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
+                          {org.logo_url ? (
+                            <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-[#2FF801] font-bold text-lg">{org.name.charAt(0)}</span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-[var(--foreground)]">{org.name}</p>
+                          <p className="text-xs text-[var(--muted-foreground)] uppercase">
+                            {org.organization_type}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 px-6 bg-[var(--card)] rounded-3xl border border-[var(--border)]">
+                    <div className="w-12 h-12 rounded-full bg-[#2FF801]/10 flex items-center justify-center mx-auto mb-3">
+                      <Users size={20} className="text-[#2FF801]" />
+                    </div>
+                    <p className="text-sm font-bold text-[var(--foreground)] mb-1">Noch keine Communities</p>
+                    <p className="text-xs text-[var(--muted-foreground)] mb-4">
+                      Finde oder erstelle Communities!
+                    </p>
+                    <button
+                      onClick={() => setActiveTab("discover")}
+                      className="inline-block px-5 py-2 bg-[#2FF801] text-black font-bold rounded-full text-xs"
+                    >
+                      Communities entdecken
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         )}
 
         {/* Discover - Suggested Users & Communities */}
