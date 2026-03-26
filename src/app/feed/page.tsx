@@ -34,7 +34,7 @@ export default function FeedPage() {
       Promise.all([
         // Fetch user's communities
         supabase
-          .from("organization_memberships")
+          .from("organization_members")
           .select("organization_id, role, organizations(*)")
           .eq("user_id", user.id)
           .eq("membership_status", "active"),
