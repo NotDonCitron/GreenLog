@@ -37,7 +37,6 @@ export default function GrowsPage() {
       setLoading(true);
       try {
         if (isDemoMode) {
-          // Add some demo data for grows if in demo mode
           setGrows([
             {
               id: "demo-1",
@@ -80,51 +79,57 @@ export default function GrowsPage() {
   }, [user, isDemoMode, authLoading]);
 
   return (
-    <main className="min-h-screen bg-white text-black pb-32">
-      <header className="p-8 sticky top-0 bg-white/90 backdrop-blur-xl z-50 border-b border-black/10">
+    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+      {/* Ambient glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[80px] rounded-full" />
+      </div>
+
+      <header className="sticky top-0 z-50 glass-surface border-b border-[#484849]/50 px-6 pt-12 pb-4">
         <div className="flex justify-between items-end mb-6">
           <div>
-            <span className="text-[10px] text-[#00F5FF] font-black uppercase tracking-[0.4em]">Grow Tracker</span>
-            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">Meine Grows</h1>
+            <span className="text-[10px] text-[#2FF801] font-black uppercase tracking-[0.4em]">Grow Tracker</span>
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-white">Meine Grows</h1>
           </div>
           <Link href="/grows/new">
-            <Button size="icon" className="bg-[#00F5FF] hover:bg-[#00D5E0] text-black rounded-full shadow-[0_0_15px_rgba(0,245,255,0.3)]">
+            <Button size="icon" className="bg-gradient-to-br from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black rounded-full shadow-lg shadow-[#2FF801]/30">
               <Plus size={24} />
             </Button>
           </Link>
         </div>
       </header>
 
-      <div className="p-6">
+      <div className="p-6 relative z-10">
         {loading || authLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
-            <p className="text-[10px] font-bold text-black/20 uppercase tracking-[0.2em]">Lade Grows...</p>
+            <p className="text-[10px] font-bold text-[#adaaab] uppercase tracking-[0.2em]">Lade Grows...</p>
           </div>
         ) : grows.length > 0 ? (
           <div className="space-y-4">
             {grows.map((grow) => (
-              <Card key={grow.id} className="bg-[#1a191b] border-black/10 overflow-hidden group active:scale-[0.98] transition-all">
+              <Card key={grow.id} className="bg-[#1a191b] border border-[#484849]/50 overflow-hidden group active:scale-[0.98] transition-all">
                 <div className="p-5 flex flex-col gap-4">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${grow.status === 'active' ? 'bg-[#2FF801]/10 text-[#2FF801]' : 'bg-black/5 text-black/40'}`}>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${grow.status === 'active' ? 'bg-[#2FF801]/10 text-[#2FF801]' : 'bg-[#262627] text-[#adaaab]'}`}>
                         <Sprout size={24} />
                       </div>
                       <div>
-                        <h3 className="font-black text-lg uppercase tracking-tight leading-none">{grow.title}</h3>
-                        <p className="text-[10px] text-black/40 font-bold uppercase tracking-widest mt-1">
+                        <h3 className="font-black text-lg uppercase tracking-tight leading-none text-white font-display">{grow.title}</h3>
+                        <p className="text-[10px] text-[#adaaab] font-bold uppercase tracking-widest mt-1">
                           {grow.strains?.name || 'Unbekannte Sorte'} • {grow.grow_type}
                         </p>
                       </div>
                     </div>
-                    <Badge className={grow.status === 'active' ? 'bg-[#2FF801] text-black border-none font-bold' : 'bg-black/10 text-black/40 border-none font-bold'}>
+                    <Badge className={grow.status === 'active' ? 'bg-[#2FF801] text-black border-none font-bold' : 'bg-[#262627] text-[#adaaab] border-none font-bold'}>
                       {grow.status.toUpperCase()}
                     </Badge>
                   </div>
 
-                  <div className="flex justify-between items-center pt-2 border-t border-black/10">
-                    <div className="flex items-center gap-2 text-black/40">
+                  <div className="flex justify-between items-center pt-2 border-t border-[#484849]/50">
+                    <div className="flex items-center gap-2 text-[#adaaab]">
                       <Calendar size={12} />
                       <span className="text-[10px] font-bold uppercase">{grow.start_date || 'Kein Startdatum'}</span>
                     </div>
@@ -138,15 +143,15 @@ export default function GrowsPage() {
           </div>
         ) : (
           <div className="text-center py-20 space-y-6">
-            <div className="w-20 h-20 bg-black/5 rounded-3xl flex items-center justify-center mx-auto border border-black/10 shadow-2xl text-black/20">
-              <Sprout size={32} />
+            <div className="w-20 h-20 bg-[#1a191b] rounded-3xl flex items-center justify-center mx-auto border border-[#484849]/50 shadow-2xl">
+              <Sprout size={32} className="text-[#2FF801]" />
             </div>
             <div>
-              <h2 className="text-xl font-bold uppercase tracking-tight">Keine aktiven Grows</h2>
-              <p className="text-black/40 text-sm mt-2 max-w-[200px] mx-auto">Starte jetzt deinen ersten Grow und tracke deinen Fortschritt!</p>
+              <h2 className="text-xl font-bold uppercase tracking-tight text-white font-display">Keine aktiven Grows</h2>
+              <p className="text-[#adaaab] text-sm mt-2 max-w-[200px] mx-auto">Starte jetzt deinen ersten Grow und tracke deinen Fortschritt!</p>
             </div>
             <Link href="/grows/new">
-              <Button className="bg-[#00F5FF] hover:bg-[#00D5E0] text-black font-black uppercase tracking-widest text-xs px-8 py-6 rounded-2xl shadow-[0_0_20px_rgba(0,245,255,0.2)]">
+              <Button className="bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] hover:opacity-90 text-black font-black uppercase tracking-widest text-xs px-8 py-6 rounded-2xl shadow-lg shadow-[#00F5FF]/20">
                 Jetzt Starten
               </Button>
             </Link>

@@ -18,7 +18,6 @@ export default function ScannerPage() {
   const [cameraActive, setCameraActive] = useState(false);
   const workerRef = useRef<any>(null);
 
-  // Initialisiere OCR Worker
   useEffect(() => {
     async function initWorker() {
       try {
@@ -33,13 +32,12 @@ export default function ScannerPage() {
     return () => { if (workerRef.current) workerRef.current.terminate(); };
   }, []);
 
-  // Kamera starten
   useEffect(() => {
     async function startCamera() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
+        const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
-          audio: false 
+          audio: false
         });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -67,16 +65,14 @@ export default function ScannerPage() {
     for (const strain of strains) {
       const name = (strain.name as string).toLowerCase();
       const nameWords = name.split(/[\s,.\-\n]+/).filter((w: string) => w.length > 2);
-      
+
       let score = 0;
-      
-      // 1. Bonus für exakten kompletten Treffer (nur als Wortgruppe)
+
       const fullRegex = new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
       if (fullRegex.test(lowerText)) {
         score += 15;
       }
 
-      // 2. Punkte für jedes Wort des Namens, das als eigenständiges Wort vorkommt
       for (const word of nameWords) {
         const wordRegex = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
         if (wordRegex.test(lowerText)) {
@@ -84,7 +80,6 @@ export default function ScannerPage() {
         }
       }
 
-      // 3. Nur Strains mit einer Mindest-Relevanz nehmen
       if (score > highestScore && score >= 5) {
         highestScore = score;
         bestStrain = strain;
@@ -103,17 +98,15 @@ export default function ScannerPage() {
     const context = canvas.getContext("2d");
     if (!context) return;
 
-    // Screenshot machen
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    
-    // Bildverbesserung (Kontrast & Schärfe)
+
     context.filter = 'contrast(1.3) brightness(1.1)';
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     setStatus("processing");
     setDebugText(null);
-    
+
     try {
       let worker = workerRef.current;
       if (!worker) worker = await createWorker('deu+eng');
@@ -131,7 +124,7 @@ export default function ScannerPage() {
       } else {
         setStatus("error");
         setResult("Nicht gefunden");
-        setDebugText(text.slice(0, 60).replace(/\n/g, ' ') + "..."); 
+        setDebugText(text.slice(0, 60).replace(/\n/g, ' ') + "...");
         setTimeout(() => { setStatus("idle"); setDebugText(null); }, 5000);
       }
     } catch (err) {
@@ -142,19 +135,26 @@ export default function ScannerPage() {
   };
 
   return (
-    <main className="h-[100dvh] bg-black text-white relative overflow-hidden flex flex-col">
-      <div className="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
+    <main className="h-[100dvh] bg-[#0e0e0f] text-white relative overflow-hidden flex flex-col">
+      {/* Ambient glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#00F5FF]/10 blur-[150px] rounded-full" />
+        <div className="absolute bottom-[-20%] left-[-10%] w-[40%] h-[40%] bg-[#2FF801]/8 blur-[120px] rounded-full" />
+      </div>
+
+      <div className="flex-1 relative z-10 flex items-center justify-center overflow-hidden">
         <video ref={videoRef} autoPlay playsInline className={`w-full h-full object-cover transition-opacity duration-1000 ${cameraActive ? "opacity-100" : "opacity-0"}`} />
-        
+
         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-none">
-          <div className="w-full aspect-square max-w-sm border-2 border-white/20 rounded-3xl relative">
-            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-[#00F5FF] rounded-tl-3xl shadow-[0_0_15px_#00F5FF]" />
-            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-[#00F5FF] rounded-tr-3xl shadow-[0_0_15px_#00F5FF]" />
-            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-[#00F5FF] rounded-bl-3xl shadow-[0_0_15px_#00F5FF]" />
-            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-[#00F5FF] rounded-br-3xl shadow-[0_0_15px_#00F5FF]" />
-            
+          <div className="w-full aspect-square max-w-sm border-2 border-[#00F5FF]/20 rounded-3xl relative">
+            {/* Neon corner accents */}
+            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-[#00F5FF] rounded-tl-3xl shadow-[0_0_20px_#00F5FF]" />
+            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-[#00F5FF] rounded-tr-3xl shadow-[0_0_20px_#00F5FF]" />
+            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-[#00F5FF] rounded-bl-3xl shadow-[0_0_20px_#00F5FF]" />
+            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-[#00F5FF] rounded-br-3xl shadow-[0_0_20px_#00F5FF]" />
+
             {status === "processing" && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-3xl">
+              <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-3xl">
                 <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
               </div>
             )}
@@ -170,25 +170,25 @@ export default function ScannerPage() {
         </div>
       </div>
 
-      <div className="p-6 pb-28 flex flex-col items-center gap-4 bg-gradient-to-t from-black via-black/90 to-transparent z-10 shrink-0">
+      <div className="p-6 pb-28 flex flex-col items-center gap-4 bg-gradient-to-t from-[#0e0e0f] via-[#0e0e0f]/90 to-transparent z-20 shrink-0">
         <div className="text-center space-y-1">
           <h2 className="text-xs font-black tracking-[0.3em] uppercase text-[#00F5FF]">
             {status === "processing" ? "Analysiere..." : "Smart Scanner"}
           </h2>
-          <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">
+          <p className="text-[9px] text-[#adaaab] uppercase tracking-widest font-bold">
             {status === "error" ? result : "Ziele auf den Namen der Sorte"}
           </p>
           {debugText && (
-            <p className="text-[8px] text-red-400 font-mono mt-1 bg-black/40 px-2 py-0.5 rounded">Gelesen: {debugText}</p>
+            <p className="text-[8px] text-[#ff716c] font-mono mt-1 bg-[#1a191b] px-2 py-0.5 rounded">Gelesen: {debugText}</p>
           )}
         </div>
 
-        <button 
+        <button
           onClick={captureAndRecognize}
           disabled={status === "processing" || status === "success"}
-          className={`w-16 h-16 rounded-full border-4 border-white/10 p-1 bg-white/5 transition-all active:scale-95 ${status === "processing" ? "opacity-20" : "opacity-100"}`}
+          className={`w-16 h-16 rounded-full border-4 border-[#00F5FF]/30 p-1 bg-[#1a191b] transition-all active:scale-95 ${status === "processing" ? "opacity-20" : "opacity-100"}`}
         >
-          <div className="w-full h-full rounded-full bg-white flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+          <div className="w-full h-full rounded-full bg-gradient-to-br from-[#00F5FF] to-[#2FF801] flex items-center justify-center shadow-lg shadow-[#00F5FF]/30">
             <Camera size={28} className="text-black" />
           </div>
         </button>

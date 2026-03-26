@@ -47,9 +47,9 @@ function formatRoleLabel(role: string) {
 
 function RoleBadge({ role }: { role: string }) {
   const color =
-    role === "admin" ? "text-red-400 bg-red-400/10 border-red-400/20" :
-    role === "staff" ? "text-blue-400 bg-blue-400/10 border-blue-400/20" :
-    "text-black/40 bg-black/5 border-black/10";
+    role === "admin" ? "text-[#ff716c] bg-[#ff716c]/10 border-[#ff716c]/20" :
+    role === "staff" ? "text-[#00a3ff] bg-[#00a3ff]/10 border-[#00a3ff]/20" :
+    "text-[#adaaab] bg-[#262627] border-[#484849]/50";
   return (
     <span className={`inline-flex items-center text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${color}`}>
       {formatRoleLabel(role)}
@@ -60,7 +60,7 @@ function RoleBadge({ role }: { role: string }) {
 function StatusBadge({ status }: { status: string }) {
   if (status === "pending") {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400">
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#00a3ff]/10 border border-[#00a3ff]/20 text-[#00a3ff]">
         <Clock size={8} />
         Ausstehend
       </span>
@@ -68,7 +68,7 @@ function StatusBadge({ status }: { status: string }) {
   }
   if (status === "accepted") {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400">
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#2FF801]/10 border border-[#2FF801]/20 text-[#2FF801]">
         <CheckCircle2 size={8} />
         Angenommen
       </span>
@@ -76,14 +76,14 @@ function StatusBadge({ status }: { status: string }) {
   }
   if (status === "revoked") {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400">
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#ff716c]/10 border border-[#ff716c]/20 text-[#ff716c]">
         <X size={8} />
         Widerrufen
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-black/5 border border-black/10 text-black/40">
+    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#262627] border border-[#484849]/50 text-[#adaaab]">
       {status}
     </span>
   );
@@ -105,7 +105,6 @@ export default function InvitesPage() {
   const [createdInviteToken, setCreatedInviteToken] = useState<string | null>(null);
   const [createdInviteEmail, setCreatedInviteEmail] = useState<string | null>(null);
 
-  // Only Gründer (owner) can manage invites
   const isOwner = activeOrganization?.role === "gründer";
 
   const fetchInvites = useCallback(async () => {
@@ -218,8 +217,8 @@ export default function InvitesPage() {
 
   if (!activeOrganization) {
     return (
-      <main className="min-h-screen bg-white flex items-center justify-center">
-        <Loader2 className="animate-spin text-black/40" size={32} />
+      <main className="min-h-screen bg-[#0e0e0f] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#00F5FF]" size={32} />
       </main>
     );
   }
@@ -228,30 +227,36 @@ export default function InvitesPage() {
   const inviteLink = createdInviteToken ? `${baseUrl}/invite/${createdInviteToken}` : null;
 
   return (
-    <main className="min-h-screen bg-white text-black pb-32">
-      <header className="p-8 pb-4 flex items-center gap-4">
+    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+      {/* Ambient glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[80px] rounded-full" />
+      </div>
+
+      <header className="px-6 pt-12 pb-4 flex items-center gap-4 relative z-10">
         <button
           onClick={() => router.back()}
-          className="p-2 rounded-full bg-black/5 border border-black/10 hover:bg-black/10 transition-colors"
+          className="p-2 rounded-full bg-[#1a191b] border border-[#484849]/50 hover:border-[#00F5FF]/50 transition-all"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={20} className="text-white" />
         </button>
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">
             {activeOrganization.organizations?.name}
           </p>
-          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none">
+          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-white">
             Admin anlegen
           </h1>
         </div>
       </header>
 
-      <div className="px-8 space-y-6 mt-4">
+      <div className="px-6 space-y-6 mt-4 relative z-10">
         {statusMessage && (
           <div className={`p-3 rounded-2xl flex items-start gap-2 text-sm font-bold border ${
             statusMessage.type === "success"
-              ? "bg-green-500/10 border-green-500/20 text-green-400"
-              : "bg-red-500/10 border-red-500/20 text-red-400"
+              ? "bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]"
+              : "bg-[#ff716c]/10 border-[#ff716c]/30 text-[#ff716c]"
           }`}>
             {statusMessage.type === "success" ? <CheckCircle2 size={16} className="shrink-0" /> : <AlertTriangle size={16} className="shrink-0" />}
             <span>{statusMessage.msg}</span>
@@ -259,7 +264,7 @@ export default function InvitesPage() {
         )}
 
         {createdInviteToken && inviteLink && (
-          <Card className="bg-[#1e3a24] border-[#2FF801]/20 p-5 rounded-3xl space-y-4">
+          <Card className="bg-[#1a191b] border border-[#2FF801]/30 p-5 rounded-3xl space-y-4">
             <div className="flex items-center gap-2">
               <CheckCircle2 size={16} className="text-[#2FF801]" />
               <p className="text-sm font-black text-[#2FF801]">Einladung erstellt für {createdInviteEmail}</p>
@@ -268,24 +273,24 @@ export default function InvitesPage() {
               <Input
                 value={inviteLink}
                 readOnly
-                className="bg-black/20 border-black/10 text-black/70 text-xs font-mono h-10 flex-1"
+                className="bg-[#131314] border border-[#484849]/50 text-[#adaaab] text-xs font-mono h-10 flex-1"
               />
               <Button
                 size="sm"
                 onClick={() => void handleCopyLink(createdInviteToken)}
-                className="h-10 bg-[#2FF801] hover:bg-[#2FF801]/80 text-black font-black"
+                className="h-10 bg-gradient-to-r from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black font-black"
               >
                 {copied === createdInviteToken ? <CheckCircle2 size={14} /> : <Copy size={14} />}
               </Button>
             </div>
-            <p className="text-[10px] text-black/30 font-bold">
+            <p className="text-[10px] text-[#484849] font-bold">
               Dieser Link ist 7 Tage gültig. Bitte teile ihn sicher mit der einzuladenden Person.
             </p>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setCreatedInviteToken(null)}
-              className="w-full text-black/40 hover:text-black"
+              className="w-full text-[#adaaab] hover:text-white"
             >
               Schließen
             </Button>
@@ -293,11 +298,11 @@ export default function InvitesPage() {
         )}
 
         {isOwner && (
-          <Card className="bg-[#1e3a24] border-black/10 p-5 rounded-3xl">
+          <Card className="bg-[#1a191b] border border-[#484849]/50 p-5 rounded-3xl">
             {!showCreateForm ? (
               <Button
                 onClick={() => setShowCreateForm(true)}
-                className="w-full h-12 bg-[#00F5FF] hover:bg-[#00F5FF]/80 text-black font-black uppercase tracking-widest text-xs"
+                className="w-full h-12 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] hover:opacity-90 text-black font-black uppercase tracking-widest text-xs"
               >
                 <Plus size={14} className="mr-2" />
                 Neue Einladung
@@ -305,11 +310,11 @@ export default function InvitesPage() {
             ) : (
               <form onSubmit={(e) => void handleCreateInvite(e)} className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-black uppercase tracking-widest text-black/60">Neue Einladung</p>
+                  <p className="text-xs font-black uppercase tracking-widest text-[#adaaab]">Neue Einladung</p>
                   <button
                     type="button"
                     onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: "admin" }); }}
-                    className="text-black/40 hover:text-black"
+                    className="text-[#adaaab] hover:text-white"
                   >
                     <X size={16} />
                   </button>
@@ -323,19 +328,19 @@ export default function InvitesPage() {
                     placeholder="email@beispiel.de"
                     required
                     disabled={isDemoMode}
-                    className="bg-black/20 border-black/10 text-black h-12 rounded-xl focus:border-[#00F5FF]"
+                    className="bg-[#131314] border border-[#484849]/50 text-white h-12 rounded-xl focus:border-[#00F5FF]"
                   />
                 </div>
 
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-red-400">Admin</span>
-                  <span className="text-[10px] text-black/40">Nur Admins können eingeladen werden</span>
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-[#ff716c]/10 border border-[#ff716c]/20">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#ff716c]">Admin</span>
+                  <span className="text-[10px] text-[#adaaab]">Nur Admins können eingeladen werden</span>
                 </div>
 
                 <Button
                   type="submit"
                   disabled={creating || !newInvite.email || isDemoMode}
-                  className="w-full h-12 bg-[#2FF801] hover:bg-[#2FF801]/80 text-black font-black uppercase tracking-widest text-xs disabled:opacity-50"
+                  className="w-full h-12 bg-gradient-to-r from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black font-black uppercase tracking-widest text-xs disabled:opacity-50"
                 >
                   {creating ? <Loader2 size={14} className="animate-spin" /> : null}
                   Einladung senden
@@ -344,11 +349,11 @@ export default function InvitesPage() {
                   type="button"
                   variant="ghost"
                   onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: "admin" }); }}
-                  className="w-full h-10 text-black/40 hover:text-black hover:bg-black/5 font-black uppercase tracking-widest text-xs"
+                  className="w-full h-10 text-[#adaaab] hover:text-white bg-[#262627] border border-[#484849]/50 hover:border-[#00F5FF]/50 font-black uppercase tracking-widest text-xs"
                 >
                   Abbrechen
                 </Button>
-                {isDemoMode && <p className="text-[10px] text-center text-black/20 italic">Im Demo-Modus deaktiviert</p>}
+                {isDemoMode && <p className="text-[10px] text-center text-[#484849] italic">Im Demo-Modus deaktiviert</p>}
               </form>
             )}
           </Card>
@@ -356,32 +361,32 @@ export default function InvitesPage() {
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="animate-spin text-black/40" size={32} />
+            <Loader2 className="animate-spin text-[#00F5FF]" size={32} />
           </div>
         ) : error ? (
-          <Card className="bg-red-500/10 border-red-500/20 p-6 rounded-3xl">
-            <p className="text-red-400 font-bold text-center">{error}</p>
-            <Button onClick={() => void fetchInvites()} className="mt-4 w-full bg-black/10">
+          <Card className="bg-[#ff716c]/10 border-[#ff716c]/20 p-6 rounded-3xl">
+            <p className="text-[#ff716c] font-bold text-center">{error}</p>
+            <Button onClick={() => void fetchInvites()} className="mt-4 w-full bg-[#262627] border border-[#484849]/50">
               Erneut versuchen
             </Button>
           </Card>
         ) : invites.length === 0 ? (
-          <Card className="bg-black/5 border-black/10 p-8 rounded-3xl text-center">
-            <Mail size={32} className="mx-auto text-black/20 mb-3" />
-            <p className="text-black/40 font-bold">Keine ausstehenden Einladungen</p>
+          <Card className="bg-[#1a191b] border border-[#484849]/50 p-8 rounded-3xl text-center">
+            <Mail size={32} className="mx-auto text-[#484849] mb-3" />
+            <p className="text-[#adaaab] font-bold">Keine ausstehenden Einladungen</p>
           </Card>
         ) : (
           <div className="space-y-3">
             {invites.map((invite) => (
-              <Card key={invite.id} className="bg-[#1e3a24] border-black/10 p-5 rounded-3xl">
+              <Card key={invite.id} className="bg-[#1a191b] border border-[#484849]/50 p-5 rounded-3xl">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center shrink-0">
                       <Mail size={16} className="text-[#00F5FF]" />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-black text-sm truncate">{invite.email}</p>
-                      <p className="text-[10px] text-black/40 font-mono truncate">
+                      <p className="font-black text-sm truncate text-white">{invite.email}</p>
+                      <p className="text-[10px] text-[#adaaab] font-mono truncate">
                         Läuft ab: {new Date(invite.expires_at).toLocaleDateString("de-DE")}
                       </p>
                     </div>
@@ -395,8 +400,8 @@ export default function InvitesPage() {
                         disabled={actionLoading === invite.id || isDemoMode}
                         className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all mt-1 ${
                           actionLoading === invite.id || isDemoMode
-                            ? "bg-red-500/5 border-red-500/10 text-red-400/30"
-                            : "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/30"
+                            ? "bg-[#ff716c]/5 border-[#ff716c]/10 text-[#ff716c]/30"
+                            : "bg-[#ff716c]/10 border-[#ff716c]/20 text-[#ff716c] hover:bg-[#ff716c]/20 hover:border-[#ff716c]/30"
                         }`}
                       >
                         <X size={8} />
@@ -412,7 +417,7 @@ export default function InvitesPage() {
 
         {!isOwner && !loading && (
           <div className="text-center py-6">
-            <p className="text-xs text-black/30 font-bold uppercase tracking-wider">
+            <p className="text-xs text-[#484849] font-bold uppercase tracking-wider">
               Nur Owner können Einladungen verwalten
             </p>
           </div>

@@ -40,7 +40,6 @@ export default function DiscoverPage() {
             if (!user) return;
             setIsLoading(true);
             try {
-                // 1. Freunde finden (Leute denen ich folge)
                 const { data: follows } = await supabase
                     .from("follows")
                     .select("following_id")
@@ -49,7 +48,6 @@ export default function DiscoverPage() {
                 if (follows && follows.length > 0) {
                     const friendIds = follows.map(f => f.following_id);
 
-                    // 2. Profile laden
                     const { data: profiles } = await supabase
                         .from("profiles")
                         .select("*")
@@ -93,7 +91,6 @@ export default function DiscoverPage() {
                     }
                 }
 
-                // 2. Communities laden
                 const { data: memberships } = await supabase
                     .from("organization_members")
                     .select("organization_id, role")
@@ -118,7 +115,6 @@ export default function DiscoverPage() {
                     }
                 }
 
-                // 3. Entdecken (Andere User)
                 const { data: allUsers } = await supabase
                     .from("profiles")
                     .select("*")
@@ -136,26 +132,32 @@ export default function DiscoverPage() {
     }, [user]);
 
     return (
-        <div className="min-h-screen bg-white pb-24">
-            <div className="sticky top-0 z-20 bg-white backdrop-blur-md border-b border-black/10">
+        <div className="min-h-screen bg-[#0e0e0f] pb-24">
+            {/* Ambient glow */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
+                <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[80px] rounded-full" />
+            </div>
+
+            <div className="sticky top-0 z-20 glass-surface border-b border-[#484849]/50">
                 <div className="max-w-lg mx-auto px-6 py-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h1 className="text-2xl font-black text-black italic uppercase tracking-tight">Social</h1>
-                        <button className="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center border border-black/10">
+                        <h1 className="text-2xl font-black italic uppercase tracking-tight font-display text-white">Social</h1>
+                        <button className="w-10 h-10 rounded-xl bg-[#1a191b] border border-[#484849]/50 flex items-center justify-center">
                             <UserPlus size={20} className="text-[#00F5FF]" />
                         </button>
                     </div>
 
-                    <div className="flex gap-6 border-b border-black/10 -mb-6">
+                    <div className="flex gap-6 border-b border-[#484849]/50 -mb-6">
                         <button
                             onClick={() => setActiveTab("friends")}
-                            className={`pb-3 text-xs font-black uppercase tracking-widest transition-all ${activeTab === "friends" ? "text-[#2FF801] border-b-2 border-[#2FF801]" : "text-black/40"}`}
+                            className={`pb-3 text-xs font-bold uppercase tracking-widest transition-all ${activeTab === "friends" ? "text-[#2FF801] border-b-2 border-[#2FF801]" : "text-[#484849]"}`}
                         >
-                            Deine Freunde & Communities
+                            Freunde & Communities
                         </button>
                         <button
                             onClick={() => setActiveTab("browse")}
-                            className={`pb-3 text-xs font-black uppercase tracking-widest transition-all ${activeTab === "browse" ? "text-[#2FF801] border-b-2 border-[#2FF801]" : "text-black/40"}`}
+                            className={`pb-3 text-xs font-bold uppercase tracking-widest transition-all ${activeTab === "browse" ? "text-[#00F5FF] border-b-2 border-[#00F5FF]" : "text-[#484849]"}`}
                         >
                             Entdecken
                         </button>
@@ -163,11 +165,14 @@ export default function DiscoverPage() {
                 </div>
             </div>
 
-            <div className="max-w-lg mx-auto px-6 py-10">
+            <div className="max-w-lg mx-auto px-6 py-10 relative z-10">
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-20 gap-4">
-                        <Loader2 className="h-10 w-10 animate-spin text-[#00F5FF]" />
-                        <p className="text-[10px] font-black text-black/20 uppercase tracking-widest">Lade Social Data...</p>
+                        <div className="relative">
+                            <Loader2 className="h-10 w-10 animate-spin text-[#00F5FF]" />
+                            <div className="absolute inset-0 blur-xl bg-[#00F5FF]/20" />
+                        </div>
+                        <p className="text-[10px] font-bold text-[#adaaab] uppercase tracking-widest">Lade Social Data...</p>
                     </div>
                 ) : activeTab === "friends" ? (
                     <div>
@@ -175,20 +180,20 @@ export default function DiscoverPage() {
                         <div className="flex gap-3 mb-6">
                             <button
                                 onClick={() => handleFilterToggle("friends")}
-                                className={`flex-1 h-10 rounded-xl text-xs font-black uppercase tracking-widest transition-all border ${
+                                className={`flex-1 h-10 rounded-xl text-xs font-bold uppercase tracking-widest transition-all border ${
                                     friendFilter === "friends"
-                                        ? "bg-[#00F5FF] text-black border-[#00F5FF]"
-                                        : "bg-black/5 text-black/60 border-black/10 hover:bg-black/10"
+                                        ? "bg-[#2FF801] text-black border-[#2FF801]"
+                                        : "bg-[#1a191b] text-[#adaaab] border-[#484849]/50 hover:border-[#00F5FF]/50"
                                 }`}
                             >
                                 Freunde
                             </button>
                             <button
                                 onClick={() => handleFilterToggle("communities")}
-                                className={`flex-1 h-10 rounded-xl text-xs font-black uppercase tracking-widest transition-all border ${
+                                className={`flex-1 h-10 rounded-xl text-xs font-bold uppercase tracking-widest transition-all border ${
                                     friendFilter === "communities"
                                         ? "bg-[#00F5FF] text-black border-[#00F5FF]"
-                                        : "bg-black/5 text-black/60 border-black/10 hover:bg-black/10"
+                                        : "bg-[#1a191b] text-[#adaaab] border-[#484849]/50 hover:border-[#00F5FF]/50"
                                 }`}
                             >
                                 Communities
@@ -202,46 +207,47 @@ export default function DiscoverPage() {
                                     <div className="space-y-4">
                                         {friends.map((friend) => (
                                             <Link key={friend.id} href={`/user/${friend.username || friend.id}`}>
-                                                <div className="bg-[#1e3a24] border border-black/10 rounded-[2rem] p-5 flex flex-col gap-4 shadow-xl hover:border-[#00F5FF]/30 transition-all">
+                                                <div className="bg-[#1a191b] border border-[#484849]/50 rounded-[2rem] p-5 flex flex-col gap-4 hover:border-[#00F5FF]/50 transition-all">
                                                     <div className="flex items-center justify-between gap-4">
                                                         <div className="flex items-center gap-4 min-w-0">
-                                                            <div className="w-16 h-16 rounded-full overflow-hidden bg-black/20 border-2 border-black/10 flex-shrink-0 flex items-center justify-center">
+                                                            <div className="w-16 h-16 rounded-full overflow-hidden bg-[#262627] border-2 border-[#484849] flex-shrink-0 flex items-center justify-center">
                                                                 {friend.avatar_url ? (
                                                                     <img src={friend.avatar_url} alt={friend.username || "User"} className="w-full h-full object-cover" />
                                                                 ) : (
-                                                                    <span className="text-xl font-bold text-black/20">{(friend.username || "U")[0].toUpperCase()}</span>
+                                                                    <span className="text-xl font-black text-[#00F5FF]">{(friend.username || "U")[0].toUpperCase()}</span>
                                                                 )}
                                                             </div>
                                                             <div className="min-w-0">
-                                                                <h3 className="font-black text-black uppercase tracking-tight truncate text-xl leading-none">
+                                                                <h3 className="font-black text-white uppercase tracking-tight truncate text-xl leading-none font-display">
                                                                     {friend.display_name || friend.username || "User"}
                                                                 </h3>
+                                                                <p className="text-[10px] text-[#adaaab] font-mono uppercase tracking-wider">@{friend.username}</p>
                                                             </div>
                                                         </div>
-                                                        <div className="text-right flex-shrink-0 flex flex-col items-center justify-center bg-black/20 px-4 py-2 rounded-2xl border border-black/10">
-                                                            <span className="text-3xl font-black text-[#2FF801] leading-none italic">{friend.strainCount}</span>
-                                                            <p className="text-[7px] text-black/40 font-black uppercase tracking-tighter mt-1 whitespace-nowrap">strains in der sammlung</p>
+                                                        <div className="text-right flex-shrink-0 flex flex-col items-center justify-center bg-[#262627] px-4 py-2 rounded-2xl border border-[#484849]/50">
+                                                            <span className="text-3xl font-black text-[#2FF801] leading-none italic font-display">{friend.strainCount}</span>
+                                                            <p className="text-[7px] text-[#adaaab] font-semibold uppercase tracking-tighter mt-1 whitespace-nowrap">strains</p>
                                                         </div>
                                                     </div>
-                                                    <div className="bg-black/20 rounded-2xl p-3 flex flex-col gap-2">
-                                                        <p className="text-[8px] font-black text-black/30 uppercase tracking-[0.2em]">Top Strains</p>
+                                                    <div className="bg-[#131314] rounded-2xl p-3 flex flex-col gap-2">
+                                                        <p className="text-[8px] font-semibold text-[#adaaab] uppercase tracking-[0.2em]">Top Strains</p>
                                                         <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
                                                             {friend.topStrains.map((s, idx) => (
                                                                 <div key={idx} className="flex flex-col items-center gap-1.5 w-14 flex-shrink-0">
-                                                                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-black/10 bg-black/5 shadow-inner">
+                                                                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-[#484849]/50 bg-[#1a191b]">
                                                                         <img
                                                                             src={s.image_url || "/strains/placeholder-1.svg"}
                                                                             alt={s.name || "Strain"}
                                                                             className="w-full h-full object-cover opacity-80"
                                                                         />
                                                                     </div>
-                                                                    <p className="text-[7px] text-black/40 font-black uppercase tracking-tighter truncate w-full text-center leading-none">
+                                                                    <p className="text-[7px] text-[#adaaab] font-semibold uppercase tracking-tighter truncate w-full text-center leading-none">
                                                                         {s.name || "Strain"}
                                                                     </p>
                                                                 </div>
                                                             ))}
                                                             {friend.topStrains.length === 0 && (
-                                                                <p className="text-[8px] text-black/10 italic">Noch keine Sorten bewertet</p>
+                                                                <p className="text-[8px] text-[#484849] italic">Noch keine Sorten</p>
                                                             )}
                                                         </div>
                                                     </div>
@@ -250,7 +256,7 @@ export default function DiscoverPage() {
                                         ))}
                                     </div>
                                 ) : friendFilter === "friends" ? (
-                                    <div className="text-center py-20 bg-black/5 rounded-[2.5rem] border border-dashed border-black/10 text-black/20 text-[10px] font-bold uppercase tracking-widest px-10">
+                                    <div className="text-center py-20 bg-[#1a191b] rounded-[2.5rem] border border-dashed border-[#484849]/50 text-[#484849] text-[10px] font-bold uppercase tracking-widest px-10">
                                         Noch keine Freunde hinzugefügt.
                                     </div>
                                 ) : null}
@@ -264,26 +270,26 @@ export default function DiscoverPage() {
                                     <div className="space-y-4 mt-4">
                                         {communities.map((comm) => (
                                             <Link key={comm.id} href="/community">
-                                                <div className="bg-[#1e3a24] border border-black/10 rounded-[2rem] p-5 flex flex-col gap-4 shadow-xl hover:border-[#00F5FF]/30 transition-all">
+                                                <div className="bg-[#1a191b] border border-[#484849]/50 rounded-[2rem] p-5 flex flex-col gap-4 hover:border-[#00F5FF]/50 transition-all">
                                                     <div className="flex items-center justify-between gap-4">
                                                         <div className="flex items-center gap-4 min-w-0">
-                                                            <div className="w-16 h-16 rounded-full overflow-hidden bg-black/20 border-2 border-black/10 flex-shrink-0 flex items-center justify-center">
+                                                            <div className="w-16 h-16 rounded-full overflow-hidden bg-[#262627] border-2 border-[#484849] flex-shrink-0 flex items-center justify-center">
                                                                 <Building2 size={24} className="text-[#00F5FF]" />
                                                             </div>
                                                             <div className="min-w-0">
-                                                                <h3 className="font-black text-black uppercase tracking-tight truncate text-xl leading-none">
+                                                                <h3 className="font-black text-white uppercase tracking-tight truncate text-xl leading-none font-display">
                                                                     {comm.name}
                                                                 </h3>
-                                                                <p className="text-[10px] text-black/40 font-mono uppercase tracking-wider">
+                                                                <p className="text-[10px] text-[#adaaab] font-mono uppercase tracking-wider">
                                                                     {comm.organization_type === "club" ? "Club" : comm.organization_type === "pharmacy" ? "Apotheke" : comm.organization_type || "Community"}
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        <div className="text-right flex-shrink-0 flex flex-col items-center justify-center bg-black/20 px-4 py-2 rounded-2xl border border-black/10">
-                                                            <span className={`text-xl font-black leading-none italic ${comm.role === "gründer" ? "text-yellow-400" : comm.role === "admin" ? "text-red-400" : "text-black/40"}`}>
+                                                        <div className="text-right flex-shrink-0 flex flex-col items-center justify-center bg-[#262627] px-4 py-2 rounded-2xl border border-[#484849]/50">
+                                                            <span className={`text-lg font-black leading-none italic ${comm.role === "gründer" ? "text-[#ffd76a]" : comm.role === "admin" ? "text-[#ff716c]" : "text-[#adaaab]"}`}>
                                                                 {comm.role === "gründer" ? "Gründer" : comm.role === "admin" ? "Admin" : "Member"}
                                                             </span>
-                                                            <p className="text-[7px] text-black/40 font-black uppercase tracking-tighter mt-1 whitespace-nowrap">rolle</p>
+                                                            <p className="text-[7px] text-[#adaaab] font-semibold uppercase tracking-tighter mt-1 whitespace-nowrap">rolle</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -291,7 +297,7 @@ export default function DiscoverPage() {
                                         ))}
                                     </div>
                                 ) : friendFilter === "communities" ? (
-                                    <div className="text-center py-20 bg-black/5 rounded-[2.5rem] border border-dashed border-black/10 text-black/20 text-[10px] font-bold uppercase tracking-widest px-10">
+                                    <div className="text-center py-20 bg-[#1a191b] rounded-[2.5rem] border border-dashed border-[#484849]/50 text-[#484849] text-[10px] font-bold uppercase tracking-widest px-10">
                                         Du bist in keiner Community.
                                     </div>
                                 ) : null}
@@ -300,7 +306,7 @@ export default function DiscoverPage() {
                     </div>
                 ) : (
                     <div>
-                        {/* Suggested Users & Communities - Stories Style */}
+                        {/* Suggested Users */}
                         <SuggestedUsers
                             limit={8}
                             showViewAll={false}
@@ -310,13 +316,13 @@ export default function DiscoverPage() {
 
                         {/* Search Field */}
                         <div className="relative mb-6">
-                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-black/30 pointer-events-none" />
+                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#484849] pointer-events-none" />
                             <input
                                 type="text"
                                 value={discoverSearch}
                                 onChange={(e) => setDiscoverSearch(e.target.value)}
                                 placeholder="Nutzer suchen..."
-                                className="w-full h-12 pl-11 pr-4 bg-black/5 border border-black/10 rounded-xl text-black placeholder-black/30 text-sm font-medium focus:outline-none focus:border-[#00F5FF]/50 transition-colors"
+                                className="w-full h-12 pl-11 pr-4 bg-[#131314] border border-[#484849]/50 rounded-xl text-white placeholder:text-[#484849] text-sm font-medium focus:outline-none focus:border-[#00F5FF]/50 transition-colors"
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -331,16 +337,17 @@ export default function DiscoverPage() {
                                 })
                                 .map((profile) => (
                                     <Link key={profile.id} href={`/user/${profile.username}`}>
-                                        <div className="bg-[#1e3a24] border border-black/10 rounded-2xl p-4 flex flex-col items-center text-center gap-3 hover:border-[#00F5FF]/30 transition-all">
-                                            <div className="w-16 h-16 rounded-full overflow-hidden border border-black/10 bg-black/20 flex items-center justify-center">
+                                        <div className="bg-[#1a191b] border border-[#484849]/50 rounded-2xl p-4 flex flex-col items-center text-center gap-3 hover:border-[#00F5FF]/50 transition-all">
+                                            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#484849] bg-[#262627] flex items-center justify-center">
                                                 {profile.avatar_url ? (
                                                     <img src={profile.avatar_url} className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <span className="text-xl font-bold text-black/20">{profile.username?.[0]?.toUpperCase()}</span>
+                                                    <span className="text-xl font-black text-[#00F5FF]">{profile.username?.[0]?.toUpperCase()}</span>
                                                 )}
                                             </div>
                                             <div>
-                                                <p className="text-xs font-black text-black uppercase truncate max-w-[120px]">{profile.display_name || profile.username}</p>
+                                                <p className="text-xs font-bold text-white uppercase truncate max-w-[120px] font-display">{profile.display_name || profile.username}</p>
+                                                <p className="text-[9px] text-[#adaaab]">@{profile.username}</p>
                                             </div>
                                         </div>
                                     </Link>

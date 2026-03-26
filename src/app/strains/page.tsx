@@ -91,7 +91,6 @@ export default function StrainsPage() {
     }
 
     if (sourceFilter === "grow") {
-      // Zeige Sorten mit Source 'grow' ODER alles was vom aktuellen User erstellt wurde
       const isCreator = user?.id && strain.created_by === user.id;
       return strain.source === "grow" || isCreator;
     }
@@ -127,7 +126,6 @@ export default function StrainsPage() {
       setError(null);
 
       try {
-        // 1. Fetch strains based on active tab
         let strainsQuery = supabase
           .from("strains")
           .select("*")
@@ -143,7 +141,6 @@ export default function StrainsPage() {
 
         if (strainError) throw new Error(strainError.message);
 
-        // 2. Fetch user's collection settings (Source Overrides)
         let mergedOverrides = { ...sourceOverrides };
         if (user) {
           const { data: collectionSettings, error: collectionError } = await supabase
@@ -169,7 +166,6 @@ export default function StrainsPage() {
           setStrains(normalizedStrains as Strain[]);
         }
 
-        // 3. Fetch user's collected strains (from both collection and ratings)
         if (user) {
           const [collectionRes, ratingsRes] = await Promise.all([
             supabase.from("user_collection").select("strain_id").eq("user_id", user.id),
@@ -205,42 +201,49 @@ export default function StrainsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-white text-black pb-32">
+    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+      {/* Ambient glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[80px] rounded-full" />
+      </div>
+
       <Suspense fallback={null}>
         <TabParamReader
           activeOrganization={activeOrganization}
           onTabReady={(tab) => setActiveTab(tab)}
         />
       </Suspense>
-      <header className="p-8 sticky top-0 bg-white z-50 border-b border-black/10">
-        <div className="flex justify-between items-end mb-6">
+
+      <header className="sticky top-0 z-50 glass-surface border-b border-[#484849]/50 px-6 pt-12 pb-4">
+        <div className="flex justify-between items-end mb-5">
           <div>
-            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">Strains</h1>
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-white">Strains</h1>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-black/40 uppercase font-bold">Progress</p>
-            <p className="text-xl font-black text-[#2FF801]">{userCollection.length} / {strains.length || 20}</p>
+            <p className="text-[10px] text-[#adaaab] uppercase font-bold tracking-wider">Progress</p>
+            <p className="text-xl font-black text-[#2FF801] neon-text-green font-display">{userCollection.length} / {strains.length || 20}</p>
           </div>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-4 top-3.5 text-black/20" size={18} />
+        <div className="relative mb-4">
+          <Search className="absolute left-4 top-3.5 text-[#484849]" size={18} />
           <input
             type="text"
             placeholder="Sorte suchen..."
-            className="w-full bg-black/5 border border-black/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:border-[#2FF801]/50 transition-all shadow-inner text-black"
+            className="w-full bg-[#131314] border border-[#484849]/50 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-white placeholder:text-[#484849] focus:outline-none focus:border-[#00F5FF]/50 transition-all"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-1 px-1">
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
           <button
             onClick={() => setActiveTab("catalog")}
-            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${
+            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${
               activeTab === "catalog"
                 ? "bg-[#2FF801] text-black"
-                : "bg-black/5 border border-black/10 text-black/60"
+                : "bg-[#1a191b] border border-[#484849]/50 text-[#adaaab] hover:border-[#00F5FF]/50"
             }`}
           >
             Katalog
@@ -248,10 +251,10 @@ export default function StrainsPage() {
           {activeOrganization && (
             <button
               onClick={() => setActiveTab("org")}
-              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap ${
+              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${
                 activeTab === "org"
                   ? "bg-[#00F5FF] text-black"
-                  : "bg-black/5 border border-black/10 text-black/60"
+                  : "bg-[#1a191b] border border-[#484849]/50 text-[#adaaab] hover:border-[#00F5FF]/50"
               }`}
             >
               {activeOrganization.organizations?.name || "Organisation"}
@@ -259,12 +262,12 @@ export default function StrainsPage() {
           )}
         </div>
 
-        <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-1 px-1">
+        <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
           <Button
             size="sm"
             variant={sourceFilter === "all" ? "default" : "outline"}
             onClick={() => setSourceFilter("all")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "all" ? "bg-[#2FF801] text-black" : "bg-black/5 border-black/10 text-black/60"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "all" ? "bg-[#2FF801] text-black" : "bg-[#1a191b] border border-[#484849]/50 text-[#adaaab]"}`}
           >
             Alle
           </Button>
@@ -272,50 +275,50 @@ export default function StrainsPage() {
             size="sm"
             variant={sourceFilter === "pharmacy" ? "default" : "outline"}
             onClick={() => setSourceFilter("pharmacy")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "pharmacy" ? "bg-[#2FF801] text-black" : "bg-black/5 border-black/10 text-black/60"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "pharmacy" ? "bg-[#2FF801] text-black" : "bg-[#1a191b] border border-[#484849]/50 text-[#adaaab]"}`}
           >
-            🧪 Apotheke
+            Apotheke
           </Button>
           <Button
             size="sm"
             variant={sourceFilter === "grow" ? "default" : "outline"}
             onClick={() => setSourceFilter("grow")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "grow" ? "bg-[#2FF801] text-black" : "bg-black/5 border-black/10 text-black/60"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "grow" ? "bg-[#2FF801] text-black" : "bg-[#1a191b] border border-[#484849]/50 text-[#adaaab]"}`}
           >
-            🌱 Eigenanbau
+            Eigenanbau
           </Button>
           <Button
             size="sm"
             variant={sourceFilter === "csc" ? "default" : "outline"}
             onClick={() => setSourceFilter("csc")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "csc" ? "bg-[#2FF801] text-black" : "bg-black/5 border-black/10 text-black/60"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "csc" ? "bg-[#2FF801] text-black" : "bg-[#1a191b] border border-[#484849]/50 text-[#adaaab]"}`}
           >
-            🏢 CSC
+            CSC
           </Button>
           <Button
             size="sm"
             variant={sourceFilter === "other" ? "default" : "outline"}
             onClick={() => setSourceFilter("other")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "other" ? "bg-[#2FF801] text-black" : "bg-black/5 border-black/10 text-black/60"}`}
+            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "other" ? "bg-[#2FF801] text-black" : "bg-[#1a191b] border border-[#484849]/50 text-[#adaaab]"}`}
           >
-            📦 Sonstiges
+            Sonstiges
           </Button>
         </div>
       </header>
 
-      <div className="p-6 relative">
+      <div className="p-6 relative z-10">
         {error ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4 text-red-500">
+          <div className="flex flex-col items-center justify-center py-20 gap-4 text-[#ff716c]">
             <AlertCircle size={48} />
             <p className="text-sm font-bold uppercase tracking-widest text-center">{error}</p>
           </div>
         ) : loading && strains.length === 0 ? (
           <div className="grid grid-cols-2 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="aspect-[3/4.5] rounded-3xl bg-black/5 border border-black/10 animate-pulse flex flex-col p-4 gap-4">
-                <div className="w-2/3 h-6 bg-black/10 rounded-lg" />
-                <div className="w-full flex-1 bg-black/5 rounded-xl" />
-                <div className="w-full h-12 bg-black/10 rounded-xl mt-auto" />
+              <div key={i} className="aspect-[3/4.5] rounded-3xl bg-[#1a191b] border border-[#484849]/50 animate-pulse flex flex-col p-4 gap-4">
+                <div className="w-2/3 h-6 bg-[#262627] rounded-lg" />
+                <div className="w-full flex-1 bg-[#262627] rounded-xl" />
+                <div className="w-full h-12 bg-[#262627] rounded-xl mt-auto" />
               </div>
             ))}
           </div>
@@ -333,14 +336,14 @@ export default function StrainsPage() {
 
       <div className="fixed bottom-24 right-6 z-50 flex flex-col gap-4">
         <Link href="/scanner">
-          <button className="w-14 h-14 bg-[#00F5FF] hover:bg-[#00F5FF]/90 text-black rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,245,255,0.4)] transition-transform active:scale-95">
+          <button className="w-14 h-14 bg-gradient-to-br from-[#00F5FF] to-[#00e5ee] hover:opacity-90 text-black rounded-full flex items-center justify-center shadow-lg shadow-[#00F5FF]/30 transition-transform active:scale-95">
             <Camera size={28} />
           </button>
         </Link>
         <CreateStrainModal
           onSuccess={handleStrainCreated}
           trigger={
-            <button className="w-14 h-14 bg-[#2FF801] hover:bg-[#2FF801]/90 text-black rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(47,248,1,0.4)] transition-transform active:scale-95">
+            <button className="w-14 h-14 bg-gradient-to-br from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black rounded-full flex items-center justify-center shadow-lg shadow-[#2FF801]/30 transition-transform active:scale-95">
               <Plus size={28} />
             </button>
           }

@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { OrgLogoUpload } from "@/components/community/org-logo-upload";
-import { Image } from "lucide-react";
 
 export default function SettingsOrganizationPage() {
   const { activeOrganization, session, isDemoMode } = useAuth();
@@ -60,7 +59,6 @@ export default function SettingsOrganizationPage() {
       setNameMessage({ type: "success", msg: "Name erfolgreich geändert" });
       setShowNameForm(false);
       setNewName("");
-      // Refresh auth context would be ideal here — for now the user can navigate back
     } catch (err: any) {
       setNameMessage({ type: "error", msg: err.message });
     } finally {
@@ -96,34 +94,40 @@ export default function SettingsOrganizationPage() {
 
   if (!activeOrganization) {
     return (
-      <main className="min-h-screen bg-white flex items-center justify-center">
-        <Loader2 className="animate-spin text-black/40" size={32} />
+      <main className="min-h-screen bg-[#0e0e0f] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#00F5FF]" size={32} />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-white text-black pb-32">
-      <header className="p-8 pb-4 flex items-center gap-4">
+    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+      {/* Ambient glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[80px] rounded-full" />
+      </div>
+
+      <header className="px-6 pt-12 pb-4 flex items-center gap-4 relative z-10">
         <button
           onClick={() => router.back()}
-          className="p-2 rounded-full bg-black/5 border border-black/10 hover:bg-black/10 transition-colors"
+          className="p-2 rounded-full bg-[#1a191b] border border-[#484849]/50 hover:border-[#00F5FF]/50 transition-all"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={20} className="text-white" />
         </button>
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">
             {orgName}
           </p>
-          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none">
+          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-white">
             Einstellungen
           </h1>
         </div>
       </header>
 
-      <div className="px-8 space-y-6 mt-4">
+      <div className="px-6 space-y-6 mt-4 relative z-10">
         {/* Logo ändern */}
-        <Card className="bg-[#1e3a24] border-black/10 p-5 rounded-3xl">
+        <Card className="bg-[#1a191b] border border-[#484849]/50 p-5 rounded-3xl">
           <div className="flex items-center gap-4">
             <OrgLogoUpload
               currentLogoUrl={logoUrl || activeOrganization.organizations?.logo_url}
@@ -135,8 +139,8 @@ export default function SettingsOrganizationPage() {
               }}
             />
             <div className="min-w-0 flex-1">
-              <p className="font-black text-sm">Logo ändern</p>
-              <p className="text-[10px] text-black/40">Bild für deine Community</p>
+              <p className="font-black text-sm text-white">Logo ändern</p>
+              <p className="text-[10px] text-[#adaaab]">Bild für deine Community</p>
             </div>
           </div>
         </Card>
@@ -144,8 +148,8 @@ export default function SettingsOrganizationPage() {
         {nameMessage && (
           <div className={`p-3 rounded-2xl flex items-start gap-2 text-sm font-bold border ${
             nameMessage.type === "success"
-              ? "bg-green-500/10 border-green-500/20 text-green-400"
-              : "bg-red-500/10 border-red-500/20 text-red-400"
+              ? "bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]"
+              : "bg-[#ff716c]/10 border-[#ff716c]/30 text-[#ff716c]"
           }`}>
             {nameMessage.type === "success" ? <CheckCircle2 size={16} className="shrink-0" /> : <AlertTriangle size={16} className="shrink-0" />}
             <span>{nameMessage.msg}</span>
@@ -153,7 +157,7 @@ export default function SettingsOrganizationPage() {
         )}
 
         {/* Name ändern */}
-        <Card className="bg-[#1e3a24] border-black/10 p-5 rounded-3xl">
+        <Card className="bg-[#1a191b] border border-[#484849]/50 p-5 rounded-3xl">
           {!showNameForm ? (
             <button
               onClick={() => { setShowNameForm(true); setNewName(orgName); }}
@@ -163,26 +167,26 @@ export default function SettingsOrganizationPage() {
                 <Type size={20} className="text-[#00F5FF]" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-black text-sm">Name ändern</p>
-                <p className="text-[10px] text-black/40">Community-Namen anpassen</p>
+                <p className="font-black text-sm text-white">Name ändern</p>
+                <p className="text-[10px] text-[#adaaab]">Community-Namen anpassen</p>
               </div>
             </button>
           ) : (
             <form onSubmit={(e) => void handleSaveName(e)} className="space-y-4">
-              <p className="text-xs font-black uppercase tracking-widest text-black/60">Name ändern</p>
+              <p className="text-xs font-black uppercase tracking-widest text-[#adaaab]">Name ändern</p>
               <Input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Neuer Name"
                 required
                 disabled={isDemoMode}
-                className="bg-black/20 border-black/10 text-black h-12 rounded-xl focus:border-[#00F5FF]"
+                className="bg-[#131314] border border-[#484849]/50 text-white h-12 rounded-xl focus:border-[#00F5FF]"
               />
               <div className="flex gap-3">
                 <Button
                   type="submit"
                   disabled={savingName || !newName.trim() || isDemoMode}
-                  className="flex-1 h-12 bg-[#2FF801] hover:bg-[#2FF801]/80 text-black font-black uppercase tracking-widest text-xs disabled:opacity-50"
+                  className="flex-1 h-12 bg-gradient-to-r from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black font-black uppercase tracking-widest text-xs disabled:opacity-50"
                 >
                   {savingName ? <Loader2 size={14} className="animate-spin" /> : null}
                   Speichern
@@ -191,29 +195,29 @@ export default function SettingsOrganizationPage() {
                   type="button"
                   variant="ghost"
                   onClick={() => { setShowNameForm(false); setNameMessage(null); }}
-                  className="flex-1 h-12 bg-black/5 hover:bg-black/10 text-black/60 font-black uppercase tracking-widest text-xs"
+                  className="flex-1 h-12 bg-[#262627] border border-[#484849]/50 hover:border-[#00F5FF]/50 text-[#adaaab] font-black uppercase tracking-widest text-xs"
                 >
                   Abbrechen
                 </Button>
               </div>
-              {isDemoMode && <p className="text-[10px] text-center text-black/20 italic">Im Demo-Modus deaktiviert</p>}
+              {isDemoMode && <p className="text-[10px] text-center text-[#484849] italic">Im Demo-Modus deaktiviert</p>}
             </form>
           )}
         </Card>
 
         {/* Admins verwalten — Owner only */}
         {isOwner && (
-          <Card className="bg-[#1e3a24] border-black/10 p-5 rounded-3xl">
+          <Card className="bg-[#1a191b] border border-[#484849]/50 p-5 rounded-3xl">
             <button
               onClick={() => router.push("/settings/organization/invites")}
               className="w-full flex items-center gap-4 text-left hover:opacity-80 transition-opacity"
             >
-              <div className="w-12 h-12 rounded-full bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
-                <Shield size={20} className="text-yellow-400" />
+              <div className="w-12 h-12 rounded-full bg-[#ffd76a]/10 border border-[#ffd76a]/20 flex items-center justify-center shrink-0">
+                <Shield size={20} className="text-[#ffd76a]" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-black text-sm">Admins verwalten</p>
-                <p className="text-[10px] text-black/40">Admin einladen oder widerrufen</p>
+                <p className="font-black text-sm text-white">Admins verwalten</p>
+                <p className="text-[10px] text-[#adaaab]">Admin einladen oder widerrufen</p>
               </div>
             </button>
           </Card>
@@ -221,25 +225,25 @@ export default function SettingsOrganizationPage() {
 
         {/* Community löschen — Owner only */}
         {isOwner && (
-          <Card className="bg-[#1e3a24] border-black/10 p-5 rounded-3xl">
+          <Card className="bg-[#1a191b] border border-[#484849]/50 p-5 rounded-3xl">
             {!showDeleteConfirm ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
                 className="w-full flex items-center gap-4 text-left hover:opacity-80 transition-opacity"
               >
-                <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0">
-                  <Trash2 size={20} className="text-red-400" />
+                <div className="w-12 h-12 rounded-full bg-[#ff716c]/10 border border-[#ff716c]/20 flex items-center justify-center shrink-0">
+                  <Trash2 size={20} className="text-[#ff716c]" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-black text-sm text-red-400">Community löschen</p>
-                  <p className="text-[10px] text-black/40">Organisation dauerhaft entfernen</p>
+                  <p className="font-black text-sm text-[#ff716c]">Community löschen</p>
+                  <p className="text-[10px] text-[#adaaab]">Organisation dauerhaft entfernen</p>
                 </div>
               </button>
             ) : (
               <div className="space-y-4">
-                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20">
-                  <p className="text-xs text-red-400 font-bold">Warnung: Diese Aktion kann nicht rückgängig gemacht werden!</p>
-                  <p className="text-[10px] text-red-400/60 mt-1">
+                <div className="p-3 rounded-xl bg-[#ff716c]/10 border border-[#ff716c]/20">
+                  <p className="text-xs text-[#ff716c] font-bold">Warnung: Diese Aktion kann nicht rückgängig gemacht werden!</p>
+                  <p className="text-[10px] text-[#ff716c]/60 mt-1">
                     Gib <span className="font-mono font-black">{orgName}</span> ein, um zu bestätigen.
                   </p>
                 </div>
@@ -248,13 +252,13 @@ export default function SettingsOrganizationPage() {
                   onChange={(e) => setDeleteConfirmText(e.target.value)}
                   placeholder={orgName}
                   disabled={isDemoMode}
-                  className="bg-black/20 border-black/10 text-black h-12 rounded-xl focus:border-red-500"
+                  className="bg-[#131314] border border-[#484849]/50 text-white h-12 rounded-xl focus:border-[#ff716c]"
                 />
                 {deleteMessage && (
                   <div className={`p-3 rounded-xl text-xs font-bold border ${
                     deleteMessage.type === "success"
-                      ? "bg-green-500/10 border-green-500/20 text-green-400"
-                      : "bg-red-500/10 border-red-500/20 text-red-400"
+                      ? "bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]"
+                      : "bg-[#ff716c]/10 border-[#ff716c]/30 text-[#ff716c]"
                   }`}>
                     {deleteMessage.msg}
                   </div>
@@ -263,7 +267,7 @@ export default function SettingsOrganizationPage() {
                   <Button
                     onClick={() => void handleDeleteOrg()}
                     disabled={deleteConfirmText !== orgName || deleting || isDemoMode}
-                    className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-black font-black uppercase tracking-widest text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 h-12 bg-[#ff716c] hover:bg-[#ff716c]/80 text-white font-black uppercase tracking-widest text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {deleting ? <Loader2 size={14} className="animate-spin" /> : null}
                     Löschen
@@ -271,12 +275,12 @@ export default function SettingsOrganizationPage() {
                   <Button
                     variant="ghost"
                     onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); setDeleteMessage(null); }}
-                    className="flex-1 h-12 bg-black/5 hover:bg-black/10 text-black/60 font-black uppercase tracking-widest text-xs"
+                    className="flex-1 h-12 bg-[#262627] border border-[#484849]/50 hover:border-[#00F5FF]/50 text-[#adaaab] font-black uppercase tracking-widest text-xs"
                   >
                     Abbrechen
                   </Button>
                 </div>
-                {isDemoMode && <p className="text-[10px] text-center text-black/20 italic">Im Demo-Modus deaktiviert</p>}
+                {isDemoMode && <p className="text-[10px] text-center text-[#484849] italic">Im Demo-Modus deaktiviert</p>}
               </div>
             )}
           </Card>

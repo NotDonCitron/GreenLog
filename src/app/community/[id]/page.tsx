@@ -32,7 +32,7 @@ interface OrganizationStats {
 function OrgTypeLabel({ type }: { type: string }) {
   const label = type === "club" ? "Club" : type === "pharmacy" ? "Apotheke" : type;
   return (
-    <span className="text-[10px] text-black/40 font-mono uppercase tracking-wider">
+    <span className="text-[10px] text-[#adaaab] font-mono uppercase tracking-wider">
       {label}
     </span>
   );
@@ -41,11 +41,11 @@ function OrgTypeLabel({ type }: { type: string }) {
 function StatCard({ icon: Icon, value, label, color }: { icon: typeof Leaf; value: number | string; label: string; color: string }) {
   return (
     <div className="flex flex-col items-center gap-1 p-3">
-      <div className={`w-10 h-10 rounded-full bg-black/5 flex items-center justify-center ${color}`}>
+      <div className={`w-10 h-10 rounded-full bg-[#1a191b] border border-[#484849]/50 flex items-center justify-center ${color}`}>
         <Icon size={18} />
       </div>
-      <p className="font-black text-lg">{value}</p>
-      <p className="text-[10px] text-black/40 uppercase tracking-wider">{label}</p>
+      <p className="font-black text-lg text-white">{value}</p>
+      <p className="text-[10px] text-[#adaaab] uppercase tracking-wider">{label}</p>
     </div>
   );
 }
@@ -69,7 +69,6 @@ export default function CommunityDetailPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch organization
         const { data: orgData, error: orgError } = await supabase
           .from("organizations")
           .select("id, name, slug, organization_type, license_number, status, created_at, logo_url")
@@ -85,13 +84,11 @@ export default function CommunityDetailPage() {
 
         setOrganization(orgData);
 
-        // Fetch follower count
         const { count: followerCount } = await supabase
           .from("community_followers")
           .select("*", { count: "exact", head: true })
           .eq("organization_id", organizationId);
 
-        // Fetch strain count
         const { count: strainCount } = await supabase
           .from("strains")
           .select("*", { count: "exact", head: true })
@@ -114,27 +111,27 @@ export default function CommunityDetailPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-white text-black pb-32 flex items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-black/40" />
+      <main className="min-h-screen bg-[#0e0e0f] text-white pb-32 flex items-center justify-center">
+        <Loader2 size={32} className="animate-spin text-[#00F5FF]" />
       </main>
     );
   }
 
   if (notFound || !organization) {
     return (
-      <main className="min-h-screen bg-white text-black pb-32">
-        <header className="p-8 pb-4">
-          <Link href="/community" className="inline-flex items-center gap-2 text-black/40 hover:text-black mb-4">
+      <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+        <header className="px-6 pt-12 pb-4">
+          <Link href="/community" className="inline-flex items-center gap-2 text-[#adaaab] hover:text-white mb-4 transition-colors">
             <ArrowLeft size={16} />
             <span className="text-sm">Zurueck</span>
           </Link>
-          <h1 className="text-2xl font-black italic tracking-tighter uppercase">
+          <h1 className="text-2xl font-black italic tracking-tighter uppercase font-display text-white">
             Community nicht gefunden
           </h1>
         </header>
-        <div className="px-8">
-          <Card className="bg-white border-black/10 p-8 rounded-3xl text-center">
-            <p className="text-black/60">Diese Community existiert nicht oder wurde entfernt.</p>
+        <div className="px-6">
+          <Card className="bg-[#1a191b] border border-[#484849]/50 p-8 rounded-3xl text-center">
+            <p className="text-[#adaaab]">Diese Community existiert nicht oder wurde entfernt.</p>
           </Card>
         </div>
         <BottomNav />
@@ -143,14 +140,20 @@ export default function CommunityDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white text-black pb-32">
-      <header className="p-8 pb-4">
-        <Link href="/community" className="inline-flex items-center gap-2 text-black/40 hover:text-black mb-4">
+    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+      {/* Ambient glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[80px] rounded-full" />
+      </div>
+
+      <header className="px-6 pt-12 pb-4 relative z-10">
+        <Link href="/community" className="inline-flex items-center gap-2 text-[#adaaab] hover:text-white mb-4 transition-colors">
           <ArrowLeft size={16} />
           <span className="text-sm">Zurueck</span>
         </Link>
         <div>
-          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none">
+          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-white">
             {organization.name}
           </h1>
           <OrgTypeLabel type={organization.organization_type} />
@@ -161,8 +164,8 @@ export default function CommunityDetailPage() {
       </header>
 
       {/* Stats */}
-      <div className="px-8 mt-4">
-        <Card className="bg-white border-black/10 p-4 rounded-3xl">
+      <div className="px-6 mt-4 relative z-10">
+        <Card className="bg-[#1a191b] border border-[#484849]/50 p-4 rounded-3xl">
           <div className="flex items-center justify-around">
             <StatCard
               icon={Users}
@@ -170,26 +173,26 @@ export default function CommunityDetailPage() {
               label="Follower"
               color="text-[#00F5FF]"
             />
-            <div className="w-px h-12 bg-black/10" />
+            <div className="w-px h-12 bg-[#484849]/50" />
             <StatCard
               icon={Leaf}
               value={stats.strainCount}
               label="Sorten"
               color="text-[#2FF801]"
             />
-            <div className="w-px h-12 bg-black/10" />
+            <div className="w-px h-12 bg-[#484849]/50" />
             <StatCard
               icon={Sprout}
               value="--"
               label="Grows"
-              color="text-black/40"
+              color="text-[#adaaab]"
             />
           </div>
         </Card>
       </div>
 
       {user && isAdminOrGründer && (
-        <div className="px-8 mt-6">
+        <div className="px-6 mt-6 relative z-10">
           <div className="grid grid-cols-3 gap-3">
             {/* Strains hinzufügen */}
             <CreateStrainModal
@@ -219,20 +222,20 @@ export default function CommunityDetailPage() {
             {/* Einstellungen */}
             <Link
               href="/settings/organization"
-              className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-black/5 border border-black/20 hover:bg-black/10 transition-colors min-h-[100px]"
+              className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-[#1a191b] border border-[#484849]/50 hover:border-[#00F5FF]/50 transition-colors min-h-[100px]"
             >
-              <div className="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center">
-                <Settings size={18} className="text-black/60" />
+              <div className="w-10 h-10 rounded-full bg-[#262627] flex items-center justify-center">
+                <Settings size={18} className="text-[#adaaab]" />
               </div>
-              <span className="text-xs font-bold text-black/60">Einstellungen</span>
+              <span className="text-xs font-bold text-[#adaaab]">Einstellungen</span>
             </Link>
           </div>
         </div>
       )}
 
       {/* Feed */}
-      <div className="px-8 mt-8">
-        <h2 className="text-sm font-black uppercase tracking-wider text-black/60 mb-4">
+      <div className="px-6 mt-8 relative z-10">
+        <h2 className="text-sm font-black uppercase tracking-wider text-[#adaaab] mb-4">
           Aktivitaet
         </h2>
         <CommunityFeed organizationId={organizationId} refreshKey={refreshKey} isAdminOrGründer={isAdminOrGründer} orgLogoUrl={organization.logo_url} />

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GreenLog - Farb-Vorschau</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      padding: 40px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+      color: #333;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .card {
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .card h2 {
+      margin-bottom: 16px;
+      font-size: 18px;
+    }
+
+    .swatch-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      margin-top: 12px;
+      cursor: pointer;
+    }
+
+    /* Theme 1: Purple/Violet */
+    .theme-purple {
+      background: #fff;
+      color: #1a1a2e;
+    }
+    .theme-purple .btn-primary {
+      background: oklch(0.55 0.22 290);
+      color: white;
+    }
+    .theme-purple .accent { color: oklch(0.65 0.18 300); }
+    .theme-purple h2 { color: oklch(0.55 0.22 290); }
+
+    /* Theme 2: Amber/Honey */
+    .theme-amber {
+      background: #fff;
+      color: #1a1a2e;
+    }
+    .theme-amber .btn-primary {
+      background: oklch(0.65 0.18 70);
+      color: #1a1a1a;
+    }
+    .theme-amber .accent { color: oklch(0.70 0.15 50); }
+    .theme-amber h2 { color: oklch(0.65 0.18 70); }
+
+    /* Theme 3: Teal/Mint */
+    .theme-teal {
+      background: #fff;
+      color: #1a1a2e;
+    }
+    .theme-teal .btn-primary {
+      background: oklch(0.55 0.15 200);
+      color: white;
+    }
+    .theme-teal .accent { color: oklch(0.60 0.20 180); }
+    .theme-teal h2 { color: oklch(0.55 0.15 200); }
+
+    /* Theme 4: Coral/Orange */
+    .theme-coral {
+      background: #fff;
+      color: #1a1a2e;
+    }
+    .theme-coral .btn-primary {
+      background: oklch(0.60 0.20 45);
+      color: white;
+    }
+    .theme-coral .accent { color: oklch(0.55 0.18 30); }
+    .theme-coral h2 { color: oklch(0.60 0.20 45); }
+
+    .sample-card {
+      background: oklch(0.98 0.01 145);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+      border: 1px solid oklch(0.90 0.02 145 / 25%);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <h1>GreenLog - Farb-Vorschau (Weisser Hintergrund)</h1>
+
+  <div class="grid">
+    <!-- Theme 1: Purple/Violet -->
+    <div class="card theme-purple">
+      <h2>🌸 Purple / Violet</h2>
+      <p style="font-size: 14px; color: #666; margin-bottom: 16px;">Indica-Vibes, premium, modern</p>
+
+      <div class="swatch-row">
+        <div class="swatch" style="background: oklch(0.55 0.22 290);" title="Primary"></div>
+        <div class="swatch" style="background: oklch(0.65 0.18 300);" title="Accent"></div>
+        <div class="swatch" style="background: oklch(0.95 0.01 290);" title="Muted"></div>
+        <div class="swatch" style="background: oklch(0.88 0.02 290 / 30%);" title="Border"></div>
+      </div>
+
+      <button class="btn btn-primary">Primary Button</button>
+      <span class="badge" style="background: oklch(0.65 0.18 300); color: white; margin-left: 8px;">Indica</span>
+
+      <div class="sample-card">
+        <strong style="color: oklch(0.55 0.22 290);">OG Kush</strong>
+        <p style="font-size: 13px; color: #666; margin-top: 4px;">THC: 19% • Hybrid • 😴 Entspannend</p>
+      </div>
+    </div>
+
+    <!-- Theme 2: Amber/Honey -->
+    <div class="card theme-amber">
+      <h2>🍯 Amber / Honey</h2>
+      <p style="font-size: 14px; color: #666; margin-bottom: 16px;">Organisch, craft, natürlich</p>
+
+      <div class="swatch-row">
+        <div class="swatch" style="background: oklch(0.65 0.18 70);" title="Primary"></div>
+        <div class="swatch" style="background: oklch(0.70 0.15 50);" title="Accent"></div>
+        <div class="swatch" style="background: oklch(0.95 0.02 70);" title="Muted"></div>
+        <div class="swatch" style="background: oklch(0.88 0.02 70 / 30%);" title="Border"></div>
+      </div>
+
+      <button class="btn btn-primary">Primary Button</button>
+      <span class="badge" style="background: oklch(0.70 0.15 50); color: #1a1a1a; margin-left: 8px;">Sativa</span>
+
+      <div class="sample-card">
+        <strong style="color: oklch(0.65 0.18 70);">Super Lemon Haze</strong>
+        <p style="font-size: 13px; color: #666; margin-top: 4px;">THC: 22% • Sativa • ⚡️ Aktivierend</p>
+      </div>
+    </div>
+
+    <!-- Theme 3: Teal/Mint -->
+    <div class="card theme-teal">
+      <h2>🌿 Teal / Mint</h2>
+      <p style="font-size: 14px; color: #666; margin-bottom: 16px;">Medizinisch, clean, frisch</p>
+
+      <div class="swatch-row">
+        <div class="swatch" style="background: oklch(0.55 0.15 200);" title="Primary"></div>
+        <div class="swatch" style="background: oklch(0.60 0.20 180);" title="Accent"></div>
+        <div class="swatch" style="background: oklch(0.95 0.01 200);" title="Muted"></div>
+        <div class="swatch" style="background: oklch(0.90 0.02 200 / 25%);" title="Border"></div>
+      </div>
+
+      <button class="btn btn-primary">Primary Button</button>
+      <span class="badge" style="background: oklch(0.60 0.20 180); color: white; margin-left: 8px;">Hybrid</span>
+
+      <div class="sample-card">
+        <strong style="color: oklch(0.55 0.15 200);">Girl Scout Cookies</strong>
+        <p style="font-size: 13px; color: #666; margin-top: 4px;">THC: 25% • Hybrid • 🍫 Schokolade</p>
+      </div>
+    </div>
+
+    <!-- Theme 4: Coral/Orange -->
+    <div class="card theme-coral">
+      <h2>🔥 Coral / Orange</h2>
+      <p style="font-size: 14px; color: #666; margin-bottom: 16px;">Energetisch, trichome, auffällig</p>
+
+      <div class="swatch-row">
+        <div class="swatch" style="background: oklch(0.60 0.20 45);" title="Primary"></div>
+        <div class="swatch" style="background: oklch(0.55 0.18 30);" title="Accent"></div>
+        <div class="swatch" style="background: oklch(0.95 0.02 45);" title="Muted"></div>
+        <div class="swatch" style="background: oklch(0.88 0.02 45 / 30%);" title="Border"></div>
+      </div>
+
+      <button class="btn btn-primary">Primary Button</button>
+      <span class="badge" style="background: oklch(0.55 0.18 30); color: white; margin-left: 8px;">Sativa</span>
+
+      <div class="sample-card">
+        <strong style="color: oklch(0.60 0.20 45);">Tropical Runtz</strong>
+        <p style="font-size: 13px; color: #666; margin-top: 4px;">THC: 27% • Sativa • 🍓 Fruchtig</p>
+      </div>
+    </div>
+  </div>
+
+  <p style="text-align: center; margin-top: 40px; color: #888; font-size: 14px;">
+    Öffne diese Datei im Browser: <code style="background: #eee; padding: 2px 8px; border-radius: 4px;">color-preview-all.html</code>
+  </p>
+</body>
+</html>

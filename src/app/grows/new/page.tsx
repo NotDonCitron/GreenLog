@@ -43,7 +43,6 @@ export default function NewGrowPage() {
   const [growType, setGrowType] = useState<string>("indoor");
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // Auth redirect
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/login");
@@ -119,33 +118,39 @@ export default function NewGrowPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-[#0e0e0f] flex items-center justify-center">
         <Loader2 className="animate-spin text-[#00F5FF]" size={40} />
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-white text-black pb-32">
-      <header className="p-6 sticky top-0 bg-white/90 backdrop-blur-xl z-50 border-b border-black/10">
+    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+      {/* Ambient glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[80px] rounded-full" />
+      </div>
+
+      <header className="sticky top-0 z-50 glass-surface border-b border-[#484849]/50 px-6 py-4">
         <div className="flex items-center gap-4">
           <Link href="/grows">
-            <Button variant="ghost" size="icon" className="text-black/60 hover:text-black hover:bg-black/5 rounded-full">
+            <Button variant="ghost" size="icon" className="text-[#adaaab] hover:text-white hover:bg-[#1a191b] rounded-full transition-all">
               <ChevronLeft size={24} />
             </Button>
           </Link>
           <div>
             <span className="text-[10px] text-[#00F5FF] font-black uppercase tracking-[0.4em]">Setup</span>
-            <h1 className="text-xl font-black italic tracking-tighter uppercase leading-none">New Grow</h1>
+            <h1 className="text-xl font-black italic tracking-tighter uppercase leading-none font-display text-white">New Grow</h1>
           </div>
         </div>
       </header>
 
-      <div className="p-6 max-w-md mx-auto">
-        <Card className="bg-[#1a191b] border-black/10 p-6 shadow-2xl">
+      <div className="p-6 max-w-md mx-auto relative z-10">
+        <Card className="bg-[#1a191b] border border-[#484849]/50 p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-bold uppercase tracking-wider text-center">
+              <div className="p-3 bg-[#ff716c]/10 border border-[#ff716c]/20 rounded-xl text-[#ff716c] text-xs font-bold uppercase tracking-wider text-center">
                 {error}
               </div>
             )}
@@ -157,26 +162,26 @@ export default function NewGrowPage() {
             )}
 
             <div className="space-y-2">
-              <label className="text-[10px] text-black/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
+              <label className="text-[10px] text-[#adaaab] font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <Tag size={12} className="text-[#00F5FF]" /> Grow Name
               </label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. My First Grow"
-                className="bg-black/5 border-black/10 text-black placeholder:text-black/20 h-12 rounded-xl focus:border-[#00F5FF] transition-all"
+                className="bg-[#131314] border border-[#484849]/50 text-white placeholder:text-[#484849] h-12 rounded-xl focus:border-[#00F5FF] transition-all"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] text-black/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
+              <label className="text-[10px] text-[#adaaab] font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <Sprout size={12} className="text-[#00F5FF]" /> Strain
               </label>
               <Select value={strainId} onValueChange={(val) => setStrainId(val ?? "")}>
-                <SelectTrigger className="w-full bg-black/5 border-black/10 text-black h-12 rounded-xl focus:border-[#00F5FF] transition-all">
+                <SelectTrigger className="w-full bg-[#131314] border border-[#484849]/50 text-white h-12 rounded-xl focus:border-[#00F5FF] transition-all">
                   <SelectValue placeholder="Select a strain" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a191b] border-black/10 text-black">
+                <SelectContent className="bg-[#1a191b] border border-[#484849]/50 text-white">
                   {loadingStrains ? (
                     <div className="p-4 flex justify-center">
                       <Loader2 className="animate-spin text-[#00F5FF]" size={20} />
@@ -193,14 +198,14 @@ export default function NewGrowPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] text-black/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
+              <label className="text-[10px] text-[#adaaab] font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <Layout size={12} className="text-[#00F5FF]" /> Grow Type
               </label>
               <Select value={growType} onValueChange={(val) => setGrowType(val ?? "indoor")}>
-                <SelectTrigger className="w-full bg-black/5 border-black/10 text-black h-12 rounded-xl focus:border-[#00F5FF] transition-all">
+                <SelectTrigger className="w-full bg-[#131314] border border-[#484849]/50 text-white h-12 rounded-xl focus:border-[#00F5FF] transition-all">
                   <SelectValue placeholder="Select a type" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a191b] border-black/10 text-black">
+                <SelectContent className="bg-[#1a191b] border border-[#484849]/50 text-white">
                   <SelectItem value="indoor">Indoor</SelectItem>
                   <SelectItem value="outdoor">Outdoor</SelectItem>
                   <SelectItem value="greenhouse">Greenhouse</SelectItem>
@@ -209,14 +214,14 @@ export default function NewGrowPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] text-black/40 font-black uppercase tracking-[0.2em] flex items-center gap-2">
+              <label className="text-[10px] text-[#adaaab] font-black uppercase tracking-[0.2em] flex items-center gap-2">
                 <Calendar size={12} className="text-[#00F5FF]" /> Start Date
               </label>
               <Input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="bg-black/5 border-black/10 text-black h-12 rounded-xl focus:border-[#00F5FF] transition-all [color-scheme:dark]"
+                className="bg-[#131314] border border-[#484849]/50 text-white h-12 rounded-xl focus:border-[#00F5FF] transition-all [color-scheme:dark]"
               />
             </div>
 
@@ -224,7 +229,7 @@ export default function NewGrowPage() {
               <Button
                 type="submit"
                 disabled={isSubmitting || success}
-                className="w-full bg-[#00F5FF] hover:bg-[#00D5E0] text-black font-black uppercase tracking-widest py-6 rounded-2xl shadow-[0_0_20px_rgba(0,245,255,0.2)] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] hover:opacity-90 text-black font-black uppercase tracking-widest py-6 rounded-2xl shadow-lg shadow-[#00F5FF]/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <Loader2 className="animate-spin" size={20} />

@@ -98,43 +98,49 @@ export default function FollowersPage() {
 
   if (!activeOrganization) {
     return (
-      <main className="min-h-screen bg-white flex items-center justify-center">
-        <Loader2 className="animate-spin text-black/40" size={32} />
+      <main className="min-h-screen bg-[#0e0e0f] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#00F5FF]" size={32} />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-white text-black pb-32">
-      <header className="p-8 pb-4 flex items-center gap-4">
+    <main className="min-h-screen bg-[#0e0e0f] text-white pb-32">
+      {/* Ambient glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[80px] rounded-full" />
+      </div>
+
+      <header className="px-6 pt-12 pb-4 flex items-center gap-4 relative z-10">
         <button
           onClick={() => router.back()}
-          className="p-2 rounded-full bg-black/5 border border-black/10 hover:bg-black/10 transition-colors"
+          className="p-2 rounded-full bg-[#1a191b] border border-[#484849]/50 hover:border-[#00F5FF]/50 transition-all"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={20} className="text-white" />
         </button>
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">
             {activeOrganization.organizations?.name}
           </p>
-          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none">
+          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-white">
             Follower
           </h1>
         </div>
       </header>
 
-      <div className="px-8 space-y-6 mt-4">
+      <div className="px-6 space-y-6 mt-4 relative z-10">
         {/* Follower count summary */}
         {!loading && !error && (
-          <Card className="bg-[#1e3a24] border-black/10 p-4 rounded-3xl">
+          <Card className="bg-[#1a191b] border border-[#484849]/50 p-4 rounded-3xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center">
                   <Users size={18} className="text-[#00F5FF]" />
                 </div>
                 <div>
-                  <p className="text-sm font-black">{followerCount} Follower</p>
-                  <p className="text-[10px] text-black/40">dieser Community</p>
+                  <p className="text-sm font-black text-white">{followerCount} Follower</p>
+                  <p className="text-[10px] text-[#adaaab]">dieser Community</p>
                 </div>
               </div>
               <Link
@@ -150,23 +156,23 @@ export default function FollowersPage() {
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="animate-spin text-black/40" size={32} />
+            <Loader2 className="animate-spin text-[#00F5FF]" size={32} />
           </div>
         ) : error ? (
-          <Card className="bg-red-500/10 border-red-500/20 p-6 rounded-3xl">
-            <p className="text-red-400 font-bold text-center">{error}</p>
+          <Card className="bg-[#ff716c]/10 border-[#ff716c]/20 p-6 rounded-3xl">
+            <p className="text-[#ff716c] font-bold text-center">{error}</p>
             <Button
               onClick={() => window.location.reload()}
-              className="mt-4 w-full bg-black/10"
+              className="mt-4 w-full bg-[#262627] border border-[#484849]/50"
             >
               Erneut versuchen
             </Button>
           </Card>
         ) : followers.length === 0 ? (
-          <Card className="bg-black/5 border-black/10 p-8 rounded-3xl text-center">
-            <Users size={32} className="mx-auto text-black/20 mb-3" />
-            <p className="text-black/40 font-bold">Noch keine Follower</p>
-            <p className="text-[10px] text-black/20 mt-1">
+          <Card className="bg-[#1a191b] border border-[#484849]/50 p-8 rounded-3xl text-center">
+            <Users size={32} className="mx-auto text-[#484849] mb-3" />
+            <p className="text-[#adaaab] font-bold">Noch keine Follower</p>
+            <p className="text-[10px] text-[#484849] mt-1">
               Alle, die dieser Community folgen, werden hier angezeigt.
             </p>
           </Card>
@@ -178,7 +184,7 @@ export default function FollowersPage() {
               return (
                 <Card
                   key={follower.id}
-                  className={`bg-[#1e3a24] border-black/10 p-5 rounded-3xl ${
+                  className={`bg-[#1a191b] border border-[#484849]/50 p-5 rounded-3xl ${
                     isSelf ? "border-[#00F5FF]/30 bg-[#00F5FF]/5" : ""
                   }`}
                 >
@@ -186,7 +192,6 @@ export default function FollowersPage() {
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-10 h-10 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center shrink-0 overflow-hidden">
                         {follower.profile?.avatar_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={follower.profile.avatar_url}
                             alt=""
@@ -198,7 +203,7 @@ export default function FollowersPage() {
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-black text-sm truncate">
+                          <p className="font-black text-sm truncate text-white">
                             {follower.profile?.display_name || follower.profile?.username || "Unbekannt"}
                           </p>
                           {isSelf && (
@@ -208,7 +213,7 @@ export default function FollowersPage() {
                           )}
                         </div>
                         {follower.profile?.username && (
-                          <p className="text-[10px] text-black/40 font-mono truncate">
+                          <p className="text-[10px] text-[#adaaab] font-mono truncate">
                             @{follower.profile.username}
                           </p>
                         )}
@@ -216,7 +221,7 @@ export default function FollowersPage() {
                     </div>
 
                     <div className="flex flex-col items-end gap-1 shrink-0">
-                      <p className="text-[10px] text-black/30 font-mono">
+                      <p className="text-[10px] text-[#484849] font-mono">
                         seit {formatFollowDate(follower.created_at)}
                       </p>
                     </div>

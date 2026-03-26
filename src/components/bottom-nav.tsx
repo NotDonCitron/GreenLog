@@ -32,7 +32,6 @@ export function BottomNav() {
       }
 
       try {
-        // Fetch pending requests directly using supabase client
         const { data, error } = await supabase
           .from("follow_requests")
           .select("id")
@@ -48,32 +47,33 @@ export function BottomNav() {
     };
 
     fetchPendingRequests();
-    // Poll every 30 seconds
     const interval = setInterval(fetchPendingRequests, 30000);
     return () => clearInterval(interval);
   }, [user]);
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-black/10 bg-white safe-bottom">
-        <div className="mx-auto flex h-14 w-full max-w-lg items-center justify-around px-2 relative">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 glass-surface border-t border-[#484849]/50 safe-bottom">
+        <div className="mx-auto flex h-16 w-full max-w-lg items-center justify-around px-2 relative">
           {navItems.map((item) => {
             const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 
-            // Discover with badge (Always a link)
             if (item.showBadge) {
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex flex-1 flex-col items-center gap-1 py-1 text-[10px] uppercase font-bold tracking-tighter transition-colors ${isActive ? "text-[#2FF801]" : "text-black"}`}
+                  className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] uppercase font-bold tracking-tight transition-all ${isActive ? "text-[#00F5FF]" : "text-[#adaaab]"}`}
                 >
                   <div className="relative">
-                    <item.icon size={22} className={isActive ? "text-[#2FF801]" : "text-black"} />
+                    <item.icon size={22} className={isActive ? "text-[#00F5FF]" : "text-[#adaaab]"} />
                     {pendingRequestsCount > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-[#ff716c] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                         {pendingRequestsCount > 9 ? "9+" : pendingRequestsCount}
                       </span>
+                    )}
+                    {isActive && (
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#00F5FF]" />
                     )}
                   </div>
                   {item.label}
@@ -85,10 +85,15 @@ export function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-1 flex-col items-center gap-1 py-1 text-[10px] uppercase font-bold tracking-tighter transition-colors ${isActive ? "text-[#2FF801]" : "text-black"
+                className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] uppercase font-bold tracking-tight transition-all ${isActive ? "text-[#00F5FF]" : "text-[#adaaab]"
                   }`}
               >
-                <item.icon size={22} className={isActive ? "text-[#2FF801]" : "text-black"} />
+                <div className="relative">
+                  <item.icon size={22} className={isActive ? "text-[#00F5FF]" : "text-[#adaaab]"} />
+                  {isActive && (
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#00F5FF]" />
+                  )}
+                </div>
                 {item.label}
               </Link>
             );
@@ -97,13 +102,18 @@ export function BottomNav() {
           {activeOrganization && (
             <Link
               href="/community"
-              className={`flex flex-1 flex-col items-center gap-1 py-1 text-[10px] uppercase font-bold tracking-tighter transition-colors ${
+              className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] uppercase font-bold tracking-tight transition-all ${
                 pathname.startsWith("/community") || pathname.startsWith("/settings/organization")
                   ? "text-[#2FF801]"
-                  : "text-black"
+                  : "text-[#adaaab]"
               }`}
             >
-              <Users size={22} className={pathname.startsWith("/community") || pathname.startsWith("/settings/organization") ? "text-[#2FF801]" : "text-black"} />
+              <div className="relative">
+                <Users size={22} className={pathname.startsWith("/community") || pathname.startsWith("/settings/organization") ? "text-[#2FF801]" : "text-[#adaaab]"} />
+                {(pathname.startsWith("/community") || pathname.startsWith("/settings/organization")) && (
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#2FF801]" />
+                )}
+              </div>
               Community
             </Link>
           )}

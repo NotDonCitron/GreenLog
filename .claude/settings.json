@@ -1,0 +1,6 @@
+{
+    "apiKey": "sk-cp-QkykWaUzKadIZ1L2bW0mlsGmr48iQbHbXKQjTNX0cQCfSx1qYVu5xs6rC9MmKqfrMSulK4Bhsdlei9Q0mhZu74BXSgz-Tt9D0rlFHyMuEgGC7SvXpgUv13s",
+    "baseUrl": "https://api.minimax.io/v1",
+    "provider": "minimax",
+    "enableAllProjectMcpServers": true
+}
