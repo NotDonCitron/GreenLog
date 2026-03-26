@@ -18,11 +18,9 @@ const navItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { user, activeOrganization } = useAuth();
+  const { user } = useAuth();
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [showRequestsModal, setShowRequestsModal] = useState(false);
-
-  const isAdmin = activeOrganization?.role === "gründer" || activeOrganization?.role === "admin";
 
   useEffect(() => {
     const fetchPendingRequests = async () => {
@@ -98,25 +96,6 @@ export function BottomNav() {
               </Link>
             );
           })}
-
-          {activeOrganization && (
-            <Link
-              href="/community"
-              className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] uppercase font-bold tracking-tight transition-all ${
-                pathname.startsWith("/community") || pathname.startsWith("/settings/organization")
-                  ? "text-[#2FF801]"
-                  : "text-[var(--muted-foreground)]"
-              }`}
-            >
-              <div className="relative">
-                <Users size={22} className={pathname.startsWith("/community") || pathname.startsWith("/settings/organization") ? "text-[#2FF801]" : "text-[var(--muted-foreground)]"} />
-                {(pathname.startsWith("/community") || pathname.startsWith("/settings/organization")) && (
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#2FF801]" />
-                )}
-              </div>
-              Community
-            </Link>
-          )}
         </div>
       </nav>
 
