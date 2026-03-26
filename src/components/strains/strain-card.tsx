@@ -2,7 +2,7 @@ import { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Strain } from '@/lib/types';
-import { Lock } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay } from '@/lib/strain-display';
 
 interface StrainCardProps {
@@ -39,9 +39,9 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
   return (
     <Link
       href={`/strains/${strain.slug}`}
-      className={`premium-card ${themeClass} ${!isCollected ? 'opacity-70 grayscale-[0.8]' : ''} group relative flex w-full min-w-0 flex-col rounded-[20px] border-2 bg-[#121212] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] min-h-[240px]`}
+      className={`premium-card ${themeClass} group relative flex w-full min-w-0 flex-col rounded-[20px] border-2 bg-[#121212] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] min-h-[240px]`}
       style={{
-        borderColor: isCollected ? themeColor : '#333',
+        borderColor: themeColor,
         animationDelay: `${index * 0.05}s`,
         animationFillMode: 'both'
       }}
@@ -57,16 +57,17 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
 
       <div className="px-2 w-full relative z-10">
         <div className="relative w-full h-[80px] rounded-xl border border-white/5 shadow-lg">
-          <Image 
-            src={strain.image_url || "/strains/placeholder-1.svg"} 
-            alt={strain.name} 
+          <Image
+            src={strain.image_url || "/strains/placeholder-1.svg"}
+            alt={strain.name}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-110" 
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
             sizes="(max-width: 768px) 50vw, 33vw"
           />
-          {!isCollected && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-[1.5px]">
-              <Lock className="text-white/20" size={20} />
+          {isCollected && (
+            <div className="absolute top-1 right-1 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#2FF801]/20 backdrop-blur-md border border-[#2FF801]/30">
+              <CheckCircle2 className="text-[#2FF801]" size={10} />
+              <span className="text-[6px] font-bold uppercase tracking-wider text-[#2FF801]">In Sammlung</span>
             </div>
           )}
           <div className="absolute bottom-1 left-1 border bg-black/80 backdrop-blur-md uppercase text-[6px] px-1 py-0.5 rounded-sm font-bold tracking-widest shadow-lg" style={{ borderColor: themeColor, color: themeColor }}>
