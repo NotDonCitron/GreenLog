@@ -106,12 +106,10 @@ const FeedItemCard = memo(function FeedItemCard({
   const Icon = config.icon;
 
   const [strain, setStrain] = useState<Strain | null>(null);
-  const [imgError, setImgError] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (item.event_type === "strain_created" && item.reference_id) {
-      setImgError(false);
       supabase
         .from("strains")
         .select("id, name, slug, type, image_url, avg_thc, thc_max, avg_cbd, cbd_max, farmer, manufacturer, brand, flavors, terpenes, effects, is_medical")
@@ -174,13 +172,12 @@ const FeedItemCard = memo(function FeedItemCard({
         {/* Image */}
         <div className="px-2 w-full relative z-10">
           <div className="relative w-full h-[80px] rounded-xl border border-white/5 shadow-lg overflow-hidden">
-            {strain?.image_url && !imgError ? (
+            {strain?.image_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={strain.image_url}
                 alt={strain.name}
                 className="w-full h-full object-cover"
-                onError={() => setImgError(true)}
               />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
