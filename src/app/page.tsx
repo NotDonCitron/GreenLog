@@ -12,6 +12,7 @@ import Link from "next/link";
 import { normalizeCollectionSource } from "@/lib/strain-display";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-bell";
+import { StrainCard } from "@/components/strains/strain-card";
 
 const DEMO_SIMULATION_DATA: Strain[] = [
   {
@@ -121,107 +122,9 @@ export default function Home() {
               </div>
 
               {strainOfTheDay && (
-                <Link href={`/strains/${strainOfTheDay.slug}`} className="block">
-                  <div className="relative group cursor-pointer">
-                    {/* Massive glow effect behind card */}
-                    <div className="absolute inset-0 bg-[#00F5FF]/15 blur-[80px] rounded-3xl transform -translate-y-12 opacity-70 group-hover:opacity-100 transition-opacity" />
-
-                    {/* Main card - full width hero */}
-                    <div className="relative glass-surface rounded-3xl overflow-hidden border border-[var(--border)]/30 hover:border-[#00F5FF]/50 transition-all duration-500">
-                      {/* Background gradient */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-[#00F5FF]/5 via-transparent to-[#2FF801]/5 pointer-events-none" />
-
-                      {/* Large Hero Image */}
-                      <div className="relative w-full h-[280px] overflow-hidden">
-                        {strainOfTheDay.image_url ? (
-                          <Image
-                            src={strainOfTheDay.image_url}
-                            alt={strainOfTheDay.name}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-[#1a191b] via-[#262627] to-[#1a191b] flex items-center justify-center">
-                            <span className="text-8xl">🌿</span>
-                          </div>
-                        )}
-                        {/* Gradient overlay for text readability */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0f] via-[#0e0e0f]/40 to-transparent" />
-
-                        {/* Holographic overlay */}
-                        <div className="absolute inset-0 card-holo pointer-events-none" />
-
-                        {/* Type badge on image */}
-                        <div className="absolute top-4 left-4">
-                          <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider backdrop-blur-md ${
-                            strainOfTheDay.type === 'sativa' ? 'bg-[#adff00]/30 text-[#adff00] border border-[#adff00]/50' :
-                            strainOfTheDay.type === 'indica' ? 'bg-[#cb00ff]/30 text-[#cb00ff] border border-[#cb00ff]/50' :
-                            'bg-[#00a3ff]/30 text-[#00a3ff] border border-[#00a3ff]/50'
-                          }`}>
-                            {strainOfTheDay.type}
-                          </span>
-                        </div>
-
-                        {/* THC badge on image */}
-                        <div className="absolute top-4 right-4">
-                          <span className="px-4 py-1.5 rounded-full bg-[var(--background)]/80 backdrop-blur-md text-[#00F5FF] text-sm font-black uppercase tracking-wider border border-[#00F5FF]/30">
-                            {strainOfTheDay.thc_max || '?'}% THC
-                          </span>
-                        </div>
-
-                        {/* Brand at bottom of image */}
-                        <div className="absolute bottom-4 left-4">
-                          <span className="px-3 py-1 rounded-full bg-[#2FF801]/20 text-[#2FF801] text-[10px] font-black uppercase tracking-wider backdrop-blur-md border border-[#2FF801]/30">
-                            {strainOfTheDay.brand || 'Unknown'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Content below image */}
-                      <div className="relative p-6 -mt-2">
-                        <h3 className="text-3xl font-black uppercase tracking-tight font-display text-[var(--foreground)] leading-tight mb-3">
-                          {strainOfTheDay.name}
-                        </h3>
-
-                        {/* Terpenes */}
-                        {strainOfTheDay.terpenes && strainOfTheDay.terpenes.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            {strainOfTheDay.terpenes.slice(0, 4).map((t, i) => (
-                              <span key={i} className="px-3 py-1 rounded-full bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-wider">
-                                {typeof t === 'string' ? t : t.name}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Effects & Flavors */}
-                        <div className="flex gap-4 text-[11px] text-[var(--muted-foreground)]">
-                          {strainOfTheDay.effects && strainOfTheDay.effects.length > 0 && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-[#2FF801]">●</span>
-                              <span>{strainOfTheDay.effects.slice(0, 2).join(', ')}</span>
-                            </div>
-                          )}
-                          {strainOfTheDay.flavors && strainOfTheDay.flavors.length > 0 && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-[#00F5FF]">●</span>
-                              <span>{strainOfTheDay.flavors.slice(0, 2).join(', ')}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Tap hint */}
-                        <div className="flex items-center justify-center gap-2 mt-6 text-[#00F5FF]">
-                          <div className="w-2 h-2 rounded-full bg-[#00F5FF] animate-pulse" />
-                          <p className="text-[10px] font-bold uppercase tracking-widest">
-                            Tippe für Details
-                          </p>
-                          <div className="w-2 h-2 rounded-full bg-[#00F5FF] animate-pulse [animation-delay:0.5s]" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+                <div className="px-2">
+                  <StrainCard strain={strainOfTheDay} index={0} />
+                </div>
               )}
             </section>
 
