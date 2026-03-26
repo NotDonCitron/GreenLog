@@ -27,7 +27,11 @@ export default function DiscoverPage() {
     const [browseUsers, setBrowseUsers] = useState<ProfileRow[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<"friends" | "browse">("friends");
-    const [friendFilter, setFriendFilter] = useState<"all" | "friends" | "communities">("all");
+    const [friendFilter, setFriendFilter] = useState<"friends" | "communities" | null>(null);
+
+    const handleFilterToggle = (filter: "friends" | "communities") => {
+        setFriendFilter(friendFilter === filter ? null : filter);
+    };
     const [discoverSearch, setDiscoverSearch] = useState("");
 
     useEffect(() => {
@@ -169,17 +173,7 @@ export default function DiscoverPage() {
                         {/* Filter Buttons */}
                         <div className="flex gap-3 mb-6">
                             <button
-                                onClick={() => setFriendFilter("all")}
-                                className={`flex-1 h-10 rounded-xl text-xs font-black uppercase tracking-widest transition-all border ${
-                                    friendFilter === "all"
-                                        ? "bg-[#00F5FF] text-black border-[#00F5FF]"
-                                        : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10"
-                                }`}
-                            >
-                                Alle
-                            </button>
-                            <button
-                                onClick={() => setFriendFilter("friends")}
+                                onClick={() => handleFilterToggle("friends")}
                                 className={`flex-1 h-10 rounded-xl text-xs font-black uppercase tracking-widest transition-all border ${
                                     friendFilter === "friends"
                                         ? "bg-[#00F5FF] text-black border-[#00F5FF]"
@@ -189,7 +183,7 @@ export default function DiscoverPage() {
                                 Freunde
                             </button>
                             <button
-                                onClick={() => setFriendFilter("communities")}
+                                onClick={() => handleFilterToggle("communities")}
                                 className={`flex-1 h-10 rounded-xl text-xs font-black uppercase tracking-widest transition-all border ${
                                     friendFilter === "communities"
                                         ? "bg-[#00F5FF] text-black border-[#00F5FF]"
