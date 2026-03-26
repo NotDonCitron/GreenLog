@@ -2,354 +2,222 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Loader2, Search, UserPlus, Building2 } from "lucide-react";
+import { Loader2, Search, UserPlus } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
-import { SuggestedUsers } from "@/components/social/suggested-users";
+import { ActivityFeed } from "@/components/social/activity-feed";
+import { UserSuggestionItem } from "@/components/social/user-suggestion";
 import { useAuth } from "@/components/auth-provider";
 import { supabase } from "@/lib/supabase";
-import type { ProfileRow } from "@/lib/types";
-
-interface FriendProfile extends ProfileRow {
-    strainCount: number;
-    topStrains: any[];
-}
-
-interface Community {
-    id: string;
-    name: string;
-    organization_type: string | null;
-    role: string;
-}
+import type { SuggestedUser } from "@/lib/types";
 
 export default function DiscoverPage() {
-    const { user } = useAuth();
-    const [friends, setFriends] = useState<FriendProfile[]>([]);
-    const [communities, setCommunities] = useState<Community[]>([]);
-    const [browseUsers, setBrowseUsers] = useState<ProfileRow[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState<"friends" | "browse">("friends");
-    const [friendFilter, setFriendFilter] = useState<"friends" | "communities" | null>(null);
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<"following" | "discover">("following");
+  const [suggestions, setSuggestions] = useState<SuggestedUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [browseUsers, setBrowseUsers] = useState<SuggestedUser[]>([]);
 
-    const handleFilterToggle = (filter: "friends" | "communities") => {
-        setFriendFilter(friendFilter === filter ? null : filter);
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        // Get users NOT being followed yet
+        const { data: followingData } = await supabase
+          .from("follows")
+          .select("following_id")
+          .eq("follower_id", user.id);
+
+        const followingIds = followingData?.map(f => f.following_id) || [];
+
+        // Get public profiles not being followed
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, username, display_name, avatar_url, bio, profile_visibility")
+          .eq("profile_visibility", "public")
+          .neq("id", user.id)
+          .limit(10);
+
+        const unfollowedProfiles = (profiles || []).filter(
+          p => !followingIds.includes(p.id)
+        );
+
+        setSuggestions(
+          unfollowedProfiles.map(p => ({
+            id: p.id,
+            username: p.username || "",
+            display_name: p.display_name || undefined,
+            avatar_url: p.avatar_url || undefined,
+            bio: p.bio || undefined,
+            profile_visibility: p.profile_visibility,
+          }))
+        );
+
+        // Also fetch browse users for discover tab
+        const { data: allProfiles } = await supabase
+          .from("profiles")
+          .select("id, username, display_name, avatar_url, bio, profile_visibility")
+          .neq("id", user.id)
+          .limit(20);
+
+        setBrowseUsers(
+          (allProfiles || []).map(p => ({
+            id: p.id,
+            username: p.username || "",
+            display_name: p.display_name || undefined,
+            avatar_url: p.avatar_url || undefined,
+            bio: p.bio || undefined,
+            profile_visibility: p.profile_visibility,
+          }))
+        );
+      } finally {
+        setIsLoading(false);
+      }
     };
-    const [discoverSearch, setDiscoverSearch] = useState("");
 
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!user) return;
-            setIsLoading(true);
-            try {
-                // 1. Freunde finden (Leute denen ich folge)
-                const { data: follows } = await supabase
-                    .from("follows")
-                    .select("following_id")
-                    .eq("follower_id", user.id);
+    fetchSuggestions();
+  }, [user]);
 
-                if (follows && follows.length > 0) {
-                    const friendIds = follows.map(f => f.following_id);
+  const handleFollowUser = (userId: string) => {
+    setSuggestions(prev => prev.filter(u => u.id !== userId));
+  };
 
-                    // 2. Profile laden
-                    const { data: profiles } = await supabase
-                        .from("profiles")
-                        .select("*")
-                        .in("id", friendIds);
-
-                    if (profiles) {
-                        const friendsWithStats = await Promise.all(profiles.map(async (p) => {
-                            const { count } = await supabase
-                                .from("ratings")
-                                .select("*", { count: "exact", head: true })
-                                .eq("user_id", p.id);
-
-                            let { data: topData } = await supabase
-                                .from("user_strain_relations")
-                                .select("strains:strain_id (*)")
-                                .eq("user_id", p.id)
-                                .eq("is_favorite", true)
-                                .limit(5);
-
-                            if (!topData || topData.length === 0) {
-                                const { data: ratedData } = await supabase
-                                    .from("ratings")
-                                    .select("strains(*)")
-                                    .eq("user_id", p.id)
-                                    .order("created_at", { ascending: false })
-                                    .limit(5);
-                                topData = ratedData;
-                            }
-
-                            const topStrains = (topData || [])
-                                .map(entry => (entry as any).strains)
-                                .filter(Boolean);
-
-                            return {
-                                ...p,
-                                strainCount: count || 0,
-                                topStrains: topStrains
-                            };
-                        }));
-                        setFriends(friendsWithStats as FriendProfile[]);
-                    }
-                }
-
-                // 2. Communities laden
-                const { data: memberships } = await supabase
-                    .from("organization_members")
-                    .select("organization_id, role")
-                    .eq("user_id", user.id)
-                    .eq("membership_status", "active");
-
-                if (memberships && memberships.length > 0) {
-                    const orgIds = memberships.map(m => m.organization_id);
-                    const { data: orgs } = await supabase
-                        .from("organizations")
-                        .select("id, name, organization_type")
-                        .in("id", orgIds);
-
-                    if (orgs) {
-                        const communitiesWithRole = orgs.map(org => ({
-                            id: org.id,
-                            name: org.name,
-                            organization_type: org.organization_type,
-                            role: memberships.find(m => m.organization_id === org.id)?.role || "member"
-                        }));
-                        setCommunities(communitiesWithRole);
-                    }
-                }
-
-                // 3. Entdecken (Andere User)
-                const { data: allUsers } = await supabase
-                    .from("profiles")
-                    .select("*")
-                    .neq("id", user.id)
-                    .limit(20);
-                setBrowseUsers(allUsers || []);
-
-            } catch (err) {
-                console.error("Social data fetch error:", err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchData();
-    }, [user]);
-
+  const filteredBrowseUsers = browseUsers.filter(profile => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
     return (
-        <div className="min-h-screen bg-white pb-24">
-            <div className="sticky top-0 z-20 bg-white backdrop-blur-md border-b border-black/10">
-                <div className="max-w-lg mx-auto px-6 py-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h1 className="text-2xl font-black text-black italic uppercase tracking-tight">Social</h1>
-                        <button className="w-10 h-10 rounded-full bg-black/10 flex items-center justify-center border border-black/10">
-                            <UserPlus size={20} className="text-[#00F5FF]" />
-                        </button>
-                    </div>
-
-                    <div className="flex gap-6 border-b border-black/10 -mb-6">
-                        <button
-                            onClick={() => setActiveTab("friends")}
-                            className={`pb-3 text-xs font-black uppercase tracking-widest transition-all ${activeTab === "friends" ? "text-[#2FF801] border-b-2 border-[#2FF801]" : "text-black/40"}`}
-                        >
-                            Deine Freunde & Communities
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("browse")}
-                            className={`pb-3 text-xs font-black uppercase tracking-widest transition-all ${activeTab === "browse" ? "text-[#2FF801] border-b-2 border-[#2FF801]" : "text-black/40"}`}
-                        >
-                            Entdecken
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="max-w-lg mx-auto px-6 py-10">
-                {isLoading ? (
-                    <div className="flex flex-col items-center justify-center py-20 gap-4">
-                        <Loader2 className="h-10 w-10 animate-spin text-[#00F5FF]" />
-                        <p className="text-[10px] font-black text-black/20 uppercase tracking-widest">Lade Social Data...</p>
-                    </div>
-                ) : activeTab === "friends" ? (
-                    <div>
-                        {/* Filter Buttons */}
-                        <div className="flex gap-3 mb-6">
-                            <button
-                                onClick={() => handleFilterToggle("friends")}
-                                className={`flex-1 h-10 rounded-xl text-xs font-black uppercase tracking-widest transition-all border ${
-                                    friendFilter === "friends"
-                                        ? "bg-[#00F5FF] text-black border-[#00F5FF]"
-                                        : "bg-black/5 text-black/60 border-black/10 hover:bg-black/10"
-                                }`}
-                            >
-                                Freunde
-                            </button>
-                            <button
-                                onClick={() => handleFilterToggle("communities")}
-                                className={`flex-1 h-10 rounded-xl text-xs font-black uppercase tracking-widest transition-all border ${
-                                    friendFilter === "communities"
-                                        ? "bg-[#00F5FF] text-black border-[#00F5FF]"
-                                        : "bg-black/5 text-black/60 border-black/10 hover:bg-black/10"
-                                }`}
-                            >
-                                Communities
-                            </button>
-                        </div>
-
-                        {/* Friends List */}
-                        {friendFilter !== "communities" && (
-                            <div>
-                                {friends.length > 0 ? (
-                                    <div className="space-y-4">
-                                        {friends.map((friend) => (
-                                            <Link key={friend.id} href={`/user/${friend.username || friend.id}`}>
-                                                <div className="bg-[#1e3a24] border border-black/10 rounded-[2rem] p-5 flex flex-col gap-4 shadow-xl hover:border-[#00F5FF]/30 transition-all">
-                                                    <div className="flex items-center justify-between gap-4">
-                                                        <div className="flex items-center gap-4 min-w-0">
-                                                            <div className="w-16 h-16 rounded-full overflow-hidden bg-black/20 border-2 border-black/10 flex-shrink-0 flex items-center justify-center">
-                                                                {friend.avatar_url ? (
-                                                                    <img src={friend.avatar_url} alt={friend.username || "User"} className="w-full h-full object-cover" />
-                                                                ) : (
-                                                                    <span className="text-xl font-bold text-black/20">{(friend.username || "U")[0].toUpperCase()}</span>
-                                                                )}
-                                                            </div>
-                                                            <div className="min-w-0">
-                                                                <h3 className="font-black text-black uppercase tracking-tight truncate text-xl leading-none">
-                                                                    {friend.display_name || friend.username || "User"}
-                                                                </h3>
-                                                            </div>
-                                                        </div>
-                                                        <div className="text-right flex-shrink-0 flex flex-col items-center justify-center bg-black/20 px-4 py-2 rounded-2xl border border-black/10">
-                                                            <span className="text-3xl font-black text-[#2FF801] leading-none italic">{friend.strainCount}</span>
-                                                            <p className="text-[7px] text-black/40 font-black uppercase tracking-tighter mt-1 whitespace-nowrap">strains in der sammlung</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="bg-black/20 rounded-2xl p-3 flex flex-col gap-2">
-                                                        <p className="text-[8px] font-black text-black/30 uppercase tracking-[0.2em]">Top Strains</p>
-                                                        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-                                                            {friend.topStrains.map((s, idx) => (
-                                                                <div key={idx} className="flex flex-col items-center gap-1.5 w-14 flex-shrink-0">
-                                                                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-black/10 bg-black/5 shadow-inner">
-                                                                        <img
-                                                                            src={s.image_url || "/strains/placeholder-1.svg"}
-                                                                            alt={s.name || "Strain"}
-                                                                            className="w-full h-full object-cover opacity-80"
-                                                                        />
-                                                                    </div>
-                                                                    <p className="text-[7px] text-black/40 font-black uppercase tracking-tighter truncate w-full text-center leading-none">
-                                                                        {s.name || "Strain"}
-                                                                    </p>
-                                                                </div>
-                                                            ))}
-                                                            {friend.topStrains.length === 0 && (
-                                                                <p className="text-[8px] text-black/10 italic">Noch keine Sorten bewertet</p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                ) : friendFilter === "friends" ? (
-                                    <div className="text-center py-20 bg-black/5 rounded-[2.5rem] border border-dashed border-black/10 text-black/20 text-[10px] font-bold uppercase tracking-widest px-10">
-                                        Noch keine Freunde hinzugefügt.
-                                    </div>
-                                ) : null}
-                            </div>
-                        )}
-
-                        {/* Communities List */}
-                        {friendFilter !== "friends" && (
-                            <div>
-                                {communities.length > 0 ? (
-                                    <div className="space-y-4 mt-4">
-                                        {communities.map((comm) => (
-                                            <Link key={comm.id} href="/community">
-                                                <div className="bg-[#1e3a24] border border-black/10 rounded-[2rem] p-5 flex flex-col gap-4 shadow-xl hover:border-[#00F5FF]/30 transition-all">
-                                                    <div className="flex items-center justify-between gap-4">
-                                                        <div className="flex items-center gap-4 min-w-0">
-                                                            <div className="w-16 h-16 rounded-full overflow-hidden bg-black/20 border-2 border-black/10 flex-shrink-0 flex items-center justify-center">
-                                                                <Building2 size={24} className="text-[#00F5FF]" />
-                                                            </div>
-                                                            <div className="min-w-0">
-                                                                <h3 className="font-black text-black uppercase tracking-tight truncate text-xl leading-none">
-                                                                    {comm.name}
-                                                                </h3>
-                                                                <p className="text-[10px] text-black/40 font-mono uppercase tracking-wider">
-                                                                    {comm.organization_type === "club" ? "Club" : comm.organization_type === "pharmacy" ? "Apotheke" : comm.organization_type || "Community"}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="text-right flex-shrink-0 flex flex-col items-center justify-center bg-black/20 px-4 py-2 rounded-2xl border border-black/10">
-                                                            <span className={`text-xl font-black leading-none italic ${comm.role === "gründer" ? "text-yellow-400" : comm.role === "admin" ? "text-red-400" : "text-black/40"}`}>
-                                                                {comm.role === "gründer" ? "Gründer" : comm.role === "admin" ? "Admin" : "Member"}
-                                                            </span>
-                                                            <p className="text-[7px] text-black/40 font-black uppercase tracking-tighter mt-1 whitespace-nowrap">rolle</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                        ))}
-                                    </div>
-                                ) : friendFilter === "communities" ? (
-                                    <div className="text-center py-20 bg-black/5 rounded-[2.5rem] border border-dashed border-black/10 text-black/20 text-[10px] font-bold uppercase tracking-widest px-10">
-                                        Du bist in keiner Community.
-                                    </div>
-                                ) : null}
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <div>
-                        {/* Suggested Users & Communities - Stories Style */}
-                        <SuggestedUsers
-                            limit={8}
-                            showViewAll={false}
-                            showCommunities={true}
-                            className="mb-6"
-                        />
-
-                        {/* Search Field */}
-                        <div className="relative mb-6">
-                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-black/30 pointer-events-none" />
-                            <input
-                                type="text"
-                                value={discoverSearch}
-                                onChange={(e) => setDiscoverSearch(e.target.value)}
-                                placeholder="Nutzer suchen..."
-                                className="w-full h-12 pl-11 pr-4 bg-black/5 border border-black/10 rounded-xl text-black placeholder-black/30 text-sm font-medium focus:outline-none focus:border-[#00F5FF]/50 transition-colors"
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            {browseUsers
-                                .filter((profile) => {
-                                    if (!discoverSearch.trim()) return true;
-                                    const q = discoverSearch.toLowerCase();
-                                    return (
-                                        (profile.display_name || "").toLowerCase().includes(q) ||
-                                        (profile.username || "").toLowerCase().includes(q)
-                                    );
-                                })
-                                .map((profile) => (
-                                    <Link key={profile.id} href={`/user/${profile.username}`}>
-                                        <div className="bg-[#1e3a24] border border-black/10 rounded-2xl p-4 flex flex-col items-center text-center gap-3 hover:border-[#00F5FF]/30 transition-all">
-                                            <div className="w-16 h-16 rounded-full overflow-hidden border border-black/10 bg-black/20 flex items-center justify-center">
-                                                {profile.avatar_url ? (
-                                                    <img src={profile.avatar_url} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <span className="text-xl font-bold text-black/20">{profile.username?.[0]?.toUpperCase()}</span>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <p className="text-xs font-black text-black uppercase truncate max-w-[120px]">{profile.display_name || profile.username}</p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))}
-                        </div>
-                    </div>
-                )}
-            </div>
-            <BottomNav />
-        </div>
+      (profile.display_name || "").toLowerCase().includes(q) ||
+      (profile.username || "").toLowerCase().includes(q)
     );
+  });
+
+  return (
+    <div className="min-h-screen bg-white pb-24">
+      {/* Header */}
+      <div className="sticky top-0 z-20 bg-white backdrop-blur-md border-b border-[#E5E5E5]">
+        <div className="max-w-lg mx-auto px-6 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-black italic uppercase tracking-tight text-[#1A1A1A]">
+              Social
+            </h1>
+            <button className="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center border border-[#E5E5E5]">
+              <UserPlus size={20} className="text-[#00F5FF]" />
+            </button>
+          </div>
+
+          {/* Sub-Tabs */}
+          <div className="flex gap-6 border-b border-[#E5E5E5] -mb-6">
+            <button
+              onClick={() => setActiveTab("following")}
+              className={`pb-3 text-xs font-black uppercase tracking-widest transition-all ${
+                activeTab === "following"
+                  ? "text-[#2FF801] border-b-2 border-[#2FF801]"
+                  : "text-[#999]"
+              }`}
+            >
+              Deine Freunde
+            </button>
+            <button
+              onClick={() => setActiveTab("discover")}
+              className={`pb-3 text-xs font-black uppercase tracking-widest transition-all ${
+                activeTab === "discover"
+                  ? "text-[#2FF801] border-b-2 border-[#2FF801]"
+                  : "text-[#999]"
+              }`}
+            >
+              Entdecken
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-lg mx-auto px-6 py-10">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <Loader2 className="h-10 w-10 animate-spin text-[#2FF801]" />
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#999]">
+              Lade...
+            </p>
+          </div>
+        ) : activeTab === "following" ? (
+          <div>
+            {/* Suggestions - Horizontal Scroll */}
+            {suggestions.length > 0 && (
+              <div className="mb-8">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#999] mb-4">
+                  Vorschläge für dich
+                </p>
+                <div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 no-scrollbar">
+                  {suggestions.slice(0, 8).map(user => (
+                    <UserSuggestionItem
+                      key={user.id}
+                      user={user}
+                      onFollow={() => handleFollowUser(user.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Activity Feed */}
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#999] mb-4">
+                Aktivitäten
+              </p>
+              <ActivityFeed showDiscover={false} />
+            </div>
+          </div>
+        ) : (
+          <div>
+            {/* Search */}
+            <div className="relative mb-6">
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#999] pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Nutzer suchen..."
+                className="w-full h-12 pl-11 pr-4 bg-[#FAFAFA] border border-[#E5E5E5] rounded-xl text-[#1A1A1A] placeholder-[#999] text-sm font-medium focus:outline-none focus:border-[#2FF801] transition-colors"
+              />
+            </div>
+
+            {/* Browse Users Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              {filteredBrowseUsers.map(profile => (
+                <Link key={profile.id} href={`/user/${profile.username}`}>
+                  <div className="bg-[#FAFAFA] border border-[#E5E5E5] rounded-2xl p-4 flex flex-col items-center text-center gap-3 hover:border-[#2FF801]/30 transition-colors">
+                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[#E5E5E5] bg-[#F5F5F5] flex items-center justify-center">
+                      {profile.avatar_url ? (
+                        <img
+                          src={profile.avatar_url}
+                          alt={profile.display_name || profile.username}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-xl font-bold text-[#999]">
+                          {profile.username?.[0]?.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-[#1A1A1A] uppercase truncate max-w-[120px]">
+                        {profile.display_name || profile.username}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <BottomNav />
+    </div>
+  );
 }
