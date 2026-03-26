@@ -103,7 +103,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="flex flex-col gap-10">
-            {/* Strain of the Day Section */}
+            {/* Strain of the Day Section - Full Width Hero */}
             <section className="flex flex-col gap-5">
               <div className="flex items-center gap-4 px-2">
                 <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-[#484849]" />
@@ -120,72 +120,101 @@ export default function Home() {
               {strainOfTheDay && (
                 <Link href={`/strains/${strainOfTheDay.slug}`} className="block">
                   <div className="relative group cursor-pointer">
-                    {/* Glow effect behind card */}
-                    <div className="absolute inset-0 bg-[#00F5FF]/10 blur-3xl rounded-3xl transform -translate-y-6 opacity-60 group-hover:opacity-100 transition-opacity" />
+                    {/* Massive glow effect behind card */}
+                    <div className="absolute inset-0 bg-[#00F5FF]/15 blur-[80px] rounded-3xl transform -translate-y-12 opacity-70 group-hover:opacity-100 transition-opacity" />
 
-                    {/* Main card */}
-                    <div className="relative glass-surface rounded-3xl p-6 border border-[#484849]/30 hover:border-[#00F5FF]/50 transition-all duration-500 group-hover:scale-[1.02]">
-                      {/* Holo accent line */}
-                      <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#00F5FF]/10 via-transparent to-[#2FF801]/10 pointer-events-none" />
+                    {/* Main card - full width hero */}
+                    <div className="relative glass-surface rounded-3xl overflow-hidden border border-[#484849]/30 hover:border-[#00F5FF]/50 transition-all duration-500">
+                      {/* Background gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#00F5FF]/5 via-transparent to-[#2FF801]/5 pointer-events-none" />
 
-                      {/* Card content */}
-                      <div className="relative flex gap-5">
-                        {/* Strain image placeholder */}
-                        <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#1a191b] to-[#262627] border border-[#484849]/50 flex items-center justify-center overflow-hidden shrink-0">
-                          {strainOfTheDay.image_url ? (
-                            <Image
-                              src={strainOfTheDay.image_url}
-                              alt={strainOfTheDay.name}
-                              width={96}
-                              height={96}
-                              className="object-cover w-full h-full"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-[#00F5FF]/20 to-[#2FF801]/20 flex items-center justify-center">
-                              <span className="text-3xl">🌿</span>
-                            </div>
-                          )}
-                          {/* Holographic overlay */}
-                          <div className="absolute inset-0 card-holo rounded-2xl pointer-events-none" />
+                      {/* Large Hero Image */}
+                      <div className="relative w-full h-[280px] overflow-hidden">
+                        {strainOfTheDay.image_url ? (
+                          <Image
+                            src={strainOfTheDay.image_url}
+                            alt={strainOfTheDay.name}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-[#1a191b] via-[#262627] to-[#1a191b] flex items-center justify-center">
+                            <span className="text-8xl">🌿</span>
+                          </div>
+                        )}
+                        {/* Gradient overlay for text readability */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0f] via-[#0e0e0f]/40 to-transparent" />
+
+                        {/* Holographic overlay */}
+                        <div className="absolute inset-0 card-holo pointer-events-none" />
+
+                        {/* Type badge on image */}
+                        <div className="absolute top-4 left-4">
+                          <span className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider backdrop-blur-md ${
+                            strainOfTheDay.type === 'sativa' ? 'bg-[#adff00]/30 text-[#adff00] border border-[#adff00]/50' :
+                            strainOfTheDay.type === 'indica' ? 'bg-[#cb00ff]/30 text-[#cb00ff] border border-[#cb00ff]/50' :
+                            'bg-[#00a3ff]/30 text-[#00a3ff] border border-[#00a3ff]/50'
+                          }`}>
+                            {strainOfTheDay.type}
+                          </span>
                         </div>
 
-                        {/* Strain info */}
-                        <div className="flex-1 flex flex-col justify-center gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded-full bg-[#2FF801]/20 text-[#2FF801] text-[9px] font-black uppercase tracking-wider">
-                              {strainOfTheDay.brand || 'Unknown'}
-                            </span>
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                              strainOfTheDay.type === 'sativa' ? 'bg-[#adff00]/20 text-[#adff00]' :
-                              strainOfTheDay.type === 'indica' ? 'bg-[#cb00ff]/20 text-[#cb00ff]' :
-                              'bg-[#00a3ff]/20 text-[#00a3ff]'
-                            }`}>
-                              {strainOfTheDay.type}
-                            </span>
-                          </div>
-                          <h3 className="text-lg font-black uppercase tracking-tight font-display text-white leading-tight">
-                            {strainOfTheDay.name}
-                          </h3>
-                          <div className="flex items-center gap-3">
-                            <span className="px-3 py-1 rounded-full bg-[#00F5FF]/20 text-[#00F5FF] text-xs font-bold neon-text-cyan">
-                              {strainOfTheDay.thc_max || '?'}% THC
-                            </span>
-                            {strainOfTheDay.terpenes && strainOfTheDay.terpenes.length > 0 && (
-                              <span className="text-[10px] text-[#adaaab] font-medium truncate">
-                                {strainOfTheDay.terpenes.slice(0, 2).join(', ')}
-                              </span>
-                            )}
-                          </div>
+                        {/* THC badge on image */}
+                        <div className="absolute top-4 right-4">
+                          <span className="px-4 py-1.5 rounded-full bg-[#0e0e0f]/80 backdrop-blur-md text-[#00F5FF] text-sm font-black uppercase tracking-wider border border-[#00F5FF]/30">
+                            {strainOfTheDay.thc_max || '?'}% THC
+                          </span>
+                        </div>
+
+                        {/* Brand at bottom of image */}
+                        <div className="absolute bottom-4 left-4">
+                          <span className="px-3 py-1 rounded-full bg-[#2FF801]/20 text-[#2FF801] text-[10px] font-black uppercase tracking-wider backdrop-blur-md border border-[#2FF801]/30">
+                            {strainOfTheDay.brand || 'Unknown'}
+                          </span>
                         </div>
                       </div>
 
-                      {/* Tap hint */}
-                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#0e0e0f] border border-[#484849]/50 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="w-1 h-1 rounded-full bg-[#00F5FF] animate-pulse" />
-                        <p className="text-[8px] font-bold uppercase tracking-widest text-[#adaaab]">
-                          Tippe für Details
-                        </p>
-                        <div className="w-1 h-1 rounded-full bg-[#00F5FF] animate-pulse [animation-delay:0.5s]" />
+                      {/* Content below image */}
+                      <div className="relative p-6 -mt-2">
+                        <h3 className="text-3xl font-black uppercase tracking-tight font-display text-white leading-tight mb-3">
+                          {strainOfTheDay.name}
+                        </h3>
+
+                        {/* Terpenes */}
+                        {strainOfTheDay.terpenes && strainOfTheDay.terpenes.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {strainOfTheDay.terpenes.slice(0, 4).map((t, i) => (
+                              <span key={i} className="px-3 py-1 rounded-full bg-[#1a191b] border border-[#484849]/50 text-[#adaaab] text-[10px] font-bold uppercase tracking-wider">
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Effects & Flavors */}
+                        <div className="flex gap-4 text-[11px] text-[#adaaab]">
+                          {strainOfTheDay.effects && strainOfTheDay.effects.length > 0 && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-[#2FF801]">●</span>
+                              <span>{strainOfTheDay.effects.slice(0, 2).join(', ')}</span>
+                            </div>
+                          )}
+                          {strainOfTheDay.flavors && strainOfTheDay.flavors.length > 0 && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-[#00F5FF]">●</span>
+                              <span>{strainOfTheDay.flavors.slice(0, 2).join(', ')}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Tap hint */}
+                        <div className="flex items-center justify-center gap-2 mt-6 text-[#00F5FF]">
+                          <div className="w-2 h-2 rounded-full bg-[#00F5FF] animate-pulse" />
+                          <p className="text-[10px] font-bold uppercase tracking-widest">
+                            Tippe für Details
+                          </p>
+                          <div className="w-2 h-2 rounded-full bg-[#00F5FF] animate-pulse [animation-delay:0.5s]" />
+                        </div>
                       </div>
                     </div>
                   </div>
