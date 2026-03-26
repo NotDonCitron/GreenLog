@@ -42,6 +42,7 @@ export default function FeedPage() {
                         <SuggestedUsers
                             limit={8}
                             showViewAll={true}
+                            showCommunities={true}
                         />
 
                         {/* Main activity feed */}
