@@ -1,13 +1,25 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase/client";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 
 const ALLOWED_CREATOR_IDS = (
   process.env.FEEDBACK_ALLOWED_CREATOR_IDS || ""
 ).split(",").map(id => id.trim()).filter(Boolean);
 
+function getUserFromRequest(request: Request) {
+  const authHeader = request.headers.get("Authorization");
+  const accessToken = authHeader?.replace("Bearer ", "");
+  if (!accessToken) return null;
+  return getAuthenticatedClient(accessToken);
+}
+
 export async function POST(req: Request) {
   try {
     const { title, description, category, priority, page_url, context } = await req.json();
+
+    const supabase = getUserFromRequest(req);
+    if (!supabase) {
+      return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
+    }
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -52,8 +64,13 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const supabase = getUserFromRequest(req);
+    if (!supabase) {
+      return NextResponse.json({ error: "Nicht eingeloggt" }, { status: 401 });
+    }
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {

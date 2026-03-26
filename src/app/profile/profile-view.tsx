@@ -601,7 +601,7 @@ export default function ProfilePage() {
       <div className="px-8 space-y-10">
         {/* Workspace / Organization Section */}
         <section>
-          <SectionHeader title="Organisation" />
+          <SectionHeader eyebrow="" title="Community" />
           <div className="mt-4">
             <OrganizationSwitcher />
           </div>
