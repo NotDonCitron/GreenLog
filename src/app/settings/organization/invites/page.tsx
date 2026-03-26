@@ -106,7 +106,7 @@ export default function InvitesPage() {
   const [createdInviteEmail, setCreatedInviteEmail] = useState<string | null>(null);
 
   // Only Gründer (owner) can manage invites
-  const isOwner = activeOrganization?.role === "owner";
+  const isOwner = activeOrganization?.role === "gründer";
 
   const fetchInvites = useCallback(async () => {
     if (!activeOrganization || !session?.access_token) return;
@@ -140,7 +140,7 @@ export default function InvitesPage() {
       router.push("/profile");
       return;
     }
-    if (activeOrganization.role !== "owner") {
+    if (activeOrganization.role !== "gründer") {
       router.push("/settings/organization/members");
       return;
     }
