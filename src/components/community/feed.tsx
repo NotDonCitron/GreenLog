@@ -117,9 +117,27 @@ const FeedItemCard = memo(function FeedItemCard({
         .select("id, name, slug, type, image_url, avg_thc, thc_max, avg_cbd, cbd_max, farmer, manufacturer, brand, flavors, terpenes, effects, is_medical")
         .eq("id", item.reference_id)
         .single()
-        .then(({ data }) => setStrain(data));
+        .then(async ({ data: strainData }) => {
+          if (!strainData) {
+            setStrain(null);
+            return;
+          }
+          // If strain has no image_url, check user_collection for user_image_url
+          if (!strainData.image_url && item.user_id) {
+            const { data: collectionData } = await supabase
+              .from("user_collection")
+              .select("user_image_url")
+              .eq("strain_id", item.reference_id)
+              .eq("user_id", item.user_id)
+              .maybeSingle();
+            if (collectionData?.user_image_url) {
+              (strainData as any).image_url = collectionData.user_image_url;
+            }
+          }
+          setStrain(strainData);
+        });
     }
-  }, [item.event_type, item.reference_id]);
+  }, [item.event_type, item.reference_id, item.user_id]);
 
   const handleDelete = async () => {
     if (!organizationId || deleting) return;
