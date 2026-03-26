@@ -2,16 +2,25 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Loader2, RefreshCw, UserPlus } from "lucide-react";
+import { Loader2, RefreshCw, UserPlus, Building2 } from "lucide-react";
 import { FollowButton } from "./follow-button";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import type { SuggestedUser } from "@/lib/types";
 
+export interface SuggestedCommunity {
+    id: string;
+    name: string;
+    organization_type: "club" | "pharmacy" | null;
+    logo_url: string | null;
+    is_member: boolean;
+}
+
 interface SuggestedUsersProps {
     limit?: number;
     title?: string;
     showViewAll?: boolean;
+    showCommunities?: boolean;
     className?: string;
 }
 
@@ -19,6 +28,7 @@ export function SuggestedUsers({
     limit = 8,
     title = "Suggested for you",
     showViewAll = true,
+    showCommunities = false,
     className = "",
 }: SuggestedUsersProps) {
     const { user } = useAuth();
@@ -26,6 +36,8 @@ export function SuggestedUsers({
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
+    const [communities, setCommunities] = useState<SuggestedCommunity[]>([]);
+    const [joinedCommunityIds, setJoinedCommunityIds] = useState<Set<string>>(new Set());
 
     const handleFollow = async (targetUserId: string) => {
         if (!user) return;
@@ -52,6 +64,33 @@ export function SuggestedUsers({
             }
         } catch (err) {
             console.error("Follow action failed:", err);
+        }
+    };
+
+    const handleJoinCommunity = async (communityId: string) => {
+        if (!user) return;
+
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const accessToken = session?.access_token;
+
+            const endpoint = `/api/community/${communityId}/join`;
+            const response = await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(accessToken && { "Authorization": `Bearer ${accessToken}` })
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                setJoinedCommunityIds(prev => new Set([...prev, communityId]));
+                window.location.reload();
+            }
+        } catch (err) {
+            console.error("Join community failed:", err);
         }
     };
 
@@ -163,6 +202,39 @@ export function SuggestedUsers({
             );
 
             setUsers(usersWithCommonStrains.slice(0, limit));
+
+            // Fetch suggested communities (only if showCommunities is true)
+            if (showCommunities) {
+                // Get organizations user is already member of
+                const { data: memberships } = await supabase
+                    .from("organization_members")
+                    .select("organization_id")
+                    .eq("user_id", user.id)
+                    .eq("membership_status", "active");
+
+                const joinedOrgIds = memberships?.map((m: { organization_id: string }) => m.organization_id) ?? [];
+
+                const { data: orgsData } = await supabase
+                    .from("organizations")
+                    .select("id, name, organization_type, logo_url")
+                    .eq("status", "active")
+                    .limit(limit * 3);
+
+                const filteredOrgs = (orgsData ?? []).filter(
+                    (org) => !joinedOrgIds.includes(org.id)
+                );
+
+                const suggested: SuggestedCommunity[] = filteredOrgs.slice(0, limit).map(org => ({
+                    id: org.id,
+                    name: org.name,
+                    organization_type: org.organization_type as "club" | "pharmacy" | null,
+                    logo_url: org.logo_url ?? null,
+                    is_member: false,
+                }));
+
+                setCommunities(suggested);
+                setJoinedCommunityIds(new Set(joinedOrgIds));
+            }
         } catch (err) {
             console.error("Error fetching suggested users:", err);
         } finally {
@@ -260,6 +332,62 @@ export function SuggestedUsers({
                                 className="text-xs px-3 py-1"
                             />
                         </div>
+                    </div>
+                ))}
+
+                {/* Communities */}
+                {communities.map((community) => (
+                    <div
+                        key={`community-${community.id}`}
+                        className="flex-shrink-0 w-28 text-center"
+                    >
+                        {/* Community Avatar Circle */}
+                        <Link href={`/community/${community.id}`} className="block">
+                            <div className="relative mb-2 mx-auto w-20 h-20">
+                                {/* Gradient Ring */}
+                                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#FCB045]" />
+                                {/* Inner Circle */}
+                                <div className="absolute inset-[3px] rounded-full bg-[#355E3B] flex items-center justify-center overflow-hidden">
+                                    {community.logo_url ? (
+                                        <img
+                                            src={community.logo_url}
+                                            alt={community.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <Building2 size={28} className="text-white/50" />
+                                    )}
+                                </div>
+                                {/* Join/Member Button */}
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleJoinCommunity(community.id);
+                                    }}
+                                    disabled={joinedCommunityIds.has(community.id)}
+                                    className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-[#355E3B] transition-all ${
+                                        joinedCommunityIds.has(community.id)
+                                            ? "bg-[#2FF801]"
+                                            : "bg-[#00F5FF] hover:bg-[#00F5FF]/80 cursor-pointer"
+                                    }`}
+                                >
+                                    {joinedCommunityIds.has(community.id) ? (
+                                        <span className="text-black text-xs">✓</span>
+                                    ) : (
+                                        <span className="text-black text-xs font-bold">+</span>
+                                    )}
+                                </button>
+                            </div>
+
+                            {/* Community Name */}
+                            <p className="text-xs font-semibold text-white truncate">
+                                {community.name}
+                            </p>
+                            <p className="text-[10px] text-white/50 truncate">
+                                {community.organization_type === "club" ? "Club" : community.organization_type === "pharmacy" ? "Apotheke" : "Community"}
+                            </p>
+                        </Link>
                     </div>
                 ))}
             </div>
