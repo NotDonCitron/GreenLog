@@ -39,14 +39,14 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
   return (
     <Link
       href={`/strains/${strain.slug}`}
-      className={`premium-card ${themeClass} group relative flex w-full h-full min-w-0 flex-col rounded-[20px] border-2 bg-[#121212] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] overflow-hidden`}
+      className={`premium-card ${themeClass} group relative flex w-full min-w-0 flex-col rounded-[20px] border-2 bg-[#121212] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] overflow-hidden aspect-[4/5]`}
       style={{
         borderColor: themeColor,
         animationDelay: `${index * 0.05}s`,
         animationFillMode: 'both'
       }}
     >
-      <div className="p-3 pb-1 min-w-0 relative z-10">
+      <div className="shrink-0 p-3 pb-1 min-w-0 relative z-10">
         <p className="text-[9px] font-bold tracking-[0.15em] uppercase text-[var(--foreground)]/30 truncate">
           {farmerDisplay}
         </p>
@@ -55,8 +55,8 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
         </p>
       </div>
 
-      <div className="px-2 w-full relative z-10">
-        <div className="relative w-full h-[100px] rounded-xl border border-white/5 shadow-lg">
+      <div className="relative flex-1 min-h-0 px-2 py-1 z-10">
+        <div className="absolute inset-0 rounded-xl border border-white/5 shadow-lg overflow-hidden">
           <Image
             src={strain.image_url || "/strains/placeholder-1.svg"}
             alt={strain.name}
@@ -65,38 +65,35 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
             sizes="(max-width: 768px) 50vw, 33vw"
           />
           {isCollected && (
-            <div className="absolute top-1 right-1 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#00F5FF]/20 backdrop-blur-md border border-[#00F5FF]/30">
-              <CheckCircle2 className="text-[#00F5FF]" size={10} />
-              <span className="text-[6px] font-bold uppercase tracking-wider text-[#00F5FF]">In Sammlung</span>
+            <div className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-1 rounded-full bg-[#00F5FF]/20 backdrop-blur-md border border-[#00F5FF]/30">
+              <CheckCircle2 className="text-[#00F5FF]" size={12} />
+              <span className="text-[8px] font-bold uppercase tracking-wider text-[#00F5FF]">In Sammlung</span>
             </div>
           )}
-          <div className="absolute bottom-1 left-1 border bg-black/80 backdrop-blur-md uppercase text-[6px] px-1 py-0.5 rounded-sm font-bold tracking-widest shadow-lg" style={{ borderColor: themeColor, color: themeColor }}>
+          <div className="absolute bottom-2 left-2 border bg-black/80 backdrop-blur-md uppercase text-[8px] px-2 py-1 rounded-sm font-bold tracking-widest shadow-lg" style={{ borderColor: themeColor, color: themeColor }}>
             {strain.type || 'HYBRID'}
           </div>
         </div>
       </div>
 
-      <div className="mt-2 px-3 w-full min-w-0 flex-col justify-start pb-3 relative z-10">
-        <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 shadow-inner backdrop-blur-sm">
-          {/* Row 1: THC & Taste */}
-          <div className="mb-2 grid min-w-0 grid-cols-2 gap-2 border-b border-white/5 pb-2">
-            <div className="flex min-w-0 items-center gap-1">
-              <span className="text-[7px] font-bold uppercase tracking-widest text-[var(--foreground)]/20">THC</span>
+      <div className="shrink-0 px-3 w-full relative z-10">
+        <div className="rounded-xl border border-white/10 bg-white/5 p-2 shadow-inner backdrop-blur-sm">
+          <div className="grid grid-cols-4 gap-1">
+            <div className="flex flex-col items-center gap-0">
+              <span className="text-[6px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">THC</span>
               <span className="text-[9px] font-black tracking-wide" style={{ color: themeColor }}>{thcDisplay}</span>
             </div>
-            <div className="flex min-w-0 items-center justify-end border-l border-white/5 pl-2 text-right">
-              <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/80 leading-tight">{tasteDisplay}</span>
-            </div>
-          </div>
-
-          {/* Row 2: CBD & Effect */}
-          <div className="grid min-w-0 grid-cols-2 gap-2">
-            <div className="flex min-w-0 items-center gap-1">
-              <span className="text-[7px] font-bold uppercase tracking-widest text-[var(--foreground)]/20">CBD</span>
+            <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1">
+              <span className="text-[6px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">CBD</span>
               <span className="text-[9px] font-black tracking-wide" style={{ color: themeColor }}>{cbdDisplay}</span>
             </div>
-            <div className="flex min-w-0 items-center justify-end border-l border-white/5 pl-2 text-right">
-              <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/80 leading-tight">{effectDisplay}</span>
+            <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1">
+              <span className="text-[6px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">TASTE</span>
+              <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/70 truncate max-w-full">{tasteDisplay}</span>
+            </div>
+            <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1">
+              <span className="text-[6px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">EFF</span>
+              <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/70 truncate max-w-full">{effectDisplay}</span>
             </div>
           </div>
         </div>

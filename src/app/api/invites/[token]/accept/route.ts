@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 
-type RouteParams = { params: Promise<{ inviteId: string }> };
+type RouteParams = { params: Promise<{ token: string }> };
 
-// POST /api/invites/[inviteId]/accept
-// Accept an invite by ID (for in-app use)
+// POST /api/invites/[token]/accept
+// Accept an invite by token
 export async function POST(request: Request, { params }: RouteParams) {
   try {
-    const { inviteId } = await params;
+    const { token } = await params;
     const authHeader = request.headers.get("Authorization");
     const accessToken = authHeader?.replace("Bearer ", "");
 
@@ -22,11 +22,11 @@ export async function POST(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get the invite
+    // Get the invite by token
     const { data: invite, error: inviteError } = await supabase
       .from("organization_invites")
       .select("*")
-      .eq("id", inviteId)
+      .eq("token", token)
       .eq("status", "pending")
       .single();
 
