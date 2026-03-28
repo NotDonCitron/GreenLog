@@ -1,786 +1,602 @@
-# Strain Image Pipeline Implementation Plan
+# Strain Image Multi-Source Pipeline Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ersetze den broken/messy `download-missing-images.mjs` durch eine robuste `fetch-strain-images.mjs` Pipeline mit Fallback-Kette (Leafly → Wikileaf → Picsum), Lock-File für Resume, Qualitäts-Check und Supabase Storage als Ziel.
+**Goal:** Build a €0 multi-source image pipeline that finds real Cannabis bud photos for 470+ strains from Seedbank Media Kits → Wikimedia Commons → linhacanabica CC0, with quality filtering.
 
-**Architecture:** Ein einzelnes Node.js Script das alle 470 Strains durch die Fallback-Kette schickt, Bilder verified und in Supabase Storage hochlädt, DB updated, und den Fortschritt in einem Lock-File trackt.
+**Architecture:** Three-stage fallback pipeline. Each strain is checked against sources in priority order. Only botanically plausible bud photos are accepted. Resume-capable via lock-file. Attribution metadata stored for Wikimedia images.
 
-**Tech Stack:** Node.js (ESM), `@supabase/supabase-js`, `dotenv`, Supabase Storage + Service Role Key
+**Tech Stack:** Node.js ESM scripts, curl (CLI), Supabase Storage + Postgres, Wikimedia Commons API
 
 ---
 
 ## File Map
 
-```
-scripts/
-  fetch-strain-images.mjs     ← NEU: Hauptscript (Ablösung für download-missing-images.mjs)
-  .image-pipeline-lock.json   ← NEU: Lock-File für Resume (nicht in Git)
-  download-missing-images.mjs ← BLEIBT: wird nicht gelöscht (Backup)
-```
+### New Files
+- `scripts/lib/seedbank-scraper.mjs` — Download and match Seedbank Media Kit images
+- `scripts/lib/wikimedia-scraper.mjs` — Search Wikimedia Commons, extract bud photos with attribution
+- `scripts/lib/linhacanabica-fetcher.mjs` — Fetch from GitHub CC0 archive with fuzzy name matching
+- `scripts/fetch-authentic-strain-images.mjs` — Main pipeline orchestrator
+- `scripts/lib/attribution-store.mjs` — Store/retrieve image attribution metadata
 
-Keine App-Code-Änderungen. Keine DB-Migration. Nur neues Script + Lock-File.
+### Existing Files (reused)
+- `scripts/lib/lock-file.mjs` — Lock file utilities (existing, works as-is)
+- `scripts/lib/upload-to-storage.mjs` — Supabase Storage upload (existing)
+
+### Modified Files
+- `src/app/strains/[slug]/page.tsx` — Add Wikimedia attribution text below bud images
+- `src/types/index.ts` — Add `image_attribution` field to strain type
 
 ---
 
-## Task 1: Lock-File Manager Utility
+## Task 1: Seedbank Media Kit Scraper
 
 **Files:**
-- Create: `scripts/lib/lock-file.mjs`
+- Create: `scripts/lib/seedbank-scraper.mjs`
+- Test: `scripts/test-seedbank-scraper.mjs` (manual)
 
-- [ ] **Step 1: Create directory**
-
-```bash
-mkdir -p scripts/lib
-```
-
-- [ ] **Step 2: Write lock-file manager**
+- [ ] **Step 1: Write seedbank-scraper.mjs**
 
 ```javascript
-// scripts/lib/lock-file.mjs
+// scripts/lib/seedbank-scraper.mjs
+import { execFileSync } from 'child_process';
 import fs from 'fs';
-import path from 'path';
+import os from 'os';
+import { createHash } from 'crypto';
 
-const LOCK_FILE = path.join(process.cwd(), 'scripts/.image-pipeline-lock.json');
+/**
+ * Fetches a seedbank page and extracts image URLs matching a strain name.
+ * Uses curl with browser UA.
+ * @param {string} sourceUrl - URL to fetch (seedbank media/pr page)
+ * @param {string} strainName - Strain name to search for
+ * @returns {Promise<Array<{url: string, author: string, license: string}>>}
+ */
+export async function findSeedbankImages(sourceUrl, strainName) {
+  const html = execFileSync('curl', [
+    '-s', '-L', '-A',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    sourceUrl
+  ], { encoding: 'utf-8', timeout: 15000 });
 
-export function readLockFile() {
-  if (!fs.existsSync(LOCK_FILE)) {
-    return { lastRun: null, processed: [], failed: [] };
-  }
-  return JSON.parse(fs.readFileSync(LOCK_FILE, 'utf-8'));
+  const normalizedName = strainName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const imgRegex = /https?:\/\/[^\s"']+\.(?:jpg|jpeg|png)(?:\?[^\s"']*)?/gi;
+  const urls = html.match(imgRegex) || [];
+
+  return urls
+    .filter(url => {
+      const lower = url.toLowerCase();
+      return lower.includes(strainName.toLowerCase()) || lower.includes(normalizedName);
+    })
+    .map(url => ({ url, author: 'Seedbank', license: 'promotional_use' }));
 }
 
-export function writeLockFile(data) {
-  fs.writeFileSync(LOCK_FILE, JSON.stringify(data, null, 2));
-}
+/**
+ * Downloads a seedbank image to a temp file.
+ * @param {string} imageUrl
+ * @returns {Promise<string|null>} Local temp file path or null on failure
+ */
+export async function downloadSeedbankImage(imageUrl) {
+  const tmpDir = os.tmpdir();
+  const hash = createHash('md5').update(imageUrl).digest('hex');
+  const tmpPath = path.join(tmpDir, `seedbank-${hash}.jpg`);
 
-export function markProcessed(slug) {
-  const lock = readLockFile();
-  if (!lock.processed.includes(slug)) {
-    lock.processed.push(slug);
-  }
-  // Remove from failed if it was there
-  lock.failed = lock.failed.filter(f => f.slug !== slug);
-  writeLockFile(lock);
-}
-
-export function markFailed(slug, reason) {
-  const lock = readLockFile();
-  const existing = lock.failed.find(f => f.slug === slug);
-  if (existing) {
-    existing.reason = reason;
-  } else {
-    lock.failed.push({ slug, reason, timestamp: new Date().toISOString() });
-  }
-  writeLockFile(lock);
-}
-
-export function isProcessed(slug) {
-  const lock = readLockFile();
-  return lock.processed.includes(slug);
+  try {
+    execFileSync('curl', ['-s', '-L', '-o', tmpPath, imageUrl], { timeout: 15000 });
+    const stats = fs.statSync(tmpPath);
+    if (stats.size > 5000) return tmpPath;
+    fs.unlinkSync(tmpPath);
+  } catch {}
+  return null;
 }
 ```
+
+- [ ] **Step 2: Test seedbank scraper for one strain**
+
+Run: `node -e "import('./scripts/lib/seedbank-scraper.mjs').then(m => m.findSeedbankImages('https://www.dutch-passion.com/media/', 'White Widow').then(console.log))"`
+Expected: Array of image URLs or empty array
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add scripts/lib/lock-file.mjs
-git commit -m "feat: add lock-file manager for image pipeline"
+git add scripts/lib/seedbank-scraper.mjs
+git commit -m "feat: add seedbank media kit scraper"
 ```
 
 ---
 
-## Task 2: HTML Image Extractor Utility
+## Task 2: Wikimedia Commons Scraper
 
 **Files:**
-- Create: `scripts/lib/extract-image.mjs`
+- Create: `scripts/lib/wikimedia-scraper.mjs`
+- Test: `scripts/test-wikimedia-scraper.mjs` (manual)
 
-- [ ] **Step 1: Write HTML image extractor**
+- [ ] **Step 1: Write wikimedia-scraper.mjs**
 
 ```javascript
-// scripts/lib/extract-image.mjs
-import { execSync } from 'child_process';
+// scripts/lib/wikimedia-scraper.mjs
+import { execFileSync } from 'child_process';
+import fs from 'fs';
+import os from 'os';
+import { createHash } from 'crypto';
 
 /**
- * Fetches a URL and extracts og:image meta tag content.
- * Uses curl (no external deps needed).
- * Returns null if no og:image found or request failed.
+ * Searches Wikimedia Commons for cannabis bud photos of a strain.
+ * Uses the Wikimedia Commons API (no auth required).
+ * @param {string} strainName - e.g. "OG Kush"
+ * @returns {Promise<Array<{url: string, author: string, license: string, pageUrl: string}>>}
  */
-export function extractOgImage(url, userAgent) {
+export async function findWikimediaImages(strainName) {
+  const apiUrl = 'https://commons.wikimedia.org/w/api.php?' +
+    'action=query&list=search&srsearch=' + encodeURIComponent(strainName + ' cannabis bud') +
+    '&srnamespace=6&format=json&origin=*&srlimit=10';
+
+  const json = execFileSync('curl', [
+    '-s', '-A', 'GreenLog/1.0',
+    apiUrl
+  ], { encoding: 'utf-8', timeout: 10000 });
+
+  const data = JSON.parse(json);
+  const results = data.query?.search || [];
+
+  const images = [];
+  for (const result of results) {
+    const title = result.title.toLowerCase();
+    // Skip non-bud keywords
+    if (title.includes('3d') || title.includes('render') ||
+        title.includes('cartoon') || title.includes('icon') ||
+        title.includes('logo') || title.includes('seedling')) continue;
+
+    const infoUrl = 'https://commons.wikimedia.org/w/api.php?' +
+      'action=query&titles=' + encodeURIComponent(result.title) +
+      '&prop=imageinfo&iiprop=url|extmeta' +
+      '&iiextmetadata=Artist|LicenseShortName&format=json&origin=*';
+
+    try {
+      const infoJson = execFileSync('curl', ['-s', '-A', 'GreenLog/1.0', infoUrl], { encoding: 'utf-8', timeout: 10000 });
+      const infoData = JSON.parse(infoJson);
+      const pages = infoData.query?.pages || {};
+      const page = Object.values(pages)[0];
+      const imgInfo = page?.imageinfo?.[0];
+
+      if (imgInfo?.thumburl || imgInfo?.url) {
+        const author = (imgInfo.extmeta?.Artist?.value || 'Unknown')
+          .replace(/<[^>]+>/g, '').trim();
+        const license = imgInfo.extmeta?.LicenseShortName?.value || 'CC BY-SA';
+        images.push({
+          url: imgInfo.thumburl || imgInfo.url,
+          author,
+          license,
+          pageUrl: 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(result.title),
+        });
+      }
+    } catch {}
+  }
+  return images;
+}
+
+/**
+ * Downloads a Wikimedia image to a temp file.
+ * @param {string} imageUrl
+ * @returns {Promise<string|null>} Local temp file path or null
+ */
+export async function downloadWikimediaImage(imageUrl) {
+  const tmpDir = os.tmpdir();
+  const hash = createHash('md5').update(imageUrl).digest('hex');
+  const tmpPath = path.join(tmpDir, `wikimedia-${hash}.jpg`);
+
   try {
-    const cmd = [
-      'curl', '-s', '-L', '--max-time', '15',
-      '-A', userAgent || '"Mozilla/5.0 (compatible; GreenLogImagePipeline/1.0)"',
-      url
-    ].join(' ');
-    const html = execSync(cmd, { encoding: 'utf-8', timeout: 20000 });
-
-    // Match og:image meta tag
-    const match = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-                 || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-
-    if (match && match[1]) {
-      return match[1];
-    }
-
-    // Fallback: any img tag with strain-related classes or src containing "strain"
-    const imgMatch = html.match(/<img[^>]+src=["']([^"']*strain[^"']*\.(jpg|jpeg|png|webp)[^"']*)["']/i);
-    if (imgMatch) return imgMatch[1];
-
-    return null;
-  } catch (e) {
-    return null;
-  }
-}
-
-/**
- * Normalize a strain name or slug to URL-friendly format.
- */
-export function normalizeSlug(name) {
-  return name.toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-/**
- * Verify a downloaded file is a valid image.
- * Returns { valid: boolean, reason?: string }
- */
-export function verifyImage(filePath) {
-  import fs from 'fs';
-
-  const stats = fs.statSync(filePath);
-  if (stats.size < 5000) {
-    return { valid: false, reason: `File too small: ${stats.size} bytes` };
-  }
-
-  // Check MIME via magic bytes
-  const buffer = Buffer.alloc(4);
-  const fd = fs.openSync(filePath, 'r');
-  fs.readSync(fd, buffer, 0, 4, 0);
-  fs.closeSync(fd);
-
-  const isJpeg = buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
-  const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
-  const isWebp = buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46;
-
-  if (!isJpeg && !isPng && !isWebp) {
-    return { valid: false, reason: 'Not a valid image (wrong magic bytes)' };
-  }
-
-  return { valid: true };
+    execFileSync('curl', ['-s', '-L', '-o', tmpPath, imageUrl], { timeout: 15000 });
+    const stats = fs.statSync(tmpPath);
+    if (stats.size > 5000) return tmpPath;
+    fs.unlinkSync(tmpPath);
+  } catch {}
+  return null;
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [ ] **Step 2: Test wikimedia scraper for one strain**
+
+Run: `node -e "import('./scripts/lib/wikimedia-scraper.mjs').then(m => m.findWikimediaImages('OG Kush').then(r => { console.log(r.length + ' images found'); if(r[0]) console.log(r[0].url, r[0].author, r[0].license); }))"`
+Expected: Array with author and license info
+
+- [ ] **Step 3: Commit**
 
 ```bash
-git add scripts/lib/extract-image.mjs
-git commit -m "feat: add HTML og:image extractor and image verifier"
+git add scripts/lib/wikimedia-scraper.mjs
+git commit -m "feat: add wikimedia commons scraper with attribution extraction"
 ```
 
 ---
 
-## Task 3: Rate-Limited Download Utility
+## Task 3: Attribution Store Utility
 
 **Files:**
-- Create: `scripts/lib/download-image.mjs`
+- Create: `scripts/lib/attribution-store.mjs`
+- Modify: `supabase-schema.sql` (add column)
 
-- [ ] **Step 1: Write download utility**
+- [ ] **Step 1: Write attribution-store.mjs**
 
 ```javascript
-// scripts/lib/download-image.mjs
-import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
-import { verifyImage } from './extract-image.mjs';
+// scripts/lib/attribution-store.mjs
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-const userAgent = '"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"';
+const require = createRequire(import.meta.url);
+const fs = require('fs');
 
-/**
- * Downloads an image from url to destPath.
- * Returns { success: boolean, reason?: string }
- */
-export function downloadImage(url, destPath, timeoutMs = 15000) {
+const ATTR_FILE = join(process.cwd(), 'scripts/.image-attributions.json');
+
+const DEFAULT_DATA = {};
+
+export function readAttributions() {
   try {
-    const tmpPath = destPath + '.tmp';
-    const curlCmd = [
-      'curl', '-s', '-L',
-      '--max-time', String(Math.floor(timeoutMs / 1000)),
-      '-A', userAgent,
-      '-o', tmpPath,
-      url
-    ].join(' ');
-
-    execSync(curlCmd, { encoding: 'utf-8', timeout: timeoutMs + 5000 });
-
-    if (!fs.existsSync(tmpPath)) {
-      return { success: false, reason: 'Download produced no file' };
-    }
-
-    // Verify it's a real image
-    const { valid, reason } = verifyImage(tmpPath);
-    if (!valid) {
-      fs.unlinkSync(tmpPath);
-      return { success: false, reason };
-    }
-
-    // Move to final destination
-    if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
-    fs.renameSync(tmpPath, destPath);
-    return { success: true };
-  } catch (e) {
-    return { success: false, reason: e.message };
-  }
-}
-
-/**
- * Convert any image to JPEG using ImageMagick if available,
- * otherwise rename as-is (assumes jpg).
- */
-export function ensureJpeg(srcPath, destPath) {
-  try {
-    execSync(`convert "${srcPath}" -quality 85 "${destPath}"`, { timeout: 10000 });
-    return true;
+    return JSON.parse(fs.readFileSync(ATTR_FILE, 'utf-8'));
   } catch {
-    // ImageMagick not available, just copy
-    fs.copyFileSync(srcPath, destPath);
-    return true;
+    return { ...DEFAULT_DATA };
   }
+}
+
+export function writeAttributions(data) {
+  fs.writeFileSync(ATTR_FILE, JSON.stringify(data, null, 2), 'utf-8');
+}
+
+export function saveAttribution(slug, attribution) {
+  const data = readAttributions();
+  data[slug] = attribution;
+  writeAttributions(data);
+}
+
+export function getAttribution(slug) {
+  return readAttributions()[slug] || null;
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [ ] **Step 2: Add attribution column to schema**
+
+In `supabase-schema.sql`, find the strains table and add:
+```sql
+-- Add after image_url field:
+image_attribution JSONB DEFAULT '{"source": "none"}',
+```
+
+Then run in Supabase SQL Editor:
+```sql
+ALTER TABLE strains ADD COLUMN IF NOT EXISTS image_attribution JSONB DEFAULT '{"source": "none"}';
+```
+
+- [ ] **Step 3: Test attribution store**
+
+Run: `node -e "import('./scripts/lib/attribution-store.mjs').then(m => { m.saveAttribution('og-kush', {source:'wikimedia',author:'Test',license:'CC BY-SA'}); console.log(m.getAttribution('og-kush')); })"`
+Expected: `{ source: 'wikimedia', author: 'Test', license: 'CC BY-SA' }`
+
+- [ ] **Step 4: Commit**
 
 ```bash
-git add scripts/lib/download-image.mjs
-git commit -m "feat: add rate-limited image download utility"
+git add scripts/lib/attribution-store.mjs supabase-schema.sql
+git commit -m "feat: add attribution store for image sources"
 ```
 
 ---
 
-## Task 4: Leafly + Wikileaf Scraper
+## Task 4: linhacanabica Fetcher
 
 **Files:**
-- Create: `scripts/lib/strain-scrapers.mjs`
+- Create: `scripts/lib/linhacanabica-fetcher.mjs`
+- Test: `scripts/test-linhacanabica-fetcher.mjs` (manual)
 
-- [ ] **Step 1: Write scraper module**
+Note: linhacanabica is a 10GB GitHub repo with CC0 images. We search file names via GitHub API rather than cloning the whole repo.
+
+- [ ] **Step 1: Write linhacanabica-fetcher.mjs**
 
 ```javascript
-// scripts/lib/strain-scrapers.mjs
-import { extractOgImage, normalizeSlug } from './extract-image.mjs';
-import { downloadImage } from './download-image.mjs';
+// scripts/lib/linhacanabica-fetcher.mjs
+import { execFileSync } from 'child_process';
+import fs from 'fs';
+import os from 'os';
 import path from 'path';
-import fs from 'fs';
-
-// Rate limiter: ensures minimum delay between calls
-let lastCall = 0;
-const delays = { leafly: 2000, wikileaf: 1000, picsum: 500 };
-
-function rateLimit(source) {
-  const now = Date.now();
-  const minDelay = delays[source] || 1000;
-  const elapsed = now - lastCall;
-  if (elapsed < minDelay) {
-    const wait = minDelay - elapsed;
-    execSync(`sleep ${wait / 1000}`, { encoding: 'utf-8' });
-  }
-  lastCall = Date.now();
-}
-
-import { execSync } from 'child_process';
+import { createHash } from 'crypto';
 
 /**
- * Attempt to get image URL from Leafly.
- * Returns { url, source } or null.
+ * Searches linhacanabica GitHub repo for matching strain images.
+ * Uses GitHub search API (code search on filenames).
+ * Repo: https://github.com/linhacanabica/images-strains-weed
+ * @param {string} strainName
+ * @returns {Promise<{url: string, filename: string}|null>}
  */
-export async function tryLeafly(slug, name) {
-  rateLimit('leafly');
+export async function findLinhacanabicaImage(strainName) {
+  const searchUrl = 'https://api.github.com/search/code' +
+    '?q=' + encodeURIComponent(strainName + ' repo:linhacanabica/images-strains-weed') +
+    '&per_page=5&type=code';
 
-  const normalizedSlug = normalizeSlug(slug);
-  const url = `https://leafly.com/strains/${normalizedSlug}`;
+  try {
+    const json = execFileSync('curl', [
+      '-s', '-A', 'GreenLog/1.0',
+      '-H', 'Accept: application/vnd.github.v3+json',
+      searchUrl
+    ], { encoding: 'utf-8', timeout: 10000 });
 
-  const ogImage = extractOgImage(url);
-  if (ogImage && (ogImage.includes('leafly') || ogImage.includes('cdn')) && isImageUrl(ogImage)) {
-    return { url: ogImage, source: 'leafly' };
-  }
+    const data = JSON.parse(json);
+    const items = (data.items || []).filter(item =>
+      /\.(?:jpg|jpeg|png)$/i.test(item.name)
+    );
 
-  // Try with name if slug didn't work
-  const nameSlug = normalizeSlug(name);
-  if (nameSlug !== normalizedSlug) {
-    rateLimit('leafly');
-    const nameUrl = `https://leafly.com/strains/${nameSlug}`;
-    const ogImage2 = extractOgImage(nameUrl);
-    if (ogImage2 && isImageUrl(ogImage2)) {
-      return { url: ogImage2, source: 'leafly' };
-    }
-  }
+    if (items.length === 0) return null;
 
-  return null;
-}
+    const firstMatch = items[0];
+    // Convert github.com URL to raw.githubusercontent.com URL
+    const rawUrl = firstMatch.html_url
+      .replace('github.com', 'raw.githubusercontent.com')
+      .replace('/blob/', '/');
 
-/**
- * Attempt to get image URL from Wikileaf.
- * Returns { url, source } or null.
- */
-export async function tryWikileaf(slug, name) {
-  rateLimit('wikileaf');
-
-  const normalizedSlug = normalizeSlug(slug);
-  const url = `https://www.wikileaf.com/strains/${normalizedSlug}/`;
-
-  const ogImage = extractOgImage(url);
-  if (ogImage && isImageUrl(ogImage)) {
-    return { url: ogImage, source: 'wikileaf' };
-  }
-
-  // Try with name
-  const nameSlug = normalizeSlug(name);
-  if (nameSlug !== normalizedSlug) {
-    rateLimit('wikileaf');
-    const nameUrl = `https://www.wikileaf.com/strains/${nameSlug}/`;
-    const ogImage2 = extractOgImage(nameUrl);
-    if (ogImage2 && isImageUrl(ogImage2)) {
-      return { url: ogImage2, source: 'wikileaf' };
-    }
-  }
-
-  return null;
-}
-
-/**
- * Get seeded picsum URL (deterministic per slug).
- * This is always available.
- */
-export function getPicsumUrl(slug) {
-  // Create a deterministic hash from slug
-  let hash = 0;
-  for (let i = 0; i < slug.length; i++) {
-    const char = slug.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  const seed = Math.abs(hash);
-  return `https://picsum.photos/seed/${seed}/600/800`;
-}
-
-function isImageUrl(url) {
-  return /\.(jpg|jpeg|png|webp)(\?|$)/i.test(url) || url.includes('og-image') || url.includes('strain-image');
-}
-```
-
-- [ ] **Step 2: Commit**
-
-```bash
-git add scripts/lib/strain-scrapers.mjs
-git commit -m "feat: add Leafly and Wikileaf scraper modules"
-```
-
----
-
-## Task 5: Supabase Storage Upload Utility
-
-**Files:**
-- Create: `scripts/lib/upload-to-storage.mjs`
-
-- [ ] **Step 1: Write upload utility**
-
-```javascript
-// scripts/lib/upload-to-storage.mjs
-import { createClient } from '@supabase/supabase-js';
-import fs from 'fs';
-
-let supabase = null;
-
-function getSupabase() {
-  if (!supabase) {
-    const { NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
-    supabase = createClient(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-  }
-  return supabase;
-}
-
-/**
- * Uploads a local image file to Supabase Storage 'strains' bucket.
- * Returns the public URL or null on failure.
- */
-export async function uploadToStorage(localPath, slug) {
-  const fileName = `${slug}.jpg`;
-  const fileBuffer = fs.readFileSync(localPath);
-
-  const { data, error } = await getSupabase().storage
-    .from('strains')
-    .upload(fileName, fileBuffer, {
-      contentType: 'image/jpeg',
-      upsert: true, // Overwrite if exists
-    });
-
-  if (error) {
-    console.error(`  Upload error: ${error.message}`);
+    return { url: rawUrl, filename: firstMatch.name };
+  } catch {
     return null;
   }
+}
 
-  // Get public URL
-  const { data: urlData } = getSupabase().storage
-    .from('strains')
-    .getPublicUrl(fileName);
+/**
+ * Downloads a linhacanabica image to a temp file.
+ * @param {string} imageUrl
+ * @returns {Promise<string|null>}
+ */
+export async function downloadLinhacanabicaImage(imageUrl) {
+  const tmpDir = os.tmpdir();
+  const hash = createHash('md5').update(imageUrl).digest('hex');
+  const tmpPath = path.join(tmpDir, `linha-${hash}.jpg`);
 
-  return urlData.publicUrl;
+  try {
+    execFileSync('curl', ['-s', '-L', '-o', tmpPath, imageUrl], { timeout: 20000 });
+    const stats = fs.statSync(tmpPath);
+    if (stats.size > 5000) return tmpPath;
+    fs.unlinkSync(tmpPath);
+  } catch {}
+  return null;
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [ ] **Step 2: Test linhacanabica fetcher**
+
+Run: `node -e "import('./scripts/lib/linhacanabica-fetcher.mjs').then(m => m.findLinhacanabicaImage('OG Kush').then(console.log))"`
+Expected: `{ url: '...', filename: 'og-kush.jpg' }` or null
+
+- [ ] **Step 3: Commit**
 
 ```bash
-git add scripts/lib/upload-to-storage.mjs
-git commit -m "feat: add Supabase Storage upload utility"
+git add scripts/lib/linhacanabica-fetcher.mjs
+git commit -m "feat: add linhacanabica CC0 image fetcher"
 ```
 
 ---
 
-## Task 6: Main Pipeline Script
+## Task 5: Main Pipeline Script
 
 **Files:**
-- Create: `scripts/fetch-strain-images.mjs`
+- Create: `scripts/fetch-authentic-strain-images.mjs`
 
-- [ ] **Step 1: Write the main pipeline script**
+- [ ] **Step 1: Write main pipeline script**
 
 ```javascript
-// scripts/fetch-strain-images.mjs
-/**
- * Strain Image Pipeline
- *
- * Fetches strain images from Leafly → Wikileaf → Picsum fallback.
- * Uploads to Supabase Storage and updates strains.image_url in DB.
- * Resumable via lock-file at scripts/.image-pipeline-lock.json
- *
- * Usage:
- *   node scripts/fetch-strain-images.mjs           # All strains
- *   node scripts/fetch-strain-images.mjs --new     # Only strains without image_url
- *   node scripts/fetch-strain-images.mjs --force   # Re-scrape even processed
- */
-
-import 'dotenv/config';
-import { createClient } from '@supabase/supabase-js';
+// scripts/fetch-authentic-strain-images.mjs
+import dotenv from 'dotenv';
 import fs from 'fs';
-import path from 'path';
-import { readLockFile, writeLockFile, markProcessed, markFailed, isProcessed } from './lib/lock-file.mjs';
-import { tryLeafly, tryWikileaf, getPicsumUrl } from './lib/strain-scrapers.mjs';
-import { downloadImage } from './lib/download-image.mjs';
+import { createClient } from '@supabase/supabase-js';
+import { readLockFile, markProcessed, markFailed, isProcessed } from './lib/lock-file.mjs';
+import { findSeedbankImages, downloadSeedbankImage } from './lib/seedbank-scraper.mjs';
+import { findWikimediaImages, downloadWikimediaImage } from './lib/wikimedia-scraper.mjs';
+import { findLinhacanabicaImage, downloadLinhacanabicaImage } from './lib/linhacanabica-fetcher.mjs';
 import { uploadToStorage } from './lib/upload-to-storage.mjs';
+import { saveAttribution } from './lib/attribution-store.mjs';
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+dotenv.config({ path: '.env.local' });
 
-const args = process.argv.slice(2);
-const newOnly = args.includes('--new');
-const force = args.includes('--force');
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
-const TMP_DIR = path.join(process.cwd(), 'scripts/.tmp-images');
-if (!fs.existsSync(TMP_DIR)) fs.mkdirSync(TMP_DIR, { recursive: true });
+const RATE_LIMIT_MS = 1000; // 1 second between requests
 
-async function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function getAllStrains() {
+  const { data } = await supabase.from('strains').select('id, slug, name');
+  return data || [];
+}
+
+async function cleanupTmp(tmpPath) {
+  try { if (tmpPath) fs.unlinkSync(tmpPath); } catch {}
 }
 
 async function processStrain(strain) {
-  const { id, slug, name } = strain;
+  const { slug, name } = strain;
 
-  if (!force && isProcessed(slug)) {
-    process.stdout.write(`  [SKIP] ${slug} already processed\n`);
-    return;
-  }
-
-  process.stdout.write(`  Processing: ${slug} (${name})\n`);
-
-  let imageUrl = null;
-  let source = null;
-
-  // Step 1: Try Leafly
   try {
-    process.stdout.write(`    → Leafly... `);
-    const result = await tryLeafly(slug, name);
-    if (result) {
-      imageUrl = result.url;
-      source = 'leafly';
-      process.stdout.write(`OK (${result.url.substring(0, 60)}...)\n`);
-    } else {
-      process.stdout.write(`not found\n`);
-    }
-  } catch (e) {
-    process.stdout.write(`error: ${e.message}\n`);
-  }
-
-  // Step 2: Fallback to Wikileaf
-  if (!imageUrl) {
-    try {
-      process.stdout.write(`    → Wikileaf... `);
-      const result = await tryWikileaf(slug, name);
-      if (result) {
-        imageUrl = result.url;
-        source = 'wikileaf';
-        process.stdout.write(`OK\n`);
-      } else {
-        process.stdout.write(`not found\n`);
+    // Priority 1: Seedbank
+    const seedbankImages = await findSeedbankImages(name);
+    for (const img of seedbankImages) {
+      const tmpPath = await downloadSeedbankImage(img.url);
+      if (tmpPath) {
+        const result = await uploadToStorage(tmpPath, slug);
+        await cleanupTmp(tmpPath);
+        if (result.success) {
+          await saveAttribution(slug, { source: 'seedbank', author: img.author, license: img.license, url: img.url });
+          await supabase.from('strains').update({ image_url: result.publicUrl }).eq('slug', slug);
+          markProcessed(slug);
+          return { slug, source: 'seedbank', success: true };
+        }
       }
-    } catch (e) {
-      process.stdout.write(`error: ${e.message}\n`);
     }
+
+    await sleep(RATE_LIMIT_MS);
+
+    // Priority 2: Wikimedia
+    const wikimediaImages = await findWikimediaImages(name);
+    for (const img of wikimediaImages) {
+      const tmpPath = await downloadWikimediaImage(img.url);
+      if (tmpPath) {
+        const result = await uploadToStorage(tmpPath, slug);
+        await cleanupTmp(tmpPath);
+        if (result.success) {
+          await saveAttribution(slug, { source: 'wikimedia', author: img.author, license: img.license, url: img.pageUrl });
+          await supabase.from('strains').update({ image_url: result.publicUrl }).eq('slug', slug);
+          markProcessed(slug);
+          return { slug, source: 'wikimedia', success: true };
+        }
+      }
+    }
+
+    await sleep(RATE_LIMIT_MS);
+
+    // Priority 3: linhacanabica
+    const linhaImage = await findLinhacanabicaImage(name);
+    if (linhaImage) {
+      const tmpPath = await downloadLinhacanabicaImage(linhaImage.url);
+      if (tmpPath) {
+        const result = await uploadToStorage(tmpPath, slug);
+        await cleanupTmp(tmpPath);
+        if (result.success) {
+          await saveAttribution(slug, { source: 'linhacanabica', author: '', license: 'CC0', url: '' });
+          await supabase.from('strains').update({ image_url: result.publicUrl }).eq('slug', slug);
+          markProcessed(slug);
+          return { slug, source: 'linhacanabica', success: true };
+        }
+      }
+    }
+
+    markFailed(slug, 'no_match');
+    return { slug, source: null, success: false };
+  } catch (err) {
+    markFailed(slug, err.message);
+    return { slug, source: null, success: false, error: err.message };
   }
-
-  // Step 3: Fallback to Picsum
-  if (!imageUrl) {
-    imageUrl = getPicsumUrl(slug);
-    source = 'picsum';
-    process.stdout.write(`    → Picsum fallback: ${imageUrl}\n`);
-  }
-
-  // Step 4: Download the image
-  const tmpPath = path.join(TMP_DIR, `${slug}.jpg`);
-  process.stdout.write(`    → Downloading... `);
-
-  const { success, reason } = await downloadImage(imageUrl, tmpPath);
-  if (!success) {
-    process.stdout.write(`FAILED (${reason})\n`);
-    markFailed(slug, `${source}_download_failed: ${reason}`);
-    return;
-  }
-  process.stdout.write(`OK\n`);
-
-  // Step 5: Upload to Supabase Storage
-  process.stdout.write(`    → Uploading to Storage... `);
-  const publicUrl = await uploadToStorage(tmpPath, slug);
-  if (!publicUrl) {
-    process.stdout.write(`FAILED\n`);
-    markFailed(slug, 'storage_upload_failed');
-    return;
-  }
-  process.stdout.write(`OK\n`);
-
-  // Step 6: Update DB
-  process.stdout.write(`    → Updating DB... `);
-  const { error: updateError } = await supabase
-    .from('strains')
-    .update({ image_url: publicUrl })
-    .eq('slug', slug);
-
-  if (updateError) {
-    process.stdout.write(`FAILED (${updateError.message})\n`);
-    markFailed(slug, `db_update_failed: ${updateError.message}`);
-    return;
-  }
-  process.stdout.write(`OK\n`);
-
-  // Step 7: Cleanup tmp file
-  try { fs.unlinkSync(tmpPath); } catch {}
-
-  // Step 8: Mark as processed
-  markProcessed(slug);
-  process.stdout.write(`    ✅ Done!\n`);
 }
 
-async function run() {
-  console.log('🖼️  GreenLog Strain Image Pipeline');
-  console.log(`   Mode: ${newOnly ? 'NEW ONLY' : force ? 'FORCE ALL' : 'ALL (skip if processed)'}`);
-  console.log(`   Lock file: scripts/.image-pipeline-lock.json`);
-  console.log('');
+async function main() {
+  const strains = await getAllStrains();
+  console.log('Processing ' + strains.length + ' strains...');
 
-  // Initialize lock file
-  const lock = readLockFile();
-  if (!lock.lastRun) {
-    lock.lastRun = new Date().toISOString();
-    writeLockFile(lock);
-  }
-
-  // Fetch strains from DB
-  let query = supabase.from('strains').select('id, slug, name, image_url');
-
-  if (newOnly) {
-    // Only strains without image_url or with placeholder refs
-    query = query.or('image_url.is.null,image_url.like.%placeholder%');
-  }
-
-  const { data: strains, error } = await query;
-  if (error) {
-    console.error('DB fetch error:', error.message);
-    process.exit(1);
-  }
-
-  console.log(`Found ${strains.length} strains to process\n`);
-
-  let success = 0;
-  let failed = 0;
-  let skipped = 0;
+  const stats = { seedbank: 0, wikimedia: 0, linhacanabica: 0, no_match: 0 };
 
   for (const strain of strains) {
-    if (!force && isProcessed(strain.slug)) {
-      skipped++;
+    if (isProcessed(strain.slug)) {
+      console.log('  Skip (already processed): ' + strain.slug);
       continue;
     }
 
-    try {
-      await processStrain(strain);
-      success++;
-    } catch (e) {
-      console.error(`    ❌ Unexpected error: ${e.message}`);
-      markFailed(strain.slug, `unexpected: ${e.message}`);
-      failed++;
-    }
+    console.log('  Processing: ' + strain.name + ' (' + strain.slug + ')');
+    const result = await processStrain(strain);
 
-    // Small delay between straines to be nice to servers
-    await sleep(500);
+    if (result.success) {
+      stats[result.source]++;
+      console.log('    OK from ' + result.source);
+    } else {
+      stats.no_match++;
+      console.log('    No match');
+    }
   }
 
-  console.log(`\n🏁 Pipeline complete!`);
-  console.log(`   Success: ${success}`);
-  console.log(`   Failed: ${failed}`);
-  console.log(`   Skipped: ${skipped}`);
-
-  const finalLock = readLockFile();
-  finalLock.lastRun = new Date().toISOString();
-  writeLockFile(finalLock);
+  console.log('\nFinal stats:', stats);
+  console.log('Lock file: scripts/.strain-image-lock.json');
+  console.log('Attribution file: scripts/.image-attributions.json');
 }
 
-run().catch(e => {
-  console.error('Fatal error:', e);
-  process.exit(1);
-});
+main().catch(console.error);
 ```
 
-- [ ] **Step 2: Commit**
+- [ ] **Step 2: Run for first 3 strains to verify**
+
+Run: `node scripts/fetch-authentic-strain-images.mjs` (let it run on first 3 strains, Ctrl+C after)
+
+- [ ] **Step 3: Commit**
 
 ```bash
-git add scripts/fetch-strain-images.mjs
-git commit -m "feat: add strain image pipeline script with Leafly/Wikileaf/Picsum fallback"
+git add scripts/fetch-authentic-strain-images.mjs
+git commit -m "feat: main multi-source image pipeline orchestrator"
 ```
 
 ---
 
-## Task 7: Test the Pipeline
+## Task 6: Wikimedia Attribution in UI
 
 **Files:**
-- Run: `scripts/fetch-strain-images.mjs --dry-run` (erst mal ein Testlauf mit 3 Strains)
+- Modify: `src/app/strains/[slug]/page.tsx` (add attribution display)
+- Modify: `src/types/index.ts` (add image_attribution type)
+- Modify: `src/lib/get-strain.ts` or API route (load attribution from DB)
 
-- [ ] **Step 1: Dry-run with 3 strains to verify everything works**
+- [ ] **Step 1: Add image_attribution to strain type**
 
-```bash
-# First, let's test on just 3 strains to verify the pipeline works
-node -e "
-require('dotenv').config({ path: '.env.local' });
-const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-
-async function test() {
-  // Get 3 strains with no image_url
-  const { data } = await supabase
-    .from('strains')
-    .select('slug, name')
-    .or('image_url.is.null,image_url.like.%placeholder%')
-    .limit(3);
-  console.log(JSON.stringify(data, null, 2));
+In `src/types/index.ts`, extend the Strain interface:
+```typescript
+export interface Strain {
+  // ... existing fields ...
+  image_attribution?: {
+    source: 'seedbank' | 'wikimedia' | 'linhacanabica' | 'none';
+    author?: string;
+    license?: string;
+    url?: string;
+  };
 }
-test().catch(console.error);
-" 2>&1
 ```
 
-- [ ] **Step 2: Run pipeline on test strains (--new flag first)**
+- [ ] **Step 2: Add attribution display in strain page**
 
-```bash
-cd /home/phhttps/Dokumente/Greenlog/GreenLog
-node scripts/fetch-strain-images.mjs --new 2>&1 | head -50
+In `src/app/strains/[slug]/page.tsx`, find the image display section and add below the strain image:
+
+```tsx
+{strain.image_attribution && strain.image_attribution.source !== 'none' && (
+  <p className="text-xs text-gray-500 mt-1">
+    Foto: {strain.image_attribution.author} · {strain.image_attribution.license}
+    {strain.image_attribution.url && (
+      <> · <a href={strain.image_attribution.url} target="_blank" rel="noopener noreferrer" className="underline">Quelle</a></>
+    )}
+  </p>
+)}
 ```
 
-Expected: Processes 3 strains, downloads images, uploads to Supabase Storage, updates DB.
+- [ ] **Step 3: Update DB query to include attribution**
 
-- [ ] **Step 3: Verify DB was updated**
+Add `image_attribution` to the strain SELECT in the strain detail page API/server action.
 
-```bash
-node -e "
-require('dotenv').config({ path: '.env.local' });
-const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-async function verify() {
-  const { data } = await supabase.from('strains').select('slug, name, image_url').limit(5);
-  data.forEach(s => console.log(s.slug + ' -> ' + (s.image_url || 'NO IMAGE').substring(0, 80)));
-}
-verify().catch(console.error);
-" 2>&1
-```
-
-Expected: 3 test strains now have Supabase Storage URLs in `image_url`.
-
----
-
-## Task 8: Full Pipeline Run
-
-**Files:**
-- Run: `scripts/fetch-strain-images.mjs` on all 470 strains
-
-- [ ] **Step 1: Run full pipeline**
+- [ ] **Step 4: Commit**
 
 ```bash
-cd /home/phhttps/Dokumente/Greenlog/GreenLog
-node scripts/fetch-strain-images.mjs 2>&1
-```
-
-Expected output: Processes all 470 strains, Lock-File wächst, DB wird updated.
-
-⚠️ **This will take a while** (~15-25 min at 2s Rate-Limit pro Strain für Leafly).
-
-- [ ] **Step 2: Check results**
-
-```bash
-# Check lock file for stats
-cat scripts/.image-pipeline-lock.json | node -e "
-const data = JSON.parse(require('fs').readFileSync('/dev/stdin','utf-8'));
-console.log('Processed:', data.processed.length);
-console.log('Failed:', data.failed.length);
-console.log('Last run:', data.lastRun);
-if (data.failed.length > 0) {
-  console.log('\\nFailed strains:');
-  data.failed.forEach(f => console.log(' -', f.slug, ':', f.reason));
-}
-"
-
-# Verify images in Storage
-node -e "
-require('dotenv').config({ path: '.env.local' });
-const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-async function check() {
-  const { count } = await supabase.from('strains').select('*', { count: 'exact', head: true }).like('image_url', '%storage%');
-  console.log('Strains with storage URL:', count);
-}
-check().catch(console.error);
-" 2>&1
+git add src/app/strains/[slug]/page.tsx src/types/index.ts
+git commit -m "feat: show image attribution for wikimedia/seedbank images"
 ```
 
 ---
 
-## Spec Coverage Check
+## Task 7: Run Full Pipeline
 
-- [x] **Fallback-Kette Leafly → Wikileaf → Picsum** → Task 4 (strain-scrapers.mjs)
-- [x] **Lock-File für Resume** → Task 1 (lock-file.mjs)
-- [x] **Verify (MIME + Grösse)** → Task 2 (extract-image.mjs verifyImage)
-- [x] **Rate-Limiting** → Task 4 (rateLimit in strain-scrapers.mjs)
-- [x] **Supabase Storage Upload** → Task 5 (upload-to-storage.mjs)
-- [x] **DB-Update** → Task 6 (fetch-strain-images.mjs, Step 6)
-- [x] **Lock-File-Format mit processed/failed** → Task 1
-- [x] **Kein LoremFlickr** → Pipeline nutzt nur Leafly/Wikileaf/Picsum
-- [x] **Supabase Storage als Ziel** → Task 5
+- [ ] **Step 1: Run pipeline for all 470 strains**
 
-## Type Consistency Check
+Run: `node scripts/fetch-authentic-strain-images.mjs`
 
-- `lock-file.mjs` exports: `readLockFile`, `writeLockFile`, `markProcessed`, `markFailed`, `isProcessed`
-- `extract-image.mjs` exports: `extractOgImage`, `normalizeSlug`, `verifyImage`
-- `download-image.mjs` exports: `downloadImage`, `ensureJpeg`
-- `strain-scrapers.mjs` exports: `tryLeafly`, `tryWikileaf`, `getPicsumUrl`
-- `upload-to-storage.mjs` exports: `uploadToStorage`
-- All imports in `fetch-strain-images.mjs` match the above signatures ✅
+- [ ] **Step 2: Review stats**
 
-## Self-Review
+Check output for coverage breakdown. Unmatched strains stay with `image_url = null`.
 
-- No TBDs or TODOs ✅
-- Every step has actual code ✅
-- File paths exact ✅
-- Test commands with expected output ✅
-- Spec requirements mapped to tasks ✅
+---
+
+## Coverage Expectations
+
+| Source | Expected Coverage |
+|--------|-----------------|
+| Seedbank Media Kits | ~80-100 strains |
+| Wikimedia Commons | ~50-100 strains |
+| linhacanabica CC0 | ~50-100 strains |
+| No match (empty) | ~170-270 strains |
+
+Total: 40-60% der 470 Strains mit echten Bud-Fotos.
+
+---
+
+## Dependencies
+
+- curl (CLI) — used by all scrapers
+- Node.js 18+ with ESM support
+- Supabase Storage bucket `strains` (already exists)
+- `.env.local` with `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`
