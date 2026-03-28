@@ -3,6 +3,7 @@ import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth-provider";
 import { OnboardingGuide } from "@/components/onboarding/onboarding-guide";
+import { ThemeInit } from "@/components/theme-init";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -50,21 +51,9 @@ export default function RootLayout({
     >
       <head>
         <meta name="color-scheme" content="dark" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                var theme = localStorage.getItem('cannalog_theme');
-                if (theme === 'light') {
-                  document.documentElement.classList.add('light');
-                  document.documentElement.style.colorScheme = 'light';
-                }
-              })();
-            `,
-          }}
-        />
       </head>
       <body className="h-full bg-[var(--background)] text-[var(--foreground)] overflow-x-hidden font-body">
+        <ThemeInit />
         <AuthProvider>
           <div className="flex h-full flex-col">
             <main className="flex-1 overflow-y-auto overflow-x-hidden">{children}</main>

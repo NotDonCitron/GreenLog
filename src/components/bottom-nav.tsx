@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Home, Leaf, BookMarked, Users, User } from "lucide-react";
@@ -18,6 +18,7 @@ const navItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth();
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [showRequestsModal, setShowRequestsModal] = useState(false);
@@ -25,6 +26,8 @@ export function BottomNav() {
   const handleBadgeClick = () => {
     if (pendingRequestsCount > 0) {
       setShowRequestsModal(true);
+    } else {
+      router.push("/feed");
     }
   };
 
