@@ -23,6 +23,11 @@ function getSupabase() {
  * @returns {Promise<{ success: boolean, publicUrl?: string, error?: string }>}
  */
 export async function uploadToStorage(localPath, slug) {
+  // Validate slug to prevent path traversal
+  if (slug.includes('..') || slug.includes('/') || slug.includes('\\')) {
+    return { success: false, error: 'Invalid slug: path traversal detected' };
+  }
+
   const fileName = `${slug}.jpg`;
   const fileBuffer = fs.readFileSync(localPath);
 
