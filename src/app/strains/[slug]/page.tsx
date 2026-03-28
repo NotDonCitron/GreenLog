@@ -10,6 +10,7 @@ import { ChevronLeft, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Dat
 import { Strain } from "@/lib/types";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeCollectionSource, normalizeTerpeneList } from "@/lib/strain-display";
+import { checkAndUnlockBadges } from "@/lib/badges";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message) {
@@ -225,6 +226,7 @@ export default function StrainDetailPage() {
       if (collectionError) throw collectionError;
 
       setHasCollected(true);
+      await checkAndUnlockBadges(user.id);
       alert("Foto hochgeladen!");
     } catch (error: unknown) {
       alert("Error: " + getErrorMessage(error, "Foto konnte nicht hochgeladen werden."));
@@ -253,6 +255,10 @@ export default function StrainDetailPage() {
 
       if (error) {
         throw error;
+      }
+
+      if (nextState) {
+        await checkAndUnlockBadges(user.id);
       }
     } catch (err) {
       console.error("Fav error:", err);
@@ -290,6 +296,7 @@ export default function StrainDetailPage() {
       if (collectionError) throw collectionError;
 
       setHasCollected(true);
+      await checkAndUnlockBadges(user.id);
       setShowRatingModal(false);
       router.refresh();
     } catch (error: unknown) {

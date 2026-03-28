@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Strain } from "@/lib/types";
+import { checkAndUnlockBadges } from "@/lib/badges";
 
 export default function NewGrowPage() {
   const { user, loading: authLoading } = useAuth();
@@ -102,6 +103,7 @@ export default function NewGrowPage() {
 
       if (insertError) throw insertError;
 
+      await checkAndUnlockBadges(user.id);
       setSuccess(true);
       setTimeout(() => {
         router.push("/grows");

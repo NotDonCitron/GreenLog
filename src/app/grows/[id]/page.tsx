@@ -14,6 +14,7 @@ import {
     CheckCircle2, XCircle, Plus, Leaf, Droplets, Sun, Wind, Upload, Image as ImageIcon
 } from "lucide-react";
 import Link from "next/link";
+import { checkAndUnlockBadges } from "@/lib/badges";
 
 interface Grow {
     id: string;
@@ -135,6 +136,7 @@ export default function GrowDetailPage() {
             if (error) throw error;
             setGrow({ ...grow, title: editTitle, status: editStatus });
             setIsEditing(false);
+            await checkAndUnlockBadges(user.id);
             router.refresh();
         } catch (err) {
             console.error("Error updating grow:", err);

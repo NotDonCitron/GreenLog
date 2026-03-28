@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 export interface BadgeDefinition {
   id: string;
@@ -11,7 +11,7 @@ export interface BadgeDefinition {
 }
 
 export interface BadgeContext {
-  supabase: ReturnType<typeof createClient>;
+  supabase: SupabaseClient;
   userId: string;
 }
 
@@ -119,4 +119,42 @@ export const BADGE_CRITERIA: Record<string, BadgeCriteria> = {
 
 export function getBadgeById(id: string): BadgeDefinition | undefined {
   return ALL_BADGES.find(b => b.id === id);
+}
+
+export async function checkAndUnlockBadges(userId: string) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { data: unlockedBadges } = await supabase
+    .from('user_badges')
+    .select('badge_id')
+    .eq('user_id', userId);
+
+  const unlockedSet = new Set(unlockedBadges?.map(b => b.badge_id) || []);
+  const newlyUnlocked: string[] = [];
+
+  for (const badge of ALL_BADGES) {
+    if (unlockedSet.has(badge.id)) continue;
+
+    const criteriaFn = BADGE_CRITERIA[badge.criteriaKey];
+    if (!criteriaFn) continue;
+
+    try {
+      const qualifies = await criteriaFn({ supabase, userId });
+      if (qualifies) {
+        const { error } = await supabase
+          .from('user_badges')
+          .insert({ user_id: userId, badge_id: badge.id });
+        if (!error) {
+          newlyUnlocked.push(badge.id);
+        }
+      }
+    } catch (err) {
+      console.error(`Error checking badge ${badge.id}:`, err);
+    }
+  }
+
+  return newlyUnlocked;
 }
