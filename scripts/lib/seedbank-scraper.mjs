@@ -32,11 +32,13 @@ export async function findSeedbankImages(strainName) {
 export async function downloadSeedbankImage(imageUrl) {
   const tmpDir = os.tmpdir();
   const hash = createHash('md5').update(imageUrl).digest('hex');
-  const ext = imageUrl.toLowerCase().includes('.webp') ? 'webp' : 'jpg';
+  // Sensi Seeds thumbnails have _20, _100, _800 suffixes - remove to get full-size image
+  const fullUrl = imageUrl.replace(/_[0-9]+\.(webp|jpg|png)$/, '.$1');
+  const ext = fullUrl.toLowerCase().includes('.webp') ? 'webp' : 'jpg';
   const tmpPath = path.join(tmpDir, `seedbank-${hash}.${ext}`);
 
   try {
-    execFileSync('curl', ['-s', '-L', '-o', tmpPath, imageUrl], { timeout: 15000 });
+    execFileSync('curl', ['-s', '-L', '-o', tmpPath, fullUrl], { timeout: 15000 });
     const stats = fs.statSync(tmpPath);
     if (stats.size > 5000) return tmpPath;
     try { fs.unlinkSync(tmpPath); } catch {}
