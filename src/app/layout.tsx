@@ -23,6 +23,10 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "CannaLog",
   },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {

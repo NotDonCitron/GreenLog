@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { X, Zap, Image as ImageIcon, Camera, Loader2, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { createWorker } from "tesseract.js";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -21,6 +20,7 @@ export default function ScannerPage() {
   useEffect(() => {
     async function initWorker() {
       try {
+        const { createWorker } = await import("tesseract.js");
         const worker = await createWorker('deu+eng');
         workerRef.current = worker;
         console.log("OCR Worker bereit");
