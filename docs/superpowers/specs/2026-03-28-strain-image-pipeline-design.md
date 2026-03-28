@@ -1,137 +1,132 @@
 # Strain Image Pipeline Design
+## Multi-Quelle Authentische Bud-Fotos — Kosten: €0
 
 ## Status
-Draft — in Brainstorming
+Draft — nach Brainstorming
 
 ## Problem
 
-GreenLog zeigt bei manchen Strains Placeholder-Bilder oder unspezifische Stock-Fotos (LoremFlickr), die nicht als Cannabis-Buds erkennbar sind. Das sieht auf einer B2B-Plattform für Clubs und Apotheken unprofessionell aus.
+GreenLog zeigt bei manchen Strains Placeholder-Bilder oder unspezifische Stock-Fotos. Das sieht auf einer B2B-Plattform für Clubs und Apotheken unprofessionell aus. Die alte Pipeline (Leafly → Wikileaf → Picsum) liefert wegen JS-Rendering und Anti-Bot-Schutz keine strain-spezifischen Bilder.
 
-### Aktueller Stand
-- 470 Strains in DB
-- 441 JPGs in `public/strains/` (LoremFlickr-Downloads — keine strain-spezifischen Bilder)
-- 6 test/admin-Strains komplett ohne Bild
-- Fallback-Kette: Leafly → LoremFlickr (LoremFlickr ist visuell nicht akzeptabel)
-- Kein Qualitäts-Filter, kein Resume bei Abbruch
+**Ziel**: Echte Cannabis Bud-Fotos von 470+ Strains, ohne neue Kosten.
 
 ---
 
 ## Design
 
-### 1. Architektur
+### 1. Drei kostenlose Quellen (Prioritätsreihenfolge)
 
-**Storage:** Supabase Storage (`strains` Bucket) statt `public/strains/`
-- Vorteil: CDN-Distribution, keine Git-Tracking, Zugriffskontrolle
-- Access: Public für alle (read-only über public URL)
+| Priority | Source | Type | Coverage | Quality | Cost |
+|----------|--------|------|----------|---------|------|
+| 1 | Seedbank Media Kits | Dutch Passion, RQS, Sensi Seeds | ~80-100 Strains (Original-Genetiken) | Studio ★★★★★ | €0 |
+| 2 | Wikimedia Commons | Makro-Aufnahmen, CC BY-SA | Strain-spezifisch, variiert | Hoch ★★★★ | €0 |
+| 3 | GitHub linhacanabica | 10GB CC0 Archiv | 470+ Strains | Mix ★★★ | €0 |
 
-**Pipeline-Script:** `scripts/fetch-strain-images.mjs`
-- Ablöse des bestehenden `scripts/download-missing-images.mjs`
-- Resumable via Lock-Tracking in `scripts/.image-pipeline-lock.json`
-- Bestehende Bilder werden nicht gelöscht (bleiben in `public/strains/` als Backup)
+**Kritische Einschränkung**: linhacanabica enthält eine Mischung aus echten Bud-Fotos und generischen Stock-Bildern. Nur botanisch plausible Fotos werden behalten.
 
-**DB-Feld:** `strains.image_url` wird zur Supabase-Storage-URL:
-```
-https://uwjyvvvykyueuxtdkscs.supabase.co/storage/v1/object/public/strains/{slug}.jpg
-```
-
-### 2. Image Source Strategy (Fallback-Kette)
-
-| Priority | Source | URL-Pattern | Rate-Limit |
-|----------|--------|-------------|------------|
-| 1 | Leafly | `og:image` meta tag von `leafly.com/strains/{slug}` | 1 req / 2s |
-| 2 | Wikileaf | `og:image` meta tag von `wikileaf.com/strains/{slug}` | 1 req / 1s |
-| 3 | Picsum Photos | `picsum.photos/seed/{slug-hash}/600/800` | 1 req / 500ms |
-
-**Slug-Mapping:** Bei 404 auf `{slug}` → Retry mit `slug` transformed via `name.toLowerCase().replace(/[^a-z0-9]+/g, '-')`
-
-**LoremFlickr wird komplett entfernt** — liefert unpassende Stock-Fotos.
-
-### 3. Pipeline-Ablauf
+### 2. Pipeline-Ablauf
 
 ```
-FÜR JEDEN Strain in DB:
+FÜR JEDEN Strain in DB (470 Strains):
 
-  1. Prüfe .image-pipeline-lock.json:
-     → Wenn slug already processed, skip
+  1. Seedbank Match?
+     → Hole Seedbank Media Kit ZIPs (Dutch Passion, RQS, Sensi Seeds)
+     → Prüfe ob Strain-Name im ZIP enthalten ist (case-insensitive)
+     → Wenn ja → beste Resolution verwenden → √
 
-  2. Baue Leafly-URL:
-     leafly.com/strains/{normalized-slug}
-     Hole og:image via curl
-     Rate-Limit: 2s warten zwischen requests
+  2. Falls kein Seedbank-Match → Wikimedia Match?
+     → Suche "Cannabis {strain_name} bud" auf Wikimedia
+     → Regex: /wp-content/uploads/.*\.(jpg|jpeg|png)/i
+     → Visuell plausibel? → √
 
-     Bei 404 → Retry mit alternate slug (name-based)
+  3. Falls kein Wikimedia-Match → linhacanabica Fuzzy Match?
+     → Strain-Name → Datei-Name Fuzzy Match (Levenshtein-Distance < 3)
+     → Bild-Analyse: hat Bud-Form? hat Trichome-Textur?
+     → Wenn botanisch plausibel → √
 
-  3. Fallback → Wikileaf:
-     wikileaf.com/strains/{normalized-slug}
-     Hole og:image
-     Rate-Limit: 1s warten
+  4. Kein Match → LEER (kein Placeholder)
+     → Strain-Seite zeigt Placeholder-SVG
+     → Bild bleibt null
 
-  4. Fallback → Picsum:
-     picsum.photos/seed/{slug-hash}/600/800
-     Immer funktioniert, konsistente neutrale Bilder
+  5. Download & Upload zu Supabase Storage:
+     → Lock-File: `scripts/.strain-image-lock.json`
+     → Resume-fähig bei Abbruch
+     → Rate-Limit: 1 req/s
 
-  5. Verify:
-     - MIME-Type: image/jpeg oder image/png?
-     - Dateigrösse: > 5KB?
-     → Wenn fails → nächstes Fallback
-
-  6. Upload zu Supabase Storage:
-     Bucket: 'strains'
-     Pfad: '{slug}.jpg'
-     Content-Type: image/jpeg
-
-  7. Update DB:
-     UPDATE strains SET image_url = Storage-URL WHERE slug = {slug}
-
-  8. Markiere in .image-pipeline-lock.json als processed
+  6. Update DB:
+     → UPDATE strains SET image_url = '{supabase-storage-url}' WHERE slug = '{slug}'
 ```
 
-**Concurrency:** Max 1 Request gleichzeitig (strict rate-limiting)
+### 3. Lock-File Format
 
-**Resume-Fähigkeit:** Lock-File ermöglicht Resume bei Abbruch ohne Doppel-Arbeit.
-
-### 4. Lock-File Format
-
-`scripts/.image-pipeline-lock.json`:
+`scripts/.strain-image-lock.json`:
 ```json
 {
   "lastRun": "2026-03-28T12:00:00Z",
-  "processed": ["slug-1", "slug-2"],
+  "processed": ["ak-47", "og-kush"],
   "failed": [
-    { "slug": "slug-3", "reason": "leafly_404 wikileaf_404 picsum_failed" }
-  ]
+    { "slug": "rare-strain-x", "reason": "no_match" }
+  ],
+  "seedbank_coverage": 87,
+  "wikimedia_coverage": 124,
+  "linhacanabica_coverage": 45,
+  "unmatched": 214
 }
 ```
 
-### 5. Qualitätssicherung
+### 4. Qualitätssicherung
 
-- **MIME-Check:** Nur `image/jpeg`, `image/png`, `image/webp` akzeptiert
-- **Grössen-Check:** Datei muss > 5KB sein
-- **Picsum-Fallback ist bewusst "gut genug":** Neutrale Ästhetik, nicht cringe wie LoremFlickr
-- **Rate-Limiting:** Feste Delays zwischen Requests schützen vor IP-Sperren (2s Leafly, 1s Wikileaf, 500ms Picsum)
+**Seedbank Media Kits:**
+- Direkter Download von .zip-Dateien der Züchter
+- strain-name Matching via CSV-Mapping (Züchter-Name → Strain-Name)
+- Original-Auflösung behalten
 
-### 6. Cron/Automation (Optional für später)
+**Wikimedia Commons:**
+- Regex-Filter: Nur Bud-Fotos, keine Illustrationen
+- Ausschluss: `3D render`, `cartoon`, `icon`, `logo`, `seedling`
+- Attribution-Pflicht: UI muss "Foto: {Autor}, CC BY-SA 4.0" unter dem Bild zeigen → **UI-Task: Attribution-Hinweis einbauen**
 
-Pipeline kann als separater Cron-Job laufen:
-```bash
-# Täglich um 3 Uhr neue Strains scrapen
-0 3 * * * cd /home/phhttps/Dokumente/Greenlog/GreenLog && node scripts/fetch-strain-images.mjs --new-only
-```
+**linhacanabica:**
+- Datei-Matching: Nur wenn Dateiname exakt oder fuzzy-match auf Strain-Name (Levenshtein < 5)
+- Visuelle Plausibilitäts-Checks (semi-automatisch):
+  - Bild ist > 200x200px
+  - Aspect Ratio: 1:1 bis 4:3 (Bud-Form)
+  - Keine Illustrationen/Screenshot/3D-Render
+- Rest wird nicht heruntergeladen
 
-Flag `--new-only`: Nur Strains ohne gültiges image_url oder mit placeholder-Referenz.
+### 5. Was GreenLog bekommt
+
+| Coverage | Strains | Bildquelle |
+|----------|---------|------------|
+| ~100 Strains | Echte Studio-Fotos | Seedbank Media Kits |
+| ~50-100 Strains | Echte Bud-Fotos | Wikimedia |
+| ~50-100 Strains | Echte Bud-Fotos | linhacanabica (verifiziert) |
+| ~170-270 Strains | leer (Placeholder-SVG) | — |
+
+**Erwartetes Ergebnis**: 40-60% der 470 Strains mit echten, rechtssicheren Bud-Fotos.
+
+### 6. Nicht in Scope
+
+- KI-Placeholders (User will lückenhaft, nicht synthetisch)
+- Community-Upload (Phase später, wenn kritische Masse erreicht)
+- Leafly-Scraping (Anti-Bot zu aufwendig für 2026)
+- Alte Pipeline-Scripts (`fetch-strain-images.mjs`, `lib/strain-scrapers.mjs`) bleiben unberührt aber inaktiv
 
 ---
 
 ## Offene Fragen / Annahmen
 
-1. **Supabase Storage Bucket `strains` muss existieren** — wird vor dem ersten Lauf angelegt
-2. **Service Role Key** in `.env.local` ist vorhanden (ist der Fall)
-3. **Leafly/Wikileaf crawling** ist für einmaligen Bulk-Download akzeptabel (nicht für tägliches Scraping)
+1. **Seedbank Media Kits** — Download-URLs müssen verifiziert werden (sind öffentlich auf den PR-Seiten)
+2. **Wikimedia Attribution** — UI muss Quellenangabe unter jedem Wikimedia-Bild zeigen
+3. **linhacanabica** — 10GB GitHub-LFS, nur relevante Dateien downloaden (nicht das ganze Repo)
+4. **Supabase Storage** — Bucket `strains` existiert bereits (aus alter Pipeline)
 
 ---
 
-## Nicht in Scope
+## Implementierungsreihenfolge
 
-- User-Upload-Flow (existiert bereits in `/strains/[slug]/page.tsx`)
-- Migration der 441 bestehenden lokalen Bilder nach Supabase Storage (bleiben in `public/strains/` als lokaler Cache)
-- Automatisches re-scraping bei Leafly-URL-Änderungen
+1. Seedbank Media Kits scripten (einfachster Start, höchste Qualität)
+2. Wikimedia scraper bauen
+3. linhacanabica fuzzy-matcher integrieren
+4. Lock-File + DB-Update
+5. Qualitäts-Check / Review der heruntergeladenen Bilder
