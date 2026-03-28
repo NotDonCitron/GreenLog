@@ -1,8 +1,292 @@
 -- =============================================
 -- GreenLog Database Schema
+-- Last synced: 2026-03-28
+-- NOTE: Tables marked with [MISSING] don't exist in DB yet
 -- =============================================
 
--- 1. PROFILES (extends Supabase Auth)
+-- =============================================
+-- 0. ORGANIZATIONS (Clubs, Apotheken)
+-- =============================================
+
+CREATE TABLE organizations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  organization_type TEXT CHECK (organization_type IN ('club', 'pharmacy')) NOT NULL,
+  license_number TEXT,
+  status TEXT CHECK (status IN ('active', 'inactive', 'pending')) DEFAULT 'active',
+  created_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  avatar_url TEXT,
+  description TEXT,
+  logo_url TEXT
+);
+
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+
+-- Organizations sind öffentlich sichtbar (für B2B Plattform)
+CREATE POLICY "Organizations are viewable by everyone"
+  ON organizations FOR SELECT USING (true);
+
+CREATE POLICY "Authenticated users can create organizations"
+  ON organizations FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Founders and admins can update organizations"
+  ON organizations FOR UPDATE USING (
+    auth.uid() = created_by
+    OR EXISTS (
+      SELECT 1 FROM organization_members
+      WHERE organization_id = organizations.id
+      AND user_id = auth.uid()
+      AND role IN ('gründer', 'admin')
+      AND membership_status = 'active'
+    )
+  );
+
+CREATE POLICY "Founders can delete organizations"
+  ON organizations FOR DELETE USING (auth.uid() = created_by);
+
+CREATE INDEX idx_organizations_slug ON organizations(slug);
+CREATE INDEX idx_organizations_type ON organizations(organization_type);
+
+
+-- =============================================
+-- 1. ORGANIZATION_MEMBERS
+-- =============================================
+
+CREATE TABLE organization_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  role TEXT CHECK (role IN ('gründer', 'admin', 'member', 'viewer')) NOT NULL DEFAULT 'member',
+  membership_status TEXT CHECK (membership_status IN ('active', 'invited', 'removed')) DEFAULT 'active',
+  joined_at TIMESTAMPTZ DEFAULT now(),
+  invited_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(organization_id, user_id)
+);
+
+ALTER TABLE organization_members ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Members can view own membership"
+  ON organization_members FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Members can view org members"
+  ON organization_members FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM organization_members AS m
+      WHERE m.organization_id = organization_members.organization_id
+      AND m.user_id = auth.uid()
+      AND m.membership_status = 'active'
+    )
+  );
+
+CREATE POLICY "Admins can add members"
+  ON organization_members FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM organization_members AS m
+      WHERE m.organization_id = organization_members.organization_id
+      AND m.user_id = auth.uid()
+      AND m.role IN ('gründer', 'admin')
+      AND m.membership_status = 'active'
+    )
+  );
+
+CREATE POLICY "Members can update own membership, admins can update any"
+  ON organization_members FOR UPDATE USING (
+    auth.uid() = user_id
+    OR EXISTS (
+      SELECT 1 FROM organization_members AS m
+      WHERE m.organization_id = organization_members.organization_id
+      AND m.user_id = auth.uid()
+      AND m.role IN ('gründer', 'admin')
+      AND m.membership_status = 'active'
+    )
+  );
+
+CREATE POLICY "Members can leave, admins can remove"
+  ON organization_members FOR DELETE USING (
+    auth.uid() = user_id
+    OR EXISTS (
+      SELECT 1 FROM organization_members AS m
+      WHERE m.organization_id = organization_members.organization_id
+      AND m.user_id = auth.uid()
+      AND m.role IN ('gründer', 'admin')
+      AND m.membership_status = 'active'
+    )
+  );
+
+CREATE INDEX idx_org_members_org ON organization_members(organization_id);
+CREATE INDEX idx_org_members_user ON organization_members(user_id);
+
+
+-- =============================================
+-- 2. ORGANIZATION_INVITES
+-- =============================================
+
+CREATE TABLE organization_invites (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
+  email TEXT NOT NULL,
+  role TEXT CHECK (role IN ('admin', 'member', 'viewer')) NOT NULL DEFAULT 'member',
+  token_hash TEXT,
+  status TEXT CHECK (status IN ('pending', 'accepted', 'expired', 'revoked')) DEFAULT 'pending',
+  expires_at TIMESTAMPTZ,
+  accepted_at TIMESTAMPTZ,
+  invited_by UUID REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE organization_invites ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admins see org invites, inviters see own"
+  ON organization_invites FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM organization_members AS m
+      WHERE m.organization_id = organization_invites.organization_id
+      AND m.user_id = auth.uid()
+      AND m.role IN ('gründer', 'admin')
+      AND m.membership_status = 'active'
+    )
+    OR invited_by = auth.uid()
+  );
+
+CREATE POLICY "Admins can create invites"
+  ON organization_invites FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM organization_members AS m
+      WHERE m.organization_id = organization_invites.organization_id
+      AND m.user_id = auth.uid()
+      AND m.role IN ('gründer', 'admin')
+      AND m.membership_status = 'active'
+    )
+  );
+
+CREATE POLICY "Admins can revoke invites"
+  ON organization_invites FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM organization_members AS m
+      WHERE m.organization_id = organization_invites.organization_id
+      AND m.user_id = auth.uid()
+      AND m.role IN ('gründer', 'admin')
+      AND m.membership_status = 'active'
+    )
+  );
+
+CREATE POLICY "Admins can delete invites"
+  ON organization_invites FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM organization_members AS m
+      WHERE m.organization_id = organization_invites.organization_id
+      AND m.user_id = auth.uid()
+      AND m.role IN ('gründer', 'admin')
+      AND m.membership_status = 'active'
+    )
+  );
+
+CREATE INDEX idx_org_invites_org ON organization_invites(organization_id);
+CREATE INDEX idx_org_invites_email ON organization_invites(email);
+
+
+-- =============================================
+-- 3. FOLLOWS (User Follows)
+-- =============================================
+
+CREATE TABLE follows (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  follower_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  following_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(follower_id, following_id)
+);
+
+ALTER TABLE follows ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Follows are viewable by everyone"
+  ON follows FOR SELECT USING (true);
+
+CREATE POLICY "Users can follow"
+  ON follows FOR INSERT WITH CHECK (auth.uid() = follower_id);
+
+CREATE POLICY "Users can unfollow"
+  ON follows FOR DELETE USING (auth.uid() = follower_id);
+
+CREATE INDEX idx_follows_follower ON follows(follower_id);
+CREATE INDEX idx_follows_following ON follows(following_id);
+
+
+-- =============================================
+-- 4. FOLLOW_REQUESTS (Private Profile Follows)
+-- =============================================
+
+CREATE TABLE follow_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  requester_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  target_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  status TEXT CHECK (status IN ('pending', 'accepted', 'rejected')) DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(requester_id, target_id)
+);
+
+ALTER TABLE follow_requests ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users see own requests"
+  ON follow_requests FOR SELECT USING (auth.uid() = requester_id OR auth.uid() = target_id);
+
+CREATE POLICY "Users can send follow requests"
+  ON follow_requests FOR INSERT WITH CHECK (auth.uid() = requester_id);
+
+CREATE POLICY "Target can accept/decline"
+  ON follow_requests FOR UPDATE USING (auth.uid() = target_id);
+
+CREATE POLICY "Requester or target can delete"
+  ON follow_requests FOR DELETE USING (auth.uid() = requester_id OR auth.uid() = target_id);
+
+CREATE INDEX idx_follow_requests_requester ON follow_requests(requester_id);
+CREATE INDEX idx_follow_requests_target ON follow_requests(target_id);
+
+
+-- =============================================
+-- 5. USER_ACTIVITIES (Activity Feed)
+-- =============================================
+
+CREATE TABLE user_activities (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  activity_type TEXT NOT NULL,
+  target_id TEXT,
+  target_name TEXT,
+  target_image_url TEXT,
+  metadata JSONB DEFAULT '{}',
+  is_public BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE user_activities ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public activities viewable by all"
+  ON user_activities FOR SELECT USING (is_public = true OR auth.uid() = user_id);
+
+CREATE POLICY "Users can create activities"
+  ON user_activities FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own activities"
+  ON user_activities FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own activities"
+  ON user_activities FOR DELETE USING (auth.uid() = user_id);
+
+CREATE INDEX idx_user_activities_user ON user_activities(user_id);
+CREATE INDEX idx_user_activities_type ON user_activities(activity_type);
+CREATE INDEX idx_user_activities_public ON user_activities(is_public);
+
+
+-- =============================================
+-- 6. PROFILES (extends Supabase Auth)
+-- =============================================
 CREATE TABLE profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username TEXT UNIQUE NOT NULL,
@@ -25,7 +309,9 @@ CREATE POLICY "Users can insert own profile"
   ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 
--- 2. STRAINS (Cannabis-Sorten)
+-- =============================================
+-- 7. STRAINS (Cannabis-Sorten)
+-- =============================================
 CREATE TABLE strains (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
@@ -53,7 +339,9 @@ CREATE POLICY "Authenticated users can add strains"
   ON strains FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
 
--- 3. RATINGS (Bewertungen)
+-- =============================================
+-- 8. RATINGS (Bewertungen)
+-- =============================================
 CREATE TABLE ratings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   strain_id UUID REFERENCES strains(id) ON DELETE CASCADE NOT NULL,
@@ -85,7 +373,9 @@ CREATE POLICY "Users can delete own ratings"
   ON ratings FOR DELETE USING (auth.uid() = user_id);
 
 
--- 4. GROWS (Grow-Tagebuch)
+-- =============================================
+-- 9. GROWS (Grow-Tagebuch)
+-- =============================================
 CREATE TABLE grows (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
@@ -118,7 +408,9 @@ CREATE POLICY "Users can delete own grows"
   ON grows FOR DELETE USING (auth.uid() = user_id);
 
 
--- 5. GROW ENTRIES (Tagebuch-Einträge)
+-- =============================================
+-- 10. GROW ENTRIES (Tagebuch-Einträge)
+-- =============================================
 CREATE TABLE grow_entries (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   grow_id UUID REFERENCES grows(id) ON DELETE CASCADE NOT NULL,
@@ -155,7 +447,9 @@ CREATE POLICY "Users can delete own entries"
   ON grow_entries FOR DELETE USING (auth.uid() = user_id);
 
 
--- 6. VIEWS & INDEXES for Performance
+-- =============================================
+-- 11. VIEWS
+-- =============================================
 
 -- Average rating per strain
 CREATE VIEW strain_ratings AS
@@ -179,7 +473,9 @@ CREATE INDEX idx_strains_slug ON strains(slug);
 CREATE INDEX idx_strains_type ON strains(type);
 
 
--- 7. USER STRAIN RELATIONS (Favorites/Wishlist)
+-- =============================================
+-- 12. USER STRAIN RELATIONS (Favorites/Wishlist) [MISSING in DB]
+-- =============================================
 CREATE TABLE user_strain_relations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
@@ -209,7 +505,9 @@ CREATE INDEX idx_user_strain_relations_user ON user_strain_relations(user_id);
 CREATE INDEX idx_user_strain_relations_strain ON user_strain_relations(strain_id);
 
 
--- 8. USER BADGES
+-- =============================================
+-- 13. USER BADGES [MISSING in DB]
+-- =============================================
 CREATE TABLE user_badges (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
@@ -232,7 +530,9 @@ CREATE POLICY "Users can delete own badges"
 CREATE INDEX idx_user_badges_user ON user_badges(user_id);
 
 
--- 9. USER COLLECTION (Private notes, batch info, personal data)
+-- =============================================
+-- 14. USER COLLECTION (Private notes, batch info, personal data)
+-- =============================================
 CREATE TABLE user_collection (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
