@@ -61,6 +61,7 @@ const FEEDBACK_BUTTON_USER_IDS = [
   "236a110e-0dbe-4500-97db-edf100158e4f",
 ];
 import { FollowersListModal } from "@/components/social/followers-list-modal";
+import { BadgeShowcase } from "@/components/profile/badge-showcase";
 import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
@@ -148,6 +149,7 @@ export default function ProfilePage() {
   const [savingOrder, setSavingOrder] = useState(false);
   const [selectedFavoriteIndex, setSelectedFavoriteIndex] = useState<number | null>(null);
   const [showBadgeEdit, setShowBadgeEdit] = useState(false);
+  const [showBadgeShowcase, setShowBadgeShowcase] = useState(false);
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const currentUserId = user?.id ?? "";
 
@@ -693,12 +695,24 @@ export default function ProfilePage() {
               })
             )}
             {!showBadgeEdit && viewModel.badges.length > 4 && (
-              <button className="text-[10px] text-[var(--muted-foreground)] whitespace-nowrap">
+              <button
+                onClick={() => setShowBadgeShowcase(true)}
+                className="text-[10px] text-[var(--muted-foreground)] whitespace-nowrap"
+              >
                 +{viewModel.badges.length - 4} mehr
               </button>
             )}
           </div>
         </div>
+
+        {showBadgeShowcase && (
+          <BadgeShowcase
+            userBadges={viewModel.badges.map(b => ({ badge_id: b.id }))}
+            featuredBadges={selectedBadges}
+            onSelect={(id) => handleBadgeToggle(id)}
+            onClose={() => setShowBadgeShowcase(false)}
+          />
+        )}
 
         {/* Community Section */}
         <section>
