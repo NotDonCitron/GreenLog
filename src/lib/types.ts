@@ -59,6 +59,12 @@ export interface Strain {
   cbd_min?: number;
   cbd_max?: number;
   image_url?: string;
+  image_attribution?: {
+    source: 'seedbank' | 'wikimedia' | 'linhacanabica' | 'none';
+    author?: string;
+    license?: string;
+    url?: string;
+  };
   description?: string;
   terpenes?: (string | Terpene)[];
   flavors?: string[];
