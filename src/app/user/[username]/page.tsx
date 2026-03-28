@@ -55,7 +55,8 @@ function formatDate(dateString: string): string {
 
 interface UserBadgeWithDetails {
     id: string;
-    badges: {
+    badge_id: string;
+    badges?: {
         name: string;
         icon_url: string | null;
     } | null;
@@ -164,7 +165,7 @@ export default function UserProfilePage() {
                 supabase.from("grows").select("*, strains:strain_id (*)").eq("user_id", profileData.id).eq("is_public", true).limit(10),
                 supabase.from("user_collection").select("batch_info, user_notes, user_thc_percent, user_cbd_percent, user_image_url, date_added, strain:strains (*)").eq("user_id", profileData.id).order("date_added", { ascending: false }).limit(24),
                 supabase.from("user_activities").select("*").eq("user_id", profileData.id).eq("is_public", true).order("created_at", { ascending: false }).limit(20),
-                supabase.from("user_badges").select("*, badges(*)").eq("user_id", profileData.id)
+                supabase.from("user_badges").select("*").eq("user_id", profileData.id)
             ]);
 
             // Process follow status
@@ -385,8 +386,10 @@ export default function UserProfilePage() {
                         <div className="flex w-full max-w-full gap-3 overflow-x-auto no-scrollbar pb-2">
                             {userBadges.map((ub) => {
                                 const badge = ub.badges;
-                                if (!badge) return null;
-                                const Icon = resolveBadgeIcon(badge.icon_url || "starter");
+                                const badgeName = badge?.name || ub.badge_id?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Badge';
+                                const iconKey = badge?.icon_url || "starter";
+                                if (!badgeName) return null;
+                                const Icon = resolveBadgeIcon(iconKey);
 
                                 return (
                                     <div
@@ -397,7 +400,7 @@ export default function UserProfilePage() {
                                             <Icon size={24} />
                                         </div>
                                         <p className="text-[8px] font-black uppercase tracking-tighter text-[var(--foreground)] truncate w-full text-center">
-                                            {badge.name}
+                                            {badgeName}
                                         </p>
                                     </div>
                                 );

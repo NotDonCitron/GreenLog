@@ -308,7 +308,7 @@ export default function ProfilePage() {
         supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", user?.id),
         supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", user?.id),
         supabase.from("user_strain_relations").select("*, strains:strain_id (*)").eq("user_id", user?.id).eq("is_favorite", true).order("position", { ascending: true }).limit(5),
-        supabase.from("user_badges").select("badges(*)").eq("user_id", user?.id)
+        supabase.from("user_badges").select("*").eq("user_id", user?.id)
       ]);
 
       const favoriteIds = (favsRes.data || []).map(f => (f.strains as any)?.id).filter(Boolean);
@@ -349,15 +349,17 @@ export default function ProfilePage() {
       }).filter((f): f is ProfileFavorite => !!f);
 
       const badges: ProfileBadge[] = (badgesRes.data || []).map(b => {
-        const badge = (b as any).badges;
+        // Use badge_id as the badge identifier since there's no badges table
+        const badgeId = (b as any).badge_id;
+        if (!badgeId) return null;
         return {
-          id: badge.id,
-          name: badge.name,
-          description: badge.description,
-          iconKey: badge.icon_url || "starter",
-          rarity: badge.rarity || "common"
+          id: badgeId,
+          name: badgeId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+          description: 'Achievement unlocked',
+          iconKey: "starter",
+          rarity: "common"
         };
-      });
+      }).filter((b): b is ProfileBadge => b !== null);
       const identity: ProfileIdentity = {
         email: user?.email ?? null,
         username: `@${profileRes.data?.username || "user"}`,
