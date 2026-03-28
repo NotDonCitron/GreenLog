@@ -120,12 +120,12 @@ export function FollowRequestsModal({ isOpen, onClose }: { isOpen: boolean; onCl
             <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 max-w-lg mx-auto bg-[#1a1a1a] rounded-2xl overflow-hidden shadow-2xl">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-white/10">
-                    <h2 className="text-lg font-bold text-white">Follow Requests</h2>
+                    <h2 className="text-lg font-bold text-[var(--foreground)]">Follow Requests</h2>
                     <button
                         onClick={onClose}
                         className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
                     >
-                        <X size={18} className="text-white" />
+                        <X size={18} className="text-[var(--foreground)]" />
                     </button>
                 </div>
 
@@ -133,11 +133,11 @@ export function FollowRequestsModal({ isOpen, onClose }: { isOpen: boolean; onCl
                 <div className="max-h-[400px] overflow-y-auto">
                     {isLoading ? (
                         <div className="flex items-center justify-center py-12">
-                            <Loader2 size={24} className="animate-spin text-white/40" />
+                            <Loader2 size={24} className="animate-spin text-[var(--foreground)]/40" />
                         </div>
                     ) : requests.length === 0 ? (
                         <div className="text-center py-12">
-                            <p className="text-white/60 text-sm">No pending follow requests</p>
+                            <p className="text-[var(--foreground)]/60 text-sm">No pending follow requests</p>
                         </div>
                     ) : (
                         <div className="divide-y divide-white/5">
@@ -154,15 +154,15 @@ export function FollowRequestsModal({ isOpen, onClose }: { isOpen: boolean; onCl
 
                                     <div className="flex-1 min-w-0">
                                         <Link href={`/user/${request.requester.username}`} onClick={onClose}>
-                                            <p className="font-semibold text-white truncate">
+                                            <p className="font-semibold text-[var(--foreground)] truncate">
                                                 {request.requester.display_name || request.requester.username}
                                             </p>
-                                            <p className="text-xs text-white/50">
+                                            <p className="text-xs text-[var(--foreground)]/50">
                                                 @{request.requester.username}
                                             </p>
                                         </Link>
                                         {request.requester.bio && (
-                                            <p className="text-xs text-white/60 mt-1 line-clamp-1">
+                                            <p className="text-xs text-[var(--foreground)]/60 mt-1 line-clamp-1">
                                                 {request.requester.bio}
                                             </p>
                                         )}
@@ -176,9 +176,9 @@ export function FollowRequestsModal({ isOpen, onClose }: { isOpen: boolean; onCl
                                             title="Accept"
                                         >
                                             {actionLoading === request.id ? (
-                                                <Loader2 size={16} className="animate-spin text-white" />
+                                                <Loader2 size={16} className="animate-spin text-[var(--foreground)]" />
                                             ) : (
-                                                <UserCheck size={16} className="text-white" />
+                                                <UserCheck size={16} className="text-[var(--foreground)]" />
                                             )}
                                         </button>
                                         <button
@@ -187,7 +187,7 @@ export function FollowRequestsModal({ isOpen, onClose }: { isOpen: boolean; onCl
                                             className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors disabled:opacity-50"
                                             title="Reject"
                                         >
-                                            <UserX size={16} className="text-white" />
+                                            <UserX size={16} className="text-[var(--foreground)]" />
                                         </button>
                                     </div>
                                 </div>
@@ -199,7 +199,7 @@ export function FollowRequestsModal({ isOpen, onClose }: { isOpen: boolean; onCl
                 {/* Footer hint */}
                 {requests.length > 0 && (
                     <div className="p-3 border-t border-white/10 text-center">
-                        <p className="text-xs text-white/40">
+                        <p className="text-xs text-[var(--foreground)]/40">
                             {requests.length} request{requests.length !== 1 ? "s" : ""} pending
                         </p>
                     </div>

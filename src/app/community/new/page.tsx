@@ -24,7 +24,6 @@ export default function NewCommunityPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if user is already a Gründer
   const isAlreadyGründer = memberships.some((m) => m.role === "gründer");
 
   const generateSlug = (name: string) => {
@@ -68,10 +67,8 @@ export default function NewCommunityPage() {
 
       const { organization } = await response.json();
 
-      // Refresh memberships so the new org appears
       await refreshMemberships();
 
-      // Redirect to the new community page
       router.push(`/community/${organization.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ein Fehler ist aufgetreten");
@@ -82,9 +79,9 @@ export default function NewCommunityPage() {
 
   if (membershipsLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Card className="bg-white border-black/10 p-8">
-          <div className="flex items-center gap-3 text-black">
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-8">
+          <div className="flex items-center gap-3 text-[var(--foreground)]">
             <Loader2 className="animate-spin text-[#2FF801]" size={20} />
             <span>Lädt...</span>
           </div>
@@ -95,9 +92,9 @@ export default function NewCommunityPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Card className="bg-white border-black/10 p-8">
-          <p className="text-black/70">Bitte melde dich an, um eine Community zu erstellen.</p>
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-8">
+          <p className="text-[var(--muted-foreground)]">Bitte melde dich an, um eine Community zu erstellen.</p>
         </Card>
       </div>
     );
@@ -105,21 +102,21 @@ export default function NewCommunityPage() {
 
   if (isAlreadyGründer) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
-        <Card className="bg-white border-black/10 p-8 max-w-md w-full">
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center p-4">
+        <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-8 max-w-md w-full">
           <div className="text-center space-y-4">
             <div className="mx-auto w-16 h-16 rounded-full bg-[#2FF801]/10 flex items-center justify-center">
               <Building2 className="text-[#2FF801]" size={32} />
             </div>
-            <h1 className="text-xl font-black text-black uppercase tracking-tight">
+            <h1 className="text-xl font-black text-[var(--foreground)] uppercase tracking-tight font-display">
               Du bist bereits Gründer
             </h1>
-            <p className="text-black/60 text-sm">
+            <p className="text-[var(--muted-foreground)] text-sm">
               Du hast bereits eine Community gegründet. Du kannst nur eine Community pro Account erstellen.
             </p>
             <Button
               onClick={() => router.push("/community")}
-              className="w-full bg-[#2FF801] hover:bg-[#2FF801]/80 text-black text-xs font-black uppercase tracking-widest"
+              className="w-full bg-gradient-to-r from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black text-xs font-black uppercase tracking-widest"
             >
               Zu meiner Community
             </Button>
@@ -130,25 +127,31 @@ export default function NewCommunityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <Card className="bg-white border-black/10 p-8 max-w-md w-full backdrop-blur-xl">
+    <div className="min-h-screen bg-[var(--background)] flex items-center justify-center p-4">
+      {/* Ambient glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[80px] rounded-full" />
+      </div>
+
+      <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-8 max-w-md w-full relative z-10">
         <div className="space-y-6">
           {/* Header */}
           <div className="text-center space-y-2">
             <div className="mx-auto w-14 h-14 rounded-full bg-[#2FF801]/10 flex items-center justify-center mb-4">
               <Building2 className="text-[#2FF801]" size={28} />
             </div>
-            <h1 className="text-xl font-black text-black uppercase tracking-tight">
+            <h1 className="text-xl font-black text-[var(--foreground)] uppercase tracking-tight font-display">
               Community gründen
             </h1>
-            <p className="text-black/50 text-sm">
+            <p className="text-[var(--muted-foreground)] text-sm">
               Erstelle eine Community für deinen Club oder deine Apotheke.
             </p>
           </div>
 
           {/* Error */}
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm">
+            <div className="bg-[#ff716c]/10 border border-[#ff716c]/20 rounded-lg p-3 text-[#ff716c] text-sm">
               {error}
             </div>
           )}
@@ -156,20 +159,20 @@ export default function NewCommunityPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-wider text-black/60 mb-1.5 block">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-1.5 block">
                 Name
               </label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Mein Club"
-                className="bg-black/20 border-black/10 text-black placeholder:text-black/30 h-12 rounded-xl"
+                className="bg-[var(--input)] border border-[var(--border)]/50 text-[var(--foreground)] placeholder:text-[#484849] h-12 rounded-xl"
                 disabled={isSubmitting}
               />
             </div>
 
             <div>
-              <label className="text-[10px] font-bold uppercase tracking-wider text-black/60 mb-1.5 block">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-1.5 block">
                 Typ
               </label>
               <Select
@@ -177,10 +180,10 @@ export default function NewCommunityPage() {
                 onValueChange={(value) => setOrgType(value as "club" | "pharmacy")}
                 disabled={isSubmitting}
               >
-                <SelectTrigger className="bg-black/20 border-black/10 text-black h-12 rounded-xl">
+                <SelectTrigger className="bg-[var(--input)] border border-[var(--border)]/50 text-[var(--foreground)] h-12 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a191b] border-black/10 text-black">
+                <SelectContent className="bg-[var(--card)] border border-[var(--border)]/50 text-[var(--foreground)]">
                   <SelectItem value="club">Club</SelectItem>
                   <SelectItem value="pharmacy">Apotheke</SelectItem>
                 </SelectContent>
@@ -191,7 +194,7 @@ export default function NewCommunityPage() {
               <Button
                 type="submit"
                 disabled={isSubmitting || !name.trim()}
-                className="w-full h-12 bg-[#2FF801] hover:bg-[#2FF801]/80 text-black text-xs font-black uppercase tracking-widest disabled:opacity-50 rounded-xl"
+                className="w-full h-12 bg-gradient-to-r from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black text-xs font-black uppercase tracking-widest disabled:opacity-50 rounded-xl"
               >
                 {isSubmitting ? (
                   <>
@@ -206,7 +209,7 @@ export default function NewCommunityPage() {
           </form>
 
           {/* Note */}
-          <p className="text-center text-black/30 text-[10px]">
+          <p className="text-center text-[#484849] text-[10px]">
             Als Gründer erhältst du automatisch alle Rechte.
           </p>
         </div>

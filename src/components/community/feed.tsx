@@ -101,7 +101,7 @@ const FeedItemCard = memo(function FeedItemCard({
   const config = eventTypeConfig[item.event_type] || {
     icon: Leaf,
     label: "hat etwas aktualisiert",
-    color: "text-white/60",
+    color: "text-[var(--foreground)]/60",
   };
   const Icon = config.icon;
 
@@ -181,17 +181,17 @@ const FeedItemCard = memo(function FeedItemCard({
       >
         {/* Farmer + Name — top section */}
         <div className="p-3 pb-1 min-w-0 relative z-10">
-          <h2 className="text-[9px] font-bold tracking-[0.15em] uppercase text-white/30 truncate">
+          <h2 className="text-[9px] font-bold tracking-[0.15em] uppercase text-[var(--foreground)]/30 truncate">
             {farmerDisplay}
           </h2>
-          <p className="mt-0.5 title-font italic text-[13px] font-black leading-tight uppercase text-white break-words line-clamp-2">
+          <p className="mt-0.5 title-font italic text-[13px] font-black leading-tight uppercase text-[var(--foreground)] break-words line-clamp-2">
             {strain?.name || "—"}
           </p>
         </div>
 
         {/* Image */}
         <div className="px-2 w-full relative z-10">
-          <div className="relative w-full h-[80px] rounded-xl border border-white/5 shadow-lg overflow-hidden bg-[#1a191b]">
+          <div className="relative w-full h-[80px] rounded-xl border border-white/5 shadow-lg overflow-hidden bg-[var(--card)]">
             {strain?.image_url && !imgError ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -223,21 +223,21 @@ const FeedItemCard = memo(function FeedItemCard({
             {/* Row 1: THC & Taste */}
             <div className="mb-2 grid min-w-0 grid-cols-2 gap-2 border-b border-white/5 pb-2">
               <div className="flex min-w-0 items-center gap-1">
-                <span className="text-[7px] font-bold uppercase tracking-widest text-white/20">THC</span>
+                <span className="text-[7px] font-bold uppercase tracking-widest text-[var(--foreground)]/20">THC</span>
                 <span className="text-[9px] font-black tracking-wide" style={{ color: themeColor }}>{thcDisplay}</span>
               </div>
               <div className="flex min-w-0 items-center justify-end border-l border-white/5 pl-2 text-right">
-                <span className="text-[8px] font-medium tracking-wide text-white/80 leading-tight">{tasteDisplay}</span>
+                <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/80 leading-tight">{tasteDisplay}</span>
               </div>
             </div>
             {/* Row 2: CBD & Effect */}
             <div className="grid min-w-0 grid-cols-2 gap-2">
               <div className="flex min-w-0 items-center gap-1">
-                <span className="text-[7px] font-bold uppercase tracking-widest text-white/20">CBD</span>
+                <span className="text-[7px] font-bold uppercase tracking-widest text-[var(--foreground)]/20">CBD</span>
                 <span className="text-[9px] font-black tracking-wide" style={{ color: themeColor }}>{cbdDisplay}</span>
               </div>
               <div className="flex min-w-0 items-center justify-end border-l border-white/5 pl-2 text-right">
-                <span className="text-[8px] font-medium tracking-wide text-white/80 leading-tight">{effectDisplay}</span>
+                <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/80 leading-tight">{effectDisplay}</span>
               </div>
             </div>
           </div>
@@ -252,7 +252,7 @@ const FeedItemCard = memo(function FeedItemCard({
 
         {/* User info overlay — bottom right */}
         <div className="absolute bottom-3 right-3 flex items-center gap-2 z-20">
-          <span className="text-[10px] text-white/40">{formatDate(item.created_at)}</span>
+          <span className="text-[10px] text-[var(--foreground)]/40">{formatDate(item.created_at)}</span>
           {isAdminOrGründer && (
             <button
               onClick={handleDelete}
@@ -303,10 +303,10 @@ const FeedItemCard = memo(function FeedItemCard({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-bold text-white text-sm truncate">{displayName}</span>
-            <span className="text-white/40 text-xs">{config.label}</span>
+            <span className="font-bold text-[var(--foreground)] text-sm truncate">{displayName}</span>
+            <span className="text-[var(--foreground)]/40 text-xs">{config.label}</span>
           </div>
-          <p className="text-[10px] text-white/30 mt-0.5">{formatDate(item.created_at)}</p>
+          <p className="text-[10px] text-[var(--foreground)]/30 mt-0.5">{formatDate(item.created_at)}</p>
         </div>
 
         {/* Event Icon */}
@@ -333,9 +333,9 @@ function EmptyFeed() {
   return (
     <div className="text-center py-12 space-y-3">
       <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto">
-        <Leaf size={24} className="text-white/20" />
+        <Leaf size={24} className="text-[var(--foreground)]/20" />
       </div>
-      <p className="text-white/40 text-sm">Noch keine Aktivitaeten in dieser Community.</p>
+      <p className="text-[var(--foreground)]/40 text-sm">Noch keine Aktivitaeten in dieser Community.</p>
     </div>
   );
 }
@@ -374,7 +374,7 @@ export function CommunityFeed({ organizationId, refreshKey = 0, isAdminOrGründe
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 size={24} className="animate-spin text-white/40" />
+        <Loader2 size={24} className="animate-spin text-[var(--foreground)]/40" />
       </div>
     );
   }

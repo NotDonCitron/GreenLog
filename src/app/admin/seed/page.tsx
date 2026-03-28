@@ -66,7 +66,7 @@ export default function AdminSeedPage() {
         <ChevronLeft size={14} /> Back
       </Link>
 
-      <Card className="max-w-md w-full p-10 bg-[#1a191b] border-black/10 text-center space-y-8 shadow-2xl border-t-4 border-t-[#2FF801]">
+      <Card className="max-w-md w-full p-10 bg-[var(--card)] border-black/10 text-center space-y-8 shadow-2xl border-t-4 border-t-[#2FF801]">
         <Database className="text-[#2FF801] mx-auto animate-pulse" size={64} />
 
         <div className="space-y-2">

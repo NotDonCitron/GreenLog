@@ -123,10 +123,10 @@ export function OrganizationSwitcher() {
     if (!user || membershipsLoading) {
         return (
             <Card className="bg-white/5 border-white/10 p-4 backdrop-blur-xl">
-                <div className="flex items-center gap-3 text-white/70">
+                <div className="flex items-center gap-3 text-[var(--foreground)]/70">
                     <Loader2 className="animate-spin text-[#00F5FF]" size={16} />
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">Workspace</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--foreground)]/40">Workspace</p>
                         <p className="text-sm font-semibold">Organisationen werden geladen</p>
                     </div>
                 </div>
@@ -143,9 +143,9 @@ export function OrganizationSwitcher() {
                     </div>
                     <div className="space-y-3 flex-1">
                         <div className="space-y-1">
-                            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">Workspace</p>
-                            <p className="text-sm font-semibold text-white">Noch keine Organisation aktiv</p>
-                            <p className="text-xs text-white/50">
+                            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--foreground)]/40">Workspace</p>
+                            <p className="text-sm font-semibold text-[var(--foreground)]">Noch keine Organisation aktiv</p>
+                            <p className="text-xs text-[var(--foreground)]/50">
                                 {isAlreadyGründer
                                     ? "Du hast bereits eine Community gegründet."
                                     : "Erstelle einen Workspace für deinen Club oder deine Apotheke."}
@@ -170,15 +170,15 @@ export function OrganizationSwitcher() {
             <Card className="bg-white/5 border-white/10 p-4 backdrop-blur-xl">
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">Neue Organisation</p>
-                        <button onClick={() => setShowCreateForm(false)} className="text-white/40 hover:text-white">
+                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--foreground)]/40">Neue Organisation</p>
+                        <button onClick={() => setShowCreateForm(false)} className="text-[var(--foreground)]/40 hover:text-[var(--foreground)]">
                             <X size={16} />
                         </button>
                     </div>
 
                     <div className="space-y-3">
                         <div>
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1 block">Name</label>
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)]/60 mb-1 block">Name</label>
                             <Input
                                 value={newOrg.name}
                                 onChange={(e) => {
@@ -190,30 +190,30 @@ export function OrganizationSwitcher() {
                                     }));
                                 }}
                                 placeholder="Mein Club"
-                                className="bg-black/20 border-white/10 text-white placeholder:text-white/30"
+                                className="bg-black/20 border-white/10 text-[var(--foreground)] placeholder:text-[var(--foreground)]/30"
                             />
                         </div>
 
                         <div>
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1 block">Slug (URL)</label>
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)]/60 mb-1 block">Slug (URL)</label>
                             <Input
                                 value={newOrg.slug}
                                 onChange={(e) => setNewOrg(prev => ({ ...prev, slug: e.target.value }))}
                                 placeholder="mein-club"
-                                className="bg-black/20 border-white/10 text-white placeholder:text-white/30"
+                                className="bg-black/20 border-white/10 text-[var(--foreground)] placeholder:text-[var(--foreground)]/30"
                             />
                         </div>
 
                         <div>
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-white/60 mb-1 block">Typ</label>
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-[var(--foreground)]/60 mb-1 block">Typ</label>
                             <Select
                                 value={newOrg.type}
                                 onValueChange={(value) => setNewOrg(prev => ({ ...prev, type: value as "club" | "pharmacy" }))}
                             >
-                                <SelectTrigger className="bg-black/20 border-white/10 text-white">
+                                <SelectTrigger className="bg-black/20 border-white/10 text-[var(--foreground)]">
                                     <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent className="bg-[#1a191b] border-white/10 text-white">
+                                <SelectContent className="bg-[var(--card)] border-white/10 text-[var(--foreground)]">
                                     <SelectItem value="club">Club</SelectItem>
                                     <SelectItem value="pharmacy">Apotheke</SelectItem>
                                 </SelectContent>
@@ -241,11 +241,11 @@ export function OrganizationSwitcher() {
             <div className="space-y-4">
                 <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/40">Aktiver Workspace</p>
-                        <h3 className="text-base font-black uppercase tracking-tight text-white">
+                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--foreground)]/40">Community</p>
+                        <h3 className="text-base font-black uppercase tracking-tight text-[var(--foreground)]">
                             {activeMeta?.name ?? "Organisation auswählen"}
                         </h3>
-                        <div className="flex items-center gap-3 text-xs text-white/55">
+                        <div className="flex items-center gap-3 text-xs text-[var(--foreground)]/55">
                             <span className="inline-flex items-center gap-1.5">
                                 <Users size={12} className="text-[#00F5FF]" />
                                 {activeMeta?.type ?? "Organisation"}
@@ -267,12 +267,12 @@ export function OrganizationSwitcher() {
                     value={activeOrganization?.organization_id ?? memberships[0]?.organization_id ?? ""}
                     onValueChange={(value) => setActiveOrganizationId(value || null)}
                 >
-                    <SelectTrigger className="h-12 w-full rounded-2xl border-white/10 bg-[#1a191b] text-white focus:border-[#00F5FF]">
+                    <SelectTrigger className="h-12 w-full rounded-2xl border-white/10 bg-[var(--card)] text-[var(--foreground)] focus:border-[#00F5FF]">
                         <SelectValue placeholder="Organisation auswählen">
                             {activeMeta?.name ?? "Organisation auswählen"}
                         </SelectValue>
                     </SelectTrigger>
-                    <SelectContent className="border-white/10 bg-[#1a191b] text-white">
+                    <SelectContent className="border-white/10 bg-[var(--card)] text-[var(--foreground)]">
                         {memberships.map((membership) => {
                             const organization = membership.organizations;
                             if (!organization) {
@@ -288,7 +288,7 @@ export function OrganizationSwitcher() {
                                         />
                                         <div className="flex min-w-0 flex-col">
                                             <span className="truncate font-semibold">{organization.name}</span>
-                                            <span className="truncate text-[10px] uppercase tracking-[0.2em] text-white/45">
+                                            <span className="truncate text-[10px] uppercase tracking-[0.2em] text-[var(--foreground)]/45">
                                                 {formatOrganizationType(organization.organization_type)} · {formatRoleLabel(membership.role)}
                                             </span>
                                         </div>

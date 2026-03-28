@@ -26,7 +26,7 @@ interface MemberOrg extends Organization {
 function OrgTypeLabel({ type }: { type: string }) {
   const label = type === "club" ? "Club" : type === "pharmacy" ? "Apotheke" : type;
   return (
-    <span className="text-[10px] text-black/40 font-mono uppercase tracking-wider">
+    <span className="text-[10px] text-[var(--muted-foreground)] font-mono uppercase tracking-wider">
       {label}
     </span>
   );
@@ -35,9 +35,9 @@ function OrgTypeLabel({ type }: { type: string }) {
 function CommunityCard({ org, role }: { org: Organization; role?: string }) {
   return (
     <Link href={`/community/${org.id}`}>
-      <Card className="bg-[#1e3a24] border-black/10 p-5 rounded-3xl hover:bg-[#243d2a] transition-colors cursor-pointer">
+      <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl hover:border-[#00F5FF]/50 transition-all cursor-pointer">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-[#2FF801]/10 border border-[#2FF801]/20 flex items-center justify-center shrink-0 overflow-hidden">
+          <div className="w-12 h-12 rounded-full bg-[var(--muted)] border border-[var(--border)]/50 flex items-center justify-center shrink-0 overflow-hidden">
             {org.logo_url ? (
               <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
             ) : (
@@ -45,7 +45,7 @@ function CommunityCard({ org, role }: { org: Organization; role?: string }) {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-black text-sm truncate">{org.name}</p>
+            <p className="font-black text-sm truncate text-[var(--foreground)]">{org.name}</p>
             <OrgTypeLabel type={org.organization_type} />
           </div>
           {role && (
@@ -53,8 +53,8 @@ function CommunityCard({ org, role }: { org: Organization; role?: string }) {
               {role === "gründer" ? "Gründer" : role === "admin" ? "Admin" : "Member"}
             </span>
           )}
-          <div className="w-8 h-8 rounded-full bg-black/5 flex items-center justify-center shrink-0">
-            <Building2 size={14} className="text-black/30" />
+          <div className="w-8 h-8 rounded-full bg-[var(--muted)] border border-[var(--border)]/50 flex items-center justify-center shrink-0">
+            <Building2 size={14} className="text-[var(--muted-foreground)]" />
           </div>
         </div>
       </Card>
@@ -72,7 +72,6 @@ export default function CommunityListPage() {
   useEffect(() => {
     const fetchOrganizations = async () => {
       if (!user) {
-        // Not logged in — only show public communities
         const { data } = await supabase
           .from("organizations")
           .select("id, name, slug, organization_type, license_number, status, logo_url")
@@ -83,7 +82,6 @@ export default function CommunityListPage() {
         return;
       }
 
-      // Fetch all active organizations
       const { data: allOrgs } = await supabase
         .from("organizations")
         .select("id, name, slug, organization_type, license_number, status, logo_url")
@@ -113,24 +111,30 @@ export default function CommunityListPage() {
   }, [user, memberships]);
 
   return (
-    <main className="min-h-screen bg-white text-black pb-32">
-      <header className="p-8 pb-4">
-        <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
+      {/* Ambient glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[80px] rounded-full" />
+      </div>
+
+      <header className="px-6 pt-12 pb-4 relative z-10">
+        <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
           Communities
         </h1>
       </header>
 
-      <div className="px-8 space-y-6 mt-4">
+      <div className="px-6 space-y-6 mt-4 relative z-10">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 size={24} className="animate-spin text-black/40" />
+            <Loader2 size={24} className="animate-spin text-[#00F5FF]" />
           </div>
         ) : (
           <>
             {/* My Communities */}
             {myOrgs.length > 0 && (
               <section>
-                <h2 className="text-xs font-black uppercase tracking-wider text-black/40 mb-3">
+                <h2 className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
                   Meine Communities
                 </h2>
                 <div className="space-y-3">
@@ -144,7 +148,7 @@ export default function CommunityListPage() {
             {/* Create new community CTA — only if user has no community yet */}
             {myOrgs.length === 0 && (
               <Link href="/community/new">
-                <Card className="bg-[#2FF801]/10 border-[#2FF801]/20 p-4 rounded-3xl hover:bg-[#2FF801]/20 transition-colors cursor-pointer">
+                <Card className="bg-[#2FF801]/10 border border-[#2FF801]/30 p-4 rounded-3xl hover:bg-[#2FF801]/20 transition-all cursor-pointer">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-[#2FF801]/20 border border-[#2FF801]/40 flex items-center justify-center shrink-0">
                       <Plus size={16} className="text-[#2FF801]" />
@@ -158,7 +162,7 @@ export default function CommunityListPage() {
             {/* Other Communities */}
             {otherOrgs.length > 0 && (
               <section>
-                <h2 className="text-xs font-black uppercase tracking-wider text-black/40 mb-3">
+                <h2 className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
                   {myOrgs.length > 0 ? "Andere Communities" : "Communities"}
                 </h2>
                 <div className="space-y-3">
@@ -171,10 +175,10 @@ export default function CommunityListPage() {
 
             {myOrgs.length === 0 && otherOrgs.length === 0 && (
               <div className="text-center py-12 space-y-3">
-                <div className="w-16 h-16 rounded-full bg-black/5 flex items-center justify-center mx-auto">
-                  <Building2 size={24} className="text-black/20" />
+                <div className="w-16 h-16 rounded-full bg-[var(--card)] border border-[var(--border)]/50 flex items-center justify-center mx-auto">
+                  <Building2 size={24} className="text-[#484849]" />
                 </div>
-                <p className="text-black/40 text-sm">Es gibt noch keine Communities.</p>
+                <p className="text-[var(--muted-foreground)] text-sm">Es gibt noch keine Communities.</p>
               </div>
             )}
           </>

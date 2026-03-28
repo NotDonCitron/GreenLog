@@ -34,10 +34,10 @@ export function UserCollectionsTab({
                 <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#A3E4D7] mb-2">
                     Sammlung
                 </p>
-                <h3 className="text-lg font-bold text-white uppercase tracking-tight mb-2">
+                <h3 className="text-lg font-bold text-[var(--foreground)] uppercase tracking-tight mb-2">
                     Sammlung wird geladen
                 </h3>
-                <p className="text-sm text-white/50 leading-relaxed max-w-xs mx-auto">
+                <p className="text-sm text-[var(--foreground)]/50 leading-relaxed max-w-xs mx-auto">
                     Die Sammlung von {displayName} wird gerade geladen.
                 </p>
             </div>
@@ -54,10 +54,10 @@ export function UserCollectionsTab({
                 <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#A3E4D7] mb-2">
                     Sammlung
                 </p>
-                <h3 className="text-lg font-bold text-white uppercase tracking-tight mb-2">
+                <h3 className="text-lg font-bold text-[var(--foreground)] uppercase tracking-tight mb-2">
                     Diese Sammlung ist privat
                 </h3>
-                <p className="text-sm text-white/50 leading-relaxed max-w-xs mx-auto">
+                <p className="text-sm text-[var(--foreground)]/50 leading-relaxed max-w-xs mx-auto">
                     Du musst mit {displayName} befreundet sein, um diese Sammlung zu sehen.
                 </p>
             </div>
@@ -74,10 +74,10 @@ export function UserCollectionsTab({
                 <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#A3E4D7] mb-2">
                     Sammlung
                 </p>
-                <h3 className="text-lg font-bold text-white uppercase tracking-tight mb-2">
+                <h3 className="text-lg font-bold text-[var(--foreground)] uppercase tracking-tight mb-2">
                     Noch keine Einträge
                 </h3>
-                <p className="text-sm text-white/50 leading-relaxed max-w-xs mx-auto">
+                <p className="text-sm text-[var(--foreground)]/50 leading-relaxed max-w-xs mx-auto">
                     {displayName} hat noch keine Sorten in der Sammlung.
                 </p>
             </div>
@@ -91,12 +91,12 @@ export function UserCollectionsTab({
                     <p className="mb-1 text-[10px] font-black uppercase tracking-[0.28em] text-[#A3E4D7]">
                         Sammlung
                     </p>
-                    <h3 className="break-words text-lg font-bold uppercase tracking-tight text-white [overflow-wrap:anywhere]">
+                    <h3 className="break-words text-lg font-bold uppercase tracking-tight text-[var(--foreground)] [overflow-wrap:anywhere]">
                         Archiv von {displayName}
                     </h3>
                 </div>
                 <div className="text-left sm:text-right">
-                    <p className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-white/40">
+                    <p className="mb-1 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--foreground)]/40">
                         Anzahl
                     </p>
                     <p className="text-xl font-black text-[#2FF801]">{collections.length}</p>

@@ -7,10 +7,10 @@ export function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
       <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6 border border-white/10">
-        <Plus size={32} className="text-white/20" />
+        <Plus size={32} className="text-[var(--foreground)]/20" />
       </div>
       <h2 className="text-xl font-bold mb-2">Deine Collection ist leer</h2>
-      <p className="text-white/40 text-sm mb-8 leading-relaxed max-w-[240px]">
+      <p className="text-[var(--foreground)]/40 text-sm mb-8 leading-relaxed max-w-[240px]">
         Füge deine ersten Strains hinzu, um dein digitales Sammelalbum zu starten.
       </p>
       <Link href="/strains">

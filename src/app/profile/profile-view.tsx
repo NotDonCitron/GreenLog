@@ -55,10 +55,10 @@ import { BottomNav } from "@/components/bottom-nav";
 import { FeedbackButton } from "@/components/feedback/feedback-button";
 
 const FEEDBACK_BUTTON_USER_IDS = [
-  "6129fd73-ec07-4551-ba32-3c8ef5c5923a", // fabian
-  "2d797325-5a17-4620-8b94-a55f338996c1", // lars
-  "dab750b5-8023-45d6-844e-b044b681905c", // lars (2nd)
-  "236a110e-0dbe-4500-97db-edf100158e4f", // pascal
+  "6129fd73-ec07-4551-ba32-3c8ef5c5923a",
+  "2d797325-5a17-4620-8b94-a55f338996c1",
+  "dab750b5-8023-45d6-844e-b044b681905c",
+  "236a110e-0dbe-4500-97db-edf100158e4f",
 ];
 import { FollowersListModal } from "@/components/social/followers-list-modal";
 import { OrganizationSwitcher } from "@/components/organization-switcher";
@@ -66,6 +66,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase/client";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import type {
   ProfileActivityItem,
   ProfileBadge,
@@ -120,9 +122,9 @@ function createFallbackViewModel(isDemoMode: boolean): ProfileViewModel {
 function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow?: string; title: string; icon?: LucideIcon }) {
   return (
     <div className="space-y-1 px-1">
-      {eyebrow && <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#A3E4D7]/70">{eyebrow}</p>}
-      <h2 className="text-lg font-semibold tracking-tight text-black flex items-center gap-2">
-        {Icon && <Icon size={18} className="text-[#ff4757]" />}
+      {eyebrow && <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#00F5FF]/70">{eyebrow}</p>}
+      <h2 className="text-lg font-semibold tracking-tight text-[var(--foreground)] flex items-center gap-2 font-display">
+        {Icon && <Icon size={18} className="text-[#00F5FF]" />}
         {title}
       </h2>
     </div>
@@ -145,7 +147,6 @@ export default function ProfilePage() {
   const [selectedFavoriteIndex, setSelectedFavoriteIndex] = useState<number | null>(null);
   const currentUserId = user?.id ?? "";
 
-  // Sync carousel favorites with viewModel when profile loads
   useEffect(() => {
     setCarouselFavorites(viewModel.favorites);
   }, [viewModel.favorites]);
@@ -213,7 +214,6 @@ export default function ProfilePage() {
     }
   };
 
-  // Keyboard navigation for favorites
   useEffect(() => {
     if (selectedFavoriteIndex === null) return;
 
@@ -261,7 +261,7 @@ export default function ProfilePage() {
         ref={setNodeRef}
         style={style}
         data-relation-id={favorite.relationId}
-        className="min-w-[220px] flex-shrink-0"
+        className="min-w-[200px] flex-shrink-0"
       >
         <div
           onClick={onClick}
@@ -273,22 +273,22 @@ export default function ProfilePage() {
             onClick={(e) => { if (isDragging) e.preventDefault(); }}
           >
             <Card
-              className="overflow-hidden rounded-[2rem] border border-black/10 bg-[#1e3a24] p-0 shadow-lg hover:border-[#00F5FF]/30 transition-all cursor-grab active:cursor-grabbing"
+              className="overflow-hidden rounded-[2rem] border border-[var(--border)]/50 bg-[var(--card)] p-0 shadow-lg hover:border-[#00F5FF]/50 transition-all cursor-grab active:cursor-grabbing"
               {...attributes}
               {...listeners}
             >
-              <div className="relative h-40 w-full">
+              <div className="relative h-36 w-full">
                 <img
                   src={favorite.imageUrl || "/strains/placeholder-1.svg"}
                   alt={favorite.name}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1e3a24] to-transparent" />
-                <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm rounded-full p-1.5">
-                  <GripVertical size={14} className="text-black/50" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a191b] via-transparent to-transparent" />
+                <div className="absolute top-3 right-3 bg-[var(--background)]/60 backdrop-blur-sm rounded-full p-1.5">
+                  <GripVertical size={14} className="text-[var(--foreground)]/50" />
                 </div>
                 <div className="absolute bottom-4 left-4 right-4">
-                  <p className="text-sm font-black uppercase tracking-tight truncate">{favorite.name}</p>
+                  <p className="text-sm font-black uppercase tracking-tight truncate text-[var(--foreground)] font-display">{favorite.name}</p>
                   <p className="text-[10px] text-[#00F5FF] font-bold">{favorite.thcDisplay}</p>
                 </div>
               </div>
@@ -311,7 +311,6 @@ export default function ProfilePage() {
         supabase.from("user_badges").select("badges(*)").eq("user_id", user?.id)
       ]);
 
-      // Zusätzlicher Fetch für Custom-Bilder in der Collection für diese Favoriten
       const favoriteIds = (favsRes.data || []).map(f => (f.strains as any)?.id).filter(Boolean);
       const { data: collectionData } = await supabase
         .from("user_collection")
@@ -335,7 +334,6 @@ export default function ProfilePage() {
         const s = f.strains as any;
         if (!s) return null;
 
-        // Prüfen ob es ein User-eigenes Bild in der user_collection gibt
         const customImage = collectionData?.find(c => c.strain_id === s.id)?.user_image_url;
 
         return {
@@ -420,41 +418,53 @@ export default function ProfilePage() {
     }
   };
 
-  if (pageState === "loading") return <div className="min-h-screen bg-white flex items-center justify-center"><Loader2 className="animate-spin text-black" /></div>;
+  if (pageState === "loading") return (
+    <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+      <div className="relative">
+        <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
+        <div className="absolute inset-0 blur-xl bg-[#00F5FF]/20 animate-pulse" />
+      </div>
+    </div>
+  );
 
   const { identity, stats, favorites, badges } = viewModel;
   const isPublic = identity.profileVisibility === "public";
 
-  // Wenn nicht eingeloggt und kein Demo-Modus -> Login Aufforderung
+  // Not logged in
   if (!user && !isDemoMode) {
     return (
-      <main className="min-h-screen bg-white text-black pb-32">
-        <header className="p-8 pb-4">
+      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#2FF801]/5 blur-[120px] rounded-full" />
+        </div>
+
+        <header className="px-6 pt-12 pb-4 relative z-10">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">Profil</h1>
+              <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">Profil</h1>
             </div>
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 relative">
-                <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
+              <div className="w-10 h-10 rounded-xl bg-[var(--card)] border border-[var(--border)]/50 flex items-center justify-center">
+                <span className="text-sm font-black text-[#00F5FF]">CL</span>
               </div>
-              <Link href="/login" className="px-6 py-2 bg-[#2FF801] text-black rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+              <Link href="/login" className="px-5 py-2 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                 <LogIn size={14} /> Login
               </Link>
             </div>
           </div>
 
-          <div className="bg-[#1e3a24] rounded-[2.5rem] p-8 border border-black/10 shadow-2xl relative overflow-hidden text-center">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,245,255,0.05),transparent_50%)]" />
+          <div className="bg-[var(--card)] rounded-[2.5rem] p-8 border border-[var(--border)]/50 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#00F5FF]/5 via-transparent to-[#2FF801]/5 pointer-events-none" />
 
             <div className="relative z-10 space-y-6">
-              <div className="w-20 h-20 bg-black/5 rounded-full flex items-center justify-center mx-auto border border-black/10">
-                <UserRound size={40} className="text-black/20" />
+              <div className="w-20 h-20 mx-auto rounded-full bg-[var(--muted)] border-2 border-[var(--border)] flex items-center justify-center">
+                <UserRound size={40} className="text-[#484849]" />
               </div>
 
-              <div className="space-y-2">
-                <h2 className="text-2xl font-black uppercase italic tracking-tight">Profil gesperrt</h2>
-                <p className="text-xs text-black/40 font-bold tracking-widest leading-relaxed">
+              <div className="space-y-2 text-center">
+                <h2 className="text-2xl font-black uppercase italic tracking-tight font-display text-[var(--foreground)]">Profil gesperrt</h2>
+                <p className="text-xs text-[var(--muted-foreground)] font-medium tracking-wide leading-relaxed">
                   Logge dich ein, um deine Sammlung zu verwalten,<br />
                   Achievements zu sammeln und dich mit der<br />
                   Community zu vernetzen.
@@ -463,12 +473,12 @@ export default function ProfilePage() {
 
               <div className="flex flex-col gap-3">
                 <Link href="/login">
-                  <button className="w-full py-4 bg-[#2FF801] text-black rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(47,248,1,0.2)]">
+                  <button className="w-full py-4 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-[#00F5FF]/20">
                     Jetzt Anmelden
                   </button>
                 </Link>
                 <Link href="/login?signup=true">
-                  <button className="w-full py-4 bg-black/5 border border-black/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black/10 transition-all">
+                  <button className="w-full py-4 bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#00F5FF]/50 transition-all">
                     Neues Konto erstellen
                   </button>
                 </Link>
@@ -477,129 +487,138 @@ export default function ProfilePage() {
           </div>
         </header>
 
-        <div className="px-8 mt-4">
-          <div className="bg-black/10 rounded-3xl p-6 border border-dashed border-black/10 text-center">
-            <p className="text-[8px] font-bold text-black/20 uppercase tracking-[0.3em]">Authorized Access Only</p>
-          </div>
-        </div>
         <BottomNav />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-white text-black pb-32">
-      <header className="p-8 pb-4">
-        <div className="flex justify-between items-center mb-8">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
+      {/* Ambient glow */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#2FF801]/5 blur-[120px] rounded-full" />
+      </div>
+
+      <header className="px-6 pt-12 pb-4 relative z-10">
+        <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none">Profil</h1>
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
+              Profil
+            </h1>
           </div>
           <div className="flex items-center gap-3">
-              <FeedbackButton variant="header" canSee={!!user && FEEDBACK_BUTTON_USER_IDS.includes(user.id)} />
-              <div className="w-10 h-10 relative">
-              <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
-              </div>
-            </div>
+            <FeedbackButton variant="header" canSee={!!user && FEEDBACK_BUTTON_USER_IDS.includes(user.id)} />
+            <NotificationBell />
+            <ThemeToggle />
+            <Link href="/profile/settings">
+              <button className="w-10 h-10 rounded-xl bg-[var(--card)] border border-[var(--border)]/50 flex items-center justify-center text-[var(--muted-foreground)] hover:text-[#00F5FF] hover:border-[#00F5FF]/50 transition-all">
+                <Settings size={18} />
+              </button>
+            </Link>
+          </div>
         </div>
 
-        {/* Owner Badge Above Card */}
-        {(identity.username === '@fabian.gebert' || identity.username === '@lars' || identity.username === '@lars.fieber' || identity.username === '@test' || identity.username === '@pascal') && (
+        {/* Owner Badge */}
+        {(identity.username === '@fabian.gebert' || identity.username === '@lars' || identity.username === '@lars.fieber' || identity.username === '@test' || identity.username === '@pascal' || identity.username === '@hintermaier.pascal') && (
           <div className="flex justify-center mb-4">
-            <span className="inline-flex items-center gap-1 rounded-full border border-[#F39C12]/30 bg-[#F39C12]/10 px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#F39C12] shadow-[0_0_15px_rgba(243,156,18,0.1)]">
+            <span className="inline-flex items-center gap-1 rounded-full border border-[#F39C12]/30 bg-[#F39C12]/10 px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#F39C12]">
               <Shield size={12} /> CannaLog Owner
             </span>
           </div>
         )}
 
-        <div className="bg-[#1e3a24] rounded-[2.5rem] p-6 border border-black/10 shadow-2xl relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,245,255,0.05),transparent_50%)]" />
+        {/* Profile Card */}
+        <div className="bg-[var(--card)] rounded-[2rem] p-5 border border-[var(--border)]/50 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#00F5FF]/5 via-transparent to-[#2FF801]/5 pointer-events-none" />
 
-          <div className="flex items-start gap-6 relative z-10">
+          <div className="flex items-start gap-5 relative z-10">
+            {/* Avatar */}
             <div className="relative">
-              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-black/20 bg-black/40 flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#00F5FF]/50 bg-[var(--muted)] flex items-center justify-center">
                 {identity.avatarUrl ? (
                   <img src={identity.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-3xl font-black text-black/20">{identity.initials}</span>
+                  <span className="text-2xl font-black text-[#00F5FF]">{identity.initials}</span>
                 )}
               </div>
-              <button className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#2FF801] text-black flex items-center justify-center border-4 border-[#1e3a24]">
+              <button className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#2FF801] text-black flex items-center justify-center border-2 border-[#1a191b]">
                 <Camera size={14} />
               </button>
             </div>
 
-            <div className="flex-1 pt-2">
+            {/* Info */}
+            <div className="flex-1 pt-1">
+              {/* Stats row */}
               <div className="grid grid-cols-3 gap-2 mb-4">
                 <button onClick={() => setFollowersModal({ isOpen: true, mode: "followers" })} className="text-center px-1">
-                  <p className="text-lg font-black leading-none">{stats.followers}</p>
-                  <p className="text-[7px] font-black uppercase tracking-wider text-black/40 mt-1">Follower</p>
+                  <p className="text-xl font-black text-[#00F5FF] font-display">{stats.followers}</p>
+                  <p className="text-[7px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mt-0.5">Follower</p>
                 </button>
-                <button onClick={() => setFollowersModal({ isOpen: true, mode: "following" })} className="text-center px-1 border-x border-black/10">
-                  <p className="text-lg font-black leading-none">{stats.following}</p>
-                  <p className="text-[7px] font-black uppercase tracking-wider text-black/40 mt-1">Following</p>
+                <button onClick={() => setFollowersModal({ isOpen: true, mode: "following" })} className="text-center px-1 border-x border-[var(--border)]/30">
+                  <p className="text-xl font-black text-[#2FF801] font-display">{stats.following}</p>
+                  <p className="text-[7px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mt-0.5">Following</p>
                 </button>
                 <div className="text-center px-1">
-                  <p className="text-lg font-black leading-none">{stats.totalStrains}</p>
-                  <p className="text-[7px] font-black uppercase tracking-wider text-black/40 mt-1">Strains</p>
+                  <p className="text-xl font-black text-[var(--foreground)] font-display">{stats.totalStrains}</p>
+                  <p className="text-[7px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mt-0.5">Strains</p>
                 </div>
               </div>
 
+              {/* Edit button */}
               {isEditing ? (
                 <div className="flex gap-2">
-                  <button onClick={handleSaveProfile} disabled={isSaving} className="flex-1 py-2 bg-[#2FF801] text-black rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1">
+                  <button onClick={handleSaveProfile} disabled={isSaving} className="flex-1 py-2 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1">
                     {isSaving ? <Loader2 size={12} className="animate-spin" /> : <><Check size={12} /> Save</>}
                   </button>
-                  <button onClick={() => setIsEditing(false)} className="w-10 py-2 bg-black/5 border border-black/10 rounded-xl flex items-center justify-center text-black/40">
+                  <button onClick={() => setIsEditing(false)} className="w-10 py-2 bg-[var(--muted)] border border-[var(--border)]/50 rounded-xl flex items-center justify-center text-[var(--muted-foreground)]">
                     <X size={12} />
                   </button>
                 </div>
               ) : (
-                <button onClick={() => setIsEditing(true)} className="w-full py-2 bg-black/5 border border-black/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black/10 transition-all">
+                <button onClick={() => setIsEditing(true)} className="w-full py-2 bg-[var(--muted)] border border-[var(--border)]/50 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:border-[#00F5FF]/50 transition-all">
                   Profil bearbeiten
                 </button>
               )}
             </div>
           </div>
 
-          <div className="mt-6 space-y-3 relative z-10">
+          {/* Name & Bio */}
+          <div className="mt-5 space-y-2 relative z-10">
             {isEditing ? (
               <div className="space-y-3">
                 <input
                   value={editData.displayName}
                   onChange={(e) => setEditData({ ...editData, displayName: e.target.value })}
                   placeholder="Anzeigename"
-                  className="w-full bg-black/20 border border-black/10 rounded-xl px-4 py-2 text-sm font-bold text-black focus:border-[#2FF801] outline-none"
+                  className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-xl px-4 py-2 text-sm font-bold text-[var(--foreground)] placeholder:text-[#484849] focus:border-[#00F5FF]/50 outline-none"
                 />
                 <textarea
                   value={editData.bio}
                   onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
-                  placeholder="Deine Bio / Caption..."
+                  placeholder="Deine Bio..."
                   rows={2}
-                  className="w-full bg-black/20 border border-black/10 rounded-xl px-4 py-2 text-xs text-black/70 focus:border-[#2FF801] outline-none resize-none"
+                  className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-xl px-4 py-2 text-xs text-[var(--muted-foreground)] placeholder:text-[#484849] focus:border-[#00F5FF]/50 outline-none resize-none"
                 />
               </div>
             ) : (
               <>
-                <h2 className="text-2xl font-black uppercase tracking-tight">{identity.displayName}</h2>
-                <p className="text-xs text-[#2FF801] font-bold tracking-widest">{identity.username}</p>
-                {identity.bio && <p className="text-sm text-black/60 mt-2 leading-relaxed">{identity.bio}</p>}
+                <h2 className="text-xl font-black uppercase tracking-tight font-display text-[var(--foreground)]">{identity.displayName}</h2>
+                <p className="text-xs text-[#2FF801] font-semibold tracking-widest">{identity.username}</p>
+                {identity.bio && <p className="text-sm text-[var(--muted-foreground)] mt-2 leading-relaxed">{identity.bio}</p>}
               </>
             )}
           </div>
 
-          <div className="mt-4 flex items-center justify-between text-[10px] font-bold text-black/40 uppercase tracking-widest relative z-10">
-            <span className="flex items-center gap-1"><Calendar size={12} /> Joined March 2026</span>
-            <Link href="/profile/settings">
-              <button className="w-8 h-8 rounded-full bg-black/5 border border-black/10 flex items-center justify-center text-black/60 hover:text-[#00F5FF] transition-colors">
-                <Settings size={14} />
-              </button>
-            </Link>
+          {/* Meta row */}
+          <div className="mt-4 flex items-center justify-between text-[10px] font-semibold text-[var(--muted-foreground)] uppercase tracking-wider relative z-10">
+            <span className="flex items-center gap-1"><Calendar size={12} /> Member seit März 2026</span>
           </div>
         </div>
       </header>
 
-      <div className="px-8 space-y-10">
-        {/* Workspace / Organization Section */}
+      <div className="px-6 space-y-8">
+        {/* Community Section */}
         <section>
           <SectionHeader eyebrow="" title="Community" />
           <div className="mt-4">
@@ -607,12 +626,13 @@ export default function ProfilePage() {
           </div>
         </section>
 
+        {/* Badges Section */}
         <section>
-          <div className="flex justify-between items-end mb-6">
+          <div className="flex justify-between items-end mb-4">
             <SectionHeader eyebrow="" title="Abzeichen" />
             <span className="text-[10px] font-bold text-[#00F5FF]">Alle</span>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             {[
               { id: "starter", name: "Starter", req: "1 Strain geloggt", icon: Sprout, threshold: 1 },
               { id: "connoisseur", name: "Collector", req: "5 Strains gesammelt", icon: Trophy, threshold: 5 },
@@ -625,17 +645,17 @@ export default function ProfilePage() {
               const isUnlocked = meetsThreshold;
 
               return (
-                <div key={b.id} className={`rounded-3xl p-4 flex flex-col items-center text-center gap-2 transition-all border ${isUnlocked
-                  ? "bg-[#1e3a24] border-[#2FF801]/30"
-                  : "bg-black/20 border-black/10 opacity-40 grayscale"
+                <div key={b.id} className={`rounded-2xl p-4 flex flex-col items-center text-center gap-2 transition-all border ${isUnlocked
+                  ? "bg-[var(--card)] border-[#2FF801]/30"
+                  : "bg-[var(--input)] border-[var(--border)]/30 opacity-50 grayscale"
                   }`}>
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-1 ${isUnlocked ? "bg-[#2FF801]/10 text-[#ffd76a]" : "bg-black/5 text-black/10"
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-1 ${isUnlocked ? "bg-[#2FF801]/10 text-[#ffd76a]" : "bg-[var(--muted)] text-[#484849]"
                     }`}>
-                    <b.icon size={32} />
+                    <b.icon size={28} />
                   </div>
-                  <p className={`text-[11px] font-black uppercase tracking-tight leading-none ${isUnlocked ? "text-black" : "text-black/40"
+                  <p className={`text-[11px] font-black uppercase tracking-tight leading-none ${isUnlocked ? "text-[var(--foreground)]" : "text-[#484849]"
                     }`}>{b.name}</p>
-                  <p className={`text-[8px] font-bold uppercase tracking-tighter ${isUnlocked ? "text-[#2FF801]" : "text-black/20"
+                  <p className={`text-[8px] font-semibold uppercase tracking-tighter ${isUnlocked ? "text-[#2FF801]" : "text-[#484849]"
                     }`}>
                     {isUnlocked ? b.req : `Ziel: ${b.req}`}
                   </p>
@@ -645,10 +665,11 @@ export default function ProfilePage() {
           </div>
         </section>
 
+        {/* Favorites Section */}
         <section className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <SectionHeader eyebrow="" title="Favorites" icon={Heart} />
-            {savingOrder && <Loader2 size={12} className="animate-spin text-black/30" />}
+            {savingOrder && <Loader2 size={12} className="animate-spin text-[var(--muted-foreground)]" />}
           </div>
           {carouselFavorites.length > 0 ? (
             <div className="relative">
@@ -662,7 +683,7 @@ export default function ProfilePage() {
                       }
                     }}
                     disabled={selectedFavoriteIndex === 0}
-                    className="px-4 py-2 bg-black/10 border border-black/10 rounded-full text-black/70 hover:bg-black/20 disabled:opacity-30 transition-all flex items-center gap-1 text-xs font-bold"
+                    className="px-4 py-2 bg-[var(--card)] border border-[var(--border)]/50 rounded-full text-[var(--muted-foreground)] hover:border-[#00F5FF]/50 disabled:opacity-30 transition-all flex items-center gap-1 text-xs font-semibold"
                   >
                     <ArrowLeft size={14} /> Links
                   </button>
@@ -674,7 +695,7 @@ export default function ProfilePage() {
                       }
                     }}
                     disabled={selectedFavoriteIndex === carouselFavorites.length - 1}
-                    className="px-4 py-2 bg-black/10 border border-black/10 rounded-full text-black/70 hover:bg-black/20 disabled:opacity-30 transition-all flex items-center gap-1 text-xs font-bold"
+                    className="px-4 py-2 bg-[var(--card)] border border-[var(--border)]/50 rounded-full text-[var(--muted-foreground)] hover:border-[#00F5FF]/50 disabled:opacity-30 transition-all flex items-center gap-1 text-xs font-semibold"
                   >
                     Rechts <ArrowRight size={14} />
                   </button>
@@ -702,33 +723,35 @@ export default function ProfilePage() {
                 </SortableContext>
               </DndContext>
               {selectedFavoriteIndex === null && carouselFavorites.length > 1 && (
-                <p className="text-center text-[10px] text-black/30 mt-2">Klicke auf einen Strain um ihn auszuwählen, dann ↑↓ zum Verschieben</p>
+                <p className="text-center text-[10px] text-[#484849] mt-2">Klicke auf einen Strain um ihn auszuwählen</p>
               )}
             </div>
           ) : (
-            <div className="py-10 text-center bg-black/10 rounded-[2rem] border border-dashed border-black/10 text-black/20 text-xs font-bold uppercase tracking-widest">Keine Favoriten gesetzt</div>
+            <div className="py-10 text-center bg-[var(--card)] rounded-[2rem] border border-dashed border-[var(--border)]/50 text-[#484849] text-xs font-bold uppercase tracking-widest">Keine Favoriten gesetzt</div>
           )}
         </section>
 
-        <section className="bg-black/20 rounded-[2rem] p-6 border border-black/10">
+        {/* Visibility Toggle */}
+        <section className="bg-[var(--card)] rounded-2xl p-5 border border-[var(--border)]/50">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h3 className="text-sm font-black uppercase tracking-widest">Profil Sichtbarkeit</h3>
-              <p className="text-[10px] text-black/40">{isPublic ? "Dein Profil ist für alle sichtbar" : "Nur du siehst dein Profil"}</p>
+              <h3 className="text-sm font-black uppercase tracking-widest text-[var(--foreground)] font-display">Profil Sichtbarkeit</h3>
+              <p className="text-[10px] text-[var(--muted-foreground)]">{isPublic ? "Dein Profil ist für alle sichtbar" : "Nur du siehst dein Profil"}</p>
             </div>
             <button
               onClick={handleToggleVisibility}
-              className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${isPublic ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]' : 'bg-black/5 border-black/10 text-black/40'}`}
+              className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${isPublic ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]' : 'bg-[var(--muted)] border-[var(--border)]/50 text-[var(--muted-foreground)]'}`}
             >
               {isPublic ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
           </div>
         </section>
 
+        {/* Logout */}
         <section className="pb-10">
           <button
             onClick={() => signOut()}
-            className="w-full py-4 bg-red-500/5 border border-red-500/10 rounded-2xl flex items-center justify-center gap-2 text-red-400 text-xs font-black uppercase tracking-[0.2em] hover:bg-red-500/10 transition-all"
+            className="w-full py-4 bg-[#ff716c]/5 border border-[#ff716c]/20 rounded-2xl flex items-center justify-center gap-2 text-[#ff716c] text-xs font-black uppercase tracking-[0.2em] hover:bg-[#ff716c]/10 transition-all"
           >
             <LogOut size={16} /> Ausloggen
           </button>
