@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { verifyImage } from './extract-image.mjs';
@@ -17,9 +17,10 @@ export function downloadImage(url, destPath, timeoutMs = 15000) {
 
   try {
     // Download to .tmp file via curl
-    execSync(
-      `curl -s -L -A "${UA}" -o "${tmpPath}" "${url}"`,
-      { timeout: timeoutMs + 5000, maxBuffer: 10 * 1024 * 1024 }
+    execFileSync(
+      'curl',
+      ['-s', '-L', '-A', UA, '-o', tmpPath, url],
+      { timeout: timeoutMs + 5000, maxBuffer: 10 * 1024 * 1024, encoding: 'utf8' }
     );
   } catch (err) {
     return { success: false, reason: `curl failed: ${err.message}` };
@@ -52,8 +53,9 @@ export function downloadImage(url, destPath, timeoutMs = 15000) {
  */
 export function ensureJpeg(srcPath, destPath) {
   try {
-    execSync(
-      `convert -quality 85 "${srcPath}" "${destPath}"`,
+    execFileSync(
+      'convert',
+      ['-quality', '85', srcPath, destPath],
       { timeout: 30000, stdio: 'ignore' }
     );
   } catch {
