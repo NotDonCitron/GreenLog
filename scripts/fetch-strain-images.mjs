@@ -36,7 +36,11 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // DB query for strains
 async function getStrains() {
-  let query = supabase.from('strains').select('id, slug, name, image_url');
+  // Exclude custom strains - they keep their user-uploaded images
+  let query = supabase
+    .from('strains')
+    .select('id, slug, name, image_url')
+    .eq('is_custom', false);
 
   if (newOnly) {
     query = query.or('image_url.is.null,image_url.like.%placeholder%');

@@ -23,7 +23,11 @@ function sleep(ms) {
 }
 
 async function getAllStrains() {
-  const { data } = await supabase.from('strains').select('id, slug, name');
+  // Only get non-custom strains - custom strains keep their user-uploaded images
+  const { data } = await supabase
+    .from('strains')
+    .select('id, slug, name')
+    .eq('is_custom', false);
   return data || [];
 }
 
