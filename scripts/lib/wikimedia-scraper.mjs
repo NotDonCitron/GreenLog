@@ -10,16 +10,23 @@ export async function findWikimediaImages(strainName) {
     'action=query&list=search&srsearch=' + encodeURIComponent(strainName + ' cannabis bud') +
     '&srnamespace=6&format=json&origin=*&srlimit=10';
 
-  const json = execFileSync('curl', [
-    '-s', '-A', 'GreenLog/1.0',
-    apiUrl
-  ], { encoding: 'utf-8', timeout: 10000 });
+  let results = [];
+  try {
+    const json = execFileSync('curl', [
+      '-s', '-A', 'GreenLog/1.0',
+      apiUrl
+    ], { encoding: 'utf-8', timeout: 10000 });
 
-  const data = JSON.parse(json);
-  const results = data.query?.search || [];
+    const data = JSON.parse(json);
+    results = data.query?.search || [];
+  } catch (err) {
+    console.warn('Wikimedia API search failed:', err.message);
+    return [];
+  }
 
   const images = [];
   for (const result of results) {
+    await new Promise(r => setTimeout(r, 1000));
     const title = result.title.toLowerCase();
     if (title.includes('3d') || title.includes('render') ||
         title.includes('cartoon') || title.includes('icon') ||
@@ -48,7 +55,9 @@ export async function findWikimediaImages(strainName) {
           pageUrl: 'https://commons.wikimedia.org/wiki/' + encodeURIComponent(result.title),
         });
       }
-    } catch {}
+    } catch (err) {
+      console.warn('Wikimedia image info fetch failed:', err.message);
+    }
   }
   return images;
 }
