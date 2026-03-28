@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execSync, execFileSync } from 'child_process';
 import { extractOgImage, normalizeSlug } from './extract-image.mjs';
 
 let lastCall = 0;
@@ -9,7 +9,7 @@ function rateLimit(source) {
   const minDelay = delays[source] || 1000;
   const elapsed = now - lastCall;
   if (elapsed < minDelay) {
-    execSync('sleep', [(minDelay - elapsed) / 1000]);
+    execFileSync('sleep', [String((minDelay - elapsed) / 1000)]);
   }
   lastCall = Date.now();
 }
