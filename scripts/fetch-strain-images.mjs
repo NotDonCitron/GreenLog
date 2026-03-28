@@ -135,7 +135,10 @@ async function main() {
       await updateStrainImageUrl(strain.id, publicUrl);
       console.log(`OK`);
 
-      // Step 7: Mark as processed
+      // Step 7: Cleanup tmp file after successful upload
+      try { fs.unlinkSync(tmpPath); } catch {}
+
+      // Step 8: Mark as processed
       markProcessed(slug);
 
       console.log(`  ✅ Done!\n`);
