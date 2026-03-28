@@ -16,21 +16,27 @@ const DEFAULT_DATA = {
 
 /**
  * Reads the lock file and returns its contents.
- * Returns default data if file doesn't exist.
+ * Returns default data if file doesn't exist or is corrupted.
  */
 export function readLockFile() {
-  if (!fs.existsSync(LOCK_FILE)) {
+  try {
+    const content = fs.readFileSync(LOCK_FILE, 'utf-8');
+    return JSON.parse(content);
+  } catch {
     return { ...DEFAULT_DATA };
   }
-  const content = fs.readFileSync(LOCK_FILE, 'utf-8');
-  return JSON.parse(content);
 }
 
 /**
  * Writes data to the lock file as JSON with 2 spaces indent.
  */
 export function writeLockFile(data) {
-  fs.writeFileSync(LOCK_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  try {
+    fs.writeFileSync(LOCK_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Failed to write lock file:', err);
+    throw err;
+  }
 }
 
 /**
