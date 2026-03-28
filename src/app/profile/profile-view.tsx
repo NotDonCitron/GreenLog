@@ -65,7 +65,9 @@ import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { BadgeCard } from "@/components/ui/badge-card";
 import { supabase } from "@/lib/supabase/client";
+import { ALL_BADGES, getBadgeById } from "@/lib/badges";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import type {
@@ -145,6 +147,8 @@ export default function ProfilePage() {
   const [carouselFavorites, setCarouselFavorites] = useState<ProfileFavorite[]>([]);
   const [savingOrder, setSavingOrder] = useState(false);
   const [selectedFavoriteIndex, setSelectedFavoriteIndex] = useState<number | null>(null);
+  const [showBadgeEdit, setShowBadgeEdit] = useState(false);
+  const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const currentUserId = user?.id ?? "";
 
   useEffect(() => {
@@ -360,6 +364,9 @@ export default function ProfilePage() {
           rarity: "common"
         };
       }).filter((b): b is ProfileBadge => b !== null);
+
+      const featuredBadges: string[] = profileRes.data?.featured_badges || [];
+
       const identity: ProfileIdentity = {
         email: user?.email ?? null,
         username: `@${profileRes.data?.username || "user"}`,
@@ -373,6 +380,7 @@ export default function ProfilePage() {
 
       setViewModel({ identity, stats, favorites, badges, activity: [], preview: { title: "", description: "", chips: [] } });
       setEditData({ displayName: identity.displayName, bio: identity.bio || "" });
+      setSelectedBadges(featuredBadges);
       setPageState("ready");
     } catch (e) { console.error(e); setPageState("error"); }
   };
@@ -418,6 +426,16 @@ export default function ProfilePage() {
     } catch (e) {
       console.error("Visibility toggle error:", e);
     }
+  };
+
+  const handleBadgeToggle = (badgeId: string) => {
+    setSelectedBadges(prev => {
+      if (prev.includes(badgeId)) {
+        return prev.filter(id => id !== badgeId);
+      }
+      if (prev.length >= 4) return prev; // Max 4
+      return [...prev, badgeId];
+    });
   };
 
   if (pageState === "loading") return (
@@ -620,6 +638,68 @@ export default function ProfilePage() {
       </header>
 
       <div className="px-6 space-y-8">
+        {/* Featured Badges */}
+        <div className="w-full max-w-full overflow-hidden">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#2FF801]">Achievements</p>
+            <button
+              onClick={() => {
+                if (showBadgeEdit) {
+                  // Save
+                  fetch('/api/badges/select', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ featuredBadges: selectedBadges })
+                  }).then(() => {
+                    setShowBadgeEdit(false);
+                    window.location.reload(); // Refresh to show new badges
+                  });
+                } else {
+                  setSelectedBadges(selectedBadges);
+                  setShowBadgeEdit(true);
+                }
+              }}
+              className="text-[10px] text-[var(--muted-foreground)] hover:text-[#2FF801]"
+            >
+              {showBadgeEdit ? 'Fertig' : 'Bearbeiten'}
+            </button>
+          </div>
+          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+            {showBadgeEdit ? (
+              // Edit mode: show all unlocked badges for selection
+              <div className="flex gap-3">
+                {viewModel.badges.map(badge => {
+                  const badgeDef = getBadgeById(badge.id);
+                  if (!badgeDef) return null;
+                  return (
+                    <BadgeCard
+                      key={badge.id}
+                      badge={badgeDef}
+                      unlocked={true}
+                      selected={selectedBadges.includes(badge.id)}
+                      onClick={() => handleBadgeToggle(badge.id)}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              // View mode: show first 4 featured
+              (selectedBadges.length > 0 ? selectedBadges : viewModel.badges.slice(0, 4).map(b => b.id)).map(badgeId => {
+                const badge = viewModel.badges.find(b => b.id === badgeId);
+                if (!badge) return null;
+                const badgeDef = getBadgeById(badge.id);
+                if (!badgeDef) return null;
+                return <BadgeCard key={badgeId} badge={badgeDef} unlocked={true} compact />;
+              })
+            )}
+            {!showBadgeEdit && viewModel.badges.length > 4 && (
+              <button className="text-[10px] text-[var(--muted-foreground)] whitespace-nowrap">
+                +{viewModel.badges.length - 4} mehr
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Community Section */}
         <section>
           <SectionHeader eyebrow="" title="Community" />
