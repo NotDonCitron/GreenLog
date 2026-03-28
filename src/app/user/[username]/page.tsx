@@ -108,6 +108,7 @@ export default function UserProfilePage() {
     const [grows, setGrows] = useState<GrowWithStrain[]>([]);
     const [collections, setCollections] = useState<UserCollectionStrain[]>([]);
     const [userBadges, setUserBadges] = useState<UserBadgeWithDetails[]>([]);
+    const [featuredBadges, setFeaturedBadges] = useState<string[]>([]);
     const [activeTab, setActiveTab] = useState<"activity" | "favorites" | "collections" | "grows">("activity");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -133,6 +134,7 @@ export default function UserProfilePage() {
 
             if (profileError || !profileData) throw new Error("User not found");
             setProfile(profileData);
+            setFeaturedBadges(profileData?.featured_badges || []);
 
             // 2. Parallel data fetching for everything else
             const [
@@ -379,21 +381,21 @@ export default function UserProfilePage() {
                     </span>
                 </div>
 
-                {/* Badges Display */}
+                {/* Badges Display - Show featured badges only */}
                 {!isPrivateAndNotFollowing && userBadges.length > 0 && (
                     <div className="mt-6 w-full max-w-full overflow-hidden">
                         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#2FF801] mb-3 px-1">Achievements</p>
                         <div className="flex w-full max-w-full gap-3 overflow-x-auto no-scrollbar pb-2">
-                            {userBadges.map((ub) => {
+                            {(featuredBadges.length > 0 ? featuredBadges : userBadges.slice(0, 4).map(ub => ub.badge_id)).map(badgeId => {
+                                const ub = userBadges.find(u => u.badge_id === badgeId);
+                                if (!ub) return null;
                                 const badge = ub.badges;
-                                const badgeName = badge?.name || ub.badge_id?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Badge';
+                                const badgeName = badge?.name || badgeId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Badge';
                                 const iconKey = badge?.icon_url || "starter";
-                                if (!badgeName) return null;
                                 const Icon = resolveBadgeIcon(iconKey);
-
                                 return (
                                     <div
-                                        key={ub.id}
+                                        key={badgeId}
                                         className="flex flex-col items-center gap-1.5 min-w-[70px] bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-2.5 shadow-lg"
                                     >
                                         <div className="w-10 h-10 rounded-xl bg-[#2FF801]/10 flex items-center justify-center text-[#ffd700]">
