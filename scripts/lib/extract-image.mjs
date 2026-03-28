@@ -14,8 +14,8 @@ export function extractOgImage(url, userAgent) {
   let html;
   try {
     html = execSync(
-      `curl -s -L -A "${ua.replace(/"/g, '\\"')}" --max-time 10 "${url}"`,
-      { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 }
+      ['curl', '-s', '-L', '-A', ua, '--max-time', '10', url],
+      { encoding: 'utf8', timeout: 20000, maxBuffer: 10 * 1024 * 1024 }
     );
   } catch {
     return null;
