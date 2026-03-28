@@ -159,36 +159,34 @@ export function SuggestedUsers({
                 (p) => !followingIds.includes(p.id)
             );
 
-            // Calculate common strains count for each user
-            const usersWithCommonStrains: SuggestedUser[] = await Promise.all(
-                filteredUsers.slice(0, limit).map(async (profile) => {
-                    let commonStrainsCount = 0;
+            // Batch fetch common strains for all filtered users (N+1 fix)
+            const slicedUsers = filteredUsers.slice(0, limit);
+            const slicedUserIds = slicedUsers.map(p => p.id);
 
-                    if (userStrainIds.length > 0) {
-                        const { data: otherRatings } = await supabase
-                            .from("ratings")
-                            .select("strain_id")
-                            .eq("user_id", profile.id)
-                            .in("strain_id", userStrainIds);
+            const commonStrainsCountMap: Record<string, number> = {};
+            if (userStrainIds.length > 0 && slicedUserIds.length > 0) {
+                const { data: allOtherRatings } = await supabase
+                    .from("ratings")
+                    .select("user_id, strain_id")
+                    .in("user_id", slicedUserIds)
+                    .in("strain_id", userStrainIds);
 
-                        commonStrainsCount = otherRatings?.length ?? 0;
-                    }
+                allOtherRatings?.forEach((r: { user_id: string }) => {
+                    commonStrainsCountMap[r.user_id] = (commonStrainsCountMap[r.user_id] || 0) + 1;
+                });
+            }
 
-                    const hasPending = pendingRequestIds.includes(profile.id);
-
-                    return {
-                        id: profile.id,
-                        username: profile.username ?? "",
-                        display_name: profile.display_name ?? undefined,
-                        avatar_url: profile.avatar_url ?? undefined,
-                        bio: profile.bio ?? undefined,
-                        common_strains_count: commonStrainsCount,
-                        profile_visibility: profile.profile_visibility,
-                        has_pending_request: hasPending,
-                        is_following: followingIds.includes(profile.id),
-                    };
-                })
-            );
+            const usersWithCommonStrains: SuggestedUser[] = slicedUsers.map((profile) => ({
+                id: profile.id,
+                username: profile.username ?? "",
+                display_name: profile.display_name ?? undefined,
+                avatar_url: profile.avatar_url ?? undefined,
+                bio: profile.bio ?? undefined,
+                common_strains_count: commonStrainsCountMap[profile.id] ?? 0,
+                profile_visibility: profile.profile_visibility,
+                has_pending_request: pendingRequestIds.includes(profile.id),
+                is_following: followingIds.includes(profile.id),
+            }));
 
             // Sort by common strains count, then put pending requests at the end
             usersWithCommonStrains.sort(
