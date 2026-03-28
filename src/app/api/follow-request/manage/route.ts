@@ -117,13 +117,12 @@ export async function PUT(request: Request) {
         }
 
         if (action === "approve") {
-            // Create the follow relationship
-            // Using the new policy that allows profile owners to insert follows where they are the target
-            const { error: followError } = await supabase
-                .from("follows")
-                .insert({
-                    follower_id: followRequest.requester_id,
-                    following_id: userId
+            // Create the follow relationship using the security definer function
+            // This bypasses RLS and allows creating follows where the authenticated user is the target
+            const { data: followData, error: followError } = await supabase
+                .rpc("create_follow", {
+                    follower_uuid: followRequest.requester_id,
+                    following_uuid: userId
                 });
 
             if (followError) {

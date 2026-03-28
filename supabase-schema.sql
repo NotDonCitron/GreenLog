@@ -217,6 +217,20 @@ CREATE POLICY "Users can unfollow"
 CREATE INDEX idx_follows_follower ON follows(follower_id);
 CREATE INDEX idx_follows_following ON follows(following_id);
 
+-- Helper function for creating follows via API (bypasses RLS for approve flow)
+CREATE OR REPLACE FUNCTION create_follow(follower_uuid UUID, following_uuid UUID)
+RETURNS UUID AS $$
+DECLARE
+  follow_id UUID;
+BEGIN
+  IF EXISTS (SELECT 1 FROM follows WHERE follower_id = follower_uuid AND following_id = following_uuid) THEN
+    RETURN NULL;
+  END IF;
+  INSERT INTO follows (follower_id, following_id) VALUES (follower_uuid, following_uuid) RETURNING id INTO follow_id;
+  RETURN follow_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 
 -- =============================================
 -- 4. FOLLOW_REQUESTS (Private Profile Follows)
