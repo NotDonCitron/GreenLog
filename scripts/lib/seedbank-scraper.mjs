@@ -4,33 +4,36 @@ import os from 'os';
 import path from 'path';
 import { createHash } from 'crypto';
 
-export async function findSeedbankImages(sourceUrl, strainName) {
+export async function findSeedbankImages(strainName) {
+  const results = [];
+
+  // Try Sensi Seeds autocomplete API
   try {
-    const html = execFileSync('curl', [
-      '-s', '-L', '-A',
-      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      sourceUrl
-    ], { encoding: 'utf-8', timeout: 15000 });
+    const apiUrl = 'https://sensiseeds.com/catalog/searchtermautocomplete?term=' + encodeURIComponent(strainName);
+    const json = execFileSync('curl', [
+      '-s', '-A', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      apiUrl
+    ], { encoding: 'utf-8', timeout: 10000 });
+    const data = JSON.parse(json);
+    for (const item of (data || [])) {
+      if (item.productwebpurl || item.productpictureurl) {
+        results.push({
+          url: item.productwebpurl || item.productpictureurl,
+          author: 'Sensi Seeds',
+          license: 'promotional_use'
+        });
+      }
+    }
+  } catch {}
 
-    const normalizedName = strainName.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    const imgRegex = /https?:\/\/[^\s"']+\.(?:jpg|jpeg|png)(?:\?[^\s"']*)?/gi;
-    const urls = html.match(imgRegex) || [];
-
-    return urls
-      .filter(url => {
-        const lower = url.toLowerCase();
-        return lower.includes(strainName.toLowerCase()) || lower.includes(normalizedName);
-      })
-      .map(url => ({ url, author: 'Seedbank', license: 'promotional_use' }));
-  } catch {
-    return [];
-  }
+  return results;
 }
 
 export async function downloadSeedbankImage(imageUrl) {
   const tmpDir = os.tmpdir();
   const hash = createHash('md5').update(imageUrl).digest('hex');
-  const tmpPath = path.join(tmpDir, `seedbank-${hash}.jpg`);
+  const ext = imageUrl.toLowerCase().includes('.webp') ? 'webp' : 'jpg';
+  const tmpPath = path.join(tmpDir, `seedbank-${hash}.${ext}`);
 
   try {
     execFileSync('curl', ['-s', '-L', '-o', tmpPath, imageUrl], { timeout: 15000 });
