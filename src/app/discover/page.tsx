@@ -54,38 +54,59 @@ export default function DiscoverPage() {
                         .in("id", friendIds);
 
                     if (profiles) {
-                        const friendsWithStats = await Promise.all(profiles.map(async (p) => {
-                            const { count } = await supabase
-                                .from("ratings")
-                                .select("*", { count: "exact", head: true })
-                                .eq("user_id", p.id);
+                        const friendIds = profiles.map(p => p.id);
 
-                            let { data: topData } = await supabase
-                                .from("user_strain_relations")
-                                .select("strains:strain_id (*)")
-                                .eq("user_id", p.id)
-                                .eq("is_favorite", true)
-                                .limit(5);
+                        // Batch fetch all ratings counts (N+1 fix)
+                        const { data: allRatings } = await supabase
+                            .from("ratings")
+                            .select("user_id")
+                            .in("user_id", friendIds);
 
-                            if (!topData || topData.length === 0) {
-                                const { data: ratedData } = await supabase
-                                    .from("ratings")
-                                    .select("strains(*)")
-                                    .eq("user_id", p.id)
-                                    .order("created_at", { ascending: false })
-                                    .limit(5);
-                                topData = ratedData;
+                        const countMap: Record<string, number> = {};
+                        allRatings?.forEach(r => {
+                            countMap[r.user_id] = (countMap[r.user_id] || 0) + 1;
+                        });
+
+                        // Batch fetch all favorite relations for all friends
+                        const { data: allFavoriteRelations } = await supabase
+                            .from("user_strain_relations")
+                            .select("user_id, strains(*)")
+                            .in("user_id", friendIds)
+                            .eq("is_favorite", true);
+
+                        // Group favorites by user_id (keep top 5 per user)
+                        const favoritesMap: Record<string, any[]> = {};
+                        allFavoriteRelations?.forEach((rel: any) => {
+                            if (!favoritesMap[rel.user_id]) favoritesMap[rel.user_id] = [];
+                            if (favoritesMap[rel.user_id].length < 5) {
+                                favoritesMap[rel.user_id].push(rel.strains);
                             }
+                        });
 
-                            const topStrains = (topData || [])
-                                .map(entry => (entry as any).strains)
-                                .filter(Boolean);
+                        // For friends with no favorites, fetch recent ratings
+                        const friendsNeedingFallback = friendIds.filter(
+                            id => !favoritesMap[id] || favoritesMap[id].length === 0
+                        );
 
-                            return {
-                                ...p,
-                                strainCount: count || 0,
-                                topStrains: topStrains
-                            };
+                        if (friendsNeedingFallback.length > 0) {
+                            const { data: recentRatings } = await supabase
+                                .from("ratings")
+                                .select("user_id, strains(*)")
+                                .in("user_id", friendsNeedingFallback)
+                                .order("created_at", { ascending: false });
+
+                            recentRatings?.forEach((r: any) => {
+                                if (!favoritesMap[r.user_id]) favoritesMap[r.user_id] = [];
+                                if (favoritesMap[r.user_id].length < 5) {
+                                    favoritesMap[r.user_id].push(r.strains);
+                                }
+                            });
+                        }
+
+                        const friendsWithStats = profiles.map(p => ({
+                            ...p,
+                            strainCount: countMap[p.id] || 0,
+                            topStrains: (favoritesMap[p.id] || []).filter(Boolean)
                         }));
                         setFriends(friendsWithStats as FriendProfile[]);
                     }
