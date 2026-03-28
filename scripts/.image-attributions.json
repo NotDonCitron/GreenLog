@@ -1,0 +1,403 @@
+{
+  "og-kush": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AOG%20Kush.jpg"
+  },
+  "test-slug": {
+    "source": "wikimedia",
+    "author": "Test",
+    "license": "CC BY-SA"
+  },
+  "death-star": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3A%E0%AE%AA%E0%AE%BE%E0%AE%B5%E0%AE%BE%E0%AE%A3%E0%AE%B0%E0%AF%8D%20%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D%E0%AE%95%E0%AF%8D%20%E0%AE%95%E0%AE%B3%E0%AE%9E%E0%AF%8D%E0%AE%9A%E0%AE%BF%E0%AE%AF%E0%AE%AE%E0%AF%8D%2040.pdf"
+  },
+  "grape-drink": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ADictionary%20of%20the%20names%20of%20British%20plants%20-%20intended%20for%20the%20use%20of%20amateurs%20and%20beginners%2C%20as%20a%20help%20to%20the%20knowledge%20of%20the%20meaning%20and%20pronunciation%20of%20the%20scientific%20names%20of%20British%20wild%20flowers%20(IA%20b24864833).pdf"
+  },
+  "test-org-strain-api-1774437145": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AMarijuana-Cannabis-Weed-Bud-Gram.jpg"
+  },
+  "white-widow": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AG-13%20White%20Widow%20hybrid.jpg"
+  },
+  "northern-lights": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ASativa.jpg"
+  },
+  "mimosa": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ACatalogue%20of%20kitchen%20garden%2C%20flower%2C%20tree%20%26%20grass%20seeds%2C%20bulbous%20and%20dahlia%20roots%2C%20greenhouse%20plants%2C%20gardening%2C%20agricultural%2C%20and%20botanical%20books%3B%20gardening%20tools%2C%20etc.%20(IA%20catalogueofkitch1844jmth).pdf"
+  },
+  "black-diamond": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ACommonly%20Used%20Drugs.pdf"
+  },
+  "blue-cookies": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ACommonly%20Used%20Drugs.pdf"
+  },
+  "mount-cook": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ASeeds%20and%20plants%20imported%20through%20the%20Section%20of%20Seed%20and%20Plant%20Introduction%20for%20distribution%20in%20cooperation%20with%20the%20Agricultural%20experiment%20stations%20-%20inventory%20no.%209%2C%20numbers%204351-5500%20(IA%20seedsplantsimpor05unit).pdf"
+  },
+  "sour-diesel": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ASour-diesel.PNG"
+  },
+  "true-og": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ACatalogue%20of%20kitchen%20garden%2C%20flower%2C%20tree%20%26%20grass%20seeds%2C%20bulbous%20and%20dahlia%20roots%2C%20greenhouse%20plants%2C%20gardening%2C%20agricultural%2C%20and%20botanical%20books%3B%20gardening%20tools%2C%20etc.%20(IA%20catalogueofkitch1844jmth).pdf"
+  },
+  "strawberry-cough": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AMedical%20Heritage%20Library%20(IA%209705013.nlm.nih.gov).pdf"
+  },
+  "panama-red": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AList%20and%20analytical%20index%20of%20publications%20of%20the%20Porto%20Rico%20Agricultural%20Experiment%20Station%20(July%2C%201900%2C%20to%20March%2C%201930)%20(IA%20CAT31289481).pdf"
+  },
+  "jack-herer": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AMiddle%20Eastern%20licking%20Jack%20Herer%20Cannabis%20Bud.JPG"
+  },
+  "durban-poison": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AThe%20uses%20of%20plants%20-%20a%20manual%20of%20economic%20botany%20with%20special%20reference%20to%20vegetable%20products%20introduced%20during%20the%20last%20fifty%20years%20(IA%20b28080130).pdf"
+  },
+  "hash-plant": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AR43785%20Federal%20Proposals%20to%20Tax%20Marijuana%20An%20Economic%20Analysis%20(IA%20R43785FederalProposalstoTaxMarijuanaAnEconomicAnalysis-crs).pdf"
+  },
+  "white-fire-og": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AThe%20flora%20of%20Franklin%20County%20(Indiana)%20(IA%20floraoffranklinc00meyn).pdf"
+  },
+  "bubba-kush": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ABubba%20Kush.jpg"
+  },
+  "gelato-33": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ACafeMia.jpg"
+  },
+  "papaya": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AHortus%20Elginensis-%20or%20a%20catalogue%20of%20plants%2C%20indigenous%20and%20exotic%2C%20cultivated%20in%20the%20Elgin%20Botanic%20Garden%2C%20in%20the%20vicinity%20of%20the%20city%20of%20New-York.%20Established%20in%201801%20(IA%20b30795497).pdf"
+  },
+  "cinderella-99": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AThe%20chemist%20and%20druggist%20(electronic%20resource)%20(IA%20b19974760M1014).pdf"
+  },
+  "grapefruit": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AFederal%20Register%201943-04-29-%20Vol%208%20Iss%2084%20(IA%20sim%20federal-register-find%201943-04-29%208%2084).pdf"
+  },
+  "xj-13": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AFederal%20Register%201942-10-14-%20Vol%207%20Iss%20202%20(IA%20sim%20federal-register-find%201942-10-14%207%20202).pdf"
+  },
+  "ice-cream-cake": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AFederal%20Register%201943-04-29-%20Vol%208%20Iss%2084%20(IA%20sim%20federal-register-find%201943-04-29%208%2084).pdf"
+  },
+  "lavender": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3APsychoactive%20Drugs.jpg"
+  },
+  "lemon-skunk": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AClassification%20of%20the%20materia%20medica%20collection%20of%20the%20U.S.%20National%20Museum%2C%20and%20catalogue%20of%20specimens%20(IA%20b22301513).pdf"
+  },
+  "skywalker": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3APlatinum%20Bubba%20and%20Skywalker%20OG.jpg"
+  },
+  "green-ribbon": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AMedical%20Heritage%20Library%20(IA%209705013.nlm.nih.gov).pdf"
+  },
+  "platinum-og": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3APlatinum%20Bubba%20and%20Skywalker%20OG.jpg"
+  },
+  "amnesia": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ACommonly%20Used%20Drugs.pdf"
+  },
+  "sour-breath": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AThe%20book%20of%20jade%20(IA%20bookofjade00gautiala).pdf"
+  },
+  "sugar-black-rose": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AThe%20flora%20of%20Franklin%20County%20(Indiana)%20(IA%20floraoffranklinc00meyn).pdf"
+  },
+  "black-domina": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3APeazo%20Cogollo%20-%20Flickr%20-%20r0bz.jpg"
+  },
+  "grape-god": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3APark's%20floral%20magazine%20(IA%20CAT30999385170).pdf"
+  },
+  "pure-power-plant": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AThe%20uses%20of%20plants%20-%20a%20manual%20of%20economic%20botany%20with%20special%20reference%20to%20vegetable%20products%20introduced%20during%20the%20last%20fifty%20years%20(IA%20b28080130).pdf"
+  },
+  "dutch-treat": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AOJ%20L%20208%20of%202014%20-%20EN%20English.pdf"
+  },
+  "black-jack": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AAn%20explanation%20of%20the%20terms%20of%20art%20in%20the%20several%20branches%20of%20medicine%2C%20accented%20as%20they%20are%20to%20be%20pronounced%20(IA%20b30384655).pdf"
+  },
+  "enigma": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AVerses%20(IA%20versesmackenna00mack).pdf"
+  },
+  "dark-star": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AWar-time%20flower%20garden%20-%20Heatherhome%20Seed%20and%20Nursery%20Co.%20Incorporated.%20(IA%20CAT31300882).pdf"
+  },
+  "bubba-kush-5": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ADosidos%20Cannabis%20Strain%2C%20grown%20by%20Archive.jpg"
+  },
+  "black-cherry-soda": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AAn%20explanation%20of%20the%20terms%20of%20art%20in%20the%20several%20branches%20of%20medicine%2C%20accented%20as%20they%20are%20to%20be%20pronounced%20(IA%20b30384655).pdf"
+  },
+  "g13": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AG13%20cannabis.jpg"
+  },
+  "aurora-indica": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ACatalogue%20of%20kitchen%20garden%2C%20flower%2C%20tree%20%26%20grass%20seeds%2C%20bulbous%20and%20dahlia%20roots%2C%20greenhouse%20plants%2C%20gardening%2C%20agricultural%2C%20and%20botanical%20books%3B%20gardening%20tools%2C%20etc.%20(IA%20catalogueofkitch1844jmth).pdf"
+  },
+  "island-pink": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ABulletin%20of%20foreign%20plant%20introductions%20(IA%20cat31072361%20040).pdf"
+  },
+  "outer-space": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AThe%20suburban%20garden%20guide%20(IA%20suburbangardengu00barn).pdf"
+  },
+  "spectrum-blue": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AThe%20NIH%20catalyst%20-%20a%20publication%20for%20NIH%20intramural%20scientists%20(IA%20nihcatalystpubl2007nati%200).pdf"
+  },
+  "spectrum-red-no-2": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AMarihuana%20and%20health%3B%20a%20report%20to%20the%20Congress%20from%20the%20Secretary%2C%20Department%20of%20Health%2C%20Education%2C%20and%20Welfare%20(IA%20marihuanahealthr00unit).pdf"
+  },
+  "super-sour-diesel": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ASour-diesel.PNG"
+  },
+  "haze": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ACannabis%20Silver%20star%20haze%20in%20bloom%20(25519864035).jpg"
+  },
+  "animal-face": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AAn%20explanation%20of%20the%20terms%20of%20art%20in%20the%20several%20branches%20of%20medicine%2C%20accented%20as%20they%20are%20to%20be%20pronounced%20(IA%20b30384655).pdf"
+  },
+  "fat-banana": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AFederal%20Register%201942-12-18-%20Vol%207%20Iss%20247%20(IA%20sim%20federal-register-find%201942-12-18%207%20247).pdf"
+  },
+  "harlequin": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3APark's%20floral%20guide%201901%20(IA%20CAT31285235).pdf"
+  },
+  "j1": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ACherry%20Blossoms.djvu"
+  },
+  "exotic-og": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ASyllabus%20of%20a%20course%20of%20lectures%20on%20botany%20(IA%20b30358024).pdf"
+  },
+  "acapulco-gold": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AAcapulco%20gold.jpg"
+  },
+  "ayahuasca-purple": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ACommonly%20Used%20Drugs.pdf"
+  },
+  "face-off-og": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ASyllabus%20of%20a%20course%20of%20lectures%20on%20botany%20(IA%20b30358024).pdf"
+  },
+  "bay-11": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ASanscrit%20and%20English%20Analogues%20(IA%20jstor-981889).pdf"
+  },
+  "blue-diamond": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3ACommonly%20Used%20Drugs.pdf"
+  },
+  "mk-ultra": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AHaupt%2C%20Preis%20liste%20der%20gangbarsten%20Gem%C3%BCse%2C%20Gras%2C%20Blumen%20und%20landwirthschaftlichen%20Saaten%20-%20Herbst%201899%2C%20Fr%C3%BChjahr%201900%20-%20No.%20184%2C%2030.%20Jahrgang%20(IA%20CAT31366786).pdf"
+  },
+  "sour-og": {
+    "source": "wikimedia",
+    "author": "Unknown",
+    "license": "CC BY-SA",
+    "url": "https://commons.wikimedia.org/wiki/File%3AThe%20flora%20of%20Franklin%20County%20(Indiana)%20(IA%20floraoffranklinc00meyn).pdf"
+  },
+  "runtz": {
+    "source": "seedbank",
+    "author": "Sensi Seeds",
+    "license": "promotional_use",
+    "url": "https://img.sensiseeds.com/images/thumbs/0000015_critical-runtz-feminized-seeds_20.webp"
+  },
+  "gelato": {
+    "source": "seedbank",
+    "author": "Sensi Seeds",
+    "license": "promotional_use",
+    "url": "https://img.sensiseeds.com/images/thumbs/0000184_gelato-420-feminized-seeds-by-white-label_20.webp"
+  },
+  "hindu-kush": {
+    "source": "seedbank",
+    "author": "Sensi Seeds",
+    "license": "promotional_use",
+    "url": "https://img.sensiseeds.com/images/thumbs/0000145_hindu-kush-feminized-seeds_20.webp"
+  },
+  "biscotti": {
+    "source": "seedbank",
+    "author": "Sensi Seeds",
+    "license": "promotional_use",
+    "url": "https://img.sensiseeds.com/images/thumbs/0001165_white-biscotti-og-xxl-feminized-seeds-by-white-label_20.webp"
+  }
+}

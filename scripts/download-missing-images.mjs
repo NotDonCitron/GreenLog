@@ -11,7 +11,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 async function downloadImage(url, path) {
   try {
-    execSync(`curl.exe -L -s -o "${path}" "${url}"`);
+    execSync(`curl -L -s -o "${path}" "${url}"`);
     return true;
   } catch (e) {
     return false;
