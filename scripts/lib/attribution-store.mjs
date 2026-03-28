@@ -7,6 +7,7 @@ const require = createRequire(import.meta.url);
 const fs = require('fs');
 
 const ATTR_FILE = join(process.cwd(), 'scripts/.image-attributions.json');
+const ATTR_FILE_TMP = join(process.cwd(), 'scripts/.image-attributions.tmp.json');
 
 const DEFAULT_DATA = {};
 
@@ -19,7 +20,9 @@ export function readAttributions() {
 }
 
 export function writeAttributions(data) {
-  fs.writeFileSync(ATTR_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  // Atomic write: tmp file + rename
+  fs.writeFileSync(ATTR_FILE_TMP, JSON.stringify(data, null, 2), 'utf-8');
+  fs.renameSync(ATTR_FILE_TMP, ATTR_FILE);
 }
 
 export function saveAttribution(slug, attribution) {
