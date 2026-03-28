@@ -9,7 +9,7 @@ function rateLimit(source) {
   const minDelay = delays[source] || 1000;
   const elapsed = now - lastCall;
   if (elapsed < minDelay) {
-    execSync(`sleep ${(minDelay - elapsed) / 1000}`);
+    execSync('sleep', [(minDelay - elapsed) / 1000]);
   }
   lastCall = Date.now();
 }
@@ -87,13 +87,3 @@ export function getPicsumUrl(slug) {
   return `https://picsum.photos/seed/${Math.abs(hash)}/600/800`;
 }
 
-/**
- * Checks if a URL points to an image.
- * @param {string} url - The URL to check
- * @returns {boolean}
- */
-export function isImageUrl(url) {
-  return /\.(jpg|jpeg|png|webp)(\?|$)/i.test(url) ||
-    url.includes('og-image') ||
-    url.includes('strain-image');
-}
