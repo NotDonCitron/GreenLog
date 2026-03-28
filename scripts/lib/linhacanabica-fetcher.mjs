@@ -4,17 +4,24 @@ import os from 'os';
 import path from 'path';
 import { createHash } from 'crypto';
 
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+
 export async function findLinhacanabicaImage(strainName) {
   const searchUrl = 'https://api.github.com/search/code' +
     '?q=' + encodeURIComponent(strainName + ' repo:linhacanabica/images-strains-weed') +
     '&per_page=5&type=code';
 
+  const headers = [
+    '-s', '-A', 'GreenLog/1.0',
+    '-H', 'Accept: application/vnd.github.v3+json'
+  ];
+
+  if (GITHUB_TOKEN) {
+    headers.push('-H', `Authorization: token ${GITHUB_TOKEN}`);
+  }
+
   try {
-    const json = execFileSync('curl', [
-      '-s', '-A', 'GreenLog/1.0',
-      '-H', 'Accept: application/vnd.github.v3+json',
-      searchUrl
-    ], { encoding: 'utf-8', timeout: 10000 });
+    const json = execFileSync('curl', [...headers, searchUrl], { encoding: 'utf-8', timeout: 10000 });
 
     const data = JSON.parse(json);
     const items = (data.items || []).filter(item =>
