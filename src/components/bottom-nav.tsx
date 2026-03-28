@@ -22,6 +22,12 @@ export function BottomNav() {
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [showRequestsModal, setShowRequestsModal] = useState(false);
 
+  const handleBadgeClick = () => {
+    if (pendingRequestsCount > 0) {
+      setShowRequestsModal(true);
+    }
+  };
+
   useEffect(() => {
     const fetchPendingRequests = async () => {
       if (!user) {
@@ -58,9 +64,9 @@ export function BottomNav() {
 
             if (item.showBadge) {
               return (
-                <Link
+                <button
                   key={item.href}
-                  href={item.href}
+                  onClick={handleBadgeClick}
                   className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] uppercase font-bold tracking-tight transition-all ${isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"}`}
                 >
                   <div className="relative">
@@ -75,7 +81,7 @@ export function BottomNav() {
                     )}
                   </div>
                   {item.label}
-                </Link>
+                </button>
               );
             }
 
