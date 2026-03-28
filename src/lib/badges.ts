@@ -67,13 +67,13 @@ export const BADGE_CRITERIA: Record<string, BadgeCriteria> = {
   'harvest-1': async ({ supabase, userId }) => {
     const { count } = await supabase
       .from('grows').select('*', { count: 'exact', head: true })
-      .eq('user_id', userId).eq('stage', 'harvested');
+      .eq('user_id', userId).eq('status', 'completed');
     return (count ?? 0) >= 1;
   },
   'perfectionist-5': async ({ supabase, userId }) => {
     const { count } = await supabase
       .from('grows').select('*', { count: 'exact', head: true })
-      .eq('user_id', userId).eq('stage', 'harvested');
+      .eq('user_id', userId).eq('status', 'completed');
     return (count ?? 0) >= 5;
   },
   'first-follower': async ({ supabase, userId }) => {
