@@ -109,7 +109,11 @@ export default function ScannerPage() {
 
     try {
       let worker = workerRef.current;
-      if (!worker) worker = await createWorker('deu+eng');
+      if (!worker) {
+        const { createWorker } = await import("tesseract.js");
+        worker = await createWorker('deu+eng');
+        workerRef.current = worker;
+      }
 
       const { data: { text } } = await worker.recognize(canvas);
       console.log("Erkannter Text:", text);

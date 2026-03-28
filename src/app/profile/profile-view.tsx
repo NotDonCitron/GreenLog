@@ -354,7 +354,7 @@ export default function ProfilePage() {
         if (!badgeId) return null;
         return {
           id: badgeId,
-          name: badgeId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+          name: badgeId.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
           description: 'Achievement unlocked',
           iconKey: "starter",
           rarity: "common"
