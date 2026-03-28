@@ -1,6 +1,6 @@
 -- =============================================
 -- GreenLog RLS Security Fix
--- Fügt fehlende RLS Policies hinzu
+-- Fügt fehlende RLS Policies hinzu (idempotent)
 -- =============================================
 
 -- =============================================
@@ -9,17 +9,17 @@
 
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 
--- Jeder kann aktive Organizations sehen (öffentliche Info)
+DROP POLICY IF EXISTS "Organizations are viewable by everyone" ON organizations;
 CREATE POLICY "Organizations are viewable by everyone"
   ON organizations FOR SELECT
   USING (status = 'active' OR auth.uid() = created_by);
 
--- Authenticated Users können Organizations erstellen
+DROP POLICY IF EXISTS "Authenticated users can create organizations" ON organizations;
 CREATE POLICY "Authenticated users can create organizations"
   ON organizations FOR INSERT
   WITH CHECK (auth.uid() IS NOT NULL);
 
--- Nur Gründer oder Admins können updaten
+DROP POLICY IF EXISTS "Founders and admins can update organizations" ON organizations;
 CREATE POLICY "Founders and admins can update organizations"
   ON organizations FOR UPDATE
   USING (
@@ -33,7 +33,7 @@ CREATE POLICY "Founders and admins can update organizations"
     )
   );
 
--- Nur Gründer können löschen
+DROP POLICY IF EXISTS "Founders can delete organizations" ON organizations;
 CREATE POLICY "Founders can delete organizations"
   ON organizations FOR DELETE
   USING (auth.uid() = created_by);
@@ -45,12 +45,12 @@ CREATE POLICY "Founders can delete organizations"
 
 ALTER TABLE organization_members ENABLE ROW LEVEL SECURITY;
 
--- Mitglieder können ihre eigenen Daten sehen
+DROP POLICY IF EXISTS "Members can view own membership" ON organization_members;
 CREATE POLICY "Members can view own membership"
   ON organization_members FOR SELECT
   USING (auth.uid() = user_id);
 
--- Mitglieder können alle Mitglieder ihrer Organization sehen
+DROP POLICY IF EXISTS "Members can view org members" ON organization_members;
 CREATE POLICY "Members can view org members"
   ON organization_members FOR SELECT
   USING (
@@ -62,7 +62,7 @@ CREATE POLICY "Members can view org members"
     )
   );
 
--- Nur Admins oder Gründer können Mitglieder hinzufügen
+DROP POLICY IF EXISTS "Admins can add members" ON organization_members;
 CREATE POLICY "Admins can add members"
   ON organization_members FOR INSERT
   WITH CHECK (
@@ -75,7 +75,7 @@ CREATE POLICY "Admins can add members"
     )
   );
 
--- Selbst-Updates oder Admin-Updates
+DROP POLICY IF EXISTS "Members can update own membership, admins can update any" ON organization_members;
 CREATE POLICY "Members can update own membership, admins can update any"
   ON organization_members FOR UPDATE
   USING (
@@ -89,7 +89,7 @@ CREATE POLICY "Members can update own membership, admins can update any"
     )
   );
 
--- Selbst-Exit oder Admin-Entfernung
+DROP POLICY IF EXISTS "Members can leave, admins can remove" ON organization_members;
 CREATE POLICY "Members can leave, admins can remove"
   ON organization_members FOR DELETE
   USING (
@@ -110,7 +110,7 @@ CREATE POLICY "Members can leave, admins can remove"
 
 ALTER TABLE organization_invites ENABLE ROW LEVEL SECURITY;
 
--- Admins/Gründer sehen alle Invites ihrer Org; invited_by sieht seine eigenen
+DROP POLICY IF EXISTS "Admins see org invites, inviters see own" ON organization_invites;
 CREATE POLICY "Admins see org invites, inviters see own"
   ON organization_invites FOR SELECT
   USING (
@@ -124,7 +124,7 @@ CREATE POLICY "Admins see org invites, inviters see own"
     OR invited_by = auth.uid()
   );
 
--- Admins/Gründer können Invites für ihre Org sehen
+DROP POLICY IF EXISTS "Admins can view org invites" ON organization_invites;
 CREATE POLICY "Admins can view org invites"
   ON organization_invites FOR SELECT
   USING (
@@ -137,7 +137,7 @@ CREATE POLICY "Admins can view org invites"
     )
   );
 
--- Admins/Gründer können Invites erstellen
+DROP POLICY IF EXISTS "Admins can create invites" ON organization_invites;
 CREATE POLICY "Admins can create invites"
   ON organization_invites FOR INSERT
   WITH CHECK (
@@ -150,7 +150,7 @@ CREATE POLICY "Admins can create invites"
     )
   );
 
--- Admins/Gründer können Invites widerrufen
+DROP POLICY IF EXISTS "Admins can revoke invites" ON organization_invites;
 CREATE POLICY "Admins can revoke invites"
   ON organization_invites FOR UPDATE
   USING (
@@ -163,7 +163,7 @@ CREATE POLICY "Admins can revoke invites"
     )
   );
 
--- Admins/Gründer können Invites löschen
+DROP POLICY IF EXISTS "Admins can delete invites" ON organization_invites;
 CREATE POLICY "Admins can delete invites"
   ON organization_invites FOR DELETE
   USING (
@@ -183,17 +183,17 @@ CREATE POLICY "Admins can delete invites"
 
 ALTER TABLE follows ENABLE ROW LEVEL SECURITY;
 
--- Jeder kann öffentliche Follows sehen
+DROP POLICY IF EXISTS "Follows are viewable by everyone" ON follows;
 CREATE POLICY "Follows are viewable by everyone"
   ON follows FOR SELECT
   USING (true);
 
--- Authenticated Users können folgen
+DROP POLICY IF EXISTS "Users can create follows" ON follows;
 CREATE POLICY "Users can create follows"
   ON follows FOR INSERT
   WITH CHECK (auth.uid() = follower_id);
 
--- User können Unfollow (delete)
+DROP POLICY IF EXISTS "Users can unfollow" ON follows;
 CREATE POLICY "Users can unfollow"
   ON follows FOR DELETE
   USING (auth.uid() = follower_id);
@@ -205,22 +205,22 @@ CREATE POLICY "Users can unfollow"
 
 ALTER TABLE follow_requests ENABLE ROW LEVEL SECURITY;
 
--- User sehen eigene Requests
+DROP POLICY IF EXISTS "Users see own requests" ON follow_requests;
 CREATE POLICY "Users see own requests"
   ON follow_requests FOR SELECT
   USING (auth.uid() = requester_id OR auth.uid() = target_id);
 
--- User können Follow Requests senden
+DROP POLICY IF EXISTS "Users can send follow requests" ON follow_requests;
 CREATE POLICY "Users can send follow requests"
   ON follow_requests FOR INSERT
   WITH CHECK (auth.uid() = requester_id);
 
--- User können eigene Requests aktzeptieren/ablehnen
+DROP POLICY IF EXISTS "Users can update own requests" ON follow_requests;
 CREATE POLICY "Users can update own requests"
   ON follow_requests FOR UPDATE
   USING (auth.uid() = target_id);
 
--- User können eigene Requests löschen
+DROP POLICY IF EXISTS "Users can delete own requests" ON follow_requests;
 CREATE POLICY "Users can delete own requests"
   ON follow_requests FOR DELETE
   USING (auth.uid() = requester_id OR auth.uid() = target_id);
@@ -232,22 +232,22 @@ CREATE POLICY "Users can delete own requests"
 
 ALTER TABLE user_activities ENABLE ROW LEVEL SECURITY;
 
--- Public Activities für alle sichtbar
+DROP POLICY IF EXISTS "Public activities viewable by all" ON user_activities;
 CREATE POLICY "Public activities viewable by all"
   ON user_activities FOR SELECT
   USING (is_public = true OR auth.uid() = user_id);
 
--- Authenticated Users können Activities erstellen
+DROP POLICY IF EXISTS "Users can create activities" ON user_activities;
 CREATE POLICY "Users can create activities"
   ON user_activities FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
--- User können eigene Activities aktualisieren
+DROP POLICY IF EXISTS "Users can update own activities" ON user_activities;
 CREATE POLICY "Users can update own activities"
   ON user_activities FOR UPDATE
   USING (auth.uid() = user_id);
 
--- User können eigene Activities löschen
+DROP POLICY IF EXISTS "Users can delete own activities" ON user_activities;
 CREATE POLICY "Users can delete own activities"
   ON user_activities FOR DELETE
   USING (auth.uid() = user_id);
