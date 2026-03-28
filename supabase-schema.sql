@@ -326,6 +326,7 @@ CREATE TABLE strains (
   flavors TEXT[] DEFAULT '{}',
   terpenes TEXT[] DEFAULT '{}',
   image_url TEXT,
+  image_attribution JSONB DEFAULT '{"source": "none"}',
   created_by UUID REFERENCES profiles(id),
   created_at TIMESTAMPTZ DEFAULT now()
 );
