@@ -5,7 +5,21 @@
 -- =============================================
 
 -- =============================================
--- 0. ORGANIZATIONS (Clubs, Apotheken)
+-- 0. HELPER FUNCTIONS (must be defined before tables that use them)
+-- =============================================
+
+-- Helper function to check org membership without RLS recursion
+-- Uses SECURITY DEFINER to bypass RLS when checking membership
+CREATE OR REPLACE FUNCTION is_active_org_member(p_user_id UUID, p_org_id UUID)
+RETURNS BOOLEAN AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM organization_members
+    WHERE user_id = p_user_id AND organization_id = p_org_id AND membership_status = 'active'
+  );
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+-- =============================================
+-- 1. ORGANIZATIONS (Clubs, Apotheken)
 -- =============================================
 
 CREATE TABLE organizations (
@@ -97,25 +111,13 @@ CREATE POLICY "Admins can add members"
 CREATE POLICY "Members can update own membership, admins can update any"
   ON organization_members FOR UPDATE USING (
     auth.uid() = user_id
-    OR EXISTS (
-      SELECT 1 FROM organization_members AS m
-      WHERE m.organization_id = organization_members.organization_id
-      AND m.user_id = auth.uid()
-      AND m.role IN ('gründer', 'admin')
-      AND m.membership_status = 'active'
-    )
+    OR is_active_org_member(auth.uid(), organization_id)
   );
 
 CREATE POLICY "Members can leave, admins can remove"
   ON organization_members FOR DELETE USING (
     auth.uid() = user_id
-    OR EXISTS (
-      SELECT 1 FROM organization_members AS m
-      WHERE m.organization_id = organization_members.organization_id
-      AND m.user_id = auth.uid()
-      AND m.role IN ('gründer', 'admin')
-      AND m.membership_status = 'active'
-    )
+    OR is_active_org_member(auth.uid(), organization_id)
   );
 
 CREATE INDEX idx_org_members_org ON organization_members(organization_id);
@@ -144,47 +146,23 @@ ALTER TABLE organization_invites ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admins see org invites, inviters see own"
   ON organization_invites FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM organization_members AS m
-      WHERE m.organization_id = organization_invites.organization_id
-      AND m.user_id = auth.uid()
-      AND m.role IN ('gründer', 'admin')
-      AND m.membership_status = 'active'
-    )
+    is_active_org_member(auth.uid(), organization_id)
     OR invited_by = auth.uid()
   );
 
 CREATE POLICY "Admins can create invites"
   ON organization_invites FOR INSERT WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM organization_members AS m
-      WHERE m.organization_id = organization_invites.organization_id
-      AND m.user_id = auth.uid()
-      AND m.role IN ('gründer', 'admin')
-      AND m.membership_status = 'active'
-    )
+    is_active_org_member(auth.uid(), organization_id)
   );
 
 CREATE POLICY "Admins can revoke invites"
   ON organization_invites FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM organization_members AS m
-      WHERE m.organization_id = organization_invites.organization_id
-      AND m.user_id = auth.uid()
-      AND m.role IN ('gründer', 'admin')
-      AND m.membership_status = 'active'
-    )
+    is_active_org_member(auth.uid(), organization_id)
   );
 
 CREATE POLICY "Admins can delete invites"
   ON organization_invites FOR DELETE USING (
-    EXISTS (
-      SELECT 1 FROM organization_members AS m
-      WHERE m.organization_id = organization_invites.organization_id
-      AND m.user_id = auth.uid()
-      AND m.role IN ('gründer', 'admin')
-      AND m.membership_status = 'active'
-    )
+    is_active_org_member(auth.uid(), organization_id)
   );
 
 CREATE INDEX idx_org_invites_org ON organization_invites(organization_id);
