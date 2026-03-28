@@ -403,14 +403,12 @@ export default function StrainDetailPage() {
                 </div>
               </div>
               {strain.image_attribution && strain.image_attribution.source !== 'none' && (
-                <div className="px-5 mt-2">
-                  <p className="text-xs text-gray-500">
-                    Foto: {strain.image_attribution.author} · {strain.image_attribution.license}
-                    {strain.image_attribution.url && (
-                      <> · <a href={strain.image_attribution.url} target="_blank" rel="noopener noreferrer" className="underline">Quelle</a></>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Foto: {strain.image_attribution?.author} · {strain.image_attribution?.license}
+                    {strain.image_attribution?.url && (
+                      <> · <a href={strain.image_attribution?.url} target="_blank" rel="noopener noreferrer" className="underline">Quelle</a></>
                     )}
                   </p>
-                </div>
               )}
               <div className="px-5 mt-5 w-full mb-5">
                 <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-xl p-4">
