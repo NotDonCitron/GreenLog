@@ -28,7 +28,7 @@ async function getAllStrains() {
 }
 
 async function cleanupTmp(tmpPath) {
-  try { if (tmpPath) fs.unlinkSync(tmpPath); } catch {}
+  try { if (tmpPath) await fs.promises.unlink(tmpPath); } catch {}
 }
 
 async function processStrain(strain) {
@@ -44,8 +44,12 @@ async function processStrain(strain) {
         await cleanupTmp(tmpPath);
         if (result.success) {
           await saveAttribution(slug, { source: 'seedbank', author: img.author, license: img.license, url: img.url });
-          await supabase.from('strains').update({ image_url: result.publicUrl }).eq('slug', slug);
           markProcessed(slug);
+          try {
+            await supabase.from('strains').update({ image_url: result.publicUrl }).eq('slug', slug);
+          } catch (dbErr) {
+            console.warn('    DB update failed (non-fatal):', dbErr.message);
+          }
           return { slug, source: 'seedbank', success: true };
         }
       }
@@ -62,8 +66,12 @@ async function processStrain(strain) {
         await cleanupTmp(tmpPath);
         if (result.success) {
           await saveAttribution(slug, { source: 'wikimedia', author: img.author, license: img.license, url: img.pageUrl });
-          await supabase.from('strains').update({ image_url: result.publicUrl }).eq('slug', slug);
           markProcessed(slug);
+          try {
+            await supabase.from('strains').update({ image_url: result.publicUrl }).eq('slug', slug);
+          } catch (dbErr) {
+            console.warn('    DB update failed (non-fatal):', dbErr.message);
+          }
           return { slug, source: 'wikimedia', success: true };
         }
       }
@@ -80,8 +88,12 @@ async function processStrain(strain) {
         await cleanupTmp(tmpPath);
         if (result.success) {
           await saveAttribution(slug, { source: 'linhacanabica', author: '', license: 'CC0', url: '' });
-          await supabase.from('strains').update({ image_url: result.publicUrl }).eq('slug', slug);
           markProcessed(slug);
+          try {
+            await supabase.from('strains').update({ image_url: result.publicUrl }).eq('slug', slug);
+          } catch (dbErr) {
+            console.warn('    DB update failed (non-fatal):', dbErr.message);
+          }
           return { slug, source: 'linhacanabica', success: true };
         }
       }
@@ -117,6 +129,8 @@ async function main() {
       stats.no_match++;
       console.log('    No match');
     }
+
+    await sleep(RATE_LIMIT_MS);
   }
 
   console.log('\nFinal stats:', stats);
