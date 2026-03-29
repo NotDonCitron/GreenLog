@@ -467,8 +467,8 @@ export default function ProfilePage() {
               <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">Profil</h1>
             </div>
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[var(--card)] border border-[var(--border)]/50 flex items-center justify-center">
-                <span className="text-sm font-black text-[#00F5FF]">CL</span>
+              <div className="w-10 h-10 rounded-xl bg-[var(--card)] border border-[var(--border)]/50 flex items-center justify-center overflow-hidden p-1">
+                <img src="/logo.png" alt="CannaLog" className="w-full h-full object-contain" />
               </div>
               <Link href="/login" className="px-5 py-2 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                 <LogIn size={14} /> Login

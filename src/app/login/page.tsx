@@ -100,24 +100,24 @@ function LoginForm() {
           <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
         </div>
         <span className="text-[12px] text-[#00F5FF] tracking-[0.5em] font-bold uppercase">CannaLog</span>
-        <h1 className="text-3xl font-bold text-black mt-2">{isSignUp ? "Konto erstellen" : "Willkommen"}</h1>
-        <p className="text-black/40 mt-2">{isSignUp ? "Wähle deinen Benutzernamen und leg los." : "Deine Reise zur perfekten Sammlung beginnt hier."}</p>
+        <h1 className="text-3xl font-black uppercase italic tracking-tight mt-2 font-display">{isSignUp ? "Konto erstellen" : "Willkommen"}</h1>
+        <p className="text-[var(--muted-foreground)] mt-2">{isSignUp ? "Wähle deinen Benutzernamen und leg los." : "Deine Reise zur perfekten Sammlung beginnt hier."}</p>
       </div>
 
-      <Card className="p-6 bg-white border-black/10 shadow-2xl relative overflow-hidden">
+      <Card className="p-6 bg-[var(--card)] border-[var(--border)]/50 shadow-2xl relative overflow-hidden">
         {/* Accent Glow */}
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#00F5FF]/10 blur-3xl rounded-full" />
 
         <form onSubmit={isSignUp ? undefined : handleLogin} className="space-y-4 relative z-10">
           {isSignUp && (
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-black/40 uppercase tracking-widest ml-1 font-mono">Benutzername</label>
+              <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest ml-1 font-mono">Benutzername</label>
               <div className="relative">
-                <UserPlus className="absolute left-3 top-3 text-black/20" size={18} />
+                <UserPlus className="absolute left-3 top-3 text-[var(--muted-foreground)]" size={18} />
                 <Input
                   type="text"
                   placeholder="dein_name"
-                  className="bg-black/5 border-black/10 pl-10 h-12 focus:ring-1 focus:ring-[#00F5FF]/50 transition-all text-black placeholder:text-black/10"
+                  className="bg-[var(--input)] border border-[var(--border)]/50 pl-10 h-12 focus:ring-1 focus:ring-[#00F5FF]/50 transition-all text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required={isSignUp}
@@ -127,13 +127,13 @@ function LoginForm() {
           )}
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-black/40 uppercase tracking-widest ml-1 font-mono">Terminal Access: User ID</label>
+            <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest ml-1 font-mono">Terminal Access: User ID</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 text-black/20" size={18} />
+              <Mail className="absolute left-3 top-3 text-[var(--muted-foreground)]" size={18} />
               <Input
                 type="email"
                 placeholder="name@example.com"
-                className="bg-black/5 border-black/10 pl-10 h-12 focus:ring-1 focus:ring-[#00F5FF]/50 transition-all text-black placeholder:text-black/10"
+                className="bg-[var(--input)] border border-[var(--border)]/50 pl-10 h-12 focus:ring-1 focus:ring-[#00F5FF]/50 transition-all text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -142,13 +142,13 @@ function LoginForm() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-black/40 uppercase tracking-widest ml-1 font-mono">Terminal Access: Passcode</label>
+            <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest ml-1 font-mono">Terminal Access: Passcode</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-3 text-black/20" size={18} />
+              <Lock className="absolute left-3 top-3 text-[var(--muted-foreground)]" size={18} />
               <Input
                 type="password"
                 placeholder="••••••••"
-                className="bg-black/5 border-black/10 pl-10 h-12 focus:ring-1 focus:ring-[#00F5FF]/50 transition-all text-black placeholder:text-black/10"
+                className="bg-[var(--input)] border border-[var(--border)]/50 pl-10 h-12 focus:ring-1 focus:ring-[#00F5FF]/50 transition-all text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -185,9 +185,9 @@ function LoginForm() {
             </Button>
 
             <div className="relative flex items-center py-2">
-              <div className="flex-grow border-t border-black/10"></div>
-              <span className="flex-shrink mx-4 text-[10px] text-black/20 uppercase font-bold tracking-widest">OR</span>
-              <div className="flex-grow border-t border-black/10"></div>
+              <div className="flex-grow border-t border-[var(--border)]"></div>
+              <span className="flex-shrink mx-4 text-[10px] text-[var(--muted-foreground)] uppercase font-bold tracking-widest">OR</span>
+              <div className="flex-grow border-t border-[var(--border)]"></div>
             </div>
 
             <Button
@@ -195,7 +195,7 @@ function LoginForm() {
               variant="ghost"
               onClick={toggleMode}
               disabled={loading}
-              className="w-full h-12 text-black/60 hover:text-[#2FF801] hover:bg-[#2FF801]/5 border border-transparent hover:border-[#2FF801]/20 transition-all uppercase text-[10px] font-bold tracking-widest"
+              className="w-full h-12 text-[var(--muted-foreground)] hover:text-[#2FF801] hover:bg-[#2FF801]/5 border border-transparent hover:border-[#2FF801]/20 transition-all uppercase text-[10px] font-bold tracking-widest"
             >
               {isSignUp ? <><LogIn size={16} className="mr-2" /> Zurück zum Login</> : <><UserPlus size={16} className="mr-2" /> Neues Konto erstellen</>}
             </Button>
@@ -206,12 +206,12 @@ function LoginForm() {
       <button
           type="button"
           onClick={() => setForgotPasswordOpen(true)}
-          className="text-center text-[10px] text-black/30 uppercase tracking-[0.2em] hover:text-[#00F5FF] transition-colors"
+          className="text-center text-[10px] text-[var(--muted-foreground)] uppercase tracking-[0.2em] hover:text-[#00F5FF] transition-colors"
         >
           Passwort vergessen?
         </button>
 
-      <p className="text-center text-[10px] text-black/20 uppercase tracking-[0.3em]">Authorized Access Only</p>
+      <p className="text-center text-[10px] text-[var(--muted-foreground)] uppercase tracking-[0.3em]">Authorized Access Only</p>
 
       <ForgotPasswordDialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen} />
     </div>
@@ -220,11 +220,15 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen bg-white flex items-center justify-center p-6">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex items-center justify-center p-6">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-[#2FF801]/5 blur-[120px] rounded-full" />
+      </div>
       <Suspense fallback={
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="animate-spin text-[#00F5FF]" size={40} />
-          <p className="text-[10px] font-bold text-black/20 uppercase tracking-[0.2em]">Lade Login-Interface...</p>
+          <p className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-[0.2em]">Lade Login-Interface...</p>
         </div>
       }>
         <LoginForm />
