@@ -61,7 +61,8 @@ const FEEDBACK_BUTTON_USER_IDS = [
   "236a110e-0dbe-4500-97db-edf100158e4f",
 ];
 import { FollowersListModal } from "@/components/social/followers-list-modal";
-import { BadgeShowcase } from "@/components/profile/badge-showcase";
+import { lazy, Suspense } from "react";
+const BadgeShowcase = lazy(() => import("@/components/profile/badge-showcase"));
 import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";

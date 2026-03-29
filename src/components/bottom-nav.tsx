@@ -6,7 +6,8 @@ import Link from "next/link";
 import { Home, Leaf, BookMarked, Users, User } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
-import { FollowRequestsModal } from "@/components/social/follow-requests-modal";
+import { lazy, Suspense } from "react";
+const FollowRequestsModal = lazy(() => import("@/components/social/follow-requests-modal"));
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -108,10 +109,12 @@ export function BottomNav() {
         </div>
       </nav>
 
-      <FollowRequestsModal
-        isOpen={showRequestsModal}
-        onClose={() => setShowRequestsModal(false)}
-      />
+      <Suspense fallback={<div className="h-32 w-32 animate-pulse bg-[var(--muted)] rounded-lg" />}>
+        <FollowRequestsModal
+          isOpen={showRequestsModal}
+          onClose={() => setShowRequestsModal(false)}
+        />
+      </Suspense>
     </>
   );
 }
