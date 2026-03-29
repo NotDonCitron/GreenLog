@@ -78,13 +78,6 @@ export const BADGE_CRITERIA: Record<string, BadgeCriteria> = {
   },
   // Collection by type
   'sativa-5': async ({ supabase, userId }) => {
-    const { count } = await supabase
-      .from('user_collection').select('*, strains:type')
-      .eq('user_id', userId);
-    const sativaCount = count ?? 0;
-    // Check if at least 5 strains are sativa
-    if (sativaCount < 5) return false;
-    // Get the actual collection with strain data
     const { data } = await supabase
       .from('user_collection').select('strain_id, strains!inner(type)')
       .eq('user_id', userId);
@@ -92,14 +85,11 @@ export const BADGE_CRITERIA: Record<string, BadgeCriteria> = {
     return sativaStrains.length >= 5;
   },
   'indica-5': async ({ supabase, userId }) => {
-    if (true) {
-      const { data } = await supabase
-        .from('user_collection').select('strain_id, strains!inner(type)')
-        .eq('user_id', userId);
-      const indicaStrains = (data || []).filter((c: any) => c.strains?.type === 'indica');
-      return indicaStrains.length >= 5;
-    }
-    return false;
+    const { data } = await supabase
+      .from('user_collection').select('strain_id, strains!inner(type)')
+      .eq('user_id', userId);
+    const indicaStrains = (data || []).filter((c: any) => c.strains?.type === 'indica');
+    return indicaStrains.length >= 5;
   },
   'hybrid-5': async ({ supabase, userId }) => {
     const { data } = await supabase

@@ -39,6 +39,25 @@ function TabParamReader({
   return null;
 }
 
+function FilterParamReader({
+  onFiltersReady,
+}: {
+  onFiltersReady: (effects: string[], thcMin: number, thcMax: number, cbdMin: number, cbdMax: number) => void;
+}) {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const effects = searchParams.get("effects")?.split(",").filter(Boolean) || [];
+    const thcMin = Number(searchParams.get("thc_min") || THC_RANGE.min);
+    const thcMax = Number(searchParams.get("thc_max") || THC_RANGE.max);
+    const cbdMin = Number(searchParams.get("cbd_min") || CBD_RANGE.min);
+    const cbdMax = Number(searchParams.get("cbd_max") || CBD_RANGE.max);
+    onFiltersReady(effects, thcMin, thcMax, cbdMin, cbdMax);
+  }, [searchParams, onFiltersReady]);
+
+  return null;
+}
+
 export default function StrainsPage() {
   const { user, isDemoMode, activeOrganization } = useAuth();
   const router = useRouter();
@@ -241,6 +260,15 @@ export default function StrainsPage() {
         <TabParamReader
           activeOrganization={activeOrganization}
           onTabReady={(tab) => setActiveTab(tab)}
+        />
+        <FilterParamReader
+          onFiltersReady={(effects, thcMin, thcMax, cbdMin, cbdMax) => {
+            setFilterEffects(effects);
+            setFilterThcMin(thcMin);
+            setFilterThcMax(thcMax);
+            setFilterCbdMin(cbdMin);
+            setFilterCbdMax(cbdMax);
+          }}
         />
       </Suspense>
 
