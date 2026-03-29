@@ -791,6 +791,7 @@ export default function ProfilePage() {
       <FollowersListModal isOpen={followersModal.isOpen} onClose={() => setFollowersModal((prev) => ({ ...prev, isOpen: false }))} mode={followersModal.mode} userId={currentUserId} />
       <Suspense fallback={null}>
         <BadgeShowcase
+          isOpen={showBadgeShowcase}
           userBadges={userBadges}
           featuredBadges={selectedBadges}
           onSelect={(badgeId) => setSelectedBadges(prev => prev.includes(badgeId) ? prev.filter(id => id !== badgeId) : [...prev, badgeId].slice(0, 4))}

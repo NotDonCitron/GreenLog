@@ -7,13 +7,16 @@ import { BadgeCard } from "@/components/ui/badge-card";
 import { cn } from "@/lib/utils";
 
 interface BadgeShowcaseProps {
+  isOpen: boolean;
   userBadges: Array<{ badge_id: string; badges?: Partial<BadgeDefinition> }>;
   featuredBadges: string[];
   onSelect: (badgeId: string) => void;
   onClose: () => void;
 }
 
-export function BadgeShowcase({ userBadges, featuredBadges, onSelect, onClose }: BadgeShowcaseProps) {
+export function BadgeShowcase({ isOpen, userBadges, featuredBadges, onSelect, onClose }: BadgeShowcaseProps) {
+  if (!isOpen) return null;
+
   const unlockedIds = new Set(userBadges.map(ub => ub.badge_id));
   const [selected, setSelected] = useState<string[]>(featuredBadges);
 
