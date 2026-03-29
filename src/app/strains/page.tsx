@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback } from "react";
+import { useState, useEffect, Suspense, useCallback, lazy } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
@@ -11,7 +11,7 @@ import Link from "next/link";
 import { Strain, StrainSource } from "@/lib/types";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { StrainCard } from "@/components/strains/strain-card";
-import { FilterPanel } from "@/components/strains/filter-panel";
+const FilterPanel = lazy(() => import("@/components/strains/filter-panel"));
 import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";
 import { THC_RANGE, CBD_RANGE } from "@/lib/constants";
 

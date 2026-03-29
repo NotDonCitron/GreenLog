@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback } from "react";
+import { useState, useEffect, Suspense, useCallback, lazy } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { Search, CalendarDays, Loader2, AlertCircle, X, Filter, Plus, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Strain, StrainSource } from "@/lib/types";
 import { StrainCard } from "@/components/strains/strain-card";
 import { Calendar } from "@/components/ui/calendar";
 import { normalizeCollectionSource } from "@/lib/strain-display";
-import { FilterPanel } from "@/components/strains/filter-panel";
+const FilterPanel = lazy(() => import("@/components/strains/filter-panel"));
 import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";
 import { useRouter, useSearchParams } from "next/navigation";
 import { THC_RANGE, CBD_RANGE } from "@/lib/constants";
