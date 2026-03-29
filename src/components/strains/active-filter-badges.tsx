@@ -2,7 +2,11 @@
 
 import { X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { THC_RANGE, CBD_RANGE } from "@/lib/constants";
+import { EFFECT_OPTIONS, THC_RANGE, CBD_RANGE } from "@/lib/constants";
+
+const EFFECT_LABEL_MAP = Object.fromEntries(
+  EFFECT_OPTIONS.map((opt) => [opt.value, opt.label])
+);
 
 interface ActiveFilterBadgesProps {
   effects: string[];
@@ -85,7 +89,7 @@ export function ActiveFilterBadges({
           onClick={() => removeEffect(effect)}
           className="flex items-center gap-1 px-2 py-1 bg-[#2FF801]/20 border border-[#2FF801]/30 text-[#2FF801] text-xs font-medium rounded-full hover:bg-[#2FF801]/30 transition-colors"
         >
-          {effect}
+          {EFFECT_LABEL_MAP[effect] || effect}
           <X size={12} />
         </button>
       ))}

@@ -18,6 +18,7 @@ export function FilterPanel({ open, onOpenChange }: FilterPanelProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // URL params store English values for DB matching
   const initialEffects = searchParams.get("effects")?.split(",").filter(Boolean) || [];
   const initialThcMin = Number(searchParams.get("thc_min") || THC_RANGE.min);
   const initialThcMax = Number(searchParams.get("thc_max") || THC_RANGE.max);
@@ -29,13 +30,14 @@ export function FilterPanel({ open, onOpenChange }: FilterPanelProps) {
   const [cbdRange, setCbdRange] = useState<[number, number]>([initialCbdMin, initialCbdMax]);
   const [effectSearch, setEffectSearch] = useState("");
 
-  const filteredEffects = EFFECT_OPTIONS.filter((e) =>
-    e.toLowerCase().includes(effectSearch.toLowerCase())
+  // Filter by German label for display
+  const filteredEffects = EFFECT_OPTIONS.filter((opt) =>
+    opt.label.toLowerCase().includes(effectSearch.toLowerCase())
   );
 
-  const toggleEffect = (effect: string) => {
+  const toggleEffect = (value: string) => {
     setSelectedEffects((prev) =>
-      prev.includes(effect) ? prev.filter((e) => e !== effect) : [...prev, effect]
+      prev.includes(value) ? prev.filter((e) => e !== value) : [...prev, value]
     );
   };
 
@@ -92,17 +94,17 @@ export function FilterPanel({ open, onOpenChange }: FilterPanelProps) {
             className="h-9 text-sm"
           />
           <div className="grid grid-cols-2 gap-2">
-            {filteredEffects.map((effect) => (
+            {filteredEffects.map((opt) => (
               <button
-                key={effect}
-                onClick={() => toggleEffect(effect)}
+                key={opt.value}
+                onClick={() => toggleEffect(opt.value)}
                 className={`py-2 px-3 rounded-lg text-xs font-medium border transition-all text-left ${
-                  selectedEffects.includes(effect)
+                  selectedEffects.includes(opt.value)
                     ? "bg-[#2FF801] border-[#2FF801] text-black"
                     : "bg-[var(--card)] border-[var(--border)] text-[var(--foreground)]/70 hover:border-[#2FF801]/50"
                 }`}
               >
-                {effect}
+                {opt.label}
               </button>
             ))}
           </div>
