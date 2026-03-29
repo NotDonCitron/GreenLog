@@ -62,7 +62,7 @@ const FEEDBACK_BUTTON_USER_IDS = [
 ];
 import { FollowersListModal } from "@/components/social/followers-list-modal";
 import { lazy, Suspense } from "react";
-const BadgeShowcase = lazy(() => import("@/components/profile/badge-showcase"));
+const BadgeShowcase = lazy(() => import("@/components/profile/badge-showcase").then(m => ({ default: m.BadgeShowcase })));
 import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
@@ -152,6 +152,7 @@ export default function ProfilePage() {
   const [showBadgeEdit, setShowBadgeEdit] = useState(false);
   const [showBadgeShowcase, setShowBadgeShowcase] = useState(false);
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
+  const [userBadges, setUserBadges] = useState<Array<{ badge_id: string; badges?: Partial<import("@/lib/badges").BadgeDefinition> }>>([]);
   const currentUserId = user?.id ?? "";
 
   useEffect(() => {
@@ -384,6 +385,7 @@ export default function ProfilePage() {
       setViewModel({ identity, stats, favorites, badges, activity: [], preview: { title: "", description: "", chips: [] } });
       setEditData({ displayName: identity.displayName, bio: identity.bio || "" });
       setSelectedBadges(featuredBadges);
+      setUserBadges(badgesRes.data || []);
       setPageState("ready");
     } catch (e) { console.error(e); setPageState("error"); }
   };
@@ -787,6 +789,14 @@ export default function ProfilePage() {
       </div>
 
       <FollowersListModal isOpen={followersModal.isOpen} onClose={() => setFollowersModal((prev) => ({ ...prev, isOpen: false }))} mode={followersModal.mode} userId={currentUserId} />
+      <Suspense fallback={null}>
+        <BadgeShowcase
+          userBadges={userBadges}
+          featuredBadges={selectedBadges}
+          onSelect={(badgeId) => setSelectedBadges(prev => prev.includes(badgeId) ? prev.filter(id => id !== badgeId) : [...prev, badgeId].slice(0, 4))}
+          onClose={() => setShowBadgeShowcase(false)}
+        />
+      </Suspense>
       <BottomNav />
     </main>
   );
