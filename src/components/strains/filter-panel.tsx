@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { X, SlidersHorizontal } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RangeSlider } from "./range-slider";
@@ -75,7 +75,7 @@ export function FilterPanel({ open, onOpenChange }: FilterPanelProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <SlidersHorizontal size={18} className="text-[#2FF801]" />
-            <h2 className="text-lg font-bold">Filter</h2>
+            <DialogTitle className="text-lg font-bold">Filter</DialogTitle>
           </div>
           <button onClick={() => onOpenChange(false)} className="p-1 rounded-sm opacity-70 hover:opacity-100">
             <X size={18} />
