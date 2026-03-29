@@ -63,6 +63,7 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-110"
             sizes="(max-width: 768px) 50vw, 33vw"
+            loading="lazy"
           />
           {isCollected && (
             <div className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-1 rounded-full bg-[#00F5FF]/20 backdrop-blur-md border border-[#00F5FF]/30">
