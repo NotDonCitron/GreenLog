@@ -76,7 +76,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <NotificationBell />
             <div className="flex flex-col gap-1">
-              <h1 className="text-4xl font-black tracking-tighter uppercase italic leading-none font-display text-[var(--foreground)] hover:text-[#00F5FF] transition-colors duration-500 neon-text-cyan">
+              <h1 className="text-3xl font-black tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
                 CannaLog
               </h1>
             </div>
