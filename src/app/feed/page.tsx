@@ -60,7 +60,7 @@ export default function FeedPage() {
   }, [activeTab, user]);
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-24 overflow-y-auto">
+    <main className="pull-refresh min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-24 overflow-y-auto">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
