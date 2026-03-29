@@ -1,11 +1,11 @@
 {
-  "name": "CannaLog v2.0",
-  "short_name": "CannaLog",
-  "description": "Premium Cannabis Strain Tracking & Collection for Clubs and Pharmacies",
+  "name": "GreenLog",
+  "short_name": "GreenLog",
+  "description": "Strain Tracker & Grow Journal",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0e0e0f",
-  "theme_color": "#00F5FF",
+  "background_color": "#0a0a0a",
+  "theme_color": "#22c55e",
   "orientation": "portrait",
   "scope": "/",
   "icons": [
@@ -19,16 +19,10 @@
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/logo.webp",
-      "sizes": "1280x1028",
-      "type": "image/webp",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["medical", "business", "lifestyle"],
+  "categories": ["lifestyle", "medical"],
   "lang": "de",
   "dir": "ltr"
 }
