@@ -7,7 +7,7 @@ import { Home, Leaf, BookMarked, Users, User } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { lazy, Suspense } from "react";
-const FollowRequestsModal = lazy(() => import("@/components/social/follow-requests-modal"));
+const FollowRequestsModal = lazy(() => import("@/components/social/follow-requests-modal").then(m => ({ default: m.FollowRequestsModal })));
 
 const navItems = [
   { href: "/", label: "Home", icon: Home },
@@ -93,8 +93,7 @@ export function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] uppercase font-bold tracking-tight transition-all active:scale-95 ${isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"
-                  }`}
+                className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] uppercase font-bold tracking-tight transition-all active:scale-95 ${isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"}`}
               >
                 <div className="relative">
                   <item.icon size={22} className={isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"} />
@@ -109,7 +108,7 @@ export function BottomNav() {
         </div>
       </nav>
 
-      <Suspense fallback={<div className="h-32 w-32 animate-pulse bg-[var(--muted)] rounded-lg" />}>
+      <Suspense fallback={null}>
         <FollowRequestsModal
           isOpen={showRequestsModal}
           onClose={() => setShowRequestsModal(false)}

@@ -10,7 +10,7 @@ import { Strain, StrainSource } from "@/lib/types";
 import { StrainCard } from "@/components/strains/strain-card";
 import { Calendar } from "@/components/ui/calendar";
 import { normalizeCollectionSource } from "@/lib/strain-display";
-const FilterPanel = lazy(() => import("@/components/strains/filter-panel"));
+const FilterPanel = lazy(() => import("@/components/strains/filter-panel").then(m => ({ default: m.FilterPanel })));
 import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";
 import { useRouter, useSearchParams } from "next/navigation";
 import { THC_RANGE, CBD_RANGE } from "@/lib/constants";
