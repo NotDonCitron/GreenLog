@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { BottomNav } from "@/components/bottom-nav";
-import { Search, CalendarDays, Loader2, AlertCircle, X, Filter, Plus } from "lucide-react";
+import { Search, CalendarDays, Loader2, AlertCircle, X, Filter, Plus, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
@@ -10,6 +10,10 @@ import { Strain, StrainSource } from "@/lib/types";
 import { StrainCard } from "@/components/strains/strain-card";
 import { Calendar } from "@/components/ui/calendar";
 import { normalizeCollectionSource } from "@/lib/strain-display";
+import { FilterPanel } from "@/components/strains/filter-panel";
+import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";
+import { useRouter, useSearchParams } from "next/navigation";
+import { THC_RANGE, CBD_RANGE } from "@/lib/constants";
 import {
   Dialog,
   DialogContent,
@@ -55,6 +59,33 @@ export default function CollectionPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [filterEffects, setFilterEffects] = useState<string[]>([]);
+  const [filterThcMin, setFilterThcMin] = useState(THC_RANGE.min);
+  const [filterThcMax, setFilterThcMax] = useState(THC_RANGE.max);
+  const [filterCbdMin, setFilterCbdMin] = useState(CBD_RANGE.min);
+  const [filterCbdMax, setFilterCbdMax] = useState(CBD_RANGE.max);
+
+  const handleFiltersReady = useCallback((effects: string[], thcMin: number, thcMax: number, cbdMin: number, cbdMax: number) => {
+    setFilterEffects(effects);
+    setFilterThcMin(thcMin);
+    setFilterThcMax(thcMax);
+    setFilterCbdMin(cbdMin);
+    setFilterCbdMax(cbdMax);
+  }, []);
+
+  function CollectionFilterParamReader() {
+    const searchParams = useSearchParams();
+    useEffect(() => {
+      const effects = searchParams.get("effects")?.split(",").filter(Boolean) || [];
+      const thcMin = Number(searchParams.get("thc_min") || THC_RANGE.min);
+      const thcMax = Number(searchParams.get("thc_max") || THC_RANGE.max);
+      const cbdMin = Number(searchParams.get("cbd_min") || CBD_RANGE.min);
+      const cbdMax = Number(searchParams.get("cbd_max") || CBD_RANGE.max);
+      handleFiltersReady(effects, thcMin, thcMax, cbdMin, cbdMax);
+    }, [searchParams, handleFiltersReady]);
+    return null;
+  }
 
   useEffect(() => {
     async function fetchCollection() {
@@ -131,7 +162,24 @@ export default function CollectionPage() {
       matchesDate = isSameDay(new Date(s.collected_at), selectedDate);
     }
 
-    return matchesSearch && matchesSource && matchesDate;
+    // Effect filter: strain must have ALL selected effects
+    const matchesEffects =
+      filterEffects.length === 0 ||
+      filterEffects.every((ef) =>
+        (s.effects || []).some(
+          (se) => se.toLowerCase() === ef.toLowerCase()
+        )
+      );
+
+    // THC filter
+    const strainThc = s.avg_thc || (s as any).thc_max || 0;
+    const matchesThc = strainThc >= filterThcMin && strainThc <= filterThcMax;
+
+    // CBD filter
+    const strainCbd = s.avg_cbd || (s as any).cbd_max || 0;
+    const matchesCbd = strainCbd >= filterCbdMin && strainCbd <= filterCbdMax;
+
+    return matchesSearch && matchesSource && matchesDate && matchesEffects && matchesThc && matchesCbd;
   });
 
   return (
@@ -141,6 +189,10 @@ export default function CollectionPage() {
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
       </div>
+
+      <Suspense fallback={null}>
+        <CollectionFilterParamReader />
+      </Suspense>
 
       <header className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/30 px-6 pt-12 pb-4">
         <div className="flex justify-between items-end mb-5">
@@ -185,6 +237,13 @@ export default function CollectionPage() {
               {f.label}
             </button>
           ))}
+          <button
+            onClick={() => setFilterPanelOpen(true)}
+            className="px-4 py-2 rounded-xl text-[10px] font-bold whitespace-nowrap transition-all duration-300 bg-[var(--card)] text-[var(--muted-foreground)] border border-[var(--border)]/50 hover:border-[#00F5FF]/50"
+          >
+            <SlidersHorizontal size={12} className="inline mr-1" />
+            Filter
+          </button>
         </div>
 
         {/* Date filter indicator */}
@@ -204,6 +263,15 @@ export default function CollectionPage() {
       </header>
 
       <div className="px-6 py-6">
+        <Suspense fallback={null}>
+          <ActiveFilterBadges
+            effects={filterEffects}
+            thcMin={filterThcMin}
+            thcMax={filterThcMax}
+            cbdMin={filterCbdMin}
+            cbdMax={filterCbdMax}
+          />
+        </Suspense>
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <div className="relative">
@@ -275,6 +343,10 @@ export default function CollectionPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <Suspense fallback={null}>
+        <FilterPanel open={filterPanelOpen} onOpenChange={setFilterPanelOpen} />
+      </Suspense>
 
       <BottomNav />
     </main>
