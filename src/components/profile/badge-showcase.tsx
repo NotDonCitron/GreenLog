@@ -52,7 +52,10 @@ export function BadgeShowcase({ userBadges, featuredBadges, onSelect, onClose }:
           Freigeschaltet: {unlockedIds.size}/{ALL_BADGES.length}
         </p>
 
-        <p className="text-xs font-bold mb-2">Tippe auf ein Badge zum Auswählen (max 4)</p>
+        <p className="text-xs text-[var(--muted-foreground)] mb-4">
+          Zeige deine Badges auf dem Profil. Grün = freigeschaltet, Graue = noch zu verdienen.
+        </p>
+        <p className="text-xs font-bold mb-2">Tippe auf ein grünes Badge zum Auswählen (max 4)</p>
         <div className="flex flex-wrap gap-3 mb-6">
           {ALL_BADGES.map(badge => (
             <BadgeCard
