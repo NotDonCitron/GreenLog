@@ -317,3 +317,18 @@
 .pull-refresh {
   overscroll-behavior-y: contain;
 }
+
+/* Touch targets minimum 44x44px */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Card press feedback */
+.card-press {
+  transition: transform 0.1s ease-out;
+}
+
+.card-press:active {
+  transform: scale(0.98);
+}
