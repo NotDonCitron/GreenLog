@@ -96,7 +96,21 @@ export default function FeedPage() {
       {/* Feed Content */}
       <div className="px-4 mt-6 relative z-10">
         {/* Für dich - All public activities */}
-        {activeTab === "foryou" && (
+        {activeTab === "foryou" && !user && (
+          <div className="text-center py-12 space-y-4">
+            <div className="w-16 h-16 rounded-full bg-[var(--muted)] flex items-center justify-center mx-auto">
+              <Users size={24} className="text-[var(--muted-foreground)]" />
+            </div>
+            <p className="text-[var(--muted-foreground)]">Melde dich an um deinen Feed zu sehen</p>
+            <Link
+              href="/login"
+              className="inline-block px-6 py-2.5 bg-[#00F5FF] text-black font-bold rounded-full text-sm"
+            >
+              Login
+            </Link>
+          </div>
+        )}
+        {activeTab === "foryou" && user && (
           <ActivityFeed showDiscover={true} />
         )}
 
