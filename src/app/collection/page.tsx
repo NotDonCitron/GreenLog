@@ -50,6 +50,38 @@ const SOURCE_FILTERS: { id: StrainSource | "all"; label: string }[] = [
   { id: "other", label: "Sonstiges" },
 ];
 
+// Separate component for search params sync (must be in Suspense for SSG)
+function SearchParamsSync({
+  setFilterEffects,
+  setFilterThcMin,
+  setFilterThcMax,
+  setFilterCbdMin,
+  setFilterCbdMax,
+}: {
+  setFilterEffects: (v: string[]) => void;
+  setFilterThcMin: (v: number) => void;
+  setFilterThcMax: (v: number) => void;
+  setFilterCbdMin: (v: number) => void;
+  setFilterCbdMax: (v: number) => void;
+}) {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const effects = searchParams.get("effects")?.split(",").filter(Boolean) || [];
+    const thcMin = Number(searchParams.get("thc_min") || THC_RANGE.min);
+    const thcMax = Number(searchParams.get("thc_max") || THC_RANGE.max);
+    const cbdMin = Number(searchParams.get("cbd_min") || CBD_RANGE.min);
+    const cbdMax = Number(searchParams.get("cbd_max") || CBD_RANGE.max);
+    setFilterEffects(effects);
+    setFilterThcMin(thcMin);
+    setFilterThcMax(thcMax);
+    setFilterCbdMin(cbdMin);
+    setFilterCbdMax(cbdMax);
+  }, [searchParams, setFilterEffects, setFilterThcMin, setFilterThcMax, setFilterCbdMin, setFilterCbdMax]);
+
+  return null;
+}
+
 export default function CollectionPage() {
   const { user, loading: authLoading } = useAuth();
   const [strains, setStrains] = useState<CollectionStrain[]>([]);
@@ -65,28 +97,6 @@ export default function CollectionPage() {
   const [filterThcMax, setFilterThcMax] = useState(THC_RANGE.max);
   const [filterCbdMin, setFilterCbdMin] = useState(CBD_RANGE.min);
   const [filterCbdMax, setFilterCbdMax] = useState(CBD_RANGE.max);
-
-  const handleFiltersReady = useCallback((effects: string[], thcMin: number, thcMax: number, cbdMin: number, cbdMax: number) => {
-    setFilterEffects(effects);
-    setFilterThcMin(thcMin);
-    setFilterThcMax(thcMax);
-    setFilterCbdMin(cbdMin);
-    setFilterCbdMax(cbdMax);
-  }, []);
-
-  function CollectionFilterParamReader() {
-    const searchParams = useSearchParams();
-    useEffect(() => {
-      const effects = searchParams.get("effects")?.split(",").filter(Boolean) || [];
-      const thcMin = Number(searchParams.get("thc_min") || THC_RANGE.min);
-      const thcMax = Number(searchParams.get("thc_max") || THC_RANGE.max);
-      const cbdMin = Number(searchParams.get("cbd_min") || CBD_RANGE.min);
-      const cbdMax = Number(searchParams.get("cbd_max") || CBD_RANGE.max);
-      handleFiltersReady(effects, thcMin, thcMax, cbdMin, cbdMax);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchParams.toString()]);
-    return null;
-  }
 
   useEffect(() => {
     async function fetchCollection() {
@@ -191,8 +201,15 @@ export default function CollectionPage() {
         <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
       </div>
 
+      {/* Sync search params to filter state */}
       <Suspense fallback={null}>
-        <CollectionFilterParamReader />
+        <SearchParamsSync
+          setFilterEffects={setFilterEffects}
+          setFilterThcMin={setFilterThcMin}
+          setFilterThcMax={setFilterThcMax}
+          setFilterCbdMin={setFilterCbdMin}
+          setFilterCbdMax={setFilterCbdMax}
+        />
       </Suspense>
 
       <header className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/30 px-6 pt-12 pb-4">
