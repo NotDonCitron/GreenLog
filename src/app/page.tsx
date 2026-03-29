@@ -79,6 +79,7 @@ export default function Home() {
               <h1 className="text-3xl font-black tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
                 CannaLog
               </h1>
+              <p className="text-[10px] text-[var(--muted-foreground)] tracking-widest uppercase">Dein täglicher Strain</p>
             </div>
           </div>
           <div className="relative group">
