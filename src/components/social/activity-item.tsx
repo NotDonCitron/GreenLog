@@ -32,6 +32,25 @@ function getActivityIcon(type: string) {
     }
 }
 
+function getActivityIconColor(type: string): string {
+    switch (type) {
+        case "rating":
+            return "text-yellow-400";
+        case "grow_started":
+            return "text-[#2FF801]";
+        case "grow_completed":
+            return "text-[#2FF801]";
+        case "badge_earned":
+            return "text-yellow-400";
+        case "favorite_added":
+            return "text-red-400";
+        case "strain_collected":
+            return "text-red-400";
+        default:
+            return "text-red-400";
+    }
+}
+
 function getActivityText(activity: UserActivity): string {
     switch (activity.activity_type as string) {
         case "rating":
@@ -70,6 +89,7 @@ function formatTimeAgo(dateString: string): string {
 
 export const ActivityItem = memo(function ActivityItem({ activity, user, className = "" }: ActivityItemProps) {
     const Icon = getActivityIcon(activity.activity_type);
+    const iconColor = getActivityIconColor(activity.activity_type);
     const activityText = getActivityText(activity);
     const [liked, setLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(activity.metadata?.like_count as number || 0);
@@ -123,7 +143,7 @@ export const ActivityItem = memo(function ActivityItem({ activity, user, classNa
             <div className="flex-1 min-w-0">
                 <div className="flex items-start gap-2">
                     <div className="flex-shrink-0 mt-0.5">
-                        <Icon className="h-4 w-4 text-[#00F5FF]" />
+                        <Icon className={`h-4 w-4 ${iconColor}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                         <p className="text-sm text-[var(--foreground)] break-words [overflow-wrap:anywhere]">

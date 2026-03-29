@@ -55,7 +55,8 @@ export default function StrainDetailPage() {
 
   useEffect(() => {
     async function fetchStrain() {
-      const { data, error } = await supabase.from("strains").select(`
+      // Try to fetch by slug first, then by id (in case slug is actually an id)
+      let { data, error } = await supabase.from("strains").select(`
         *,
         organization:organization_id (
           id,
@@ -64,6 +65,24 @@ export default function StrainDetailPage() {
           organization_type
         )
       `).eq("slug", slug).single();
+
+      // If not found and slug looks like a UUID, try fetching by id
+      if (error && !isDemoMode && slug && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug as string)) {
+        const { data: idData, error: idError } = await supabase.from("strains").select(`
+          *,
+          organization:organization_id (
+            id,
+            name,
+            slug,
+            organization_type
+          )
+        `).eq("id", slug).single();
+
+        if (!idError && idData) {
+          data = idData;
+          error = null;
+        }
+      }
 
       if (error && !isDemoMode) {
         console.error("Strain fetch error:", error);

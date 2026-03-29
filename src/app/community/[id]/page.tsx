@@ -154,13 +154,24 @@ export default function CommunityDetailPage() {
           <ArrowLeft size={16} />
           <span className="text-sm">Zurueck</span>
         </Link>
-        <div>
-          <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
-            {organization.name}
-          </h1>
-          <OrgTypeLabel type={organization.organization_type} />
-          <div className="mt-2">
-            <FollowButton organizationId={organizationId} />
+        <div className="flex items-center gap-4">
+          {organization.logo_url ? (
+            <div className="w-14 h-14 rounded-full overflow-hidden bg-[var(--card)] border border-[var(--border)] flex-shrink-0">
+              <img src={organization.logo_url} alt={organization.name} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="w-14 h-14 rounded-full bg-[#2FF801]/10 border border-[#2FF801]/30 flex items-center justify-center flex-shrink-0">
+              <Building2 size={24} className="text-[#2FF801]" />
+            </div>
+          )}
+          <div>
+            <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
+              {organization.name}
+            </h1>
+            <OrgTypeLabel type={organization.organization_type} />
+            <div className="mt-2">
+              <FollowButton organizationId={organizationId} />
+            </div>
           </div>
         </div>
       </header>
