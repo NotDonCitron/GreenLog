@@ -5,12 +5,15 @@ import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2, AlertCircle, Plus, Camera } from "lucide-react";
+import { Search, Loader2, AlertCircle, Plus, Camera, SlidersHorizontal } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Strain, StrainSource } from "@/lib/types";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { StrainCard } from "@/components/strains/strain-card";
+import { FilterPanel } from "@/components/strains/filter-panel";
+import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";
+import { THC_RANGE, CBD_RANGE } from "@/lib/constants";
 
 const SOURCE_OVERRIDE_STORAGE_KEY = "greenlog:strain-source-overrides";
 
@@ -48,6 +51,12 @@ export default function StrainsPage() {
   const [error, setError] = useState<string | null>(null);
   const [sourceOverrides, setSourceOverrides] = useState<Record<string, StrainSource>>({});
   const [sourceOverridesReady, setSourceOverridesReady] = useState(false);
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [filterEffects, setFilterEffects] = useState<string[]>([]);
+  const [filterThcMin, setFilterThcMin] = useState(THC_RANGE.min);
+  const [filterThcMax, setFilterThcMax] = useState(THC_RANGE.max);
+  const [filterCbdMin, setFilterCbdMin] = useState(CBD_RANGE.min);
+  const [filterCbdMax, setFilterCbdMax] = useState(CBD_RANGE.max);
 
   const persistSourceOverride = (strainId: string, strainSource: StrainSource) => {
     setSourceOverrides((current) => {
@@ -194,10 +203,30 @@ export default function StrainsPage() {
     fetchData();
   }, [user, isDemoMode, sourceOverridesReady, activeTab]);
 
-  const filteredStrains = strains.filter(s => {
+  const filteredStrains = strains.filter((s) => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
     const matchesFilter = matchesSourceFilter(s);
-    return matchesSearch && matchesFilter;
+
+    // Effect filter: strain must have ALL selected effects
+    const matchesEffects =
+      filterEffects.length === 0 ||
+      filterEffects.every((ef) =>
+        (s.effects || []).some(
+          (se) => se.toLowerCase() === ef.toLowerCase()
+        )
+      );
+
+    // THC filter: strain.avg_thc or thc_max within range
+    const strainThc = s.avg_thc || s.thc_max || 0;
+    const matchesThc =
+      strainThc >= filterThcMin && strainThc <= filterThcMax;
+
+    // CBD filter
+    const strainCbd = s.avg_cbd || s.cbd_max || 0;
+    const matchesCbd =
+      strainCbd >= filterCbdMin && strainCbd <= filterCbdMax;
+
+    return matchesSearch && matchesFilter && matchesEffects && matchesThc && matchesCbd;
   });
 
   return (
@@ -304,7 +333,26 @@ export default function StrainsPage() {
             Sonstiges
           </Button>
         </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setFilterPanelOpen(true)}
+          className="bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)] hover:border-[#00F5FF]/50"
+        >
+          <SlidersHorizontal size={14} className="mr-1" />
+          Filter
+        </Button>
       </header>
+
+      <Suspense fallback={null}>
+        <ActiveFilterBadges
+          effects={filterEffects}
+          thcMin={filterThcMin}
+          thcMax={filterThcMax}
+          cbdMin={filterCbdMin}
+          cbdMax={filterCbdMax}
+        />
+      </Suspense>
 
       <div className="p-6 relative z-10">
         {error ? (
@@ -349,6 +397,10 @@ export default function StrainsPage() {
           }
         />
       </div>
+
+      <Suspense fallback={null}>
+        <FilterPanel open={filterPanelOpen} onOpenChange={setFilterPanelOpen} />
+      </Suspense>
 
       <BottomNav />
     </main>
