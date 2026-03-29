@@ -723,10 +723,15 @@ export default function ProfilePage() {
         </section>
 
         {/* Badges Section */}
-        <section>
+        <section className="relative z-20 isolate">
           <div className="flex justify-between items-end mb-4">
             <SectionHeader eyebrow="" title="Abzeichen" />
-            <span className="text-[10px] font-bold text-[#00F5FF]">Alle</span>
+            <button
+              onClick={() => setShowBadgeShowcase(true)}
+              className="text-[10px] font-bold text-[#00F5FF] hover:text-[#2FF801] transition-colors"
+            >
+              Alle
+            </button>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {[
@@ -762,13 +767,13 @@ export default function ProfilePage() {
         </section>
 
         {/* Favorites Section */}
-        <section className="space-y-4">
+        <section className="space-y-4 overflow-hidden isolate relative z-10">
           <div className="flex items-center justify-between px-1">
             <SectionHeader eyebrow="" title="Favorites" icon={Heart} />
             {savingOrder && <Loader2 size={12} className="animate-spin text-[var(--muted-foreground)]" />}
           </div>
           {carouselFavorites.length > 0 ? (
-            <div className="relative">
+            <div className="relative overflow-hidden isolate">
               {carouselFavorites.length > 1 && selectedFavoriteIndex !== null && (
                 <div className="flex justify-center gap-2 mb-3">
                   <button
