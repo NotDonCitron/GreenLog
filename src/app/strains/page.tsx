@@ -53,7 +53,8 @@ function FilterParamReader({
     const cbdMin = Number(searchParams.get("cbd_min") || CBD_RANGE.min);
     const cbdMax = Number(searchParams.get("cbd_max") || CBD_RANGE.max);
     onFiltersReady(effects, thcMin, thcMax, cbdMin, cbdMax);
-  }, [searchParams, onFiltersReady]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.toString()]);
 
   return null;
 }
