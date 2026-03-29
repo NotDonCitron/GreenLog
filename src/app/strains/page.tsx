@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
@@ -76,6 +76,14 @@ export default function StrainsPage() {
   const [filterThcMax, setFilterThcMax] = useState(THC_RANGE.max);
   const [filterCbdMin, setFilterCbdMin] = useState(CBD_RANGE.min);
   const [filterCbdMax, setFilterCbdMax] = useState(CBD_RANGE.max);
+
+  const handleFiltersReady = useCallback((effects: string[], thcMin: number, thcMax: number, cbdMin: number, cbdMax: number) => {
+    setFilterEffects(effects);
+    setFilterThcMin(thcMin);
+    setFilterThcMax(thcMax);
+    setFilterCbdMin(cbdMin);
+    setFilterCbdMax(cbdMax);
+  }, []);
 
   const persistSourceOverride = (strainId: string, strainSource: StrainSource) => {
     setSourceOverrides((current) => {
@@ -262,13 +270,7 @@ export default function StrainsPage() {
           onTabReady={(tab) => setActiveTab(tab)}
         />
         <FilterParamReader
-          onFiltersReady={(effects, thcMin, thcMax, cbdMin, cbdMax) => {
-            setFilterEffects(effects);
-            setFilterThcMin(thcMin);
-            setFilterThcMax(thcMax);
-            setFilterCbdMin(cbdMin);
-            setFilterCbdMax(cbdMax);
-          }}
+          onFiltersReady={handleFiltersReady}
         />
       </Suspense>
 
