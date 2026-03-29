@@ -70,7 +70,7 @@ export function BottomNav() {
                 <button
                   key={item.href}
                   onClick={handleBadgeClick}
-                  className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] uppercase font-bold tracking-tight transition-all ${isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"}`}
+                  className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] uppercase font-bold tracking-tight transition-all active:scale-95 ${isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"}`}
                 >
                   <div className="relative">
                     <item.icon size={22} className={isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"} />
@@ -92,7 +92,7 @@ export function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] uppercase font-bold tracking-tight transition-all ${isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"
+                className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] uppercase font-bold tracking-tight transition-all active:scale-95 ${isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"
                   }`}
               >
                 <div className="relative">
