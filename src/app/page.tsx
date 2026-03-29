@@ -110,43 +110,10 @@ export default function Home() {
             {/* Strain of the Day - Full remaining space */}
             <section className="flex-1 flex flex-col gap-4 min-h-0">
               {strainOfTheDay && (
-                <div className="min-h-0 flex items-center justify-center" style={{ height: 'calc(100vh - 340px)' }}>
+                <div className="flex-1 flex items-center justify-center min-h-0">
                   <StrainCard strain={strainOfTheDay} index={0} />
                 </div>
               )}
-
-              {/* Quick Actions - Entdecken & Grows */}
-              <div className="grid grid-cols-2 gap-4 py-4">
-                <Link href="/feed" className="block">
-                  <button className="relative w-full h-20 group overflow-hidden rounded-2xl transition-all duration-500 active:scale-[0.98]">
-                    <div className="absolute inset-0 bg-[#2FF801]/10 transition-all duration-500 group-hover:bg-[#2FF801]/20" />
-                    <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#2FF801]/50 transition-all duration-500" />
-                    <div className="relative flex items-center gap-3 px-6 h-full">
-                      <div className="w-10 h-10 rounded-xl bg-[#2FF801]/20 flex items-center justify-center">
-                        <span className="text-lg">🔍</span>
-                      </div>
-                      <span className="text-[var(--foreground)] text-sm font-bold uppercase tracking-tight font-display">
-                        Entdecken
-                      </span>
-                    </div>
-                  </button>
-                </Link>
-
-                <Link href="/grows" className="block">
-                  <button className="relative w-full h-20 group overflow-hidden rounded-2xl transition-all duration-500 active:scale-[0.98]">
-                    <div className="absolute inset-0 bg-[#a1faff]/10 transition-all duration-500 group-hover:bg-[#a1faff]/20" />
-                    <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#a1faff]/50 transition-all duration-500" />
-                    <div className="relative flex items-center gap-3 px-6 h-full">
-                      <div className="w-10 h-10 rounded-xl bg-[#a1faff]/20 flex items-center justify-center">
-                        <span className="text-lg">🌱</span>
-                      </div>
-                      <span className="text-[var(--foreground)] text-sm font-bold uppercase tracking-tight font-display">
-                        Grows
-                      </span>
-                    </div>
-                  </button>
-                </Link>
-              </div>
             </section>
           </div>
         )}
