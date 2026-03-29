@@ -113,7 +113,7 @@ export default function Home() {
                 <p className="text-[10px] text-[var(--muted-foreground)] tracking-widest uppercase">Dein täglicher Strain</p>
               </div>
               {strainOfTheDay && (
-                <div className="flex-1 flex items-center justify-center min-h-0">
+                <div className="flex-1 flex items-center justify-center min-h-0 px-4">
                   <StrainCard strain={strainOfTheDay} index={0} />
                 </div>
               )}
