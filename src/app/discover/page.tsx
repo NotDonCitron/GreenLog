@@ -153,7 +153,7 @@ export default function DiscoverPage() {
     }, [user]);
 
     return (
-        <div className="min-h-screen bg-[var(--background)] pb-24">
+        <div className="pull-refresh min-h-screen bg-[var(--background)] pb-24">
             {/* Ambient glow */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
                 <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
