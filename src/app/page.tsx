@@ -63,27 +63,24 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-24">
-      {/* Ambient neon glow background effects */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#00F5FF]/8 blur-[150px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-[#2FF801]/6 blur-[180px] rounded-full animate-pulse [animation-delay:3s]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-[#a1faff]/5 blur-[200px] rounded-full" />
+      {/* Ambient neon glow background - focused on card */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[#00F5FF]/5 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[100%] h-[40%] bg-[#2FF801]/4 blur-[100px] rounded-full animate-pulse [animation-delay:2s]" />
       </div>
 
-      <div className="relative mx-auto w-full px-4 pt-12 flex flex-col gap-6 h-screen overflow-hidden">
+      <div className="relative mx-auto w-full px-4 pt-12 flex flex-col h-screen overflow-hidden">
         {/* Header */}
         <header className="flex justify-between items-center shrink-0">
           <div className="flex items-center gap-3">
             <NotificationBell />
-            <div className="flex flex-col gap-1">
-              <h1 className="text-3xl font-black tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
-                CannaLog
-              </h1>
-            </div>
+            <h1 className="text-2xl font-black tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
+              CannaLog
+            </h1>
           </div>
           <div className="relative group">
             <div className="absolute inset-0 bg-[#00F5FF]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="w-14 h-14 relative rounded-2xl glass-surface border border-[var(--border)]/50 flex items-center justify-center transform group-hover:rotate-6 transition-transform duration-500 overflow-hidden">
+            <div className="w-12 h-12 relative rounded-2xl glass-surface border border-[var(--border)]/50 flex items-center justify-center transform group-hover:rotate-6 transition-transform duration-500 overflow-hidden">
               <Image
                 src="/logo.png"
                 alt="CannaLog Logo"
@@ -106,51 +103,46 @@ export default function Home() {
             </p>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col">
-            {/* Strain of the Day - Full remaining space */}
-            <section className="flex-1 flex flex-col gap-4 min-h-0 pt-16">
-              <div className="text-center mt-8">
-                <p className="text-[10px] text-[var(--muted-foreground)] tracking-widest uppercase">Strain of the Day</p>
+          <div className="flex-1 flex flex-col py-8">
+            {/* Strain Card - Full focus */}
+            {strainOfTheDay && (
+              <div className="flex-1 flex items-center justify-center min-h-0 px-2">
+                <StrainCard strain={strainOfTheDay} index={0} />
               </div>
-              {strainOfTheDay && (
-                <div className="flex-1 flex items-center justify-center min-h-0 px-4">
-                  <StrainCard strain={strainOfTheDay} index={0} />
-                </div>
-              )}
+            )}
 
-              {/* Quick Actions - Entdecken & Grows */}
-              <div className="grid grid-cols-2 gap-4 pb-4">
-                <Link href="/feed" className="block">
-                  <button className="relative w-full h-20 group overflow-hidden rounded-2xl transition-all duration-500 active:scale-[0.98]">
-                    <div className="absolute inset-0 bg-[#2FF801]/10 transition-all duration-500 group-hover:bg-[#2FF801]/20" />
-                    <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#2FF801]/50 transition-all duration-500" />
-                    <div className="relative flex items-center gap-3 px-6 h-full">
-                      <div className="w-10 h-10 rounded-xl bg-[#2FF801]/20 flex items-center justify-center">
-                        <span className="text-lg">🔍</span>
-                      </div>
-                      <span className="text-[var(--foreground)] text-sm font-bold uppercase tracking-tight font-display">
-                        Entdecken
-                      </span>
+            {/* Quick Actions */}
+            <div className="grid grid-cols-2 gap-3 pt-6 shrink-0">
+              <Link href="/feed" className="block">
+                <button className="relative w-full h-16 group overflow-hidden rounded-2xl transition-all duration-300 active:scale-[0.98]">
+                  <div className="absolute inset-0 bg-[#2FF801]/10 transition-all duration-300 group-hover:bg-[#2FF801]/20" />
+                  <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#2FF801]/50 transition-all duration-300" />
+                  <div className="relative flex items-center justify-center gap-2 h-full">
+                    <div className="w-8 h-8 rounded-lg bg-[#2FF801]/20 flex items-center justify-center">
+                      <span className="text-sm">🔍</span>
                     </div>
-                  </button>
-                </Link>
+                    <span className="text-[var(--foreground)] text-xs font-bold uppercase tracking-wide font-display">
+                      Entdecken
+                    </span>
+                  </div>
+                </button>
+              </Link>
 
-                <Link href="/grows" className="block">
-                  <button className="relative w-full h-20 group overflow-hidden rounded-2xl transition-all duration-500 active:scale-[0.98]">
-                    <div className="absolute inset-0 bg-[#a1faff]/10 transition-all duration-500 group-hover:bg-[#a1faff]/20" />
-                    <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#a1faff]/50 transition-all duration-500" />
-                    <div className="relative flex items-center gap-3 px-6 h-full">
-                      <div className="w-10 h-10 rounded-xl bg-[#a1faff]/20 flex items-center justify-center">
-                        <span className="text-lg">🌱</span>
-                      </div>
-                      <span className="text-[var(--foreground)] text-sm font-bold uppercase tracking-tight font-display">
-                        Grows
-                      </span>
+              <Link href="/grows" className="block">
+                <button className="relative w-full h-16 group overflow-hidden rounded-2xl transition-all duration-300 active:scale-[0.98]">
+                  <div className="absolute inset-0 bg-[#a1faff]/10 transition-all duration-300 group-hover:bg-[#a1faff]/20" />
+                  <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#a1faff]/50 transition-all duration-300" />
+                  <div className="relative flex items-center justify-center gap-2 h-full">
+                    <div className="w-8 h-8 rounded-lg bg-[#a1faff]/20 flex items-center justify-center">
+                      <span className="text-sm">🌱</span>
                     </div>
-                  </button>
-                </Link>
-              </div>
-            </section>
+                    <span className="text-[var(--foreground)] text-xs font-bold uppercase tracking-wide font-display">
+                      Grows
+                    </span>
+                  </div>
+                </button>
+              </Link>
+            </div>
           </div>
         )}
       </div>
