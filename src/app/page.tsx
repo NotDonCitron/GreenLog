@@ -79,7 +79,6 @@ export default function Home() {
               <h1 className="text-3xl font-black tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
                 CannaLog
               </h1>
-              <p className="text-[10px] text-[var(--muted-foreground)] tracking-widest uppercase">Dein täglicher Strain</p>
             </div>
           </div>
           <div className="relative group">
@@ -110,6 +109,9 @@ export default function Home() {
           <div className="flex-1 flex flex-col">
             {/* Strain of the Day - Full remaining space */}
             <section className="flex-1 flex flex-col gap-4 min-h-0">
+              <div className="text-center">
+                <p className="text-[10px] text-[var(--muted-foreground)] tracking-widest uppercase">Dein täglicher Strain</p>
+              </div>
               {strainOfTheDay && (
                 <div className="flex-1 flex items-center justify-center min-h-0">
                   <StrainCard strain={strainOfTheDay} index={0} />
