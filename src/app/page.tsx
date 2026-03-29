@@ -109,7 +109,7 @@ export default function Home() {
           <div className="flex-1 flex flex-col">
             {/* Strain of the Day - Full remaining space */}
             <section className="flex-1 flex flex-col gap-4 min-h-0 pt-16">
-              <div className="text-center">
+              <div className="text-center mt-8">
                 <p className="text-[10px] text-[var(--muted-foreground)] tracking-widest uppercase">Strain of the Day</p>
               </div>
               {strainOfTheDay && (
