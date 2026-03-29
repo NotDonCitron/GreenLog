@@ -232,7 +232,21 @@ export default function FeedPage() {
         )}
 
         {/* Discover - Suggested Users & Communities */}
-        {activeTab === "discover" && (
+        {activeTab === "discover" && !user && (
+          <div className="text-center py-12 space-y-4">
+            <div className="w-16 h-16 rounded-full bg-[var(--muted)] flex items-center justify-center mx-auto">
+              <Compass size={24} className="text-[var(--muted-foreground)]" />
+            </div>
+            <p className="text-[var(--muted-foreground)]">Melde dich an um zu entdecken</p>
+            <Link
+              href="/login"
+              className="inline-block px-6 py-2.5 bg-[#00F5FF] text-black font-bold rounded-full text-sm"
+            >
+              Login
+            </Link>
+          </div>
+        )}
+        {activeTab === "discover" && user && (
           <div className="space-y-6">
             {/* Suggested Users */}
             <section>
