@@ -122,12 +122,12 @@ function createFallbackViewModel(isDemoMode: boolean): ProfileViewModel {
   };
 }
 
-function SectionHeader({ eyebrow, title, icon: Icon }: { eyebrow?: string; title: string; icon?: LucideIcon }) {
+function SectionHeader({ eyebrow, title, icon: Icon, iconColor }: { eyebrow?: string; title: string; icon?: LucideIcon; iconColor?: string }) {
   return (
     <div className="space-y-1 px-1">
       {eyebrow && <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-[#00F5FF]/70">{eyebrow}</p>}
       <h2 className="text-lg font-semibold tracking-tight text-[var(--foreground)] flex items-center gap-2 font-display">
-        {Icon && <Icon size={18} className="text-[#00F5FF]" />}
+        {Icon && <Icon size={18} className={iconColor || "text-[#00F5FF]"} />}
         {title}
       </h2>
     </div>
@@ -769,7 +769,7 @@ export default function ProfilePage() {
         {/* Favorites Section */}
         <section className="space-y-4 overflow-hidden isolate relative z-10">
           <div className="flex items-center justify-between px-1">
-            <SectionHeader eyebrow="" title="Favorites" icon={Heart} />
+            <SectionHeader eyebrow="" title="Favorites" icon={Heart} iconColor="text-red-400" />
             {savingOrder && <Loader2 size={12} className="animate-spin text-[var(--muted-foreground)]" />}
           </div>
           {carouselFavorites.length > 0 ? (
