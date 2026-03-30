@@ -123,10 +123,10 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
               <span className="text-[9px] font-black tracking-wide" style={{ color: themeColor }}>{cbdDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1 min-w-0">
-              <span className="text-[7px] font-medium tracking-wide text-[var(--foreground)]/70 leading-tight whitespace-normal break-words">{tasteDisplay}</span>
+              <span className="text-[7px] font-medium tracking-wide text-[var(--foreground)]/70 leading-tight">{tasteDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1 min-w-0">
-              <span className="text-[7px] font-medium tracking-wide text-[var(--foreground)]/70 leading-tight whitespace-normal break-words">{effectDisplay}</span>
+              <span className="text-[7px] font-medium tracking-wide text-[var(--foreground)]/70 leading-tight">{effectDisplay}</span>
             </div>
           </div>
         </div>
