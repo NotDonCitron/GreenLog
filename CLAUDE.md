@@ -156,8 +156,10 @@ gründer, admin, member, viewer
 | MIME Types | image/jpeg, image/png, image/webp, image/gif |
 
 **Files:**
-- `supabase/migrations/YYYYMMDDHHMMSS_strain_image_admin.sql` - Storage bucket + RLS
+- `supabase/migrations/20260330150000_strain_image_admin.sql` - Storage bucket + RLS
 - `src/app/api/strains/[id]/image/route.ts` - PATCH endpoint
+
+**Setup:** Add user IDs to `APP_ADMIN_IDS` env variable (Vercel dashboard or .env.local)
 
 ---
 
