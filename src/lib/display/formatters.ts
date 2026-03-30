@@ -57,7 +57,6 @@ const EFFECT_TRANSLATIONS: Record<string, string> = {
   'Creative': 'Kreativ',
   'Creativity': 'Kreativität',
   'Meditative': 'Meditativ',
-  'Psychedelic': 'Psychedelisch',
   'Spacy': 'Spacig',
   'Head Trip': 'Kopfreise',
   'Talkative': 'Gesprächig',
@@ -204,7 +203,6 @@ const TASTE_TRANSLATIONS: Record<string, string> = {
   'Rot': 'Fäule',
 
   // Sour / Fermented
-  'Sour': 'Sauer',
   'Acidic': 'Säuerlich',
   'Vinegar': 'Essig',
   'Fermented': 'Fermentiert',
