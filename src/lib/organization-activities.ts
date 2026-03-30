@@ -41,7 +41,7 @@ export async function writeOrganizationActivity({
   });
 
   if (error) {
-    console.error('Failed to write organization activity:', error);
+    console.error('[OrganizationActivity] Failed to write:', error);
     // Non-critical - don't throw
   }
 }
