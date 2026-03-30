@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
@@ -11,7 +12,8 @@ import {
   Shield,
   Trash2,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -221,6 +223,23 @@ export default function SettingsOrganizationPage() {
               </div>
             </button>
           </Card>
+        )}
+
+        {/* Aktivitäten — Owner/Admin only */}
+        {(isOwner || activeOrganization.role === "admin") && (
+          <Link href="/settings/organization/activities">
+            <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center shrink-0">
+                  <Activity size={20} className="text-[#00F5FF]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-black text-sm text-[var(--foreground)]">Aktivitäten</p>
+                  <p className="text-[10px] text-[var(--muted-foreground)]">Chronologie aller Änderungen</p>
+                </div>
+              </div>
+            </Card>
+          </Link>
         )}
 
         {/* Community löschen — Owner only */}
