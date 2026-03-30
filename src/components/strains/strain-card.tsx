@@ -2,7 +2,6 @@ import { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Strain } from '@/lib/types';
-import { CheckCircle2 } from 'lucide-react';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay } from '@/lib/strain-display';
 
 interface StrainCardProps {
@@ -46,15 +45,17 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
         animationFillMode: 'both'
       }}
     >
+      {/* 1. HEADER: Farmer + Strain Name */}
       <div className="shrink-0 p-3 pb-1 min-w-0 relative z-10">
-        <p className="text-[9px] font-bold tracking-[0.15em] uppercase text-[var(--foreground)]/30 truncate">
+        <p className="text-[8px] font-bold tracking-[0.12em] uppercase text-[var(--foreground)]/30">
           {farmerDisplay}
         </p>
-        <p className="title-font italic text-[13px] font-black leading-tight uppercase text-[var(--foreground)] break-words line-clamp-2">
+        <p className="title-font italic text-[14px] font-black leading-tight uppercase text-[var(--foreground)] break-words">
           {normalizedStrainName}
         </p>
       </div>
 
+      {/* 2. IMAGE with 2 badges only */}
       <div className="relative flex-1 min-h-0 px-2 py-1 z-10">
         <div className="absolute inset-0 rounded-xl border border-white/5 shadow-lg overflow-hidden">
           <Image
@@ -65,20 +66,31 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
             sizes="(max-width: 768px) 50vw, 33vw"
             loading="lazy"
           />
+          {/* Type Badge — top left */}
+          <div
+            className="absolute top-2 left-2 px-2 py-1 rounded-xl backdrop-blur-md border text-[8px] font-bold uppercase tracking-widest"
+            style={{
+              backgroundColor: `${themeColor}20`,
+              borderColor: `${themeColor}80`,
+              color: themeColor,
+            }}
+          >
+            {strain.type || 'HYBRID'}
+          </div>
+          {/* In Sammlung Badge — top right */}
           {isCollected && (
-            <div className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-1 rounded-full bg-[#00F5FF]/20 backdrop-blur-md border border-[#00F5FF]/30">
-              <CheckCircle2 className="text-[#00F5FF]" size={12} />
+            <div className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-1 rounded-full backdrop-blur-md border border-[#00F5FF]/30"
+              style={{ backgroundColor: '#00F5FF20' }}>
+              <div className="w-1.5 h-1.5 rounded-full bg-[#00F5FF]" />
               <span className="text-[8px] font-bold uppercase tracking-wider text-[#00F5FF]">In Sammlung</span>
             </div>
           )}
-          <div className="absolute bottom-2 left-2 border bg-black/80 backdrop-blur-md uppercase text-[8px] px-2 py-1 rounded-sm font-bold tracking-widest shadow-lg" style={{ borderColor: themeColor, color: themeColor }}>
-            {strain.type || 'HYBRID'}
-          </div>
         </div>
       </div>
 
+      {/* 3. STATS BAR — full text, no truncate */}
       <div className="shrink-0 px-3 w-full relative z-10">
-        <div className="rounded-xl border border-white/10 bg-white/5 p-2 shadow-inner backdrop-blur-sm">
+        <div className="rounded-xl border border-white/10 bg-[#121212]/80 p-2 shadow-inner backdrop-blur-sm">
           <div className="grid grid-cols-4 gap-1">
             <div className="flex flex-col items-center gap-0">
               <span className="text-[6px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">THC</span>
@@ -90,11 +102,11 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1">
               <span className="text-[6px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">TASTE</span>
-              <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/70 truncate max-w-full">{tasteDisplay}</span>
+              <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/70">{tasteDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1">
               <span className="text-[6px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">EFF</span>
-              <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/70 truncate max-w-full">{effectDisplay}</span>
+              <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/70">{effectDisplay}</span>
             </div>
           </div>
         </div>
