@@ -9,7 +9,7 @@ import { Search, Loader2, AlertCircle, Plus, Camera, SlidersHorizontal } from "l
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Strain, StrainSource } from "@/lib/types";
-import { CreateStrainModal } from "@/components/strains/create-strain-modal";
+const CreateStrainModal = lazy(() => import("@/components/strains/create-strain-modal").then(m => ({ default: m.CreateStrainModal })));
 import { StrainCard } from "@/components/strains/strain-card";
 const FilterPanel = lazy(() => import("@/components/strains/filter-panel").then(m => ({ default: m.FilterPanel })));
 import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";

@@ -126,7 +126,7 @@ export function NotificationsPanel() {
           <div className="relative w-full max-w-md bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
               <h2 className="text-lg font-bold">Benachrichtigungen</h2>
-              <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-[var(--muted)] rounded-lg">
+              <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-[var(--muted)] rounded-lg" aria-label="Benachrichtigungen schliessen">
                 <X size={20} />
               </button>
             </div>

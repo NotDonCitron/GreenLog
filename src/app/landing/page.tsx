@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { Strain } from "@/lib/types";
-import { Loader2, Menu, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { normalizeCollectionSource } from "@/lib/strain-display";
 import { StrainCard } from "@/components/strains/strain-card";
 import { FeatureBlock } from "@/components/landing/feature-block";
@@ -31,7 +31,6 @@ const DEMO_STRAIN: Strain = {
 export default function LandingPage() {
   const [strainOfTheDay, setStrainOfTheDay] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     async function fetchStrainOfTheDay() {
@@ -88,55 +87,12 @@ export default function LandingPage() {
           </nav>
 
           {/* CTA Button */}
-          <Link href="/login" className="hidden md:inline-flex">
+          <Link href="/login">
             <button className="h-9 px-4 rounded-lg bg-[#00F5FF]/10 border border-[#00F5FF]/30 text-[#00F5FF] text-sm font-bold hover:bg-[#00F5FF]/20 transition-colors">
               Anmelden
             </button>
           </Link>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-[var(--foreground)]"
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
         </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-[var(--border)] bg-[var(--background)]/95 backdrop-blur-md">
-            <nav className="flex flex-col p-4 gap-4">
-              <Link
-                href="#features"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors py-2"
-              >
-                Features
-              </Link>
-              <Link
-                href="/strains"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors py-2"
-              >
-                Strains
-              </Link>
-              <Link
-                href="/community"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors py-2"
-              >
-                Community
-              </Link>
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                <button className="h-9 px-4 rounded-lg bg-[#00F5FF]/10 border border-[#00F5FF]/30 text-[#00F5FF] text-sm font-bold w-full">
-                  Anmelden
-                </button>
-              </Link>
-            </nav>
-          </div>
-        )}
       </header>
 
       {/* Ambient neon glow background */}

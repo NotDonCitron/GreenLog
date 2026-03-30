@@ -74,7 +74,7 @@ export default function Home() {
         <header className="flex justify-between items-center shrink-0">
           <div className="flex items-center gap-3">
             <NotificationBell />
-            <h1 className="text-2xl font-black tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
+            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
               CannaLog
             </h1>
           </div>

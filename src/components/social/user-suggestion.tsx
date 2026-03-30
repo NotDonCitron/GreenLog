@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
@@ -12,7 +12,7 @@ interface UserSuggestionItemProps {
   onFollow?: () => void;
 }
 
-export function UserSuggestionItem({ user, onFollow }: UserSuggestionItemProps) {
+export const UserSuggestionItem = memo(function UserSuggestionItem({ user, onFollow }: UserSuggestionItemProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFollow = async () => {
@@ -83,14 +83,14 @@ export function UserSuggestionItem({ user, onFollow }: UserSuggestionItemProps) 
       </Link>
     </div>
   );
-}
+});
 
 interface CommunitySuggestionItemProps {
   community: SuggestedCommunity;
   onJoin?: () => void;
 }
 
-export function CommunitySuggestionItem({ community, onJoin }: CommunitySuggestionItemProps) {
+export const CommunitySuggestionItem = memo(function CommunitySuggestionItem({ community, onJoin }: CommunitySuggestionItemProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleJoin = async () => {
@@ -161,4 +161,4 @@ export function CommunitySuggestionItem({ community, onJoin }: CommunitySuggesti
       </Link>
     </div>
   );
-}
+});

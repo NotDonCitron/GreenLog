@@ -1,0 +1,171 @@
+<h2>Strain Card — 4 Design-Ansätze</h2>
+<p class="subtitle">Problem: Texte werden abgeschnitten (line-clamp, truncate). Which layout gives every element room to breathe?</p>
+
+<div class="cards">
+  <!-- Option A: Vertical Stack -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); border-radius: 16px; height: 200px; display: flex; align-items: center; justify-content: center; border: 2px solid #00F5FF20;">
+        <div style="text-align: center; color: #00F5FF; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;">Strain Image</div>
+      </div>
+    </div>
+    <div class="card-body" style="padding: 12px 4px 4px;">
+      <div style="margin-bottom: 8px;">
+        <div style="font-size: 8px; color: #666; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700;">Aurora</div>
+        <div style="font-size: 13px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; line-height: 1.2; margin-top: 2px;">Ghost Train Haze</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 10px; padding: 6px 4px;">
+        <div style="text-align: center;">
+          <div style="font-size: 6px; color: #666; text-transform: uppercase; letter-spacing: 0.1em;">THC</div>
+          <div style="font-size: 9px; font-weight: 800; color: #2FF801;">34%</div>
+        </div>
+        <div style="text-align: center; border-left: 1px solid rgba(255,255,255,0.10);">
+          <div style="font-size: 6px; color: #666; text-transform: uppercase; letter-spacing: 0.1em;">CBD</div>
+          <div style="font-size: 9px; font-weight: 800; color: #2FF801;">&lt;1%</div>
+        </div>
+        <div style="text-align: center; border-left: 1px solid rgba(255,255,255,0.10);">
+          <div style="font-size: 6px; color: #666; text-transform: uppercase; letter-spacing: 0.1em;">Taste</div>
+          <div style="font-size: 8px; font-weight: 500; color: rgba(255,255,255,0.70);">Zitrus</div>
+        </div>
+        <div style="text-align: center; border-left: 1px solid rgba(255,255,255,0.10);">
+          <div style="font-size: 6px; color: #666; text-transform: uppercase; letter-spacing: 0.1em;">Eff</div>
+          <div style="font-size: 8px; font-weight: 500; color: rgba(255,255,255,0.70);">Energy</div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size: 7px; color: #ff716c; text-align: center; padding: 4px;">⚠ Text Clipping möglich</div>
+  </div>
+
+  <!-- Option B: Floating Glass Overlay -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); border-radius: 16px; height: 240px; display: flex; align-items: center; justify-content: center; border: 2px solid #2FF80120; position: relative; overflow: hidden;">
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 60%, transparent 100%); padding: 40px 12px 12px; border-radius: 0 0 14px 14px;">
+          <div style="font-size: 8px; color: #666; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700;">Aurora</div>
+          <div style="font-size: 15px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; line-height: 1.2; margin-top: 2px;">Ghost Train Haze</div>
+          <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+            <div style="background: rgba(47,248,1,0.15); border: 1px solid rgba(47,248,1,0.4); border-radius: 6px; padding: 4px 8px;">
+              <span style="font-size: 8px; font-weight: 700; color: #2FF801;">34% THC</span>
+            </div>
+            <div style="background: rgba(47,248,1,0.15); border: 1px solid rgba(47,248,1,0.4); border-radius: 6px; padding: 4px 8px;">
+              <span style="font-size: 8px; font-weight: 700; color: #2FF801;">Zitrus</span>
+            </div>
+            <div style="background: rgba(47,248,1,0.15); border: 1px solid rgba(47,248,1,0.4); border-radius: 6px; padding: 4px 8px;">
+              <span style="font-size: 8px; font-weight: 700; color: #2FF801;">Energy</span>
+            </div>
+          </div>
+        </div>
+        <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,245,255,0.2); border: 1px solid rgba(0,245,255,0.4); border-radius: 20px; padding: 4px 8px; backdrop-filter: blur(8px);">
+          <span style="font-size: 7px; font-weight: 700; color: #00F5FF; text-transform: uppercase; letter-spacing: 0.1em;">SATIVA</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-size: 7px; color: #2FF801; text-align: center; padding: 4px;">✓ Alles lesbar, kein Clipping</div>
+  </div>
+
+  <!-- Option C: Horizontal Side-by-Side -->
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image" style="display: flex; gap: 10px; padding: 12px; align-items: stretch;">
+      <div style="flex: 0 0 45%; background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); border-radius: 14px; border: 2px solid #a1faff20; display: flex; align-items: center; justify-content: center; min-height: 160px; position: relative;">
+        <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,245,255,0.2); border-radius: 6px; padding: 3px 6px;">
+          <span style="font-size: 7px; font-weight: 700; color: #00F5FF;">SATIVA</span>
+        </div>
+        <span style="font-size: 10px; color: #00F5FF40;">Image</span>
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; min-width: 0;">
+        <div>
+          <div style="font-size: 8px; color: #666; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700;">Aurora</div>
+          <div style="font-size: 13px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; line-height: 1.2; margin-top: 2px;">Ghost Train Haze</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.04); border-radius: 8px; padding: 5px 8px;">
+            <span style="font-size: 7px; color: #666; text-transform: uppercase;">THC</span>
+            <span style="font-size: 9px; font-weight: 800; color: #2FF801;">34%</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.04); border-radius: 8px; padding: 5px 8px;">
+            <span style="font-size: 7px; color: #666; text-transform: uppercase;">CBD</span>
+            <span style="font-size: 9px; font-weight: 800; color: #2FF801;">&lt;1%</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.04); border-radius: 8px; padding: 5px 8px;">
+            <span style="font-size: 7px; color: #666; text-transform: uppercase;">Taste</span>
+            <span style="font-size: 8px; font-weight: 500; color: rgba(255,255,255,0.70);">Zitrus, Erdig</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; background: rgba(255,255,255,0.04); border-radius: 8px; padding: 5px 8px;">
+            <span style="font-size: 7px; color: #666; text-transform: uppercase;">Effect</span>
+            <span style="font-size: 8px; font-weight: 500; color: rgba(255,255,255,0.70);">Energy, Fokus</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size: 7px; color: #2FF801; text-align: center; padding: 4px;">✓ Volle Zeilen, keine truncate nötig</div>
+  </div>
+
+  <!-- Option D: Minimal Badge Style -->
+  <div class="card" data-choice="d" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); border-radius: 16px; height: 220px; display: flex; align-items: center; justify-content: center; border: 2px solid #833AB420; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 10px; right: 10px; background: rgba(131,58,180,0.3); border: 1px solid rgba(131,58,180,0.6); border-radius: 20px; padding: 4px 10px; backdrop-filter: blur(8px);">
+          <span style="font-size: 7px; font-weight: 700; color: #C084FC; text-transform: uppercase; letter-spacing: 0.1em;">SATIVA</span>
+        </div>
+        <div style="position: absolute; bottom: 10px; left: 10px; right: 10px;">
+          <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px;">
+            <div style="background: rgba(47,248,1,0.15); border-radius: 6px; padding: 3px 8px;">
+              <span style="font-size: 8px; font-weight: 700; color: #2FF801;">34% THC</span>
+            </div>
+            <div style="background: rgba(0,245,255,0.15); border-radius: 6px; padding: 3px 8px;">
+              <span style="font-size: 8px; font-weight: 700; color: #00F5FF;">Zitrus</span>
+            </div>
+          </div>
+          <div style="font-size: 8px; color: #666; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700;">Aurora</div>
+          <div style="font-size: 14px; font-weight: 900; font-style: italic; text-transform: uppercase; color: #fff; line-height: 1.2;">Ghost Train Haze</div>
+        </div>
+      </div>
+    </div>
+    <div style="padding: 8px 4px 4px;">
+      <div style="display: flex; justify-content: space-around; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 8px;">
+        <div style="text-align: center;">
+          <div style="font-size: 6px; color: #666; text-transform: uppercase;">THC</div>
+          <div style="font-size: 10px; font-weight: 800; color: #2FF801;">34%</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 6px; color: #666; text-transform: uppercase;">CBD</div>
+          <div style="font-size: 10px; font-weight: 800; color: #2FF801;">&lt;1%</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 6px; color: #666; text-transform: uppercase;">Taste</div>
+          <div style="font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.70);">Zitrus</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 6px; color: #666; text-transform: uppercase;">Effect</div>
+          <div style="font-size: 9px; font-weight: 500; color: rgba(255,255,255,0.70);">Energy</div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size: 7px; color: #2FF801; text-align: center; padding: 4px;">✓ Extra Platz durch großes Bild</div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 24px;">
+  <h3>Problembereiche der aktuellen Card</h3>
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>Was funktioniert</h4>
+      <ul>
+        <li>4-Spalten-Grid für THC/CBD/Taste/Effect kompakt</li>
+        <li>Hover-Animation gut</li>
+        <li>Theme-Farben (Sativa=Grün, Indica=Orange etc.)</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>Was schiefgeht</h4>
+      <ul>
+        <li><code>line-clamp-2</code> bei langen Namen → abgeschnitten</li>
+        <li><code>truncate</code> bei Taste/Effect → "Zitrus, Erdig" wird "Zitrus"</li>
+        <li>4er-Grid zu eng für mehr als 6 Zeichen</li>
+        <li>Farmer/Prefix oben rarely zeigt 2 Zeilen → verschiebt alles</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<p style="margin-top: 20px; font-size: 11px; color: #666; text-align: center;">Klicke auf eine Option zum Auswählen. Mehrere Infos helfen mir beim Verfeinern.</p>
