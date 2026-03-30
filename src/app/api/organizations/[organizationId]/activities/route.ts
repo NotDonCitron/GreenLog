@@ -84,7 +84,7 @@ export async function GET(request: Request, { params }: RouteParams) {
             return NextResponse.json({ error: "Failed to fetch activities" }, { status: 500 });
         }
 
-        const typedActivities = (activities ?? []) as OrganizationActivity[];
+        const typedActivities = (activities ?? []) as unknown as OrganizationActivity[];
         const total = count ?? 0;
 
         return NextResponse.json({
