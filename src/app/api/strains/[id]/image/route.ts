@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase/client";
+import { supabase, getAuthenticatedClient } from "@/lib/supabase/client";
 
 const APP_ADMIN_IDS = process.env.APP_ADMIN_IDS || "";
 
@@ -32,7 +32,7 @@ export async function PATCH(
     }
 
     // Get authenticated user
-    const supabaseAuth = supabase;
+    const supabaseAuth = getAuthenticatedClient(accessToken);
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 
     if (authError || !user) {
