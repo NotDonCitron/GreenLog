@@ -23,7 +23,7 @@ const DEMO_STRAIN: Strain = {
   terpenes: ["Terpinolene", "Myrcene", "Limonene"],
   flavors: ["Zitrus", "Erdig"],
   effects: ["Energy", "Kreativität", "Fokus"],
-  image_url: "/strains/aurora-typ-1-island-sweet-skunk.jpg",
+  image_url: "/strains/aurora-ghost-train-haze.jpg",
   is_medical: true,
   source: "pharmacy",
 };
