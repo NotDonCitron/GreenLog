@@ -97,7 +97,7 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
               color: themeColor,
             }}
           >
-            {strain.type || 'HYBRID'}
+            {strain.type === 'sativa' ? 'Sativa' : strain.type === 'indica' ? 'Indica' : 'Hybride'}
           </div>
           {/* In Sammlung Badge — top right */}
           {isCollected && (
@@ -123,10 +123,10 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
               <span className="text-[9px] font-black tracking-wide" style={{ color: themeColor }}>{cbdDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1">
-              <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/70">{tasteDisplay}</span>
+              <span className="text-[7px] font-medium tracking-wide text-[var(--foreground)]/70 break-words leading-tight text-center">{tasteDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1">
-              <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/70">{effectDisplay}</span>
+              <span className="text-[7px] font-medium tracking-wide text-[var(--foreground)]/70 break-words leading-tight text-center">{effectDisplay}</span>
             </div>
           </div>
         </div>
