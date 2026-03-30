@@ -173,16 +173,17 @@ export default function LandingPage() {
 
           {/* CTA Buttons */}
           <ScrollAnimator animation="fade-up" delay={300}>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link href="/login">
                 <button className="inline-flex items-center gap-2 px-8 py-4 h-14 rounded-xl bg-[#00F5FF]/10 border border-[#00F5FF]/30 text-[#00F5FF] font-bold text-lg hover:bg-[#00F5FF]/20 transition-all">
                   Jetzt starten
                   <ArrowRight size={20} />
                 </button>
               </Link>
-              <Link href="#features">
-                <button className="inline-flex items-center gap-2 px-8 py-4 h-14 rounded-xl border-2 border-[var(--border)] text-[var(--foreground)] font-bold text-lg hover:border-[#00F5FF]/50 hover:bg-[#00F5FF]/5 transition-all">
-                  Mehr erfahren
+              <Link href="/strains">
+                <button className="inline-flex items-center gap-2 px-8 py-4 h-14 rounded-xl border-2 border-[var(--border)] text-[var(--foreground)] font-bold text-lg hover:border-[#2FF801]/50 hover:bg-[#2FF801]/5 transition-all">
+                  Strains ansehen
+                  <ArrowRight size={20} />
                 </button>
               </Link>
             </div>
