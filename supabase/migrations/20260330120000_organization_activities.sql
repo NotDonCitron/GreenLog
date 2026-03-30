@@ -32,16 +32,23 @@ CREATE POLICY "Admins can view organization activities"
       WHERE organization_members.organization_id = organization_activities.organization_id
         AND organization_members.user_id = auth.uid()
         AND organization_members.role IN ('gründer', 'admin')
-        AND organization_members.status = 'active'
+        AND organization_members.membership_status = 'active'
     )
   );
 
--- INSERT: any authenticated user (controlled by API routes)
-CREATE POLICY "Authenticated users can insert activities"
+-- INSERT: org members with active membership
+CREATE POLICY "Org members can insert activities"
   ON organization_activities
   FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM organization_members
+      WHERE organization_id = organization_activities.organization_id
+      AND user_id = auth.uid()
+      AND membership_status = 'active'
+    )
+  );
 
 -- Enable realtime
 ALTER PUBLICATION supabase_realtime ADD TABLE organization_activities;
