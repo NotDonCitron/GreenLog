@@ -115,19 +115,15 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
         <div className="rounded-xl border border-white/10 bg-[#121212]/80 p-2 shadow-inner backdrop-blur-sm">
           <div className="grid grid-cols-4 gap-1">
             <div className="flex flex-col items-center gap-0">
-              <span className="text-[6px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">THC</span>
               <span className="text-[9px] font-black tracking-wide" style={{ color: themeColor }}>{thcDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1">
-              <span className="text-[6px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">CBD</span>
               <span className="text-[9px] font-black tracking-wide" style={{ color: themeColor }}>{cbdDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1">
-              <span className="text-[6px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">TASTE</span>
               <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/70">{tasteDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1">
-              <span className="text-[6px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">EFF</span>
               <span className="text-[8px] font-medium tracking-wide text-[var(--foreground)]/70">{effectDisplay}</span>
             </div>
           </div>
