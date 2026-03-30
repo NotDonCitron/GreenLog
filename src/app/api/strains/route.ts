@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
+import { writeOrganizationActivity } from "@/lib/organization-activities";
 
 export async function POST(request: Request) {
     try {
@@ -74,6 +75,19 @@ export async function POST(request: Request) {
                 error: "Failed to create strain",
                 details: strainError.message
             }, { status: 500 });
+        }
+
+        // Write activity for organization strains (skip for personal strains without org)
+        if (strain.organization_id) {
+            await writeOrganizationActivity({
+                supabase,
+                organizationId: strain.organization_id,
+                userId: user.id,
+                eventType: 'strain_added',
+                targetType: 'strain',
+                target: { id: strain.id, name: strain.name },
+                metadata: { type: strain.type, thc_max: strain.thc_max },
+            }).catch(err => console.error('Activity write failed:', err));
         }
 
         return NextResponse.json({
