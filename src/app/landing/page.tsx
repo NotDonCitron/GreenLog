@@ -8,10 +8,25 @@ import { Loader2, Menu, X } from "lucide-react";
 import { normalizeCollectionSource } from "@/lib/strain-display";
 import { MarketingStrainCard } from "@/components/landing/marketing-strain-card";
 import { FeatureBlock } from "@/components/landing/feature-block";
-import { CounterBlock } from "@/components/landing/counter-block";
 import { CTAForm } from "@/components/landing/cta-form";
 import { ScrollAnimator } from "@/components/landing/scroll-animator";
 import { Leaf, Users, Star, ArrowRight } from "lucide-react";
+
+// Demo data fallback when Supabase is not available
+const DEMO_STRAIN: Strain = {
+  id: "demo-1",
+  name: "Aurora Ghost Train Haze",
+  brand: "Aurora",
+  slug: "aurora-ghost-train-haze",
+  thc_max: 34,
+  type: "sativa",
+  terpenes: ["Terpinolene", "Myrcene", "Limonene"],
+  flavors: ["Zitrus", "Erdig"],
+  effects: ["Energy", "Kreativität", "Fokus"],
+  image_url: "/strains/aurora-typ-1-island-sweet-skunk.jpg",
+  is_medical: true,
+  source: "pharmacy",
+};
 
 export default function LandingPage() {
   const [strainOfTheDay, setStrainOfTheDay] = useState<Strain | null>(null);
@@ -35,9 +50,14 @@ export default function LandingPage() {
             ...strain,
             source: normalizeCollectionSource(strain.source),
           } as Strain);
+        } else {
+          // Fallback to demo strain if no data
+          setStrainOfTheDay(DEMO_STRAIN);
         }
       } catch (err) {
         console.error("Strain of the day error:", err);
+        // Fallback to demo strain on error
+        setStrainOfTheDay(DEMO_STRAIN);
       } finally {
         setLoading(false);
       }
@@ -205,7 +225,7 @@ export default function LandingPage() {
             <FeatureBlock
               icon={<Leaf size={24} />}
               title="Strain-Verwaltung"
-              description="Über 470+ Strains mit detaillierten Infos zu THC, CBD, Genetik und Herkunft. Perfekt für Clubs und Apotheken."
+              description="Umfassende Strain-Datenbank mit detaillierten Infos zu THC, CBD, Genetik und Herkunft. Perfekt für Clubs und Apotheken."
               index={0}
             />
             <FeatureBlock
@@ -224,13 +244,36 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* SOCIAL PROOF SECTION */}
+      {/* WHY GREENLOG SECTION */}
       <section className="relative z-10 py-24 px-6 bg-[var(--background)]/50">
         <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-12">
-            <CounterBlock end={470} suffix="+" label="Strains" index={0} />
-            <CounterBlock end={50} suffix="+" label="Clubs & Apotheken" index={1} />
-            <CounterBlock end={1200} suffix="+" label="Aktive User" index={2} />
+          <ScrollAnimator animation="fade-up">
+            <h2 className="text-3xl md:text-4xl font-black text-center mb-12 font-display">
+              Warum GreenLog?
+            </h2>
+          </ScrollAnimator>
+          <div className="grid md:grid-cols-3 gap-8">
+            <ScrollAnimator animation="fade-up" delay={0}>
+              <div className="text-center">
+                <div className="text-4xl mb-4">📊</div>
+                <h3 className="text-lg font-bold mb-2">Detaillierte Stats</h3>
+                <p className="text-sm text-[var(--muted-foreground)]">THC, CBD, Terpene – alle wichtigen Werte auf einen Blick</p>
+              </div>
+            </ScrollAnimator>
+            <ScrollAnimator animation="fade-up" delay={100}>
+              <div className="text-center">
+                <div className="text-4xl mb-4">🔍</div>
+                <h3 className="text-lg font-bold mb-2">Smarter Filter</h3>
+                <p className="text-sm text-[var(--muted-foreground)]">Finde schnell die perfekte Sorte für deine Bedürfnisse</p>
+              </div>
+            </ScrollAnimator>
+            <ScrollAnimator animation="fade-up" delay={200}>
+              <div className="text-center">
+                <div className="text-4xl mb-4">💬</div>
+                <h3 className="text-lg font-bold mb-2">Community</h3>
+                <p className="text-sm text-[var(--muted-foreground)]">Teile Bewertungen und entdecke neue Strains</p>
+              </div>
+            </ScrollAnimator>
           </div>
         </div>
       </section>
