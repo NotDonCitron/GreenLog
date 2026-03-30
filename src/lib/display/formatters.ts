@@ -223,20 +223,21 @@ function translateList(values: string[], translations: Record<string, string>): 
 // Priority: lower number = higher priority (shown first)
 const EFFECT_CATEGORIES: Record<string, { display: string; priority: number }> = {
   // Entspannung group (heavy/physical/sleep)
-  'Entspannung': { display: 'Entspannung', priority: 1 },
-  'Entspannend': { display: 'Entspannung', priority: 1 },
-  'Schläfrig': { display: 'Entspannung', priority: 1 },
-  'Müde': { display: 'Entspannung', priority: 1 },
-  'Sedativ': { display: 'Entspannung', priority: 1 },
-  'Narkotisch': { display: 'Entspannung', priority: 1 },
-  'Couch-Lock': { display: 'Entspannung', priority: 1 },
-  'Körperlich': { display: 'Entspannung', priority: 1 },
-  'Schwer': { display: 'Entspannung', priority: 1 },
-  'Beruhigend': { display: 'Entspannung', priority: 1 },
-  'Schmerzlinderung': { display: 'Entspannung', priority: 1 },
-  'Appetitanregend': { display: 'Entspannung', priority: 1 },
-  'Hungrig': { display: 'Entspannung', priority: 1 },
-  'Appetit': { display: 'Entspannung', priority: 1 },
+  // Use soft hyphen (­) for line breaks: "Ent­spannung", "Couch­-Lock"
+  'Entspannung': { display: 'Ent\u00adspannung', priority: 1 },
+  'Entspannend': { display: 'Ent\u00adspannung', priority: 1 },
+  'Schläfrig': { display: 'Ent\u00adspannung', priority: 1 },
+  'Müde': { display: 'Ent\u00adspannung', priority: 1 },
+  'Sedativ': { display: 'Ent\u00adspannung', priority: 1 },
+  'Narkotisch': { display: 'Ent\u00adspannung', priority: 1 },
+  'Couch-Lock': { display: 'Couch\u00ad-Lock', priority: 1 },
+  'Körperlich': { display: 'Ent\u00adspannung', priority: 1 },
+  'Schwer': { display: 'Ent\u00adspannung', priority: 1 },
+  'Beruhigend': { display: 'Ent\u00adspannung', priority: 1 },
+  'Schmerzlinderung': { display: 'Ent\u00adspannung', priority: 1 },
+  'Appetitanregend': { display: 'Ent\u00adspannung', priority: 1 },
+  'Hungrig': { display: 'Ent\u00adspannung', priority: 1 },
+  'Appetit': { display: 'Ent\u00adspannung', priority: 1 },
 
   // Energie group
   'Energie': { display: 'Energie', priority: 2 },
@@ -293,17 +294,17 @@ export function getTasteDisplay(strain: Strain, fallback = DEFAULT_TASTE_FALLBAC
     const normalizedFlavors = normalizeDisplayList(strain.flavors);
     if (normalizedFlavors.length > 0) {
         const translated = translateList(normalizedFlavors.slice(0, 2), TASTE_TRANSLATIONS);
-        // Deduplicate after translation
+        // Deduplicate after translation, return only first item
         const unique = [...new Set(translated)];
-        return unique.slice(0, 2).join(", ");
+        return unique[0] ?? fallback;
     }
 
     const normalizedTerpenes = normalizeDisplayList(strain.terpenes);
     if (normalizedTerpenes.length > 0) {
         const translated = translateList(normalizedTerpenes.slice(0, 2), TASTE_TRANSLATIONS);
-        // Deduplicate after translation
+        // Deduplicate after translation, return only first item
         const unique = [...new Set(translated)];
-        return unique.slice(0, 2).join(", ");
+        return unique[0] ?? fallback;
     }
 
     return fallback;
