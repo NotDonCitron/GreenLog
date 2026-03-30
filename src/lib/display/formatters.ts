@@ -188,6 +188,67 @@ function translateList(values: string[], translations: Record<string, string>): 
   return values.map(v => translate(v, translations));
 }
 
+// Effect categories — consolidate similar effects into one display name
+// Priority: lower number = higher priority (shown first)
+const EFFECT_CATEGORIES: Record<string, { display: string; priority: number }> = {
+  // Entspannung group (heavy/physical)
+  'Entspannung': { display: 'Entspannung', priority: 1 },
+  'Entspannend': { display: 'Entspannung', priority: 1 },
+  'Schläfrig': { display: 'Entspannung', priority: 1 },
+  'Müde': { display: 'Entspannung', priority: 1 },
+  'Sedativ': { display: 'Entspannung', priority: 1 },
+  'Narkotisch': { display: 'Entspannung', priority: 1 },
+  'Couch-Lock': { display: 'Entspannung', priority: 1 },
+  'Körperlich': { display: 'Entspannung', priority: 1 },
+  'Schwer': { display: 'Entspannung', priority: 1 },
+  'Beruhigend': { display: 'Entspannung', priority: 1 },
+  'Schmerzlinderung': { display: 'Entspannung', priority: 1 },
+  'Appetitanregend': { display: 'Entspannung', priority: 1 },
+
+  // Energie group
+  'Energie': { display: 'Energie', priority: 2 },
+  'Erhebend': { display: 'Energie', priority: 2 },
+  'Erfrischend': { display: 'Energie', priority: 2 },
+  'Weckend': { display: 'Energie', priority: 2 },
+  'Aktiviert': { display: 'Energie', priority: 2 },
+
+  // Fokus group
+  'Fokus': { display: 'Fokus', priority: 3 },
+  'Fokussiert': { display: 'Fokus', priority: 3 },
+  'Konzentriert': { display: 'Fokus', priority: 3 },
+  'Kopf': { display: 'Fokus', priority: 3 },
+  'Cerebral': { display: 'Fokus', priority: 3 },
+
+  // Euphorie group
+  'Euphorie': { display: 'Euphorie', priority: 4 },
+  'Euphorisch': { display: 'Euphorie', priority: 4 },
+  'Glücklich': { display: 'Euphorie', priority: 4 },
+  'Lachend': { display: 'Euphorie', priority: 4 },
+  'Kichernd': { display: 'Euphorie', priority: 4 },
+  'Entspannt': { display: 'Euphorie', priority: 4 },
+  'Stimmungshebend': { display: 'Euphorie', priority: 4 },
+  'Stimmungsaufheller': { display: 'Euphorie', priority: 4 },
+
+  // Kreativität group
+  'Kreativ': { display: 'Kreativ', priority: 5 },
+  'Kreativität': { display: 'Kreativ', priority: 5 },
+  'Meditativ': { display: 'Meditativ', priority: 5 },
+
+  // Ausgeglichen group (anxiety/stress)
+  'Angstlösend': { display: 'Ausgeglichen', priority: 6 },
+  'Stressabbau': { display: 'Ausgeglichen', priority: 6 },
+
+  // Psychedelisch group
+  'Psychedelisch': { display: 'Psychedelisch', priority: 7 },
+  'Spacig': { display: 'Psychedelisch', priority: 7 },
+  'Kopfreise': { display: 'Psychedelisch', priority: 7 },
+  'Spirituell': { display: 'Psychedelisch', priority: 7 },
+  'Introspektiv': { display: 'Psychedelisch', priority: 7 },
+
+  // Medical
+  'Medizinisch': { display: 'Medizinisch', priority: 8 },
+};
+
 export function formatPercent(value: number | null | undefined, fallback: string) {
     return typeof value === "number" && Number.isFinite(value) ? `${value}%` : fallback;
 }
@@ -210,9 +271,31 @@ export function getTasteDisplay(strain: Strain, fallback = DEFAULT_TASTE_FALLBAC
 
 export function getEffectDisplay(strain: Strain, fallback = DEFAULT_EFFECT_FALLBACK) {
     const normalizedEffects = normalizeDisplayList(strain.effects);
-    if (normalizedEffects.length > 0) {
-        return translate(normalizedEffects[0], EFFECT_TRANSLATIONS);
+    if (normalizedEffects.length === 0) {
+        return strain.is_medical ? "Medizinisch" : fallback;
     }
 
-    return strain.is_medical ? "Medizinisch" : fallback;
+    // Translate all effects to German first
+    const translatedEffects = normalizedEffects.map(e => translate(e, EFFECT_TRANSLATIONS));
+
+    // Deduplicate — remove exact duplicates
+    const unique = [...new Set(translatedEffects)];
+
+    // Find the best category (lowest priority number = highest display priority)
+    let best: { display: string; priority: number } | null = null;
+    for (const effect of unique) {
+        const cat = EFFECT_CATEGORIES[effect];
+        if (cat && (best === null || cat.priority < best.priority)) {
+            best = cat;
+        } else if (!cat && (best === null || best.priority === 99)) {
+            // No category match — use the raw translated effect as fallback
+            best = { display: effect, priority: 99 };
+        }
+    }
+
+    if (best) {
+        return best.display;
+    }
+
+    return fallback;
 }
