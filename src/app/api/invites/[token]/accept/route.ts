@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
+import { writeOrganizationActivity } from "@/lib/organization-activities";
 
 type RouteParams = { params: Promise<{ token: string }> };
 
@@ -78,6 +79,27 @@ export async function POST(request: Request, { params }: RouteParams) {
         details: membershipError.message
       }, { status: 500 });
     }
+
+    // Write activity for invite accepted and member joined
+    await writeOrganizationActivity({
+      supabase,
+      organizationId: invite.organization_id,
+      userId: user.id,
+      eventType: 'invite_accepted',
+      targetType: 'invite',
+      target: { id: invite.id, name: invite.email },
+      metadata: { role: invite.role },
+    }).catch(err => console.error('Activity write failed:', err));
+
+    await writeOrganizationActivity({
+      supabase,
+      organizationId: invite.organization_id,
+      userId: user.id,
+      eventType: 'member_joined',
+      targetType: 'member',
+      target: { id: membership.id, name: user.email || undefined },
+      metadata: { role: invite.role },
+    }).catch(err => console.error('Activity write failed:', err));
 
     // Mark invite as accepted
     await supabase

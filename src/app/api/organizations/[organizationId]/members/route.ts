@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
+import { writeOrganizationActivity } from "@/lib/organization-activities";
 
 type RouteParams = { params: Promise<{ organizationId: string }> };
 
@@ -201,6 +202,19 @@ export async function PATCH(request: Request, { params }: RouteParams) {
             }, { status: 500 });
         }
 
+        // Write role_changed activity if role was updated
+        if (updates.role && targetMember) {
+            await writeOrganizationActivity({
+                supabase,
+                organizationId,
+                userId: user.id,
+                eventType: 'role_changed',
+                targetType: 'role',
+                target: { id: member_id, name: targetMember.user_id },
+                metadata: { newRole: updates.role, previousRole: targetMember.role },
+            }).catch(err => console.error('Activity write failed:', err));
+        }
+
         return NextResponse.json({ member: updated });
 
     } catch (error) {
@@ -295,6 +309,17 @@ export async function DELETE(request: Request, { params }: RouteParams) {
                 details: deleteError.message
             }, { status: 500 });
         }
+
+        // Write member_removed activity
+        await writeOrganizationActivity({
+            supabase,
+            organizationId,
+            userId: user.id,
+            eventType: 'member_removed',
+            targetType: 'member',
+            target: { id: member_id, name: targetMember.user_id },
+            metadata: { removedRole: targetMember.role },
+        }).catch(err => console.error('Activity write failed:', err));
 
         return NextResponse.json({ success: true });
 

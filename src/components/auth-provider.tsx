@@ -154,9 +154,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [syncActiveOrganization, user]);
 
   useEffect(() => {
+    // Timeout fallback: if getSession() hangs, unblock the UI after 10s
+    const timeoutId = setTimeout(() => {
+      console.warn("[Auth] getSession() timed out — unblocking UI");
+      setLoading(false);
+    }, 10000);
+
     supabase.auth.getSession().then(({ data: { session } }) => {
+      clearTimeout(timeoutId);
       setSession(session);
       setUser(session?.user ?? null);
+      setLoading(false);
+    }).catch((err) => {
+      clearTimeout(timeoutId);
+      console.error("[Auth] getSession() failed:", err);
+      setSession(null);
+      setUser(null);
       setLoading(false);
     });
 

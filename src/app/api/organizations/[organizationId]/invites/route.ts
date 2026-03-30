@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { createHash, randomBytes } from "crypto";
+import { writeOrganizationActivity } from "@/lib/organization-activities";
 
 type RouteParams = { params: Promise<{ organizationId: string }> };
 
@@ -199,6 +200,17 @@ export async function POST(request: Request, { params }: RouteParams) {
                 details: inviteError.message
             }, { status: 500 });
         }
+
+        // Write activity for invite sent
+        await writeOrganizationActivity({
+            supabase,
+            organizationId,
+            userId: user.id,
+            eventType: 'invite_sent',
+            targetType: 'invite',
+            target: { id: invite.id, name: invite.email },
+            metadata: { role: invite.role },
+        }).catch(err => console.error('Activity write failed:', err));
 
         // Return the full token only once - frontend handles the rest
         return NextResponse.json({

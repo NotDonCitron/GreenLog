@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback, lazy } from "react";
+import { useState, useEffect, Suspense, useCallback, lazy, useMemo } from "react";
 import { BottomNav } from "@/components/bottom-nav";
 import { Search, CalendarDays, Loader2, AlertCircle, X, Filter, Plus, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -157,7 +157,7 @@ export default function CollectionPage() {
     if (!authLoading) fetchCollection();
   }, [user, authLoading]);
 
-  const filteredStrains = strains.filter(s => {
+  const filteredStrains = useMemo(() => strains.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
 
     let matchesSource = true;
@@ -191,7 +191,7 @@ export default function CollectionPage() {
     const matchesCbd = strainCbd >= filterCbdMin && strainCbd <= filterCbdMax;
 
     return matchesSearch && matchesSource && matchesDate && matchesEffects && matchesThc && matchesCbd;
-  });
+  }), [strains, search, sourceFilter, selectedDate, filterEffects, filterThcMin, filterThcMax, filterCbdMin, filterCbdMax, user]);
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">

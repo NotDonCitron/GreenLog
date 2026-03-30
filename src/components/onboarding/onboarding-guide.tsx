@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { 
     ChevronRight, 
@@ -73,10 +72,22 @@ const ONBOARDING_STEPS: Step[] = [
 export function OnboardingGuide() {
     const { user, isDemoMode } = useAuth();
     const router = useRouter();
-    
+
     const [isVisible, setIsVisible] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
     const [isSaving, setIsLoading] = useState(false);
+    const [motionComponents, setMotionComponents] = useState<{
+        motion: typeof import("framer-motion").motion;
+        AnimatePresence: typeof import("framer-motion").AnimatePresence;
+    } | null>(null);
+
+    useEffect(() => {
+        if (isVisible && !motionComponents) {
+            import("framer-motion").then((mod) => {
+                setMotionComponents({ motion: mod.motion, AnimatePresence: mod.AnimatePresence });
+            });
+        }
+    }, [isVisible, motionComponents]);
 
     useEffect(() => {
         console.log("[Onboarding] Component mounted.");
@@ -201,7 +212,15 @@ export function OnboardingGuide() {
     };
 
     if (!isVisible) return null;
+    if (!motionComponents) {
+        return (
+            <div className="fixed left-0 right-0 z-[9999] flex justify-center px-6 bottom-28">
+                <div className="w-full max-w-sm h-48 bg-[#121212]/95 border-2 border-[#2FF801]/30 rounded-[2rem] animate-pulse" />
+            </div>
+        );
+    }
 
+    const { motion, AnimatePresence } = motionComponents;
     const step = ONBOARDING_STEPS[currentStep];
     // Position ONLY at top for the scanner, everywhere else bottom is better to see headers/stats
     const isTop = step.path === "/scanner";

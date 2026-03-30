@@ -129,6 +129,7 @@ export const ActivityItem = memo(function ActivityItem({ activity, user, classNa
                             src={user.avatar_url}
                             alt={user.display_name ?? user.username ?? ""}
                             fill
+                            sizes="44px"
                             className="object-cover"
                         />
                     ) : (
@@ -166,6 +167,7 @@ export const ActivityItem = memo(function ActivityItem({ activity, user, classNa
                                 src={activity.target_image_url}
                                 alt={activity.target_name ?? ""}
                                 fill
+                                sizes="80px"
                                 className="object-cover"
                             />
                         </div>
