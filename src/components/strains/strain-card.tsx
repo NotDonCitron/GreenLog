@@ -19,6 +19,8 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
   const effectDisplay = getEffectDisplay(strain);
   const tasteDisplay = getTasteDisplay(strain);
 
+  // Strip farmer prefix from strain name — handles "420 Pharma: Natural Gorilla Glue" -> "Natural Gorilla Glue"
+  // and "420 Natural Gorilla Glue" (farmer="420 Pharma") -> "Natural Gorilla Glue"
   const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const normalizedStrainName = (() => {
     const rawName = strain.name?.trim() || '';
@@ -27,12 +29,32 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
       return rawName;
     }
 
+    // Try stripping the full farmer name (e.g., "420 Pharma: " from "420 Pharma: Natural Gorilla Glue")
     const withoutFarmerPrefix = rawName.replace(
       new RegExp(`^${escapeRegExp(farmerDisplay)}[\s:/-]*`, 'i'),
       ''
     ).trim();
 
-    return withoutFarmerPrefix || rawName;
+    // If result is empty/too short, the farmer might be the first word (e.g., farmer="420 Pharma", name="420 Natural Gorilla Glue")
+    if (!withoutFarmerPrefix || withoutFarmerPrefix.length < 3) {
+      const firstWord = farmerDisplay.split(/\s+/)[0];
+      if (firstWord && firstWord.length > 1) {
+        const withoutFirstWord = rawName.replace(new RegExp(`^${escapeRegExp(firstWord)}[\s:/-]+`, 'i'), '').trim();
+        // Only use if it's meaningfully different from rawName and from the first attempt
+        if (withoutFirstWord &&
+            withoutFirstWord.length > withoutFarmerPrefix.length &&
+            withoutFirstWord.length < rawName.length - 2) {
+          return withoutFirstWord;
+        }
+      }
+    }
+
+    // Prefer the longer result (more of the real strain name preserved)
+    if (withoutFarmerPrefix && withoutFarmerPrefix.length < rawName.length - 2) {
+      return withoutFarmerPrefix;
+    }
+
+    return rawName;
   })();
 
   return (
