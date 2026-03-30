@@ -54,19 +54,7 @@ export const MarketingStrainCard = memo(function MarketingStrainCard({ strain }:
   return (
     <Link
       href={`/strains/${strain.slug}`}
-      className="group relative flex w-full min-w-0 flex-col rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.03] bg-[#121212] border-2"
-      style={{
-        borderColor: 'rgba(255,255,255,0.1)',
-        boxShadow: '0 0 0 0 transparent',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = `0 0 20px 4px ${themeColor}40, 0 0 40px 8px ${themeColor}20`;
-        e.currentTarget.style.borderColor = themeColor;
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = '0 0 0 0 transparent';
-        e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
-      }}
+      className="group relative flex w-full min-w-0 flex-col rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl bg-white border border-gray-200"
     >
       {/* Image with gradient overlay */}
       <div className="relative aspect-[4/3] overflow-hidden">
@@ -74,19 +62,19 @@ export const MarketingStrainCard = memo(function MarketingStrainCard({ strain }:
           src={strain.image_url || "/strains/placeholder-1.svg"}
           alt={strain.name}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-110"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, 50vw"
           loading="lazy"
         />
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent opacity-80" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
         {/* Type badge — top left */}
         <div
           className="absolute top-2 left-2 px-2.5 py-1 rounded-xl backdrop-blur-md border text-[9px] font-bold uppercase tracking-widest"
           style={{
-            backgroundColor: `${themeColor}20`,
-            borderColor: `${themeColor}80`,
+            backgroundColor: `${themeColor}30`,
+            borderColor: themeColor,
             color: themeColor,
           }}
         >
@@ -97,9 +85,9 @@ export const MarketingStrainCard = memo(function MarketingStrainCard({ strain }:
         <div
           className="absolute top-2 right-2 px-2.5 py-1 rounded-xl backdrop-blur-md border text-[9px] font-black uppercase tracking-wider"
           style={{
-            backgroundColor: `${themeColor}20`,
-            borderColor: `${themeColor}80`,
-            color: themeColor,
+            backgroundColor: `${themeColor}30`,
+            borderColor: themeColor,
+            color: 'white',
           }}
         >
           {thcDisplay}
@@ -108,18 +96,18 @@ export const MarketingStrainCard = memo(function MarketingStrainCard({ strain }:
 
       {/* Content */}
       <div className="p-3 flex flex-col gap-1">
-        <p className="text-[8px] font-bold tracking-[0.12em] uppercase text-[var(--foreground)]/30 truncate">
+        <p className="text-[8px] font-bold tracking-[0.12em] uppercase text-gray-500 truncate">
           {farmerDisplay}
         </p>
-        <p className="title-font italic text-[13px] font-black leading-tight uppercase text-[var(--foreground)] break-words line-clamp-2">
+        <p className="title-font italic text-[13px] font-black leading-tight uppercase text-gray-900 break-words line-clamp-2">
           {normalizedStrainName}
         </p>
 
         {/* Taste & Effect */}
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-[8px] font-medium text-[var(--foreground)]/60 truncate">{tasteDisplay}</span>
-          <span className="text-[var(--foreground)]/20">•</span>
-          <span className="text-[8px] font-medium text-[var(--foreground)]/60 truncate">{effectDisplay}</span>
+          <span className="text-[8px] font-medium text-gray-500 truncate">{tasteDisplay}</span>
+          <span className="text-gray-300">•</span>
+          <span className="text-[8px] font-medium text-gray-500 truncate">{effectDisplay}</span>
         </div>
       </div>
     </Link>
