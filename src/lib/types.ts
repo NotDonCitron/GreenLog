@@ -324,3 +324,41 @@ export interface UserCollection {
   created_at: string;
   updated_at: string;
 }
+
+export type OrganizationActivityEventType =
+  | 'strain_added'
+  | 'strain_updated'
+  | 'strain_removed'
+  | 'member_joined'
+  | 'member_removed'
+  | 'role_changed'
+  | 'invite_sent'
+  | 'invite_accepted'
+  | 'invite_revoked';
+
+export type OrganizationActivityTargetType =
+  | 'strain'
+  | 'member'
+  | 'invite'
+  | 'role'
+  | 'organization';
+
+export interface OrganizationActivity {
+  id: string;
+  organization_id: string;
+  user_id: string | null;
+  event_type: OrganizationActivityEventType;
+  target_type: OrganizationActivityTargetType | null;
+  target_id: string | null;
+  target_name: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  // Joined
+  user?: ProfileRow;
+}
+
+export interface OrganizationActivityResponse {
+  activities: OrganizationActivity[];
+  total: number;
+  has_more: boolean;
+}
