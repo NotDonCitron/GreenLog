@@ -9,10 +9,13 @@ const EFFECT_TRANSLATIONS: Record<string, string> = {
   // Energy / Stimulation
   'Energy': 'Energie',
   'Energizing': 'Energie',
+  'Energetic': 'Energie',
   'Uplifting': 'Erhebend',
+  'Uplifted': 'Erhebend',
   'Activating': 'Aktiviert',
   'Invigorating': 'Erfrischend',
   'Awakening': 'Weckend',
+  'Aroused': 'Erregt',
 
   // Mental / Focus
   'Focus': 'Fokus',
@@ -33,20 +36,22 @@ const EFFECT_TRANSLATIONS: Record<string, string> = {
   'Narcotic': 'Narkotisch',
   'Pain Relief': 'Schmerzlinderung',
   'Appetizing': 'Appetitanregend',
+  'Hungry': 'Hungrig',
 
   // Mood / Emotions
   'Euphoria': 'Euphorie',
   'Euphoric': 'Euphorisch',
+  'Euphörisch': 'Euphorisch',
   'Happy': 'Glücklich',
   'Laughing': 'Lachend',
   'Giggling': 'Kichernd',
+  'Giggly': 'Kichernd',
   'Relaxed': 'Entspannt',
   'Mood Elevating': 'Stimmungshebend',
   'Mood enhancer': 'Stimmungsaufheller',
   'Anxiety Relief': 'Angstlösend',
   'Anti-anxiety': 'Angstlösend',
   'Stress Relief': 'Stressabbau',
-  'Calming': 'Beruhigend',
 
   // Sensory / Perception
   'Creative': 'Kreativ',
@@ -55,11 +60,12 @@ const EFFECT_TRANSLATIONS: Record<string, string> = {
   'Psychedelic': 'Psychedelisch',
   'Spacy': 'Spacig',
   'Head Trip': 'Kopfreise',
+  'Talkative': 'Gesprächig',
+  'Tingly': 'Kribbelnd',
 
   // Couch / Heavy
   'Couch Lock': 'Couch-Lock',
   'Couchlock': 'Couch-Lock',
-  'Sleepy': 'Schläfrig',
   'Sedative': 'Sedativ',
   'Heavy': 'Schwer',
 
@@ -74,7 +80,20 @@ const EFFECT_TRANSLATIONS: Record<string, string> = {
   'Spiritual': 'Spirituell',
   'Introspective': 'Introspektiv',
 
-  // Common OCR-fixes / variants
+  // German raw data (stored directly in DB)
+  'Energisch': 'Energie',
+  'Erhebend': 'Energie',
+  'Schläfrig': 'Schläfrig',
+  'Entspannt': 'Entspannt',
+  'Glücklich': 'Glücklich',
+  'Kichernd': 'Kichernd',
+  'Kreativ': 'Kreativ',
+  'Gesprächig': 'Gesprächig',
+  'Kribbelnd': 'Kribbelnd',
+  'Hungrig': 'Hungrig',
+  'Erregt': 'Erregt',
+
+  // OCR-fixes / variants
   'UPT2': 'Energie',
   'N2': 'Fokus',
   'FOCUS': 'Fokus',
@@ -110,9 +129,12 @@ const TASTE_TRANSLATIONS: Record<string, string> = {
   'Pineapple': 'Ananas',
   'Tropical': 'Tropisch',
   'Stone Fruit': 'Steinobst',
+  'Tree fruit': 'Steinobst',
   'Peach': 'Pfirsich',
   'Apricot': 'Aprikose',
   'Melon': 'Melone',
+  'Pear': 'Birne',
+  'Plum': 'Pflaume',
 
   // Earth / Woody
   'Earthy': 'Erdig',
@@ -125,6 +147,7 @@ const TASTE_TRANSLATIONS: Record<string, string> = {
   'Sandlewood': 'Sandelholz',
   'Cedar': 'Zeder',
   'Hash': 'Hash',
+  'Chestnut': 'Kastanie',
 
   // Herbs / Spices
   'Herbal': 'Kräuter',
@@ -132,8 +155,10 @@ const TASTE_TRANSLATIONS: Record<string, string> = {
   'Thyme': 'Thymian',
   'Basil': 'Basilikum',
   'Mint': 'Minze',
+  'Menthol': 'Menthol',
   'Pepper': 'Pfeffer',
   'Spicy': 'Würzig',
+  'Spicy/Herbal': 'Würzig, Kräuter',
   'Cinnamon': 'Zimt',
   'Clove': 'Nelke',
   'Anise': 'Anis',
@@ -145,9 +170,14 @@ const TASTE_TRANSLATIONS: Record<string, string> = {
   'Chemical': 'Chemisch',
   'Plastic': 'Plastik',
   'Ammonia': 'Ammoniak',
+  'Tar': 'Teer',
+
+  // Dairy
+  'Cheese': 'Käse',
+  'Blue Cheese': 'Blauschimmelkäse',
+  'Butter': 'Butter',
 
   // Other distinctive
-  'Cheese': 'Käse',
   'Skunk': 'Skunk',
   'Pungent': 'Stechend',
   'Floral': 'Blumig',
@@ -163,6 +193,7 @@ const TASTE_TRANSLATIONS: Record<string, string> = {
   'Nutty': 'Nussig',
   'Nuts': 'Nüsse',
   'Almond': 'Mandel',
+  'Violet': 'Veilchen',
 
   // Plant / Vegetal
   'Green': 'Grün',
@@ -191,7 +222,7 @@ function translateList(values: string[], translations: Record<string, string>): 
 // Effect categories — consolidate similar effects into one display name
 // Priority: lower number = higher priority (shown first)
 const EFFECT_CATEGORIES: Record<string, { display: string; priority: number }> = {
-  // Entspannung group (heavy/physical)
+  // Entspannung group (heavy/physical/sleep)
   'Entspannung': { display: 'Entspannung', priority: 1 },
   'Entspannend': { display: 'Entspannung', priority: 1 },
   'Schläfrig': { display: 'Entspannung', priority: 1 },
@@ -204,6 +235,8 @@ const EFFECT_CATEGORIES: Record<string, { display: string; priority: number }> =
   'Beruhigend': { display: 'Entspannung', priority: 1 },
   'Schmerzlinderung': { display: 'Entspannung', priority: 1 },
   'Appetitanregend': { display: 'Entspannung', priority: 1 },
+  'Hungrig': { display: 'Entspannung', priority: 1 },
+  'Appetit': { display: 'Entspannung', priority: 1 },
 
   // Energie group
   'Energie': { display: 'Energie', priority: 2 },
@@ -211,6 +244,7 @@ const EFFECT_CATEGORIES: Record<string, { display: string; priority: number }> =
   'Erfrischend': { display: 'Energie', priority: 2 },
   'Weckend': { display: 'Energie', priority: 2 },
   'Aktiviert': { display: 'Energie', priority: 2 },
+  'Erregt': { display: 'Energie', priority: 2 },
 
   // Fokus group
   'Fokus': { display: 'Fokus', priority: 3 },
@@ -228,6 +262,7 @@ const EFFECT_CATEGORIES: Record<string, { display: string; priority: number }> =
   'Entspannt': { display: 'Euphorie', priority: 4 },
   'Stimmungshebend': { display: 'Euphorie', priority: 4 },
   'Stimmungsaufheller': { display: 'Euphorie', priority: 4 },
+  'Gesprächig': { display: 'Euphorie', priority: 4 },
 
   // Kreativität group
   'Kreativ': { display: 'Kreativ', priority: 5 },
@@ -244,6 +279,7 @@ const EFFECT_CATEGORIES: Record<string, { display: string; priority: number }> =
   'Kopfreise': { display: 'Psychedelisch', priority: 7 },
   'Spirituell': { display: 'Psychedelisch', priority: 7 },
   'Introspektiv': { display: 'Psychedelisch', priority: 7 },
+  'Kribbelnd': { display: 'Psychedelisch', priority: 7 },
 
   // Medical
   'Medizinisch': { display: 'Medizinisch', priority: 8 },
@@ -257,13 +293,17 @@ export function getTasteDisplay(strain: Strain, fallback = DEFAULT_TASTE_FALLBAC
     const normalizedFlavors = normalizeDisplayList(strain.flavors);
     if (normalizedFlavors.length > 0) {
         const translated = translateList(normalizedFlavors.slice(0, 2), TASTE_TRANSLATIONS);
-        return translated.join(", ");
+        // Deduplicate after translation
+        const unique = [...new Set(translated)];
+        return unique.slice(0, 2).join(", ");
     }
 
     const normalizedTerpenes = normalizeDisplayList(strain.terpenes);
     if (normalizedTerpenes.length > 0) {
         const translated = translateList(normalizedTerpenes.slice(0, 2), TASTE_TRANSLATIONS);
-        return translated.join(", ");
+        // Deduplicate after translation
+        const unique = [...new Set(translated)];
+        return unique.slice(0, 2).join(", ");
     }
 
     return fallback;
@@ -278,7 +318,7 @@ export function getEffectDisplay(strain: Strain, fallback = DEFAULT_EFFECT_FALLB
     // Translate all effects to German first
     const translatedEffects = normalizedEffects.map(e => translate(e, EFFECT_TRANSLATIONS));
 
-    // Deduplicate — remove exact duplicates
+    // Deduplicate — remove exact duplicates after translation
     const unique = [...new Set(translatedEffects)];
 
     // Find the best category (lowest priority number = highest display priority)
