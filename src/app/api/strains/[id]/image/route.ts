@@ -68,7 +68,7 @@ export async function PATCH(
     }
 
     // Check if strain exists
-    const { data: strain, error: strainError } = await supabase
+    const { data: strain, error: strainError } = await supabaseAuth
       .from("strains")
       .select("id, image_url")
       .eq("id", strainId)
@@ -91,7 +91,7 @@ export async function PATCH(
       try {
         const oldPathMatch = strain.image_url.match(/\/strains-images\/(.+)$/);
         if (oldPathMatch) {
-          await supabase.storage.from("strains-images").remove([oldPathMatch[1]]);
+          await supabaseAuth.storage.from("strains-images").remove([oldPathMatch[1]]);
         }
       } catch (deleteError) {
         console.error("Failed to delete old image:", deleteError);
@@ -100,7 +100,7 @@ export async function PATCH(
     }
 
     // Upload new image (upsert: true to overwrite)
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabaseAuth.storage
       .from("strains-images")
       .upload(storagePath, buffer, {
         contentType: imageFile.type,
@@ -115,12 +115,12 @@ export async function PATCH(
     }
 
     // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = supabaseAuth.storage
       .from("strains-images")
       .getPublicUrl(storagePath);
 
     // Update strain record
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAuth
       .from("strains")
       .update({ image_url: publicUrl })
       .eq("id", strainId);
