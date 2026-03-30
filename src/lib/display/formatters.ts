@@ -223,21 +223,20 @@ function translateList(values: string[], translations: Record<string, string>): 
 // Priority: lower number = higher priority (shown first)
 const EFFECT_CATEGORIES: Record<string, { display: string; priority: number }> = {
   // Entspannung group (heavy/physical/sleep)
-  // Use soft hyphen (­) for line breaks: "Ent­spannung", "Couch­-Lock"
-  'Entspannung': { display: 'Ent\u00adspannung', priority: 1 },
-  'Entspannend': { display: 'Ent\u00adspannung', priority: 1 },
-  'Schläfrig': { display: 'Ent\u00adspannung', priority: 1 },
-  'Müde': { display: 'Ent\u00adspannung', priority: 1 },
-  'Sedativ': { display: 'Ent\u00adspannung', priority: 1 },
-  'Narkotisch': { display: 'Ent\u00adspannung', priority: 1 },
-  'Couch-Lock': { display: 'Couch\u00ad-Lock', priority: 1 },
-  'Körperlich': { display: 'Ent\u00adspannung', priority: 1 },
-  'Schwer': { display: 'Ent\u00adspannung', priority: 1 },
-  'Beruhigend': { display: 'Ent\u00adspannung', priority: 1 },
-  'Schmerzlinderung': { display: 'Ent\u00adspannung', priority: 1 },
-  'Appetitanregend': { display: 'Ent\u00adspannung', priority: 1 },
-  'Hungrig': { display: 'Ent\u00adspannung', priority: 1 },
-  'Appetit': { display: 'Ent\u00adspannung', priority: 1 },
+  'Entspannung': { display: 'Entspannung', priority: 1 },
+  'Entspannend': { display: 'Entspannung', priority: 1 },
+  'Schläfrig': { display: 'Entspannung', priority: 1 },
+  'Müde': { display: 'Entspannung', priority: 1 },
+  'Sedativ': { display: 'Entspannung', priority: 1 },
+  'Narkotisch': { display: 'Entspannung', priority: 1 },
+  'Couch-Lock': { display: 'Couch-Lock', priority: 1 },
+  'Körperlich': { display: 'Entspannung', priority: 1 },
+  'Schwer': { display: 'Entspannung', priority: 1 },
+  'Beruhigend': { display: 'Entspannung', priority: 1 },
+  'Schmerzlinderung': { display: 'Entspannung', priority: 1 },
+  'Appetitanregend': { display: 'Entspannung', priority: 1 },
+  'Hungrig': { display: 'Entspannung', priority: 1 },
+  'Appetit': { display: 'Entspannung', priority: 1 },
 
   // Energie group
   'Energie': { display: 'Energie', priority: 2 },
