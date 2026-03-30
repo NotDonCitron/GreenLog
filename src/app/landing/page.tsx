@@ -6,13 +6,13 @@ import { supabase } from "@/lib/supabase/client";
 import { Strain } from "@/lib/types";
 import { Loader2, Menu, X } from "lucide-react";
 import { normalizeCollectionSource } from "@/lib/strain-display";
-import { MarketingStrainCard } from "@/components/landing/marketing-strain-card";
+import { StrainCard } from "@/components/strains/strain-card";
 import { FeatureBlock } from "@/components/landing/feature-block";
 import { CTAForm } from "@/components/landing/cta-form";
 import { ScrollAnimator } from "@/components/landing/scroll-animator";
 import { Leaf, Users, Star, ArrowRight } from "lucide-react";
 
-// Demo data fallback when Supabase is not available
+// Demo data fallback
 const DEMO_STRAIN: Strain = {
   id: "demo-1",
   name: "Aurora Ghost Train Haze",
@@ -65,31 +65,31 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-white text-gray-900">
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       {/* HEADER */}
-      <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white border-b border-gray-200 shadow-sm">
+      <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 h-full flex items-center justify-between">
           {/* Logo */}
-          <Link href="/landing" className="font-black uppercase tracking-tighter font-display text-xl">
-            Green<span className="text-green-600">Log</span>
+          <Link href="/landing" className="font-black italic uppercase tracking-tighter font-display text-xl">
+            Green<span className="text-[#00F5FF]">Log</span>
           </Link>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="#features" className="text-sm text-gray-600 hover:text-green-600 transition-colors">
+            <Link href="#features" className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors">
               Features
             </Link>
-            <Link href="/strains" className="text-sm text-gray-600 hover:text-green-600 transition-colors">
+            <Link href="/strains" className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors">
               Strains
             </Link>
-            <Link href="/community" className="text-sm text-gray-600 hover:text-green-600 transition-colors">
+            <Link href="/community" className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors">
               Community
             </Link>
           </nav>
 
           {/* CTA Button */}
           <Link href="/login" className="hidden md:inline-flex">
-            <button className="h-9 px-4 rounded-lg bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-colors">
+            <button className="h-9 px-4 rounded-lg bg-[#00F5FF]/10 border border-[#00F5FF]/30 text-[#00F5FF] text-sm font-bold hover:bg-[#00F5FF]/20 transition-colors">
               Anmelden
             </button>
           </Link>
@@ -97,7 +97,7 @@ export default function LandingPage() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-gray-900"
+            className="md:hidden p-2 text-[var(--foreground)]"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -106,31 +106,31 @@ export default function LandingPage() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white">
+          <div className="md:hidden border-t border-[var(--border)] bg-[var(--background)]/95 backdrop-blur-md">
             <nav className="flex flex-col p-4 gap-4">
               <Link
                 href="#features"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm text-gray-600 hover:text-green-600 transition-colors py-2"
+                className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors py-2"
               >
                 Features
               </Link>
               <Link
                 href="/strains"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm text-gray-600 hover:text-green-600 transition-colors py-2"
+                className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors py-2"
               >
                 Strains
               </Link>
               <Link
                 href="/community"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm text-gray-600 hover:text-green-600 transition-colors py-2"
+                className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors py-2"
               >
                 Community
               </Link>
               <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                <button className="h-9 px-4 rounded-lg bg-green-600 text-white text-sm font-bold w-full">
+                <button className="h-9 px-4 rounded-lg bg-[#00F5FF]/10 border border-[#00F5FF]/30 text-[#00F5FF] text-sm font-bold w-full">
                   Anmelden
                 </button>
               </Link>
@@ -139,87 +139,96 @@ export default function LandingPage() {
         )}
       </header>
 
+      {/* Ambient neon glow background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[#00F5FF]/5 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[100%] h-[40%] bg-[#2FF801]/4 blur-[100px] rounded-full animate-pulse [animation-delay:2s]" />
+      </div>
+
       {/* HERO SECTION */}
-      <section className="pt-32 pb-20 px-6 bg-gradient-to-b from-white to-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center">
-            {/* Label */}
-            <ScrollAnimator animation="fade-up">
-              <span className="inline-block px-4 py-1.5 rounded-full bg-green-100 text-green-700 text-sm font-medium mb-6">
-                Für Clubs, Apotheken & Enthusiasten
-              </span>
-            </ScrollAnimator>
+      <section className="relative z-10 flex flex-col items-center justify-center min-h-screen px-6">
+        <div className="text-center max-w-2xl mx-auto">
+          {/* Label */}
+          <ScrollAnimator animation="fade-up">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/30 text-[#00F5FF] text-sm font-medium mb-6">
+              Für Clubs, Apotheken & Enthusiasten
+            </span>
+          </ScrollAnimator>
 
-            {/* Headline */}
-            <ScrollAnimator animation="fade-up" delay={100}>
-              <h1 className="text-5xl md:text-6xl font-black tracking-tight mb-6">
-                Deine Plattform für
-                <span className="text-green-600"> Cannabis</span>
-              </h1>
-            </ScrollAnimator>
+          {/* Headline */}
+          <ScrollAnimator animation="fade-up" delay={100}>
+            <h1 className="text-5xl md:text-6xl font-black tracking-tight mb-6 font-display">
+              Deine Plattform für
+              <span className="text-[#00F5FF]"> Cannabis</span>
+            </h1>
+          </ScrollAnimator>
 
-            {/* Subheadline */}
-            <ScrollAnimator animation="fade-up" delay={200}>
-              <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-                Verwalte Strains, teile Bewertungen und entdecke neue Sorten.
-                GreenLog macht es einfach.
-              </p>
-            </ScrollAnimator>
+          {/* Subheadline */}
+          <ScrollAnimator animation="fade-up" delay={200}>
+            <p className="text-xl text-[var(--muted-foreground)] mb-10 max-w-2xl mx-auto">
+              Verwalte Strains, teile Bewertungen und entdecke neue Sorten.
+              GreenLog macht es einfach.
+            </p>
+          </ScrollAnimator>
 
-            {/* CTA Buttons */}
-            <ScrollAnimator animation="fade-up" delay={300}>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-                <Link href="/login">
-                  <button className="inline-flex items-center gap-2 px-8 py-4 h-14 rounded-xl bg-green-600 text-white font-bold text-lg hover:bg-green-700 transition-colors shadow-lg shadow-green-600/20">
-                    Jetzt starten
-                    <ArrowRight size={20} />
-                  </button>
-                </Link>
-                <Link href="#features">
-                  <button className="inline-flex items-center gap-2 px-8 py-4 h-14 rounded-xl border-2 border-gray-300 text-gray-700 font-bold text-lg hover:border-gray-400 hover:bg-gray-50 transition-colors">
-                    Mehr erfahren
-                  </button>
-                </Link>
-              </div>
-            </ScrollAnimator>
+          {/* CTA Buttons */}
+          <ScrollAnimator animation="fade-up" delay={300}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+              <Link href="/login">
+                <button className="inline-flex items-center gap-2 px-8 py-4 h-14 rounded-xl bg-[#00F5FF]/10 border border-[#00F5FF]/30 text-[#00F5FF] font-bold text-lg hover:bg-[#00F5FF]/20 transition-all">
+                  Jetzt starten
+                  <ArrowRight size={20} />
+                </button>
+              </Link>
+              <Link href="#features">
+                <button className="inline-flex items-center gap-2 px-8 py-4 h-14 rounded-xl border-2 border-[var(--border)] text-[var(--foreground)] font-bold text-lg hover:border-[#00F5FF]/50 hover:bg-[#00F5FF]/5 transition-all">
+                  Mehr erfahren
+                </button>
+              </Link>
+            </div>
+          </ScrollAnimator>
 
-            {/* Strain of the Day Card Preview */}
-            {!loading && strainOfTheDay && (
-              <ScrollAnimator animation="fade-up" delay={400}>
-                <div className="max-w-sm mx-auto">
-                  <p className="text-sm font-medium text-gray-500 mb-3 uppercase tracking-wider">
-                    Strain des Tages
-                  </p>
-                  <MarketingStrainCard strain={strainOfTheDay} />
+          {/* Strain of the Day - Same design as app */}
+          {!loading && strainOfTheDay && (
+            <ScrollAnimator animation="fade-up" delay={400}>
+              <div className="max-w-xs mx-auto">
+                <p className="text-xs font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-4">
+                  Strain des Tages
+                </p>
+                <div className="flex items-center justify-center">
+                  <StrainCard strain={strainOfTheDay} index={0} />
                 </div>
-              </ScrollAnimator>
-            )}
-
-            {loading && (
-              <div className="flex flex-col items-center gap-4 py-12">
-                <Loader2 className="animate-spin text-green-600" size={32} />
-                <p className="text-sm text-gray-500">Wird geladen...</p>
               </div>
-            )}
-          </div>
+            </ScrollAnimator>
+          )}
+
+          {loading && (
+            <div className="flex flex-col items-center gap-4 py-12">
+              <div className="relative">
+                <Loader2 className="animate-spin text-[#00F5FF]" size={32} />
+                <div className="absolute inset-0 blur-xl bg-[#00F5FF]/30 animate-pulse" />
+              </div>
+              <p className="text-sm text-[var(--muted-foreground)]">Wird geladen...</p>
+            </div>
+          )}
         </div>
       </section>
 
       {/* FEATURES SECTION */}
-      <section id="features" className="py-24 px-6 bg-white">
+      <section id="features" className="relative z-10 py-24 px-6">
         <div className="max-w-5xl mx-auto">
           <ScrollAnimator animation="fade-up">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-black mb-4">
+              <h2 className="text-3xl md:text-4xl font-black mb-4 font-display">
                 Alles, was du brauchst
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="text-lg text-[var(--muted-foreground)] max-w-2xl mx-auto">
                 GreenLog bietet alle Tools für eine professionelle Verwaltung deiner Cannabis-Community.
               </p>
             </div>
           </ScrollAnimator>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6">
             <FeatureBlock
               icon={<Leaf size={28} />}
               title="Strain-Verwaltung"
@@ -243,39 +252,39 @@ export default function LandingPage() {
       </section>
 
       {/* WHY GREENLOG SECTION */}
-      <section className="py-24 px-6 bg-gray-50">
+      <section className="relative z-10 py-24 px-6 bg-[var(--background)]/50">
         <div className="max-w-5xl mx-auto">
           <ScrollAnimator animation="fade-up">
-            <h2 className="text-3xl md:text-4xl font-black text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-black text-center mb-16 font-display">
               Warum GreenLog?
             </h2>
           </ScrollAnimator>
           <div className="grid md:grid-cols-3 gap-8">
             <ScrollAnimator animation="fade-up" delay={0}>
-              <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100">
-                <div className="w-14 h-14 rounded-xl bg-green-100 flex items-center justify-center mx-auto mb-4">
+              <div className="text-center">
+                <div className="w-14 h-14 rounded-xl bg-[#00F5FF]/10 flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">📊</span>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Detaillierte Stats</h3>
-                <p className="text-gray-600">THC, CBD, Terpene – alle wichtigen Werte auf einen Blick</p>
+                <p className="text-sm text-[var(--muted-foreground)]">THC, CBD, Terpene – alle wichtigen Werte auf einen Blick</p>
               </div>
             </ScrollAnimator>
             <ScrollAnimator animation="fade-up" delay={100}>
-              <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100">
-                <div className="w-14 h-14 rounded-xl bg-green-100 flex items-center justify-center mx-auto mb-4">
+              <div className="text-center">
+                <div className="w-14 h-14 rounded-xl bg-[#2FF801]/10 flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">🔍</span>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Smarter Filter</h3>
-                <p className="text-gray-600">Finde schnell die perfekte Sorte für deine Bedürfnisse</p>
+                <p className="text-sm text-[var(--muted-foreground)]">Finde schnell die perfekte Sorte für deine Bedürfnisse</p>
               </div>
             </ScrollAnimator>
             <ScrollAnimator animation="fade-up" delay={200}>
-              <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-gray-100">
-                <div className="w-14 h-14 rounded-xl bg-green-100 flex items-center justify-center mx-auto mb-4">
+              <div className="text-center">
+                <div className="w-14 h-14 rounded-xl bg-[#00F5FF]/10 flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">💬</span>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Community</h3>
-                <p className="text-gray-600">Teile Bewertungen und entdecke neue Strains</p>
+                <p className="text-sm text-[var(--muted-foreground)]">Teile Bewertungen und entdecke neue Strains</p>
               </div>
             </ScrollAnimator>
           </div>
@@ -283,15 +292,18 @@ export default function LandingPage() {
       </section>
 
       {/* CTA SECTION */}
-      <section className="py-24 px-6 bg-green-600">
-        <div className="max-w-2xl mx-auto text-center">
+      <section className="relative z-10 py-24 px-6">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
+        </div>
+        <div className="relative z-10 max-w-2xl mx-auto text-center">
           <ScrollAnimator animation="scale">
-            <h2 className="text-3xl md:text-4xl font-black mb-4 text-white">
+            <h2 className="text-3xl md:text-4xl font-black mb-4 font-display">
               Bereit durchzustarten?
             </h2>
           </ScrollAnimator>
           <ScrollAnimator animation="fade-up" delay={100}>
-            <p className="text-green-100 mb-8 text-lg">
+            <p className="text-[var(--muted-foreground)] mb-8 text-lg">
               Starte jetzt mit GreenLog und werde Teil der Community.
             </p>
           </ScrollAnimator>
@@ -302,16 +314,16 @@ export default function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer className="py-8 px-6 bg-white border-t border-gray-200">
+      <footer className="relative z-10 py-8 px-6 border-t border-[var(--border)]">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-[var(--muted-foreground)]">
             © 2026 GreenLog. Alle Rechte vorbehalten.
           </p>
           <div className="flex gap-6">
-            <Link href="/impressum" className="text-sm text-gray-500 hover:text-green-600 transition-colors">
+            <Link href="/impressum" className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors">
               Impressum
             </Link>
-            <Link href="/datenschutz" className="text-sm text-gray-500 hover:text-green-600 transition-colors">
+            <Link href="/datenschutz" className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors">
               Datenschutz
             </Link>
           </div>
