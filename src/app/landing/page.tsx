@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { Strain } from "@/lib/types";
-import { Loader2 } from "lucide-react";
+import { Loader2, Menu, X } from "lucide-react";
 import { normalizeCollectionSource } from "@/lib/strain-display";
 import { MarketingStrainCard } from "@/components/landing/marketing-strain-card";
 import { FeatureBlock } from "@/components/landing/feature-block";
@@ -16,6 +16,7 @@ import { Leaf, Users, Star, ArrowRight } from "lucide-react";
 export default function LandingPage() {
   const [strainOfTheDay, setStrainOfTheDay] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     async function fetchStrainOfTheDay() {
@@ -47,6 +48,79 @@ export default function LandingPage() {
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+      {/* HEADER */}
+      <header className="fixed top-0 left-0 right-0 z-50 h-16 border-t border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-md">
+        <div className="max-w-6xl mx-auto px-4 h-full flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/landing" className="font-black uppercase tracking-tighter font-display">
+            Green<span className="text-[#00F5FF]">Log</span>
+          </Link>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-8">
+            <Link href="#features" className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors">
+              Features
+            </Link>
+            <Link href="/strains" className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors">
+              Strains
+            </Link>
+            <Link href="/community" className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors">
+              Community
+            </Link>
+          </nav>
+
+          {/* CTA Button */}
+          <Link href="/login" className="hidden md:inline-flex">
+            <button className="h-9 px-4 rounded-lg bg-[#00F5FF]/10 border border-[#00F5FF]/30 text-[#00F5FF] text-sm font-bold">
+              Anmelden
+            </button>
+          </Link>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 text-[var(--foreground)]"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-[var(--border)] bg-[var(--background)]/95 backdrop-blur-md">
+            <nav className="flex flex-col p-4 gap-4">
+              <Link
+                href="#features"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors py-2"
+              >
+                Features
+              </Link>
+              <Link
+                href="/strains"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors py-2"
+              >
+                Strains
+              </Link>
+              <Link
+                href="/community"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors py-2"
+              >
+                Community
+              </Link>
+              <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                <button className="h-9 px-4 rounded-lg bg-[#00F5FF]/10 border border-[#00F5FF]/30 text-[#00F5FF] text-sm font-bold w-full">
+                  Anmelden
+                </button>
+              </Link>
+            </nav>
+          </div>
+        )}
+      </header>
+
       {/* Ambient neon glow background - same as homepage */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[#00F5FF]/5 blur-[120px] rounded-full animate-pulse" />
