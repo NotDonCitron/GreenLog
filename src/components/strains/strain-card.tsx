@@ -110,7 +110,7 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
         </div>
       </div>
 
-      {/* 3. STATS BAR — full text, no truncate */}
+      {/* 3. STATS BAR — text wraps to second line if needed */}
       <div className="shrink-0 px-3 w-full relative z-10">
         <div className="rounded-xl border border-white/10 bg-[#121212]/80 p-2 shadow-inner backdrop-blur-sm">
           <div className="grid grid-cols-4 gap-1">
@@ -123,10 +123,10 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
               <span className="text-[9px] font-black tracking-wide" style={{ color: themeColor }}>{cbdDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1 min-w-0">
-              <span className="text-[7px] font-medium tracking-wide text-[var(--foreground)]/70 truncate">{tasteDisplay}</span>
+              <span className="text-[7px] font-medium tracking-wide text-[var(--foreground)]/70 leading-tight">{tasteDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1 min-w-0">
-              <span className="text-[7px] font-medium tracking-wide text-[var(--foreground)]/70 truncate">{effectDisplay}</span>
+              <span className="text-[7px] font-medium tracking-wide text-[var(--foreground)]/70 leading-tight">{effectDisplay}</span>
             </div>
           </div>
         </div>
