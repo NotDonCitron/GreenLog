@@ -143,6 +143,24 @@ gründer, admin, member, viewer
 | P1 | Types ↔ Schema thc/cbd Konsistenz (`avg_thc` vs `thc_min/thc_max`) |
 | P2 | React Query / SWR für Data-Fetching einführen |
 
+### Strain Image Admin Override
+
+**Feature:** App developers can replace global strain images when incorrect.
+
+| Aspect | Detail |
+|--------|--------|
+| Auth | User ID in APP_ADMIN_IDS env variable |
+| Endpoint | `PATCH /api/strains/[id]/image` |
+| Storage | `strains-images` bucket (public read) |
+| Max Size | 5MB |
+| MIME Types | image/jpeg, image/png, image/webp, image/gif |
+
+**Files:**
+- `supabase/migrations/20260330150000_strain_image_admin.sql` - Storage bucket + RLS
+- `src/app/api/strains/[id]/image/route.ts` - PATCH endpoint
+
+**Setup:** Add user IDs to `APP_ADMIN_IDS` env variable (Vercel dashboard or .env.local)
+
 ---
 
 ## Geplante Features (Phase 2)
