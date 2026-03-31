@@ -36,48 +36,12 @@ function isRateLimited(ip: string, pathname: string): boolean {
 // ============================================
 // ROUTE PROTECTION
 // ============================================
-const PROTECTED_PATHS = [
-  '/collection',
-  '/community',
-  '/profile',
-  '/strains/new',
-  '/admin',
-]
-
-const PUBLIC_PATHS = [
-  '/',
-  '/login',
-  '/register',
-  '/strains',
-  '/impressum',
-  '/datenschutz',
-  '/agb',
-  '/api/health',
-]
-
-function isProtectedPath(pathname: string): boolean {
-  // Check exact matches and prefixes
-  if (PUBLIC_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))) {
-    return false
-  }
-  if (pathname.startsWith('/en/')) return false
-  if (pathname.startsWith('/_next/')) return false
-  if (pathname.startsWith('/strains/') && !pathname.includes('/new') && !pathname.includes('/edit')) {
-    return false // Individual strain pages are public
-  }
-  return PROTECTED_PATHS.some(p => pathname.startsWith(p))
-}
-
-function isAuthenticated(request: NextRequest): boolean {
-  // Check for Supabase auth cookie
-  const supabaseCookie = request.cookies.get('supabase-auth-token')
-  if (!supabaseCookie) return false
-
-  // The cookie value is a base64-encoded JWT
-  // For Edge runtime, we do a simple presence check
-  // Full JWT validation happens in API routes with service role
-  return supabaseCookie.value.length > 0
-}
+// NOTE: Route protection is handled at the API/Page level, not Edge Middleware.
+// Supabase JWT validation requires the service role key which is not available in Edge runtime.
+// Auth checks happen in:
+//   - API routes: via getUser() from @/lib/supabase/server
+//   - Client components: via useAuth() from auth-provider
+//   - Page level: client-side redirects in useEffect hooks
 
 // ============================================
 // MIDDLEWARE EXPORT
@@ -94,15 +58,6 @@ export function middleware(request: NextRequest) {
       { error: 'Too many requests', retryAfter: RATE_LIMIT_WINDOW },
       { status: 429, headers: { 'Retry-After': String(RATE_LIMIT_WINDOW) } }
     )
-  }
-
-  // --- Route Protection ---
-  if (isProtectedPath(pathname)) {
-    if (!isAuthenticated(request)) {
-      const loginUrl = new URL('/login', request.url)
-      loginUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(loginUrl)
-    }
   }
 
   return NextResponse.next()
