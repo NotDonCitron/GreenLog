@@ -283,6 +283,9 @@ export default function LandingPage() {
             <Link href="/datenschutz" className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors">
               Datenschutz
             </Link>
+            <Link href="/agb" className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors">
+              AGB
+            </Link>
           </div>
         </div>
       </footer>
