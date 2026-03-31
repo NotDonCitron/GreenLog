@@ -7,12 +7,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Fetch all strain slugs from Supabase
   const { data: strains, error } = await supabase
     .from('strains')
-    .select('slug, updated_at')
+    .select('slug, created_at')
     .limit(1000)
 
   const strainUrls = (strains || []).map((strain) => ({
     url: `https://greenlog.app/strains/${strain.slug}`,
-    lastModified: new Date(strain.updated_at || Date.now()),
+    lastModified: new Date(strain.created_at || Date.now()),
     changeFrequency: 'weekly' as const,
     priority: 0.7,
   }))
