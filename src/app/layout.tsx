@@ -17,19 +17,48 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "CannaLog v2.0 - Neon Vault Edition",
-  description: "Premium Cannabis Strain Tracking & Collection",
-  manifest: "/manifest.json",
+  title: {
+    default: 'GreenLog',
+    template: '%s | GreenLog',
+  },
+  description: 'Cannabis Strain Tracking & Collection',
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
-    title: "CannaLog",
+    statusBarStyle: 'black-translucent',
+    title: 'GreenLog',
   },
   icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
   },
-};
+  openGraph: {
+    type: 'website',
+    locale: 'de_DE',
+    url: 'https://greenlog.app',
+    siteName: 'GreenLog',
+    title: 'GreenLog',
+    description: 'Cannabis Strain Tracking & Collection',
+    images: [
+      {
+        url: '/api/og',
+        width: 1200,
+        height: 630,
+        alt: 'GreenLog',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'GreenLog',
+    description: 'Cannabis Strain Tracking & Collection',
+    images: ['/api/og'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
 
 export const viewport: Viewport = {
   width: "device-width",
