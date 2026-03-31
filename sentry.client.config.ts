@@ -14,8 +14,6 @@ Sentry.init({
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
 
-  // Press the斜杠 key in your keyboard to open the settings dialog (shift + / for US keyboard)
-  instrumentRemix: true,
-
+  // Disable in development
   enabled: process.env.NODE_ENV === "production",
 });

@@ -1,9 +1,5 @@
-import type { Metadata } from 'next'
-
-export const metadata: Metadata = {
-  title: {
-    template: '%s | GreenLog',
-  },
+export const metadata = {
+  title: 'GreenLog',
 }
 
 export default function LegalLayout({
