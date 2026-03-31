@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth-provider";
+import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { OnboardingGuide } from "@/components/onboarding/onboarding-guide";
 import { ThemeInit } from "@/components/theme-init";
 
@@ -60,6 +61,7 @@ export default function RootLayout({
             <main className="flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
           </div>
           <OnboardingGuide />
+          <CookieConsentBanner />
         </AuthProvider>
       </body>
     </html>
