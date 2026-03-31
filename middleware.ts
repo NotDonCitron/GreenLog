@@ -84,6 +84,8 @@ function isAuthenticated(request: NextRequest): boolean {
 // ============================================
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  // On Vercel Edge, x-forwarded-for is set by Vercel's edge nodes and is generally
+  // not susceptible to IP spoofing since the header is injected at the edge.
   const ip = request.headers.get('x-forwarded-for') || 'anonymous'
 
   // --- Rate Limiting ---
@@ -108,6 +110,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|logo.png|apple-touch-icon.png).*)',
+    '/((?!_next/static|_next/image|_next/data|favicon.ico|logo.png|apple-touch-icon.png).*)',
   ],
 }
