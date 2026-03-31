@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
-  description: 'Terms of Service of GreenLog',
+  description: 'Terms of Service of CannaLog',
 }
 
 export default function TermsPage() {
@@ -14,7 +14,7 @@ export default function TermsPage() {
       <section>
         <h2>1. Acceptance of Terms</h2>
         <p>
-          By registering and using GreenLog, you accept these Terms of Service.
+          By registering and using CannaLog, you accept these Terms of Service.
           If you do not agree to these terms, please do not use our platform.
         </p>
       </section>
@@ -22,7 +22,7 @@ export default function TermsPage() {
       <section>
         <h2>2. Description of Service</h2>
         <p>
-          GreenLog provides a platform for managing cannabis strains, collections,
+          CannaLog provides a platform for managing cannabis strains, collections,
           and community features. Basic functions are free to use.
         </p>
       </section>
@@ -49,7 +49,7 @@ export default function TermsPage() {
       <section>
         <h2>5. Disclaimer</h2>
         <p>
-          GreenLog makes no warranty about the accuracy, completeness, or timeliness
+          CannaLog makes no warranty about the accuracy, completeness, or timeliness
           of strain information provided. The platform does not replace professional advice.
         </p>
       </section>
@@ -57,7 +57,7 @@ export default function TermsPage() {
       <section>
         <h2>6. Intellectual Property</h2>
         <p>
-          The GreenLog platform and its content are protected by copyright.
+          The CannaLog platform and its content are protected by copyright.
           Reproduction or reuse requires prior written consent.
         </p>
       </section>

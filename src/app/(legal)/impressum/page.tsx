@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Impressum',
-  description: 'Impressum von GreenLog — Cannabis Strain Tracking & Collection',
+  description: 'Impressum von CannaLog — Cannabis Strain Tracking & Collection',
 }
 
 export default function ImpressumPage() {

@@ -18,15 +18,15 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'GreenLog',
-    template: '%s | GreenLog',
+    default: 'CannaLog',
+    template: '%s | CannaLog',
   },
   description: 'Cannabis Strain Tracking & Collection',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'GreenLog',
+    title: 'CannaLog',
   },
   icons: {
     icon: '/favicon.ico',
@@ -36,21 +36,21 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'de_DE',
     url: 'https://greenlog.app',
-    siteName: 'GreenLog',
-    title: 'GreenLog',
+    siteName: 'CannaLog',
+    title: 'CannaLog',
     description: 'Cannabis Strain Tracking & Collection',
     images: [
       {
         url: '/api/og',
         width: 1200,
         height: 630,
-        alt: 'GreenLog',
+        alt: 'CannaLog',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'GreenLog',
+    title: 'CannaLog',
     description: 'Cannabis Strain Tracking & Collection',
     images: ['/api/og'],
   },

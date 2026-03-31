@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: PageProps) {
     .single()
 
   if (!strain) {
-    return { title: 'Strain nicht gefunden | GreenLog' }
+    return { title: 'Strain nicht gefunden | CannaLog' }
   }
 
   const breeder = strain.breeder || strain.farmer || strain.manufacturer || strain.brand || 'Unbekannter Breeder'
@@ -23,10 +23,10 @@ export async function generateMetadata({ params }: PageProps) {
 
   return {
     title: strain.name,
-    description: `${strain.name} — ${breeder}. THC: ${thcDisplay ? `${thcDisplay}%` : 'N/A'}. Finde Reviews, Ratings und Info auf GreenLog.`,
+    description: `${strain.name} — ${breeder}. THC: ${thcDisplay ? `${thcDisplay}%` : 'N/A'}. Finde Reviews, Ratings und Info auf CannaLog.`,
     openGraph: {
       title: strain.name,
-      description: strain.description || `Strain ${strain.name} auf GreenLog`,
+      description: strain.description || `Strain ${strain.name} auf CannaLog`,
       images: [{ url: '/api/og' }],
     },
   }

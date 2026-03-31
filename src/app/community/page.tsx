@@ -3,10 +3,10 @@ import CommunityPageClient from './CommunityPageClient'
 
 export const metadata: Metadata = {
   title: 'Community',
-  description: 'Entdecke Cannabis Communities, Clubs und Apotheken auf GreenLog.',
+  description: 'Entdecke Cannabis Communities, Clubs und Apotheken auf CannaLog.',
   openGraph: {
-    title: 'Community | GreenLog',
-    description: 'Entdecke Cannabis Communities, Clubs und Apotheken auf GreenLog.',
+    title: 'Community | CannaLog',
+    description: 'Entdecke Cannabis Communities, Clubs und Apotheken auf CannaLog.',
     images: [{ url: '/api/og' }],
   },
 }

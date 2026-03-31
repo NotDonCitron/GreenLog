@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Datenschutzerklärung',
-  description: 'Datenschutzerklärung von GreenLog — Cannabis Strain Tracking & Collection',
+  description: 'Datenschutzerklärung von CannaLog — Cannabis Strain Tracking & Collection',
 }
 
 export default function DatenschutzPage() {
@@ -14,7 +14,7 @@ export default function DatenschutzPage() {
       <section>
         <h2>1. Verantwortlicher</h2>
         <p>
-          GreenLog<br />
+          CannaLog<br />
           E-Mail: <a href="mailto:datenschutz@greenlog.app">datenschutz@greenlog.app</a>
         </p>
       </section>
@@ -34,7 +34,7 @@ export default function DatenschutzPage() {
         <h2>3. Zweck der Verarbeitung</h2>
         <p>Ihre Daten werden verwendet für:</p>
         <ul>
-          <li>Bereitstellung des GreenLog-Dienstes</li>
+          <li>Bereitstellung des CannaLog-Dienstes</li>
           <li>Verwaltung Ihres Accounts</li>
           <li>Speicherung Ihrer Strain-Sammlung und Bewertungen</li>
           <li>Social-Features (Follower, Community)</li>

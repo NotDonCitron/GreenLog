@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'Privacy Policy of GreenLog — Cannabis Strain Tracking & Collection',
+  description: 'Privacy Policy of CannaLog — Cannabis Strain Tracking & Collection',
 }
 
 export default function PrivacyPage() {
@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       <section>
         <h2>1. Controller</h2>
         <p>
-          GreenLog<br />
+          CannaLog<br />
           Email: <a href="mailto:privacy@greenlog.app">privacy@greenlog.app</a>
         </p>
       </section>
@@ -34,7 +34,7 @@ export default function PrivacyPage() {
         <h2>3. Purpose of Processing</h2>
         <p>Your data is used for:</p>
         <ul>
-          <li>Providing the GreenLog service</li>
+          <li>Providing the CannaLog service</li>
           <li>Managing your account</li>
           <li>Storing your strain collection and ratings</li>
           <li>Social features (Followers, Community)</li>

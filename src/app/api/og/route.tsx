@@ -5,7 +5,7 @@ export const runtime = 'edge'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const title = searchParams.get('title') || 'GreenLog'
+  const title = searchParams.get('title') || 'CannaLog'
 
   return new ImageResponse(
     (
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
             src="https://greenlog.app/logo.png"
             width={100}
             height={100}
-            alt="GreenLog Logo"
+            alt="CannaLog Logo"
             style={{ objectFit: 'contain' }}
           />
         </div>
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
               letterSpacing: '0.01em',
             }}
           >
-            Cannabis Strain Tracking & Collection
+            Cannabis Strain Tracking
           </div>
         </div>
 

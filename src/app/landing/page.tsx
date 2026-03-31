@@ -123,7 +123,7 @@ export default function LandingPage() {
           <ScrollAnimator animation="fade-up" delay={200}>
             <p className="text-xl text-[var(--muted-foreground)] mb-10 max-w-2xl mx-auto">
               Verwalte Strains, teile Bewertungen und entdecke neue Sorten.
-              GreenLog macht es einfach.
+              CannaLog macht es einfach.
             </p>
           </ScrollAnimator>
 
@@ -180,7 +180,7 @@ export default function LandingPage() {
                 Alles, was du brauchst
               </h2>
               <p className="text-lg text-[var(--muted-foreground)] max-w-2xl mx-auto">
-                GreenLog bietet alle Tools für eine professionelle Verwaltung deiner Cannabis-Community.
+                CannaLog bietet alle Tools für eine professionelle Verwaltung deiner Cannabis-Community.
               </p>
             </div>
           </ScrollAnimator>
@@ -213,7 +213,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <ScrollAnimator animation="fade-up">
             <h2 className="text-3xl md:text-4xl font-black text-center mb-16 font-display">
-              Warum GreenLog?
+              Warum CannaLog?
             </h2>
           </ScrollAnimator>
           <div className="grid md:grid-cols-3 gap-8">
@@ -261,7 +261,7 @@ export default function LandingPage() {
           </ScrollAnimator>
           <ScrollAnimator animation="fade-up" delay={100}>
             <p className="text-[var(--muted-foreground)] mb-8 text-lg">
-              Starte jetzt mit GreenLog und werde Teil der Community.
+              Starte jetzt mit CannaLog und werde Teil der Community.
             </p>
           </ScrollAnimator>
           <ScrollAnimator animation="fade-up" delay={200}>
@@ -274,7 +274,7 @@ export default function LandingPage() {
       <footer className="relative z-10 py-8 px-6 border-t border-[var(--border)]">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-[var(--muted-foreground)]">
-            © 2026 GreenLog. Alle Rechte vorbehalten.
+            © 2026 CannaLog. Alle Rechte vorbehalten.
           </p>
           <div className="flex gap-6">
             <Link href="/impressum" className="text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors">

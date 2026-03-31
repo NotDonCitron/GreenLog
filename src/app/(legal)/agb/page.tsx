@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'AGB',
-  description: 'Allgemeine Geschäftsbedingungen von GreenLog',
+  description: 'Allgemeine Geschäftsbedingungen von CannaLog',
 }
 
 export default function AGBPage() {
@@ -14,7 +14,7 @@ export default function AGBPage() {
       <section>
         <h2>1. Geltungsbereich</h2>
         <p>
-          Diese Allgemeinen Geschäftsbedingungen gelten für die Nutzung der GreenLog-Plattform.
+          Diese Allgemeinen Geschäftsbedingungen gelten für die Nutzung der CannaLog-Plattform.
           Mit der Registrierung und Nutzung akzeptieren Sie diese AGB.
         </p>
       </section>
@@ -22,7 +22,7 @@ export default function AGBPage() {
       <section>
         <h2>2. Leistungsbeschreibung</h2>
         <p>
-          GreenLog bietet eine Plattform zur Verwaltung von Cannabis-Strains, Sammlungen
+          CannaLog bietet eine Plattform zur Verwaltung von Cannabis-Strains, Sammlungen
           und Community-Features. Die Grundfunktionen sind kostenlos nutzbar.
         </p>
       </section>
@@ -49,7 +49,7 @@ export default function AGBPage() {
       <section>
         <h2>5. Haftungsausschluss</h2>
         <p>
-          GreenLog übernimmt keine Gewähr für die Richtigkeit, Vollständigkeit oder
+          CannaLog übernimmt keine Gewähr für die Richtigkeit, Vollständigkeit oder
           Aktualität der bereitgestellten Strain-Informationen. Die Plattform ersetzt
           keine professionelle Beratung.
         </p>
@@ -58,7 +58,7 @@ export default function AGBPage() {
       <section>
         <h2>6. Geistiges Eigentum</h2>
         <p>
-          Die GreenLog-Plattform und deren Inhalte sind urheberrechtlich geschützt.
+          Die CannaLog-Plattform und deren Inhalte sind urheberrechtlich geschützt.
           Vervielfältigung oder Weiterverwendung bedarf der vorherigen schriftlichen Zustimmung.
         </p>
       </section>
