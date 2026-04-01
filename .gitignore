@@ -41,3 +41,13 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .worktrees/
+
+# temp / scraped data
+scripts/.tmp-images/
+scripts/.tmp-leafly-images/
+scripts/.farmer-pipeline-lock.json
+scripts/.fill-missing-images-lock.json
+scripts/.image-pipeline-lock.json
+*.json
+!package.json
+!tsconfig.json
