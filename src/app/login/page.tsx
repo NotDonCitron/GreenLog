@@ -218,8 +218,7 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
-  const ageVerified = useAgeVerified();
-  const [showLogin, setShowLogin] = useState(false);
+  const { verified: ageVerified } = useAgeVerified();
 
   if (ageVerified === null) {
     return (
@@ -233,7 +232,7 @@ export default function LoginPage() {
   }
 
   if (!ageVerified) {
-    return <AgeGate onVerified={() => setShowLogin(true)} />;
+    return <AgeGate onVerified={() => {}} />;
   }
 
   return (

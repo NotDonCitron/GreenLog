@@ -11,6 +11,7 @@ import Link from "next/link";
 import { normalizeCollectionSource } from "@/lib/strain-display";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { StrainCard } from "@/components/strains/strain-card";
+import { AgeGate, useAgeVerified } from "@/components/age-gate";
 
 const DEMO_SIMULATION_DATA: Strain[] = [
   {
@@ -30,9 +31,23 @@ const DEMO_SIMULATION_DATA: Strain[] = [
 ];
 
 export default function Home() {
+  const { verified: ageVerified } = useAgeVerified();
   const { user, loading: authLoading, isDemoMode } = useAuth();
   const [strainOfTheDay, setStrainOfTheDay] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Age verification check
+  if (ageVerified === null) {
+    return (
+      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
+      </main>
+    );
+  }
+
+  if (!ageVerified) {
+    return <AgeGate onVerified={() => {}} />;
+  }
 
   useEffect(() => {
     async function fetchHomeData() {

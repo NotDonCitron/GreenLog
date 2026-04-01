@@ -29,6 +29,8 @@ export function AgeGate({ onVerified }: AgeGateProps) {
     }
   }, [onVerified, router]);
 
+  const { markVerified } = useAgeVerified();
+
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
 
@@ -43,7 +45,7 @@ export function AgeGate({ onVerified }: AgeGateProps) {
     const age = currentYear - year;
 
     if (age >= 18) {
-      localStorage.setItem(AGE_VERIFIED_KEY, "true");
+      markVerified();
       onVerified();
     } else {
       localStorage.setItem(AGE_REJECTED_KEY, "true");
@@ -139,7 +141,12 @@ export function useAgeVerified() {
     setVerified(stored === "true");
   }, []);
 
-  return verified;
+  const markVerified = () => {
+    localStorage.setItem(AGE_VERIFIED_KEY, "true");
+    setVerified(true);
+  };
+
+  return { verified, markVerified };
 }
 
 // Server-safe age check for redirects
