@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Loader2, LogIn, Mail, Lock, UserPlus, AlertCircle } from "lucide-react";
 import { ForgotPasswordDialog } from "@/components/auth/forgot-password-dialog";
+import { AgeGate, useAgeVerified } from "@/components/age-gate";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -75,7 +76,6 @@ function LoginForm() {
     if (error) {
       setError(error.message);
     } else if (data.user) {
-      // Update profile with username and display_name
       await supabase.from("profiles").upsert({
         id: data.user.id,
         username: username.trim().toLowerCase().replace(/\s+/g, "_"),
@@ -84,7 +84,7 @@ function LoginForm() {
       });
 
       if (data.session === null) {
-        setSuccess("Konto erstellt! Bitte checke deine Mails (oder schalte 'Confirm Email' in Supabase aus).");
+        setSuccess("Konto erstellt! Bitte checke deine Mails.");
       } else {
         setSuccess("Konto erfolgreich erstellt! Du wirst eingeloggt...");
         setTimeout(() => router.push("/"), 1500);
@@ -105,7 +105,6 @@ function LoginForm() {
       </div>
 
       <Card className="p-6 bg-[var(--card)] border-[var(--border)]/50 shadow-2xl relative overflow-hidden">
-        {/* Accent Glow */}
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#00F5FF]/10 blur-3xl rounded-full" />
 
         <form onSubmit={isSignUp ? undefined : handleLogin} className="space-y-4 relative z-10">
@@ -219,6 +218,24 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
+  const ageVerified = useAgeVerified();
+  const [showLogin, setShowLogin] = useState(false);
+
+  if (ageVerified === null) {
+    return (
+      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="animate-spin text-[#00F5FF]" size={40} />
+          <p className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-[0.2em]">Lade...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!ageVerified) {
+    return <AgeGate onVerified={() => setShowLogin(true)} />;
+  }
+
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex items-center justify-center p-6">
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
