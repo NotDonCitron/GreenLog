@@ -3,7 +3,7 @@ import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth-provider";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
-import { OnboardingGuide } from "@/components/onboarding/onboarding-guide";
+import OnboardingGuide from "@/components/onboarding";
 import { ThemeInit } from "@/components/theme-init";
 
 const spaceGrotesk = Space_Grotesk({
