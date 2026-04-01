@@ -33,61 +33,68 @@ const DEMO_SIMULATION_DATA: Strain[] = [
 const AGE_VERIFIED_KEY = "cannalog_age_verified";
 
 function HomeContent() {
-  const { user, loading: authLoading, isDemoMode } = useAuth();
+  const { isDemoMode } = useAuth();
   const [strainOfTheDay, setStrainOfTheDay] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fallback: unblock UI after 8s even if auth/strains hang
+  // Fetch immediately — don't wait for auth
   useEffect(() => {
-    const id = setTimeout(() => setLoading(false), 8000);
-    return () => clearTimeout(id);
-  }, []);
+    let cancelled = false;
 
-  useEffect(() => {
     async function fetchHomeData() {
-      if (isDemoMode) {
-        setStrainOfTheDay(DEMO_SIMULATION_DATA[0]);
-        setLoading(false);
-        return;
-      }
-
       try {
+        // Small delay to avoid hammering cold Supabase
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        if (cancelled) return;
+
+        if (isDemoMode) {
+          setStrainOfTheDay(DEMO_SIMULATION_DATA[0]);
+          setLoading(false);
+          return;
+        }
+
         const dayOfYear = Math.floor(
           (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) /
           1000 / 60 / 60 / 24
         );
+
         const { data: allStrains } = await supabase
           .from('strains')
           .select('*')
           .limit(100);
+
+        if (cancelled) return;
 
         if (allStrains && allStrains.length > 0) {
           setStrainOfTheDay({
             ...allStrains[dayOfYear % allStrains.length],
             source: normalizeCollectionSource(allStrains[dayOfYear % allStrains.length].source),
           });
+        } else {
+          // No strains yet — show demo data
+          setStrainOfTheDay(DEMO_SIMULATION_DATA[0]);
         }
       } catch (err) {
-        console.error("Home data error:", err);
+        if (!cancelled) {
+          console.error("Home data error:", err);
+          setError("Konnte Daten nicht laden");
+          // Show demo data as fallback
+          setStrainOfTheDay(DEMO_SIMULATION_DATA[0]);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
-    // Only fetch once auth is resolved (not loading) OR in demo mode
-    if (!authLoading || isDemoMode) {
-      void fetchHomeData();
-    }
-  }, [authLoading, isDemoMode]);
+    void fetchHomeData();
 
-  // Set loading to false when auth is done (even if no user for demo mode)
-  useEffect(() => {
-    if (!authLoading) {
-      setLoading(false);
-    }
-  }, [authLoading]);
+    return () => { cancelled = true; };
+  }, [isDemoMode]);
 
-  if (loading) {
+  // Always show content after brief loading OR if we have demo data
+  if (loading && !strainOfTheDay) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-6">
         <div className="relative">
