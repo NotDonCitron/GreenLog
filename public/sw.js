@@ -67,7 +67,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets → cache first, fall back to network
+  // Navigation requests (HTML pages) → ALWAYS network first, never serve stale
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, clone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request);
+        })
+    );
+    return;
+  }
+
+  // Static assets (JS/CSS/images) → cache first, fall back to network
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
@@ -83,11 +103,11 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          // Offline fallback for navigation requests
+          // Offline fallback for other assets
           if (request.mode === 'navigate') {
             return caches.match('/');
           }
-        });
+        })
     })
   );
 });
