@@ -1,99 +1,87 @@
-import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { decodeToken } from "@/lib/auth/utils";
+import { jsonSuccess, jsonError } from "@/lib/api-response";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+
+function getSupabaseClient(token: string) {
+    return createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: `Bearer ${token}` } }
+    });
+}
 
 export async function POST(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    try {
-        const authHeader = request.headers.get("Authorization");
-        const accessToken = authHeader?.replace("Bearer ", "");
+    const authHeader = request.headers.get("Authorization");
+    const accessToken = authHeader?.replace("Bearer ", "");
 
-        if (!accessToken) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
-
-        const userId = decodeToken(accessToken);
-        if (!userId) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-        }
-
-        const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-            global: {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`
-                }
-            }
-        });
-
-        const { id: organizationId } = await params;
-
-        // Check if organization exists
-        const { data: org, error: orgError } = await supabase
-            .from("organizations")
-            .select("id, status")
-            .eq("id", organizationId)
-            .single();
-
-        if (orgError || !org) {
-            return NextResponse.json({ error: "not_found" }, { status: 404 });
-        }
-
-        if (org.status !== "active") {
-            return NextResponse.json({ error: "Organization not active" }, { status: 400 });
-        }
-
-        // Check if already a member
-        const { data: existingMember } = await supabase
-            .from("organization_members")
-            .select("id, membership_status")
-            .eq("organization_id", organizationId)
-            .eq("user_id", userId)
-            .single();
-
-        if (existingMember && existingMember.membership_status === "active") {
-            return NextResponse.json({ error: "already_member" }, { status: 400 });
-        }
-
-        // If invite exists with pending status, activate it; otherwise create new membership
-        if (existingMember && existingMember.membership_status === "invited") {
-            const { error: updateError } = await supabase
-                .from("organization_members")
-                .update({ membership_status: "active", joined_at: new Date().toISOString() })
-                .eq("id", existingMember.id);
-
-            if (updateError) {
-                return NextResponse.json({ error: updateError.message }, { status: 500 });
-            }
-        } else if (!existingMember) {
-            const { error: insertError } = await supabase
-                .from("organization_members")
-                .insert({
-                    organization_id: organizationId,
-                    user_id: userId,
-                    role: "member",
-                    membership_status: "active",
-                    joined_at: new Date().toISOString()
-                });
-
-            // Handle race condition: unique constraint violation means another request
-            // already created the membership between our check and insert
-            if (insertError) {
-                if (insertError.code === "23505") {
-                    // Unique constraint violation - membership was created by concurrent request
-                    return NextResponse.json({ error: "already_member" }, { status: 400 });
-                }
-                return NextResponse.json({ error: insertError.message }, { status: 500 });
-            }
-        }
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error("Community join error:", error);
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    if (!accessToken) {
+        return jsonError("Unauthorized", 401);
     }
+
+    const userId = decodeToken(accessToken);
+    if (!userId) {
+        return jsonError("Invalid token", 401);
+    }
+
+    const supabase = getSupabaseClient(accessToken);
+    const { id: organizationId } = await params;
+
+    const { data: org, error: orgError } = await supabase
+        .from("organizations")
+        .select("id, status")
+        .eq("id", organizationId)
+        .single();
+
+    if (orgError || !org) {
+        return jsonError("not_found", 404);
+    }
+
+    if (org.status !== "active") {
+        return jsonError("Organization not active", 400);
+    }
+
+    const { data: existingMember } = await supabase
+        .from("organization_members")
+        .select("id, membership_status")
+        .eq("organization_id", organizationId)
+        .eq("user_id", userId)
+        .single();
+
+    if (existingMember && existingMember.membership_status === "active") {
+        return jsonError("already_member", 400);
+    }
+
+    if (existingMember && existingMember.membership_status === "invited") {
+        const { error: updateError } = await supabase
+            .from("organization_members")
+            .update({ membership_status: "active", joined_at: new Date().toISOString() })
+            .eq("id", existingMember.id);
+
+        if (updateError) {
+            return jsonError(updateError.message, 500, updateError.code);
+        }
+    } else if (!existingMember) {
+        const { error: insertError } = await supabase
+            .from("organization_members")
+            .insert({
+                organization_id: organizationId,
+                user_id: userId,
+                role: "member",
+                membership_status: "active",
+                joined_at: new Date().toISOString()
+            });
+
+        if (insertError) {
+            if (insertError.code === "23505") {
+                return jsonError("already_member", 400);
+            }
+            return jsonError(insertError.message, 500, insertError.code);
+        }
+    }
+
+    return jsonSuccess({ success: true });
 }

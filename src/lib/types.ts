@@ -9,7 +9,7 @@ export interface Organization {
   slug: string;
   organization_type: 'club' | 'pharmacy';
   license_number: string | null;
-  status: 'active' | 'inactive' | 'suspended';
+  status: 'active' | 'inactive' | 'pending';
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -20,8 +20,8 @@ export interface OrganizationMembership {
   id: string;
   organization_id: string;
   user_id: string;
-  role: 'gründer' | 'admin';
-  membership_status: 'invited' | 'active' | 'suspended';
+  role: 'gründer' | 'admin' | 'member' | 'viewer';
+  membership_status: 'active' | 'invited' | 'removed';
   joined_at: string | null;
   invited_by: string | null;
   created_at: string;
