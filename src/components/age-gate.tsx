@@ -29,8 +29,6 @@ export function AgeGate({ onVerified }: AgeGateProps) {
     }
   }, [onVerified, router]);
 
-  const { markVerified } = useAgeVerified();
-
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
 
@@ -45,8 +43,9 @@ export function AgeGate({ onVerified }: AgeGateProps) {
     const age = currentYear - year;
 
     if (age >= 18) {
-      markVerified();
-      onVerified();
+      localStorage.setItem(AGE_VERIFIED_KEY, "true");
+      // Force reload so parent useAgeVerified reads the new localStorage value
+      window.location.reload();
     } else {
       localStorage.setItem(AGE_REJECTED_KEY, "true");
       router.push("/age-gate-rejected");
