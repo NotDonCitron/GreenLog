@@ -11,7 +11,7 @@ import Link from "next/link";
 import { normalizeCollectionSource } from "@/lib/strain-display";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { StrainCard } from "@/components/strains/strain-card";
-import { AgeGate, useAgeVerified } from "@/components/age-gate";
+import { AgeGate } from "@/components/age-gate";
 
 const DEMO_SIMULATION_DATA: Strain[] = [
   {
@@ -30,6 +30,8 @@ const DEMO_SIMULATION_DATA: Strain[] = [
   }
 ];
 
+const AGE_VERIFIED_KEY = "cannalog_age_verified";
+
 function HomeContent() {
   const { user, loading: authLoading, isDemoMode } = useAuth();
   const [strainOfTheDay, setStrainOfTheDay] = useState<Strain | null>(null);
@@ -44,8 +46,15 @@ function HomeContent() {
       }
 
       try {
-        const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 1000 / 60 / 60 / 24);
-        const { data: allStrains } = await supabase.from('strains').select('*').limit(100);
+        const dayOfYear = Math.floor(
+          (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) /
+          1000 / 60 / 60 / 24
+        );
+        const { data: allStrains } = await supabase
+          .from('strains')
+          .select('*')
+          .limit(100);
+
         if (allStrains && allStrains.length > 0) {
           setStrainOfTheDay({
             ...allStrains[dayOfYear % allStrains.length],
@@ -59,8 +68,18 @@ function HomeContent() {
       }
     }
 
-    if (!authLoading) fetchHomeData();
-  }, [user, authLoading, isDemoMode]);
+    // Only fetch once auth is resolved (not loading) OR in demo mode
+    if (!authLoading || isDemoMode) {
+      void fetchHomeData();
+    }
+  }, [authLoading, isDemoMode]);
+
+  // Set loading to false when auth is done (even if no user for demo mode)
+  useEffect(() => {
+    if (!authLoading) {
+      setLoading(false);
+    }
+  }, [authLoading]);
 
   if (loading) {
     return (
@@ -78,14 +97,12 @@ function HomeContent() {
 
   return (
     <div className="flex-1 flex flex-col py-8">
-      {/* Strain Card - Full focus */}
       {strainOfTheDay && (
         <div className="flex-1 flex items-center justify-center min-h-0 px-2">
           <StrainCard strain={strainOfTheDay} index={0} />
         </div>
       )}
 
-      {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3 pt-6 shrink-0">
         <Link href="/feed" className="block">
           <button className="relative w-full h-16 group overflow-hidden rounded-2xl transition-all duration-300 active:scale-[0.98]">
@@ -121,35 +138,42 @@ function HomeContent() {
   );
 }
 
-function AgeGateWrapper({ children }: { children: React.ReactNode }) {
-  const { verified } = useAgeVerified();
+export default function Home() {
+  const [ageVerified, setAgeVerified] = useState<boolean | null>(null);
 
-  if (verified === null) {
+  useEffect(() => {
+    // Read age verification from localStorage
+    const stored = localStorage.getItem(AGE_VERIFIED_KEY);
+    setAgeVerified(stored === "true");
+  }, []);
+
+  // Show spinner while checking age
+  if (ageVerified === null) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center">
+      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex items-center justify-center">
         <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
-      </div>
+      </main>
     );
   }
 
-  if (!verified) {
-    return <AgeGate onVerified={() => {}} />;
+  // Show age gate if not verified
+  if (!ageVerified) {
+    return (
+      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+        <AgeGate onVerified={() => setAgeVerified(true)} />
+      </main>
+    );
   }
 
-  return <>{children}</>;
-}
-
-export default function Home() {
+  // Show home page
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-24">
-      {/* Ambient neon glow background - focused on card */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[#00F5FF]/5 blur-[120px] rounded-full animate-pulse" />
         <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[100%] h-[40%] bg-[#2FF801]/4 blur-[100px] rounded-full animate-pulse [animation-delay:2s]" />
       </div>
 
       <div className="relative mx-auto w-full px-4 pt-12 flex flex-col h-screen overflow-hidden">
-        {/* Header */}
         <header className="flex justify-between items-center shrink-0">
           <div className="flex items-center gap-3">
             <NotificationBell />
@@ -171,9 +195,7 @@ export default function Home() {
           </div>
         </header>
 
-        <AgeGateWrapper>
-          <HomeContent />
-        </AgeGateWrapper>
+        <HomeContent />
       </div>
       <BottomNav />
     </main>
