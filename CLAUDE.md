@@ -126,22 +126,21 @@ gründer, admin, member, viewer
 
 ## Bekannte Issues & Technical Debt
 
-### Offene Issues (laut MEMORY.md März 2026)
+### Offene Issues
 
-1. **Vercel Production Layout kaputt** – tw-animate.css Import verursacht CSP-Fehler
-2. **Dev Server funktioniert einwandfrei** auf localhost:3000
-3. **Password Reset Flow** – noch offen (Self-Service)
-4. **Real-time Notifications** – WebSocket statt Polling – noch offen
+1. ~~Vercel Production Layout kaputt~~ – ✅ VERIFIED: tw-animate wird in main branch NICHT importiert (nur in community-hub worktree). CSP-Problem existiert nur dort.
+2. **Password Reset Flow** – noch offen (Self-Service)
+3. **Real-time Notifications** – WebSocket statt Polling – noch offen
 
-### Refactoring-Bedarf (aus Architektur-Analyse März 2026)
+### Refactoring-Bedarf (Stand April 2026)
 
-| Priorität | Thema |
-|-----------|-------|
-| P0 | API Error Handling standardisieren |
-| P0 | Composite Index auf `follows(follower_id, following_id)` |
-| P1 | Badge-Check nur bei relevanten Events triggern (nicht bei jedem Login) |
-| P1 | Types ↔ Schema thc/cbd Konsistenz (`avg_thc` vs `thc_min/thc_max`) |
-| P2 | React Query / SWR für Data-Fetching einführen |
+| Priorität | Thema | Status |
+|-----------|-------|--------|
+| P0 | API Error Handling standardisieren | ✅ DONE (jsonSuccess/jsonError helpers) |
+| P0 | Composite Index auf `follows(follower_id, following_id)` | ✅ War bereits vorhanden |
+| P1 | Badge-Check nur bei relevanten Events | ✅ War bereits korrekt (event-driven, nicht login) |
+| P1 | Types ↔ Schema Strains-Konsistenz | ✅ DONE (Migration 20260401080000) |
+| P2 | React Query / SWR für Data-Fetching | 🔲 Noch offen |
 
 ### Strain Image Admin Override
 
