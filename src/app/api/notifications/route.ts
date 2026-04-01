@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { jsonSuccess, jsonError } from "@/lib/api-response";
+import { sendPushToUser, getSupabaseAdmin } from "@/lib/push";
 
 export async function GET() {
     const supabase = await createServerSupabaseClient();
@@ -18,6 +19,29 @@ export async function GET() {
 
     if (error) {
         return jsonError(error.message, 500, error.code);
+    }
+
+    // Send push notifications for unread, unpushed notifications
+    const unpushed = notifications?.filter(n => !n.read && !n.pushed_at) || [];
+    if (unpushed.length > 0) {
+        const supabaseAdmin = getSupabaseAdmin();
+        // Send one push per notification (oldest first)
+        const toPush = unpushed.reverse().slice(-3); // max 3 at a time
+        for (const notif of toPush) {
+            await sendPushToUser(supabaseAdmin, user.id, {
+                title: notif.title,
+                body: notif.message || "Neue Benachrichtigung",
+                tag: notif.type,
+                data: notif.data || {},
+            });
+        }
+        // Mark as pushed (bulk update)
+        const ids = toPush.map(n => n.id);
+        await supabaseAdmin
+            .from("notifications")
+            .update({ pushed_at: new Date().toISOString() })
+            .in("id", ids)
+            .eq("user_id", user.id);
     }
 
     return jsonSuccess({ notifications });

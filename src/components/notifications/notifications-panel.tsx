@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Bell, Loader2, UserPlus, X, Check } from "lucide-react";
+import { Bell, Loader2, UserPlus, X, Check, BellRing } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
+import { usePushSubscription, requestPushPermission } from "@/hooks/usePushSubscription";
 
 interface Notification {
   id: string;
@@ -26,6 +27,7 @@ interface PendingInvite {
 export function NotificationsPanel() {
   const { session } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -60,6 +62,13 @@ export function NotificationsPanel() {
       setLoading(false);
     }
   }, [session?.access_token]);
+
+  // Subscribe to push notifications
+  usePushSubscription(session?.user?.id);
+
+  useEffect(() => {
+    setPushEnabled(localStorage.getItem("cannalog_push_enabled") === "true");
+  }, []);
 
   useEffect(() => {
     void fetchData();
@@ -126,9 +135,23 @@ export function NotificationsPanel() {
           <div className="relative w-full max-w-md bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
               <h2 className="text-lg font-bold">Benachrichtigungen</h2>
-              <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-[var(--muted)] rounded-lg" aria-label="Benachrichtigungen schliessen">
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-2">
+                {"Notification" in window && Notification.permission !== "denied" && (
+                  <button
+                    onClick={async () => {
+                      const granted = await requestPushPermission();
+                      if (granted) setPushEnabled(true);
+                    }}
+                    className={`p-2 rounded-lg transition-all ${pushEnabled ? "bg-[#2FF801]/10 text-[#2FF801]" : "hover:bg-[var(--muted)] text-[var(--muted-foreground)]"}`}
+                    title={pushEnabled ? "Push aktiviert" : "Push aktivieren"}
+                  >
+                    {pushEnabled ? <BellRing size={18} /> : <Bell size={18} />}
+                  </button>
+                )}
+                <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-[var(--muted)] rounded-lg" aria-label="Benachrichtigungen schliessen">
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             <div className="max-h-[60vh] overflow-y-auto">
