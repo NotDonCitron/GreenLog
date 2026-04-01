@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense, useCallback, lazy, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { BottomNav } from "@/components/bottom-nav";
 import { Search, CalendarDays, Loader2, AlertCircle, X, Filter, Plus, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -84,78 +85,64 @@ function SearchParamsSync({
 
 export default function CollectionPageClient() {
   const { user, loading: authLoading } = useAuth();
-  const [strains, setStrains] = useState<CollectionStrain[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  // React Query for collection data
+  const { data: rawCollection, isLoading: loading, error } = useQuery({
+    queryKey: ['collection', user?.id],
+    queryFn: async () => {
+      if (!user) return [] as CollectionStrain[];
+
+      const { data, error: fetchError } = await supabase
+        .from('user_collection')
+        .select(`
+          batch_info,
+          user_notes,
+          user_thc_percent,
+          user_cbd_percent,
+          user_image_url,
+          date_added,
+          strain:strains (*)
+        `)
+        .eq('user_id', user.id);
+
+      if (fetchError) throw new Error(fetchError.message);
+
+      if (!data) return [] as CollectionStrain[];
+
+      return (data as unknown as CollectionRow[]).reduce<CollectionStrain[]>((acc, item) => {
+        const rawStrain = Array.isArray(item.strain) ? item.strain[0] : item.strain;
+        if (!rawStrain) return acc;
+
+        const normalizedSource = normalizeCollectionSource(item.batch_info || rawStrain.source);
+
+        acc.push({
+          ...rawStrain,
+          image_url: item.user_image_url || rawStrain.image_url || undefined,
+          source: normalizedSource,
+          avg_thc: item.user_thc_percent ?? rawStrain.avg_thc ?? rawStrain.thc_max ?? undefined,
+          avg_cbd: item.user_cbd_percent ?? rawStrain.avg_cbd ?? rawStrain.cbd_max ?? undefined,
+          user_notes: item.user_notes,
+          collected_at: item.date_added,
+        });
+
+        return acc;
+      }, []);
+    },
+    enabled: !authLoading && !!user,
+  });
+
+  const strains = rawCollection || [];
+
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<StrainSource | "all">("all");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [filterEffects, setFilterEffects] = useState<string[]>([]);
   const [filterThcMin, setFilterThcMin] = useState(THC_RANGE.min);
   const [filterThcMax, setFilterThcMax] = useState(THC_RANGE.max);
   const [filterCbdMin, setFilterCbdMin] = useState(CBD_RANGE.min);
   const [filterCbdMax, setFilterCbdMax] = useState(CBD_RANGE.max);
-
-  useEffect(() => {
-    async function fetchCollection() {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const { data, error: fetchError } = await supabase
-          .from('user_collection')
-          .select(`
-            batch_info,
-            user_notes,
-            user_thc_percent,
-            user_cbd_percent,
-            user_image_url,
-            date_added,
-            strain:strains (*)
-          `)
-          .eq('user_id', user.id);
-
-        if (fetchError) throw fetchError;
-
-        if (data) {
-          const userStrains = (data as unknown as CollectionRow[]).reduce<CollectionStrain[]>((acc, item) => {
-            const rawStrain = Array.isArray(item.strain) ? item.strain[0] : item.strain;
-            if (!rawStrain) {
-              return acc;
-            }
-
-            const normalizedSource = normalizeCollectionSource(item.batch_info || rawStrain.source);
-
-            acc.push({
-              ...rawStrain,
-              image_url: item.user_image_url || rawStrain.image_url || undefined,
-              source: normalizedSource,
-              avg_thc: item.user_thc_percent ?? rawStrain.avg_thc ?? rawStrain.thc_max ?? undefined,
-              avg_cbd: item.user_cbd_percent ?? rawStrain.avg_cbd ?? rawStrain.cbd_max ?? undefined,
-              user_notes: item.user_notes,
-              collected_at: item.date_added,
-            });
-
-            return acc;
-          }, []);
-
-          setStrains(userStrains);
-        }
-      } catch (err: unknown) {
-        console.error("Collection fetch error:", err);
-        setError(err instanceof Error ? err.message : "Unbekannter Fehler beim Laden der Sammlung.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (!authLoading) fetchCollection();
-  }, [user, authLoading]);
 
   const filteredStrains = useMemo(() => strains.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
@@ -301,7 +288,7 @@ export default function CollectionPageClient() {
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-[#ff716c]">
             <AlertCircle size={40} />
-            <p className="text-sm font-bold uppercase tracking-widest">{error}</p>
+            <p className="text-sm font-bold uppercase tracking-widest">{(error as Error).message || "Fehler beim Laden"}</p>
           </div>
         ) : filteredStrains.length > 0 ? (
           <div className="grid grid-cols-2 gap-4">
