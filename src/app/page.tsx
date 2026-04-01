@@ -151,16 +151,14 @@ function HomeContent() {
   );
 }
 
-export default function Home() {
+function AgeGateWrapper({ children }: { children: React.ReactNode }) {
   const [ageVerified, setAgeVerified] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Read age verification from localStorage
     const stored = localStorage.getItem(AGE_VERIFIED_KEY);
     setAgeVerified(stored === "true");
   }, []);
 
-  // Show spinner while checking age
   if (ageVerified === null) {
     return (
       <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex items-center justify-center">
@@ -169,7 +167,6 @@ export default function Home() {
     );
   }
 
-  // Show age gate if not verified
   if (!ageVerified) {
     return (
       <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
@@ -178,39 +175,44 @@ export default function Home() {
     );
   }
 
-  // Show home page
+  return <>{children}</>;
+}
+
+export default function Home() {
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-24">
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[#00F5FF]/5 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[100%] h-[40%] bg-[#2FF801]/4 blur-[100px] rounded-full animate-pulse [animation-delay:2s]" />
-      </div>
+    <AgeGateWrapper>
+      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-24">
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[#00F5FF]/5 blur-[120px] rounded-full animate-pulse" />
+          <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[100%] h-[40%] bg-[#2FF801]/4 blur-[100px] rounded-full animate-pulse [animation-delay:2s]" />
+        </div>
 
-      <div className="relative mx-auto w-full px-4 pt-12 flex flex-col h-screen overflow-hidden">
-        <header className="flex justify-between items-center shrink-0">
-          <div className="flex items-center gap-3">
-            <NotificationBell />
-            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
-              CannaLog
-            </h1>
-          </div>
-          <div className="relative group">
-            <div className="absolute inset-0 bg-[#00F5FF]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-            <div className="w-12 h-12 relative rounded-2xl glass-surface border border-[var(--border)]/50 flex items-center justify-center transform group-hover:rotate-6 transition-transform duration-500 overflow-hidden">
-              <Image
-                src="/logo.png"
-                alt="CannaLog Logo"
-                fill
-                className="object-contain p-1.5"
-                priority
-              />
+        <div className="relative mx-auto w-full px-4 pt-12 flex flex-col h-screen overflow-hidden">
+          <header className="flex justify-between items-center shrink-0">
+            <div className="flex items-center gap-3">
+              <NotificationBell />
+              <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
+                CannaLog
+              </h1>
             </div>
-          </div>
-        </header>
+            <div className="relative group">
+              <div className="absolute inset-0 bg-[#00F5FF]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="w-12 h-12 relative rounded-2xl glass-surface border border-[var(--border)]/50 flex items-center justify-center transform group-hover:rotate-6 transition-transform duration-500 overflow-hidden">
+                <Image
+                  src="/logo.png"
+                  alt="CannaLog Logo"
+                  fill
+                  className="object-contain p-1.5"
+                  priority
+                />
+              </div>
+            </div>
+          </header>
 
-        <HomeContent />
-      </div>
-      <BottomNav />
-    </main>
+          <HomeContent />
+        </div>
+        <BottomNav />
+      </main>
+    </AgeGateWrapper>
   );
 }

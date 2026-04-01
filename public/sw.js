@@ -1,9 +1,5 @@
 const CACHE_NAME = 'cannalog-v1';
 const STATIC_ASSETS = [
-  '/',
-  '/strains',
-  '/collection',
-  '/profile',
   '/manifest.json',
   '/logo.png',
   '/icon-192.png',
@@ -11,7 +7,7 @@ const STATIC_ASSETS = [
   '/apple-touch-icon.png',
 ];
 
-// Install: cache static assets
+// Install: cache static assets only (no HTML pages)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -67,23 +63,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Navigation requests (HTML pages) → ALWAYS network first, never serve stale
+  // Navigation requests (HTML pages) → network only, never cache
+  // This ensures fresh HTML after deployments, preventing stale CSS class mismatches
   if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, clone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          return caches.match(request);
-        })
-    );
+    event.respondWith(fetch(request));
     return;
   }
 

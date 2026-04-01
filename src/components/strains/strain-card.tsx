@@ -68,17 +68,17 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
       }}
     >
       {/* 1. HEADER: Farmer + Strain Name */}
-      <div className="shrink-0 p-3 pb-1 min-w-0 relative z-10">
-        <p className="text-[8px] font-bold tracking-[0.12em] uppercase text-[var(--foreground)]/30">
+      <div className="shrink-0 px-3 pt-2 pb-0 min-w-0 relative z-10">
+        <p className="text-[7px] font-bold tracking-[0.12em] uppercase text-[var(--foreground)]/30 truncate">
           {farmerDisplay}
         </p>
-        <p className="title-font italic text-[14px] font-black leading-tight uppercase text-[var(--foreground)] break-words">
+        <p className="title-font italic text-[12px] font-black leading-tight uppercase text-[var(--foreground)] break-words line-clamp-2">
           {normalizedStrainName}
         </p>
       </div>
 
       {/* 2. IMAGE with 2 badges only */}
-      <div className="relative flex-1 min-h-0 px-2 py-1 z-10">
+      <div className="relative px-2 py-1 z-10" style={{ height: '50%' }}>
         <div className="absolute inset-0 rounded-xl border border-white/5 shadow-lg overflow-hidden">
           <Image
             src={strain.image_url || "/strains/placeholder-1.svg"}
@@ -90,7 +90,7 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
           />
           {/* Type Badge — top left */}
           <div
-            className="absolute top-2 left-2 px-2 py-1 rounded-xl backdrop-blur-md border text-[8px] font-bold uppercase tracking-widest"
+            className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-lg backdrop-blur-md border text-[7px] font-bold uppercase tracking-widest"
             style={{
               backgroundColor: `${themeColor}20`,
               borderColor: `${themeColor}80`,
@@ -101,32 +101,32 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
           </div>
           {/* In Sammlung Badge — top right */}
           {isCollected && (
-            <div className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-1 rounded-full backdrop-blur-md border border-[#00F5FF]/30"
+            <div className="absolute top-1.5 right-1.5 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-full backdrop-blur-md border border-[#00F5FF]/30"
               style={{ backgroundColor: '#00F5FF20' }}>
-              <div className="w-1.5 h-1.5 rounded-full bg-[#00F5FF]" />
-              <span className="text-[8px] font-bold uppercase tracking-wider text-[#00F5FF]">In Sammlung</span>
+              <div className="w-1 h-1 rounded-full bg-[#00F5FF]" />
+              <span className="text-[7px] font-bold uppercase tracking-wider text-[#00F5FF]">In Sammlung</span>
             </div>
           )}
         </div>
       </div>
 
       {/* 3. STATS BAR — text wraps to second line if needed */}
-      <div className="shrink-0 px-3 w-full relative z-10">
-        <div className="rounded-xl border border-white/10 bg-[#121212]/80 p-2 shadow-inner backdrop-blur-sm">
+      <div className="shrink-0 px-3 pb-2 w-full relative z-10">
+        <div className="rounded-xl border border-white/10 bg-[#121212]/80 p-1.5 shadow-inner backdrop-blur-sm">
           <div className="grid grid-cols-4 gap-1">
             <div className="flex flex-col items-center gap-0">
-              <span className="text-[6px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">THC</span>
-              <span className="text-[9px] font-black tracking-wide" style={{ color: themeColor }}>{thcDisplay}</span>
+              <span className="text-[5px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">THC</span>
+              <span className="text-[8px] font-black tracking-wide" style={{ color: themeColor }}>{thcDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1">
-              <span className="text-[6px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">CBD</span>
-              <span className="text-[9px] font-black tracking-wide" style={{ color: themeColor }}>{cbdDisplay}</span>
+              <span className="text-[5px] font-bold uppercase tracking-widest text-[var(--foreground)]/30">CBD</span>
+              <span className="text-[8px] font-black tracking-wide" style={{ color: themeColor }}>{cbdDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1 min-w-0">
-              <span className="text-[7px] font-medium tracking-wide text-[var(--foreground)]/70 leading-tight break-words text-left w-full">{tasteDisplay}</span>
+              <span className="text-[6px] font-medium tracking-wide text-[var(--foreground)]/70 leading-tight break-words text-left w-full">{tasteDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1 min-w-0">
-              <span className="text-[7px] font-medium tracking-wide text-[var(--foreground)]/70 leading-tight break-words text-left w-full">{effectDisplay}</span>
+              <span className="text-[6px] font-medium tracking-wide text-[var(--foreground)]/70 leading-tight break-words text-left w-full">{effectDisplay}</span>
             </div>
           </div>
         </div>
