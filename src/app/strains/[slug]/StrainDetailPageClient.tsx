@@ -269,7 +269,8 @@ export default function StrainDetailPageClient() {
       const { error } = await supabase.from("user_strain_relations").upsert({
         user_id: user.id,
         strain_id: strain.id,
-        is_favorite: nextState
+        is_favorite: nextState,
+        is_wishlisted: false
       }, { onConflict: 'user_id,strain_id' });
 
       if (error) {

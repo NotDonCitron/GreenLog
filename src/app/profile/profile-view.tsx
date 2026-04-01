@@ -345,7 +345,7 @@ export default function ProfilePage() {
         const customImage = collectionData?.find(c => c.strain_id === s.id)?.user_image_url;
 
         return {
-          relationId: f.id,
+          relationId: f.strain_id,  // strain_id is the stable identifier for the relation
           id: s.id,
           name: s.name,
           slug: s.slug,

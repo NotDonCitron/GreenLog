@@ -175,17 +175,16 @@ export interface ProfileViewModel {
 
 // Database row types for Supabase
 export interface UserStrainRelation {
-  id: string;
   user_id: string;
   strain_id: string;
   is_favorite: boolean;
-  is_wishlist: boolean;
+  is_wishlisted: boolean;
+  favorite_rank: number | null;
   position: number | null;
-  created_at: string;
+  created_at?: string;
 }
 
 export interface UserBadge {
-  id: string;
   user_id: string;
   badge_id: string;
   unlocked_at: string;
@@ -313,7 +312,7 @@ export interface ProfileRow {
 }
 
 export interface UserCollection {
-  id: string;
+  id?: string;
   user_id: string;
   strain_id: string;
   user_notes: string | null;
@@ -321,8 +320,7 @@ export interface UserCollection {
   user_image_url: string | null;
   user_thc_percent: number | null;
   user_cbd_percent: number | null;
-  created_at: string;
-  updated_at: string;
+  date_added?: string;
 }
 
 export type OrganizationActivityEventType =
