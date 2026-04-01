@@ -37,6 +37,12 @@ function HomeContent() {
   const [strainOfTheDay, setStrainOfTheDay] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Fallback: unblock UI after 8s even if auth/strains hang
+  useEffect(() => {
+    const id = setTimeout(() => setLoading(false), 8000);
+    return () => clearTimeout(id);
+  }, []);
+
   useEffect(() => {
     async function fetchHomeData() {
       if (isDemoMode) {
