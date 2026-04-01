@@ -175,10 +175,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
       setLoading(false);
+
+      // Check badges on SIGNED_IN event
+      if (event === 'SIGNED_IN' && nextSession?.user) {
+        try {
+          await fetch('/api/badges/check', { method: 'POST' });
+        } catch (err) {
+          console.warn('[Auth] Badge check failed:', err);
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
