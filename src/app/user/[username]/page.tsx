@@ -63,7 +63,10 @@ interface UserBadgeWithDetails {
 }
 
 interface FavoriteWithStrain {
-    id: string;
+    strain_id: string;
+    user_id: string;
+    is_favorite: boolean;
+    position: number | null;
     strains: {
         name: string;
         slug: string;
@@ -491,7 +494,7 @@ export default function UserProfilePage() {
                                 favorites.length > 0 ? (
                                     <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3">
                                         {favorites.map((fav) => (
-                                            <Link key={fav.id} href={`/strains/${fav.strains?.slug}`} className="min-w-0">
+                                            <Link key={fav.strain_id} href={`/strains/${fav.strains?.slug}`} className="min-w-0">
                                                 <div className="relative aspect-square overflow-hidden rounded-xl border border-[var(--border)]/50 bg-[var(--card)]">
                                                     {fav.strains?.image_url && (
                                                         <Image
