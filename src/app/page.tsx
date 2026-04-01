@@ -30,24 +30,10 @@ const DEMO_SIMULATION_DATA: Strain[] = [
   }
 ];
 
-export default function Home() {
-  const { verified: ageVerified } = useAgeVerified();
+function HomeContent() {
   const { user, loading: authLoading, isDemoMode } = useAuth();
   const [strainOfTheDay, setStrainOfTheDay] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Age verification check
-  if (ageVerified === null) {
-    return (
-      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex items-center justify-center">
-        <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
-      </main>
-    );
-  }
-
-  if (!ageVerified) {
-    return <AgeGate onVerified={() => {}} />;
-  }
 
   useEffect(() => {
     async function fetchHomeData() {
@@ -76,6 +62,84 @@ export default function Home() {
     if (!authLoading) fetchHomeData();
   }, [user, authLoading, isDemoMode]);
 
+  if (loading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-6">
+        <div className="relative">
+          <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
+          <div className="absolute inset-0 blur-xl bg-[#00F5FF]/30 animate-pulse" />
+        </div>
+        <p className="text-[11px] font-black text-[var(--muted-foreground)] uppercase tracking-[0.3em] animate-pulse">
+          System wird initialisiert...
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 flex flex-col py-8">
+      {/* Strain Card - Full focus */}
+      {strainOfTheDay && (
+        <div className="flex-1 flex items-center justify-center min-h-0 px-2">
+          <StrainCard strain={strainOfTheDay} index={0} />
+        </div>
+      )}
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 gap-3 pt-6 shrink-0">
+        <Link href="/feed" className="block">
+          <button className="relative w-full h-16 group overflow-hidden rounded-2xl transition-all duration-300 active:scale-[0.98]">
+            <div className="absolute inset-0 bg-[#2FF801]/10 transition-all duration-300 group-hover:bg-[#2FF801]/20" />
+            <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#2FF801]/50 transition-all duration-300" />
+            <div className="relative flex items-center justify-center gap-2 h-full">
+              <div className="w-8 h-8 rounded-lg bg-[#2FF801]/20 flex items-center justify-center">
+                <span className="text-sm">🔍</span>
+              </div>
+              <span className="text-[var(--foreground)] text-xs font-bold uppercase tracking-wide font-display">
+                Entdecken
+              </span>
+            </div>
+          </button>
+        </Link>
+
+        <Link href="/grows" className="block">
+          <button className="relative w-full h-16 group overflow-hidden rounded-2xl transition-all duration-300 active:scale-[0.98]">
+            <div className="absolute inset-0 bg-[#a1faff]/10 transition-all duration-300 group-hover:bg-[#a1faff]/20" />
+            <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#a1faff]/50 transition-all duration-300" />
+            <div className="relative flex items-center justify-center gap-2 h-full">
+              <div className="w-8 h-8 rounded-lg bg-[#a1faff]/20 flex items-center justify-center">
+                <span className="text-sm">🌱</span>
+              </div>
+              <span className="text-[var(--foreground)] text-xs font-bold uppercase tracking-wide font-display">
+                Grows
+              </span>
+            </div>
+          </button>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function AgeGateWrapper({ children }: { children: React.ReactNode }) {
+  const { verified } = useAgeVerified();
+
+  if (verified === null) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
+      </div>
+    );
+  }
+
+  if (!verified) {
+    return <AgeGate onVerified={() => {}} />;
+  }
+
+  return <>{children}</>;
+}
+
+export default function Home() {
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-24">
       {/* Ambient neon glow background - focused on card */}
@@ -107,59 +171,9 @@ export default function Home() {
           </div>
         </header>
 
-        {loading ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-6">
-            <div className="relative">
-              <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
-              <div className="absolute inset-0 blur-xl bg-[#00F5FF]/30 animate-pulse" />
-            </div>
-            <p className="text-[11px] font-black text-[var(--muted-foreground)] uppercase tracking-[0.3em] animate-pulse">
-              System wird initialisiert...
-            </p>
-          </div>
-        ) : (
-          <div className="flex-1 flex flex-col py-8">
-            {/* Strain Card - Full focus */}
-            {strainOfTheDay && (
-              <div className="flex-1 flex items-center justify-center min-h-0 px-2">
-                <StrainCard strain={strainOfTheDay} index={0} />
-              </div>
-            )}
-
-            {/* Quick Actions */}
-            <div className="grid grid-cols-2 gap-3 pt-6 shrink-0">
-              <Link href="/feed" className="block">
-                <button className="relative w-full h-16 group overflow-hidden rounded-2xl transition-all duration-300 active:scale-[0.98]">
-                  <div className="absolute inset-0 bg-[#2FF801]/10 transition-all duration-300 group-hover:bg-[#2FF801]/20" />
-                  <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#2FF801]/50 transition-all duration-300" />
-                  <div className="relative flex items-center justify-center gap-2 h-full">
-                    <div className="w-8 h-8 rounded-lg bg-[#2FF801]/20 flex items-center justify-center">
-                      <span className="text-sm">🔍</span>
-                    </div>
-                    <span className="text-[var(--foreground)] text-xs font-bold uppercase tracking-wide font-display">
-                      Entdecken
-                    </span>
-                  </div>
-                </button>
-              </Link>
-
-              <Link href="/grows" className="block">
-                <button className="relative w-full h-16 group overflow-hidden rounded-2xl transition-all duration-300 active:scale-[0.98]">
-                  <div className="absolute inset-0 bg-[#a1faff]/10 transition-all duration-300 group-hover:bg-[#a1faff]/20" />
-                  <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#a1faff]/50 transition-all duration-300" />
-                  <div className="relative flex items-center justify-center gap-2 h-full">
-                    <div className="w-8 h-8 rounded-lg bg-[#a1faff]/20 flex items-center justify-center">
-                      <span className="text-sm">🌱</span>
-                    </div>
-                    <span className="text-[var(--foreground)] text-xs font-bold uppercase tracking-wide font-display">
-                      Grows
-                    </span>
-                  </div>
-                </button>
-              </Link>
-            </div>
-          </div>
-        )}
+        <AgeGateWrapper>
+          <HomeContent />
+        </AgeGateWrapper>
       </div>
       <BottomNav />
     </main>
