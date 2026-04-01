@@ -19,6 +19,13 @@ const getErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
+const APP_ADMIN_IDS = process.env.NEXT_PUBLIC_APP_ADMIN_IDS || "";
+
+function isAppAdmin(userId: string): boolean {
+  if (!APP_ADMIN_IDS || !userId) return false;
+  return APP_ADMIN_IDS.split(",").map(id => id.trim()).filter(Boolean).includes(userId);
+}
+
 export default function StrainDetailPageClient() {
   const { slug } = useParams();
   const { user, isDemoMode, activeOrganization } = useAuth();
@@ -31,6 +38,8 @@ export default function StrainDetailPageClient() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAdminUploading, setIsAdminUploading] = useState(false);
+  const [globalImageRefresh, setGlobalImageRefresh] = useState(0);
   const [isFavorited, setIsFavorite] = useState(false);
   const [hasCollected, setHasCollected] = useState(false);
   const [isDeletable, setIsDeletable] = useState(false);
@@ -255,6 +264,59 @@ export default function StrainDetailPageClient() {
     }
   };
 
+  const handleAdminImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !strain) return;
+
+    const isValidMimeType = ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type);
+    if (!isValidMimeType) {
+      alert("Bitte lade nur JPG, PNG, WEBP oder GIF hoch.");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Das Bild ist zu groß. Maximal 5 MB sind erlaubt.");
+      e.target.value = "";
+      return;
+    }
+
+    setIsAdminUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+
+      if (!accessToken) {
+        alert("Du musst eingeloggt sein.");
+        return;
+      }
+
+      const res = await fetch(`/api/strains/${strain.id}/image`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: formData,
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error || "Upload fehlgeschlagen");
+      }
+
+      setGlobalImageRefresh(prev => prev + 1);
+      window.location.reload();
+      alert("Globales Strain-Bild erfolgreich aktualisiert!");
+    } catch (error: unknown) {
+      alert("Error: " + getErrorMessage(error, "Bild konnte nicht hochgeladen werden."));
+    } finally {
+      e.target.value = "";
+      setIsAdminUploading(false);
+    }
+  };
+
   const toggleFavorite = async () => {
     if (!user || !strain || isDemoMode) {
       if (isDemoMode) setIsFavorite(!isFavorited);
@@ -375,6 +437,16 @@ export default function StrainDetailPageClient() {
               <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
             </label>
           )}
+          {user && isAppAdmin(user.id) && (
+            <label className="p-2 rounded-full bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/20 hover:bg-[#2FF801]/20 transition-all cursor-pointer" title="Admin: Globales Strain-Bild">
+              {isAdminUploading ? <Loader2 size={20} className="animate-spin" /> : <Upload size={20} />}
+              <input type="file" className="hidden" accept="image/*" onChange={handleAdminImageUpload} disabled={isAdminUploading} />
+            </label>
+          )}
+          {/* DEBUG: Remove after testing */}
+          {user && !isAppAdmin(user.id) && (
+            <span className="text-[10px] text-red-400 ml-2">[User: {user.id.slice(0,8)}... | Admins env may be empty or not matching]</span>
+          )}
           <button onClick={toggleFavorite} className={`p-2 rounded-full border transition-all ${isFavorited ? 'bg-red-500/20 border-red-500/40 text-red-500' : 'bg-[var(--card)] border-[var(--border)]/50 text-[var(--muted-foreground)] hover:border-red-500/50'}`}>
             <Heart size={20} fill={isFavorited ? "currentColor" : "none"} />
           </button>
@@ -425,7 +497,7 @@ export default function StrainDetailPageClient() {
               </div>
               <div className="px-5 w-full">
                 <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-[var(--border)]/50">
-                  <img src={userImageUrl || strain.image_url || "/strains/placeholder-1.svg"} alt={strain.name} className="w-full h-full object-cover" />
+                  <img src={userImageUrl || (strain.image_url ? strain.image_url + (globalImageRefresh ? `?v=${globalImageRefresh}` : '') : "/strains/placeholder-1.svg")} alt={strain.name} className="w-full h-full object-cover" />
                   <div className="absolute bottom-2 left-2 border bg-black/70 backdrop-blur-md uppercase text-[9px] px-2 py-1 rounded-sm font-bold" style={{ borderColor: themeColor, color: themeColor }}>{strain.type || 'HYBRID'}</div>
                 </div>
               </div>

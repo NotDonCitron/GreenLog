@@ -129,8 +129,8 @@ gründer, admin, member, viewer
 ### Offene Issues
 
 1. ~~Vercel Production Layout kaputt~~ – ✅ VERIFIED: tw-animate wird in main branch NICHT importiert (nur in community-hub worktree). CSP-Problem existiert nur dort.
-2. **Password Reset Flow** – noch offen (Self-Service)
-3. **Real-time Notifications** – WebSocket statt Polling – noch offen
+2. ~~Password Reset Flow~~ – ✅ IMPLEMENTIERT (`/update-password`, `forgot-password-dialog.tsx`)
+3. ~~Real-time Notifications~~ – ✅ POLLING implementiert (30-Sekunden-Intervall in `notifications-panel.tsx`)
 
 ### Refactoring-Bedarf (Stand April 2026)
 
@@ -141,6 +141,7 @@ gründer, admin, member, viewer
 | P1 | Badge-Check nur bei relevanten Events | ✅ War bereits korrekt (event-driven, nicht login) |
 | P1 | Types ↔ Schema Strains-Konsistenz | ✅ DONE (Migration 20260401080000) |
 | P2 | React Query / SWR für Data-Fetching | 🔲 Noch offen |
+| P2 | PWA / App-Store readiness | 🔲 Noch offen |
 
 ### Strain Image Admin Override
 

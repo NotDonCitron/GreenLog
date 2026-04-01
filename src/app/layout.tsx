@@ -3,6 +3,7 @@ import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import OnboardingGuide from "@/components/onboarding";
 import { ThemeInit } from "@/components/theme-init";
 
@@ -85,6 +86,7 @@ export default function RootLayout({
       </head>
       <body className="h-full bg-[var(--background)] text-[var(--foreground)] overflow-x-hidden font-body">
         <ThemeInit />
+        <ServiceWorkerRegister />
         <Providers>
           <div className="flex h-full flex-col">
             <main className="flex-1 overflow-y-auto overflow-x-hidden">{children}</main>

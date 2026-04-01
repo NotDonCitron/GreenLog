@@ -1,0 +1,26 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appID": "YOUR_TEAM_ID.com.greenlog.app",
+        "paths": [
+          "/strains/*",
+          "/collection",
+          "/profile",
+          "/community/*",
+          "/feed",
+          "/discover",
+          "/invite/*"
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "details": [
+      {
+        "appID": "YOUR_TEAM_ID.com.greenlog.app",
+        "paths": ["*"]
+      }
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { ALL_BADGES, BadgeDefinition } from "@/lib/badges";
 import { BadgeCard } from "@/components/ui/badge-card";
@@ -28,17 +29,17 @@ export function BadgeShowcase({ isOpen, userBadges, featuredBadges, onSelect, on
     });
   };
 
-  const handleSave = () => {
-    // Save via API
-    fetch('/api/badges/select', {
+  const router = useRouter();
+
+  const handleSave = async () => {
+    await fetch('/api/badges/select', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ featuredBadges: selected })
-    }).then(() => {
-      selected.forEach(id => onSelect(id));
-      onClose();
-      window.location.reload();
     });
+    selected.forEach(id => onSelect(id));
+    onClose();
+    router.refresh();
   };
 
   return (

@@ -17,6 +17,7 @@ function hashToken(token: string): string {
 export async function GET(request: Request, { params }: RouteParams) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (!auth) return;
+    if (auth instanceof Response) return;
     const { user, supabase } = auth;
     const { organizationId } = await params;
 
@@ -56,6 +57,7 @@ export async function GET(request: Request, { params }: RouteParams) {
 export async function POST(request: Request, { params }: RouteParams) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (!auth) return;
+    if (auth instanceof Response) return;
     const { user, supabase } = auth;
     const { organizationId } = await params;
 
@@ -166,6 +168,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 export async function DELETE(request: Request, { params }: RouteParams) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (!auth) return;
+    if (auth instanceof Response) return;
     const { user, supabase } = auth;
     const { organizationId } = await params;
 
