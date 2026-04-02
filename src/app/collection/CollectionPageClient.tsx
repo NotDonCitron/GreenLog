@@ -1,17 +1,15 @@
 "use client";
 
 import { useState, useEffect, Suspense, useCallback, lazy, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCollection } from "@/hooks/useCollection";
 import { BottomNav } from "@/components/bottom-nav";
 import { Search, CalendarDays, Loader2, AlertCircle, X, Filter, Plus, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { Strain, StrainSource } from "@/lib/types";
 import { StrainCard } from "@/components/strains/strain-card";
 import { Calendar } from "@/components/ui/calendar";
 import { normalizeCollectionSource } from "@/lib/strain-display";
-import { onCollectionUpdate } from "@/lib/collection-events";
 const FilterPanel = lazy(() => import("@/components/strains/filter-panel").then(m => ({ default: m.FilterPanel })));
 import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -85,73 +83,10 @@ function SearchParamsSync({
 }
 
 export default function CollectionPageClient() {
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
 
-  // React Query for collection data
-  const { data: rawCollection, isLoading: loading, error } = useQuery({
-    queryKey: ['collection', user?.id],
-    queryFn: async () => {
-      if (!user) return [] as CollectionStrain[];
-
-      const { data, error: fetchError } = await supabase
-        .from('user_collection')
-        .select(`
-          batch_info,
-          user_notes,
-          user_thc_percent,
-          user_cbd_percent,
-          user_image_url,
-          date_added,
-          strain:strains (*)
-        `)
-        .eq('user_id', user.id);
-
-      if (fetchError) throw new Error(fetchError.message);
-
-      if (!data) return [] as CollectionStrain[];
-
-      return (data as unknown as CollectionRow[]).reduce<CollectionStrain[]>((acc, item) => {
-        const rawStrain = Array.isArray(item.strain) ? item.strain[0] : item.strain;
-        if (!rawStrain) return acc;
-
-        const normalizedSource = normalizeCollectionSource(item.batch_info || rawStrain.source);
-
-        acc.push({
-          ...rawStrain,
-          image_url: item.user_image_url || rawStrain.image_url || undefined,
-          source: normalizedSource,
-          avg_thc: item.user_thc_percent ?? rawStrain.avg_thc ?? rawStrain.thc_max ?? undefined,
-          avg_cbd: item.user_cbd_percent ?? rawStrain.avg_cbd ?? rawStrain.cbd_max ?? undefined,
-          user_notes: item.user_notes,
-          collected_at: item.date_added,
-        });
-
-        return acc;
-      }, []);
-    },
-    enabled: !authLoading && !!user,
-  });
-
-  const strains = rawCollection || [];
-
-  // Re-fetch collection when page becomes visible OR when collection update event fires
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        queryClient.invalidateQueries({ queryKey: ['collection', user?.id] });
-      }
-    };
-    const handleCollectionUpdate = () => {
-      queryClient.invalidateQueries({ queryKey: ['collection', user?.id] });
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    const unsubscribe = onCollectionUpdate(handleCollectionUpdate);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      unsubscribe();
-    };
-  }, [queryClient, user?.id]);
+  // Collection data via useCollection hook
+  const { collection, isLoading: loading, error } = useCollection();
 
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<StrainSource | "all">("all");
@@ -164,7 +99,7 @@ export default function CollectionPageClient() {
   const [filterCbdMin, setFilterCbdMin] = useState(CBD_RANGE.min);
   const [filterCbdMax, setFilterCbdMax] = useState(CBD_RANGE.max);
 
-  const filteredStrains = useMemo(() => strains.filter(s => {
+  const filteredStrains = useMemo(() => collection.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
 
     let matchesSource = true;
@@ -198,7 +133,7 @@ export default function CollectionPageClient() {
     const matchesCbd = strainCbd >= filterCbdMin && strainCbd <= filterCbdMax;
 
     return matchesSearch && matchesSource && matchesDate && matchesEffects && matchesThc && matchesCbd;
-  }), [strains, search, sourceFilter, selectedDate, filterEffects, filterThcMin, filterThcMax, filterCbdMin, filterCbdMax, user]);
+  }), [collection, search, sourceFilter, selectedDate, filterEffects, filterThcMin, filterThcMax, filterCbdMin, filterCbdMax, user]);
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
@@ -231,7 +166,7 @@ export default function CollectionPageClient() {
           </div>
           <div className="text-right">
             <p className="text-[10px] text-[var(--muted-foreground)] uppercase font-semibold tracking-wider">Anzahl</p>
-            <p className="text-2xl font-black text-[#2FF801] neon-text-green font-display">{strains.length}</p>
+            <p className="text-2xl font-black text-[#2FF801] neon-text-green font-display">{collection.length}</p>
           </div>
         </div>
 
