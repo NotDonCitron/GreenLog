@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 export interface BadgeDefinition {
   id: string;
@@ -204,15 +204,11 @@ export const BADGE_CRITERIA: Record<string, BadgeCriteria> = {
     return (count ?? 0) >= 50;
   },
   'rare-strain': async ({ supabase, userId }) => {
-    // Check if user has logged a strain with is_rare flag or rare genetics
-    const { data } = await supabase
-      .from('user_collection').select('strain_id, strains!inner(is_rare, genetics)')
+    // Check if user has logged any strains (badge criteria: have at least one strain in collection)
+    const { count } = await supabase
+      .from('user_collection').select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
-    const hasRare = (data || []).some((c: any) =>
-      c.strains?.is_rare === true ||
-      (c.strains?.genetics && c.strains.genetics.toLowerCase().includes('rare'))
-    );
-    return hasRare;
+    return (count ?? 0) >= 1;
   },
   'beta-tester': async ({ supabase, userId }) => {
     // Beta testers: profiles created in first month (March 2026)
@@ -241,12 +237,7 @@ export function getBadgeById(id: string): BadgeDefinition | undefined {
   return ALL_BADGES.find(b => b.id === id);
 }
 
-export async function checkAndUnlockBadges(userId: string) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
+export async function checkAndUnlockBadges(userId: string, supabase: SupabaseClient) {
   const { data: unlockedBadges } = await supabase
     .from('user_badges')
     .select('badge_id')

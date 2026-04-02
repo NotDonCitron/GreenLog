@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense, useCallback, lazy, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BottomNav } from "@/components/bottom-nav";
 import { Search, CalendarDays, Loader2, AlertCircle, X, Filter, Plus, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -132,6 +132,18 @@ export default function CollectionPageClient() {
   });
 
   const strains = rawCollection || [];
+
+  // Re-fetch collection when page becomes visible (e.g., after navigating back)
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        queryClient.invalidateQueries({ queryKey: ['collection', user?.id] });
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [queryClient, user?.id]);
 
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<StrainSource | "all">("all");

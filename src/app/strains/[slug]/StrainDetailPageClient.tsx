@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
@@ -30,6 +31,7 @@ export default function StrainDetailPageClient() {
   const { slug } = useParams();
   const { user, isDemoMode, activeOrganization } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [strain, setStrain] = useState<Strain & { organization?: { id: string; name: string; slug: string; organization_type: string } } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -254,7 +256,8 @@ export default function StrainDetailPageClient() {
       if (collectionError) throw collectionError;
 
       setHasCollected(true);
-      await checkAndUnlockBadges(user.id);
+      await checkAndUnlockBadges(user.id, supabase);
+      queryClient.invalidateQueries({ queryKey: ['collection', user.id] });
       alert("Foto hochgeladen!");
     } catch (error: unknown) {
       alert("Error: " + getErrorMessage(error, "Foto konnte nicht hochgeladen werden."));
@@ -340,7 +343,7 @@ export default function StrainDetailPageClient() {
       }
 
       if (nextState) {
-        await checkAndUnlockBadges(user.id);
+        await checkAndUnlockBadges(user.id, supabase);
       }
     } catch (err) {
       console.error("Fav error:", err);
@@ -378,8 +381,9 @@ export default function StrainDetailPageClient() {
       if (collectionError) throw collectionError;
 
       setHasCollected(true);
-      await checkAndUnlockBadges(user.id);
+      await checkAndUnlockBadges(user.id, supabase);
       setShowRatingModal(false);
+      queryClient.invalidateQueries({ queryKey: ['collection', user.id] });
       router.refresh();
     } catch (error: unknown) {
       alert("Error: " + getErrorMessage(error, "Bewertung konnte nicht gespeichert werden."));
@@ -442,10 +446,6 @@ export default function StrainDetailPageClient() {
               {isAdminUploading ? <Loader2 size={20} className="animate-spin" /> : <Upload size={20} />}
               <input type="file" className="hidden" accept="image/*" onChange={handleAdminImageUpload} disabled={isAdminUploading} />
             </label>
-          )}
-          {/* DEBUG: Remove after testing */}
-          {user && !isAppAdmin(user.id) && (
-            <span className="text-[10px] text-red-400 ml-2">[User: {user.id.slice(0,8)}... | Admins env may be empty or not matching]</span>
           )}
           <button onClick={toggleFavorite} className={`p-2 rounded-full border transition-all ${isFavorited ? 'bg-red-500/20 border-red-500/40 text-red-500' : 'bg-[var(--card)] border-[var(--border)]/50 text-[var(--muted-foreground)] hover:border-red-500/50'}`}>
             <Heart size={20} fill={isFavorited ? "currentColor" : "none"} />
