@@ -9,6 +9,7 @@ import { Search, Loader2, AlertCircle, Plus, Camera, SlidersHorizontal, Scale, X
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Strain, StrainSource } from "@/lib/types";
+import { onCollectionUpdate } from "@/lib/collection-events";
 const CreateStrainModal = lazy(() => import("@/components/strains/create-strain-modal").then(m => ({ default: m.CreateStrainModal })));
 import { StrainCard } from "@/components/strains/strain-card";
 const FilterPanel = lazy(() => import("@/components/strains/filter-panel").then(m => ({ default: m.FilterPanel })));
@@ -269,7 +270,7 @@ function StrainsPageContent() {
     fetchData();
   }, [user, isDemoMode, sourceOverridesReady, activeTab]);
 
-  // Re-fetch collection count when page becomes visible again (e.g., after navigating back)
+  // Re-fetch collection count when page becomes visible again OR when collection update event fires
   useEffect(() => {
     if (!user || !sourceOverridesReady) return;
 
@@ -289,8 +290,25 @@ function StrainsPageContent() {
       }
     };
 
+    const handleCollectionUpdate = () => {
+      Promise.all([
+        supabase.from("user_collection").select("strain_id").eq("user_id", user.id),
+        supabase.from("ratings").select("strain_id").eq("user_id", user.id)
+      ]).then(([collectionRes, ratingsRes]) => {
+        const collectedIds = new Set([
+          ...(collectionRes.data?.map(c => c.strain_id) || []),
+          ...(ratingsRes.data?.map(r => r.strain_id) || [])
+        ]);
+        setUserCollection(Array.from(collectedIds));
+      }).catch(() => {});
+    };
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    const unsubscribe = onCollectionUpdate(handleCollectionUpdate);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      unsubscribe();
+    };
   }, [user, sourceOverridesReady]);
 
   const filteredStrains = strains.filter((s) => {
