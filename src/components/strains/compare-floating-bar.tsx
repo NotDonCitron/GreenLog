@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Scale, X } from "lucide-react";
-import { MAX_COMPARE_STRAINS } from "@/lib/constants";
-
 export function CompareFloatingBar() {
   const searchParams = useSearchParams();
   const router = useRouter();
