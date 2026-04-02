@@ -15,6 +15,25 @@ export const EFFECT_OPTIONS = [
   { label: "Klar", value: "Clear" },
 ] as const;
 
+export const FLAVOR_OPTIONS = [
+  { label: "Süß", value: "Sweet" },
+  { label: "Sauer", value: "Sour" },
+  { label: "Zitrus", value: "Citrus" },
+  { label: "Tropisch", value: "Tropical" },
+  { label: "Beerig", value: "Berry" },
+  { label: "Käse", value: "Cheese" },
+  { label: "Erdig", value: "Earthy" },
+  { label: "Kräuter", value: "Herbal" },
+  { label: "Pine", value: "Pine" },
+  { label: "Scharf", value: "Spicy" },
+  { label: "Nussig", value: "Nutty" },
+  { label: "Moosig", value: "Musky" },
+  { label: "Blumig", value: "Floral" },
+  { label: "Zitronig", value: "Lemon" },
+  { label: "Orangig", value: "Orange" },
+  { label: "Minzig", value: "Minty" },
+] as const;
+
 export const THC_RANGE = { min: 0, max: 35 };
 export const CBD_RANGE = { min: 0, max: 25 };
 export const MAX_COMPARE_STRAINS = 3;

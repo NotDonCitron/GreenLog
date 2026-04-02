@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RangeSlider } from "./range-slider";
-import { EFFECT_OPTIONS, THC_RANGE, CBD_RANGE } from "@/lib/constants";
+import { EFFECT_OPTIONS, FLAVOR_OPTIONS, THC_RANGE, CBD_RANGE } from "@/lib/constants";
 
 interface FilterPanelProps {
   open: boolean;
@@ -24,20 +24,33 @@ export function FilterPanel({ open, onOpenChange }: FilterPanelProps) {
   const initialThcMax = Number(searchParams.get("thc_max") || THC_RANGE.max);
   const initialCbdMin = Number(searchParams.get("cbd_min") || CBD_RANGE.min);
   const initialCbdMax = Number(searchParams.get("cbd_max") || CBD_RANGE.max);
+  const initialFlavors = searchParams.get("flavors")?.split(",").filter(Boolean) || [];
 
   const [selectedEffects, setSelectedEffects] = useState<string[]>(initialEffects);
   const [thcRange, setThcRange] = useState<[number, number]>([initialThcMin, initialThcMax]);
   const [cbdRange, setCbdRange] = useState<[number, number]>([initialCbdMin, initialCbdMax]);
   const [effectSearch, setEffectSearch] = useState("");
+  const [selectedFlavors, setSelectedFlavors] = useState<string[]>(initialFlavors);
+  const [flavorSearch, setFlavorSearch] = useState("");
 
   // Filter by German label for display
   const filteredEffects = EFFECT_OPTIONS.filter((opt) =>
     opt.label.toLowerCase().includes(effectSearch.toLowerCase())
   );
 
+  const filteredFlavors = FLAVOR_OPTIONS.filter((opt) =>
+    opt.label.toLowerCase().includes(flavorSearch.toLowerCase())
+  );
+
   const toggleEffect = (value: string) => {
     setSelectedEffects((prev) =>
       prev.includes(value) ? prev.filter((e) => e !== value) : [...prev, value]
+    );
+  };
+
+  const toggleFlavor = (value: string) => {
+    setSelectedFlavors((prev) =>
+      prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]
     );
   };
 
@@ -48,6 +61,7 @@ export function FilterPanel({ open, onOpenChange }: FilterPanelProps) {
     if (thcRange[1] !== THC_RANGE.max) params.set("thc_max", thcRange[1].toString());
     if (cbdRange[0] !== CBD_RANGE.min) params.set("cbd_min", cbdRange[0].toString());
     if (cbdRange[1] !== CBD_RANGE.max) params.set("cbd_max", cbdRange[1].toString());
+    if (selectedFlavors.length > 0) params.set("flavors", selectedFlavors.join(","));
     const queryString = params.toString();
     router.push(`/strains${queryString ? `?${queryString}` : ""}`, { scroll: false });
     onOpenChange(false);
@@ -58,6 +72,8 @@ export function FilterPanel({ open, onOpenChange }: FilterPanelProps) {
     setThcRange([THC_RANGE.min, THC_RANGE.max]);
     setCbdRange([CBD_RANGE.min, CBD_RANGE.max]);
     setEffectSearch("");
+    setSelectedFlavors([]);
+    setFlavorSearch("");
   };
 
   return (
@@ -134,6 +150,32 @@ export function FilterPanel({ open, onOpenChange }: FilterPanelProps) {
             onChange={(v) => setCbdRange(v)}
             formatLabel={(v) => `${v}%`}
           />
+        </div>
+
+        {/* Flavors */}
+        <div className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Geschmack</h3>
+          <Input
+            placeholder="Filter..."
+            value={flavorSearch}
+            onChange={(e) => setFlavorSearch(e.target.value)}
+            className="h-9 text-sm"
+          />
+          <div className="grid grid-cols-2 gap-2">
+            {filteredFlavors.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => toggleFlavor(opt.value)}
+                className={`py-2 px-3 rounded-lg text-xs font-medium border transition-all text-left ${
+                  selectedFlavors.includes(opt.value)
+                    ? "bg-[#00F5FF] border-[#00F5FF] text-black"
+                    : "bg-[var(--card)] border-[var(--border)] text-[var(--foreground)]/70 hover:border-[#00F5FF]/50"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Actions */}
