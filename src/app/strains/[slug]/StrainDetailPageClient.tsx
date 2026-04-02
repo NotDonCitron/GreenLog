@@ -256,7 +256,8 @@ export default function StrainDetailPageClient() {
       if (collectionError) throw collectionError;
 
       setHasCollected(true);
-      await checkAndUnlockBadges(user.id, supabase);
+      // Fire and forget badge check - don't block UI
+      checkAndUnlockBadges(user.id, supabase).catch(() => {});
       queryClient.invalidateQueries({ queryKey: ['collection', user.id] });
       alert("Foto hochgeladen!");
     } catch (error: unknown) {
@@ -381,10 +382,17 @@ export default function StrainDetailPageClient() {
       if (collectionError) throw collectionError;
 
       setHasCollected(true);
-      await checkAndUnlockBadges(user.id, supabase);
+      // Fire and forget badge check - don't block UI update
+      checkAndUnlockBadges(user.id, supabase).catch(() => {});
       setShowRatingModal(false);
-      queryClient.invalidateQueries({ queryKey: ['collection', user.id] });
-      router.refresh();
+      // Invalidate React Query cache to refresh collection counters
+      try {
+        queryClient.invalidateQueries({ queryKey: ['collection', user.id] });
+      } catch (e) { /* ignore */ }
+      // Refresh Next.js router to update page data
+      try {
+        router.refresh();
+      } catch (e) { /* ignore */ }
     } catch (error: unknown) {
       alert("Error: " + getErrorMessage(error, "Bewertung konnte nicht gespeichert werden."));
     } finally {

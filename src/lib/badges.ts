@@ -263,7 +263,7 @@ export async function checkAndUnlockBadges(userId: string, supabase: SupabaseCli
         }
       }
     } catch (err) {
-      console.error(`Error checking badge ${badge.id}:`, err);
+      // Silent fail - badge check should not block collection
     }
   }
 
