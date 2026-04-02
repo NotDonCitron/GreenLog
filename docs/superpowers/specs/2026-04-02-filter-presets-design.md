@@ -2,7 +2,9 @@
 
 ## Overview
 
-Private benannte Filter-Presets für die Strains-Suche. User kann aktuelle Filter (Effects, THC, CBD) als Preset speichern, auflisten, anwenden und löschen.
+Private benannte Filter-Presets für die Strains-Suche. User kann aktuelle Filter (Effects, **Flavors**, THC, CBD) als Preset speichern, auflisten, anwenden und löschen.
+
+**Enthält auch die neue Flavor-Filter-Sektion im Filter-Panel** (bisher nur Effects/THC/CBD).
 
 ---
 
@@ -13,7 +15,7 @@ Private benannte Filter-Presets für die Strains-Suche. User kann aktuelle Filte
 3. Klickt auf "Preset-Leiste" → expandiert
 4. Klickt "+ Aktuelles speichern" → gibt Namen ein → Preset gespeichert
 5. Preset-Liste zeigt alle eigenen Presets
-6. Klick auf Preset → URL + Filter werden sofort angewendet, Panel bleibt offen
+6. Klick auf Preset → URL + Filter (effects, flavors, thc, cbd) werden sofort angewendet, Panel bleibt offen
 7. Löschen via X-Button neben Preset
 
 ---
@@ -28,6 +30,7 @@ Private benannte Filter-Presets für die Strains-Suche. User kann aktuelle Filte
 | `user_id` | uuid | Owner (references profiles.id) |
 | `name` | text | Anzeigename (max 50 chars) |
 | `effects` | text[] | Array von Effect-Slugs |
+| `flavors` | text[] | Array von Flavor-Slugs |
 | `thc_min` | numeric | THC Minimum |
 | `thc_max` | numeric | THC Maximum |
 | `cbd_min` | numeric | CBD Minimum |
@@ -53,6 +56,10 @@ Im FilterPanel (`src/components/strains/filter-panel.tsx`):
 │  THC: [======] 5-25%       │
 │  CBD: [==] 0-5%            │
 ├─────────────────────────────┤
+│  Flavors: [Suche...]        │
+│  [☑]Süß [☑]Sauer]         │
+│  ...                        │
+├─────────────────────────────┤
 │  ▼ Gespeicherte Presets    │  ← Collapsible Header
 │    [Mein Sativa] [X]       │
 │    [Heavy Indica] [X]       │
@@ -73,7 +80,7 @@ Im FilterPanel (`src/components/strains/filter-panel.tsx`):
 **"Aktuelles speichern" Button:**
 - Öffnet inline Input + Save/Cancel
 - Input für Preset-Name (max 50 Zeichen)
-- Speichert current Filter-Werte (effects, thc_min/max, cbd_min/max)
+- Speichert current Filter-Werte (effects, flavors, thc_min/max, cbd_min/max)
 - Button ist disabled wenn alle Filter auf Default stehen
 
 ---
@@ -101,8 +108,9 @@ Löscht Preset wenn Owner.
 - **Kein User (Demo Mode):** Presets deaktiviert, Button nicht sichtbar
 - **Leerer Name:** Validation Error, nicht speichern
 - **Name > 50 Zeichen:** Abschneiden
-- **Filter auf Default:** "Speichern" Button disabled
+- **Filter auf Default (effects + flavors + thc + cbd):** "Speichern" Button disabled
 - **Löschen:** Kein Confirm, direkt DELETE
+- **Flavor-Optionen:** Dynamisch aus allen vorhandenen `strain.flavors` in der DB ermitteln (oder harte Liste wie Effects)
 
 ---
 
@@ -110,8 +118,9 @@ Löscht Preset wenn Owner.
 
 1. **DB:** Migration für `filter_presets` Tabelle + RLS Policies
 2. **API:** 3 Route Handler (POST, GET, DELETE)
-3. **FilterPanel:** Collapsible Preset-Leiste + "+ Speichern" UI
-4. **Apply on Click:** Preset → URL updaten + FilterPanel mit Werten füllen
+3. **FilterPanel:** Flavor-Sektion hinzufügen + Collapsible Preset-Leiste + "+ Speichern" UI
+4. **URL Sync:** Flavor-Filter in URL-Param (`flavors`) lesen/schreiben
+5. **Apply on Click:** Preset → URL updaten + FilterPanel mit Werten füllen
 
 ---
 
@@ -119,10 +128,11 @@ Löscht Preset wenn Owner.
 
 | File | Action |
 |------|--------|
-| `supabase/schema.sql` | Migration für filter_presets |
+| `supabase/migrations/` | Migration für filter_presets + RLS |
 | `src/app/api/filter-presets/route.ts` | GET + POST |
 | `src/app/api/filter-presets/[id]/route.ts` | DELETE |
-| `src/components/strains/filter-panel.tsx` | Preset-Leiste einbauen |
+| `src/components/strains/filter-panel.tsx` | Flavor-Sektion + Preset-Leiste |
+| `src/app/strains/page.tsx` | Flavor-URL-Params lesen/schreiben |
 
 ## Untested
 
