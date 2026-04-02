@@ -42,7 +42,7 @@ function TabParamReader({
 function FilterParamReader({
   onFiltersReady,
 }: {
-  onFiltersReady: (effects: string[], thcMin: number, thcMax: number, cbdMin: number, cbdMax: number) => void;
+  onFiltersReady: (effects: string[], thcMin: number, thcMax: number, cbdMin: number, cbdMax: number, flavors: string[]) => void;
 }) {
   const searchParams = useSearchParams();
 
@@ -52,7 +52,8 @@ function FilterParamReader({
     const thcMax = Number(searchParams.get("thc_max") || THC_RANGE.max);
     const cbdMin = Number(searchParams.get("cbd_min") || CBD_RANGE.min);
     const cbdMax = Number(searchParams.get("cbd_max") || CBD_RANGE.max);
-    onFiltersReady(effects, thcMin, thcMax, cbdMin, cbdMax);
+    const flavors = searchParams.get("flavors")?.split(",").filter(Boolean) || [];
+    onFiltersReady(effects, thcMin, thcMax, cbdMin, cbdMax, flavors);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams.toString()]);
 
@@ -113,6 +114,7 @@ function StrainsPageContent() {
   const [filterThcMax, setFilterThcMax] = useState(THC_RANGE.max);
   const [filterCbdMin, setFilterCbdMin] = useState(CBD_RANGE.min);
   const [filterCbdMax, setFilterCbdMax] = useState(CBD_RANGE.max);
+  const [filterFlavors, setFilterFlavors] = useState<string[]>([]);
   const searchParams = useSearchParams();
   const compareSlugs = (searchParams.get("compare")?.split(",").filter(Boolean) || []);
 
@@ -141,12 +143,13 @@ function StrainsPageContent() {
     void router.push(`?${params.toString()}`, { scroll: false });
   }, [searchParams, router]);
 
-  const handleFiltersReady = useCallback((effects: string[], thcMin: number, thcMax: number, cbdMin: number, cbdMax: number) => {
+  const handleFiltersReady = useCallback((effects: string[], thcMin: number, thcMax: number, cbdMin: number, cbdMax: number, flavors: string[]) => {
     setFilterEffects(effects);
     setFilterThcMin(thcMin);
     setFilterThcMax(thcMax);
     setFilterCbdMin(cbdMin);
     setFilterCbdMax(cbdMax);
+    setFilterFlavors(flavors);
   }, []);
 
   const persistSourceOverride = (strainId: string, strainSource: StrainSource) => {
@@ -317,7 +320,16 @@ function StrainsPageContent() {
     const matchesCbd =
       strainCbd >= filterCbdMin && strainCbd <= filterCbdMax;
 
-    return matchesSearch && matchesFilter && matchesEffects && matchesThc && matchesCbd;
+    // Flavor filter: strain must have ALL selected flavors
+    const matchesFlavors =
+      filterFlavors.length === 0 ||
+      filterFlavors.every((ff) =>
+        (s.flavors || []).some(
+          (sf) => sf.toLowerCase() === ff.toLowerCase()
+        )
+      );
+
+    return matchesSearch && matchesFilter && matchesEffects && matchesThc && matchesCbd && matchesFlavors;
   });
 
   return (
