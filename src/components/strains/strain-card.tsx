@@ -1,11 +1,8 @@
-"use client";
-
 import { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Strain } from '@/lib/types';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay } from '@/lib/strain-display';
-import { CompareButton } from "./compare-button";
 
 interface StrainCardProps {
   strain: Strain;
@@ -102,10 +99,6 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
         >
           {strain.type === 'sativa' ? 'Sativa' : strain.type === 'indica' ? 'Indica' : 'Hybride'}
         </div>
-      </div>
-      {/* Compare toggle button */}
-      <div className="absolute top-2 left-2 z-30">
-        <CompareButton strain={strain} />
       </div>
       {isCollected && (
         <div className="absolute bottom-14 right-2 z-20 flex items-center gap-1 px-1.5 py-0.5 rounded-full backdrop-blur-md border border-[#00F5FF]/30"

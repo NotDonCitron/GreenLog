@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2, AlertCircle, Plus, Camera, SlidersHorizontal } from "lucide-react";
+import { Search, Loader2, AlertCircle, Plus, Camera, SlidersHorizontal, Scale, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Strain, StrainSource } from "@/lib/types";
@@ -13,8 +13,7 @@ const CreateStrainModal = lazy(() => import("@/components/strains/create-strain-
 import { StrainCard } from "@/components/strains/strain-card";
 const FilterPanel = lazy(() => import("@/components/strains/filter-panel").then(m => ({ default: m.FilterPanel })));
 import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";
-import { THC_RANGE, CBD_RANGE } from "@/lib/constants";
-import { CompareFloatingBar } from "@/components/strains/compare-floating-bar";
+import { THC_RANGE, CBD_RANGE, MAX_COMPARE_STRAINS } from "@/lib/constants";
 
 const SOURCE_OVERRIDE_STORAGE_KEY = "greenlog:strain-source-overrides";
 
@@ -78,6 +77,33 @@ export default function StrainsPage() {
   const [filterThcMax, setFilterThcMax] = useState(THC_RANGE.max);
   const [filterCbdMin, setFilterCbdMin] = useState(CBD_RANGE.min);
   const [filterCbdMax, setFilterCbdMax] = useState(CBD_RANGE.max);
+  const searchParams = useSearchParams();
+  const compareSlugs = (searchParams.get("compare")?.split(",").filter(Boolean) || []);
+
+  const toggleCompare = useCallback((slug: string) => {
+    const current = compareSlugs;
+    let next: string[];
+    if (current.includes(slug)) {
+      next = current.filter(s => s !== slug);
+    } else if (current.length < MAX_COMPARE_STRAINS) {
+      next = [...current, slug];
+    } else {
+      return;
+    }
+    const params = new URLSearchParams(searchParams.toString());
+    if (next.length === 0) {
+      params.delete("compare");
+    } else {
+      params.set("compare", next.join(","));
+    }
+    void router.push(`?${params.toString()}`, { scroll: false });
+  }, [compareSlugs, searchParams, router]);
+
+  const clearCompare = useCallback(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("compare");
+    void router.push(`?${params.toString()}`, { scroll: false });
+  }, [searchParams, router]);
 
   const handleFiltersReady = useCallback((effects: string[], thcMin: number, thcMax: number, cbdMin: number, cbdMax: number) => {
     setFilterEffects(effects);
@@ -406,13 +432,50 @@ export default function StrainsPage() {
           <div className="grid grid-cols-2 gap-6">
             {filteredStrains.map((strain, i) => {
               const isCollected = userCollection.includes(strain.id);
+              const isSelected = compareSlugs.includes(strain.slug);
               return (
-                <StrainCard key={strain.id} strain={strain} index={i} isCollected={isCollected} />
+                <div
+                  key={strain.id}
+                  className="relative"
+                  onContextMenu={(e) => { e.preventDefault(); void toggleCompare(strain.slug); }}
+                  onClick={() => { if (isSelected) void toggleCompare(strain.slug); }}
+                  title={isSelected ? "Aus Vergleich entfernen (Rechtsklick)" : "Zum Vergleich (Rechtsklick)"}
+                >
+                  <StrainCard strain={strain} index={i} isCollected={isCollected} />
+                  {isSelected && (
+                    <div className="absolute top-2 right-2 z-30 w-6 h-6 bg-[#2FF801] rounded-full flex items-center justify-center shadow-lg">
+                      <Scale size={12} className="text-black" />
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
         )}
       </div>
+
+      {compareSlugs.length >= 2 && (
+        <div className="fixed bottom-24 right-6 z-50">
+          <div className="bg-[#121212] border border-[#2FF801]/30 rounded-2xl p-3 shadow-lg shadow-[#2FF801]/10 backdrop-blur-md mb-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Scale size={14} className="text-[#2FF801]" />
+              <span className="text-xs font-bold text-white">
+                {compareSlugs.length} Strain{compareSlugs.length > 1 ? "s" : ""} gewählt
+              </span>
+              <button onClick={clearCompare} className="ml-1 p-0.5 rounded text-white/40 hover:text-white/70 transition-colors">
+                <X size={12} />
+              </button>
+            </div>
+            <Link
+              href={`/strains/compare?slugs=${compareSlugs.join(",")}`}
+              className="block w-full px-3 py-2 rounded-xl text-[10px] font-bold bg-gradient-to-r from-[#2FF801] to-[#2fe000] text-black hover:opacity-90 transition-all flex items-center justify-center gap-1"
+            >
+              <Scale size={10} />
+              Vergleichen
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="fixed bottom-24 right-6 z-50 flex flex-col gap-4">
         <Link href="/scanner">
@@ -432,10 +495,6 @@ export default function StrainsPage() {
 
       <Suspense fallback={null}>
         <FilterPanel open={filterPanelOpen} onOpenChange={setFilterPanelOpen} />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <CompareFloatingBar />
       </Suspense>
 
       <BottomNav />

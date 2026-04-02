@@ -2,7 +2,7 @@
 
 import { Scale } from "lucide-react";
 import { Strain } from "@/lib/types";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { MAX_COMPARE_STRAINS } from "@/lib/constants";
 
@@ -12,10 +12,10 @@ interface CompareButtonProps {
 
 export function CompareButton({ strain }: CompareButtonProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const compareSlugs = searchParams.get("compare")?.split(",").filter(Boolean) || [];
   const isSelected = compareSlugs.includes(strain.slug);
-  const canAdd = compareSlugs.length < MAX_COMPARE_STRAINS;
 
   const toggleCompare = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -39,9 +39,8 @@ export function CompareButton({ strain }: CompareButtonProps) {
       params.set("compare", next.join(","));
     }
 
-    window.history.pushState(null, "", `?${params.toString()}`);
-    window.dispatchEvent(new CustomEvent("comparechange"));
-  }, [strain.slug, isSelected, searchParams]);
+    router.push(`?${params.toString()}`, { scroll: false });
+  }, [strain.slug, isSelected, searchParams, router]);
 
   return (
     <button
