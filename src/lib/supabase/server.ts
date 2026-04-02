@@ -6,8 +6,6 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 export async function createServerSupabaseClient(): Promise<SupabaseClient> {
     const cookieStore = await cookies();
-
-    // Get the Supabase auth cookies
     const accessToken = cookieStore.get("sb-access-token")?.value;
     const refreshToken = cookieStore.get("sb-refresh-token")?.value;
 
@@ -19,7 +17,6 @@ export async function createServerSupabaseClient(): Promise<SupabaseClient> {
         },
     };
 
-    // If we have tokens, pass them via cookie header
     if (accessToken) {
         options.global = {
             headers: {

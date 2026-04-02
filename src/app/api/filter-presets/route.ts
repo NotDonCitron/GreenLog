@@ -1,18 +1,14 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { jsonSuccess, jsonError } from "@/lib/api-response";
+import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 
-export async function GET() {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+export async function GET(request: Request) {
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (auth instanceof Response) return auth;
 
-  if (!user) {
-    return jsonError("Unauthorized", 401);
-  }
-
-  const { data, error } = await supabase
+  const { data, error } = await auth.supabase
     .from("filter_presets")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", auth.user.id)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -23,12 +19,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return jsonError("Unauthorized", 401);
-  }
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (auth instanceof Response) return auth;
 
   let body: unknown;
   try {
@@ -53,10 +45,10 @@ export async function POST(request: Request) {
 
   const trimmedName = name.trim().slice(0, 50);
 
-  const { data, error } = await supabase
+  const { data, error } = await auth.supabase
     .from("filter_presets")
     .insert({
-      user_id: user.id,
+      user_id: auth.user.id,
       name: trimmedName,
       effects: effects || [],
       flavors: flavors || [],

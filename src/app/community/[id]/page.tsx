@@ -190,7 +190,7 @@ export default function CommunityDetailPage() {
             <StatCard
               icon={Leaf}
               value={stats.strainCount}
-              label="Sorten"
+              label="Strains"
               color="text-[#2FF801]"
             />
             <div className="w-px h-12 bg-[#484849]/50" />

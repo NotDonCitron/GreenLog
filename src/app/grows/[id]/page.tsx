@@ -136,7 +136,7 @@ export default function GrowDetailPage() {
             if (error) throw error;
             setGrow({ ...grow, title: editTitle, status: editStatus });
             setIsEditing(false);
-            await checkAndUnlockBadges(user.id);
+            await checkAndUnlockBadges(user.id, supabase);
             router.refresh();
         } catch (err) {
             console.error("Error updating grow:", err);

@@ -74,6 +74,15 @@ export async function POST(request: Request) {
             target: { id: strain.id, name: strain.name },
             metadata: { type: strain.type, thc_max: strain.thc_max },
         }).catch(err => console.error('Activity write failed:', err));
+
+        // Also write to community_feed for the organization page
+        const { error: feedError } = await supabase.from('community_feed').insert({
+            organization_id: strain.organization_id,
+            user_id: user.id,
+            event_type: 'strain_created',
+            reference_id: strain.id,
+        });
+        if (feedError) console.error('Community feed write failed:', feedError);
     }
 
     return jsonSuccess({ strain }, 201);

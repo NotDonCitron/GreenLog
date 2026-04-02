@@ -103,7 +103,7 @@ export default function NewGrowPage() {
 
       if (insertError) throw insertError;
 
-      await checkAndUnlockBadges(user.id);
+      await checkAndUnlockBadges(user.id, supabase);
       setSuccess(true);
       setTimeout(() => {
         router.push("/grows");

@@ -30,14 +30,17 @@ interface FeedItem {
   } | null;
 }
 
-interface FeedResponse {
-  feed: FeedItem[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+interface FeedApiResponse {
+  data: {
+    feed: FeedItem[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  } | null;
+  error: { message: string } | null;
 }
 
 interface CommunityFeedProps {
@@ -351,8 +354,8 @@ export function CommunityFeed({ organizationId, refreshKey = 0, isAdminOrGründe
         const res = await fetch(`/api/communities/${organizationId}/feed`);
 
         if (res.ok) {
-          const data: FeedResponse = await res.json();
-          setFeed(data.feed || []);
+          const data: FeedApiResponse = await res.json();
+          setFeed(data.data?.feed || []);
         } else {
           setError("Feed konnte nicht geladen werden.");
         }

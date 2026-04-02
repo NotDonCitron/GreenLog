@@ -500,6 +500,16 @@ export function CreateStrainModal({ strain, onSuccess, trigger, organizationId }
 
             const resultData = await saveStrain(basePayload);
 
+            // Write to community_feed for organization strains
+            if (organizationId) {
+                await supabase.from("community_feed").insert({
+                    organization_id: organizationId,
+                    user_id: user.id,
+                    event_type: "strain_created",
+                    reference_id: resultData.id,
+                });
+            }
+
             // Save source & metadata to user_collection (upsert by composite unique key)
             const collectionPayload = {
                 user_id: user.id,

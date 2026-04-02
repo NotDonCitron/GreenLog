@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import type { OrganizationMembership } from "@/lib/types";
@@ -95,6 +96,7 @@ async function fetchMembershipsForUser(userId: string): Promise<OrganizationMemb
 }
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -231,6 +233,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (typeof window !== "undefined") {
       localStorage.removeItem(ACTIVE_ORG_STORAGE_KEY);
     }
+    router.push("/login");
   };
 
   const activeOrganization = useMemo(

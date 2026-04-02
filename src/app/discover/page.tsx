@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Loader2, Search, UserPlus, Building2 } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { SuggestedUsers } from "@/components/social/suggested-users";
+import { FollowButton } from "@/components/social/follow-button";
 import { useAuth } from "@/components/auth-provider";
 import { supabase } from "@/lib/supabase";
 import type { ProfileRow } from "@/lib/types";
@@ -26,6 +27,7 @@ export default function DiscoverPage() {
     const [friends, setFriends] = useState<FriendProfile[]>([]);
     const [communities, setCommunities] = useState<Community[]>([]);
     const [browseUsers, setBrowseUsers] = useState<ProfileRow[]>([]);
+    const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
     const [isLoading, setIsLoading] = useState(false);
     const [activeTab, setActiveTab] = useState<"friends" | "browse">("friends");
     const [friendFilter, setFriendFilter] = useState<"friends" | "communities" | null>(null);
@@ -44,6 +46,9 @@ export default function DiscoverPage() {
                     .from("follows")
                     .select("following_id")
                     .eq("follower_id", user.id);
+
+                const followedIds = new Set(follows?.map(f => f.following_id) ?? []);
+                setFollowingIds(followedIds);
 
                 if (follows && follows.length > 0) {
                     const friendIds = follows.map(f => f.following_id);
@@ -357,8 +362,8 @@ export default function DiscoverPage() {
                                     );
                                 })
                                 .map((profile) => (
-                                    <Link key={profile.id} href={`/user/${profile.username}`}>
-                                        <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-4 flex flex-col items-center text-center gap-3 hover:border-[#00F5FF]/50 transition-all">
+                                    <div key={profile.id} className="bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-4 flex flex-col items-center text-center gap-3 hover:border-[#00F5FF]/50 transition-all">
+                                        <Link href={`/user/${profile.username}`} className="flex flex-col items-center gap-2">
                                             <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--border)] bg-[var(--muted)] flex items-center justify-center">
                                                 {profile.avatar_url ? (
                                                     <img src={profile.avatar_url} className="w-full h-full object-cover" />
@@ -370,8 +375,29 @@ export default function DiscoverPage() {
                                                 <p className="text-xs font-bold text-[var(--foreground)] uppercase truncate max-w-[120px] font-display">{profile.display_name || profile.username}</p>
                                                 <p className="text-[9px] text-[var(--muted-foreground)]">@{profile.username}</p>
                                             </div>
-                                        </div>
-                                    </Link>
+                                        </Link>
+                                        <FollowButton
+                                            userId={profile.id}
+                                            size="sm"
+                                            className="text-xs px-3 py-1"
+                                            initialStatus={{
+                                                is_following: followingIds.has(profile.id),
+                                                is_following_me: false,
+                                                has_pending_request: false,
+                                            }}
+                                            onFollowChange={() => {
+                                                setFollowingIds(prev => {
+                                                    const next = new Set(prev);
+                                                    if (next.has(profile.id)) {
+                                                        next.delete(profile.id);
+                                                    } else {
+                                                        next.add(profile.id);
+                                                    }
+                                                    return next;
+                                                });
+                                            }}
+                                        />
+                                    </div>
                                 ))}
                         </div>
                     </div>

@@ -167,31 +167,30 @@ gründer, admin, member, viewer
 
 ### 1. Real-Time Collaboration Dashboard (Organizations)
 
-**Ziel:** Organization-Admins sehen live was im Team passiert.
+**Bereits implementiert:**
+- Activity Feed (`/settings/organization/activities`) mit Events: strain_added/updated/removed, member_joined/removed, role_changed, invite_sent/accepted/revoked
+- API: `/api/organizations/[id]/activities` (polling-basiert)
 
-**Komponenten:**
-- Supabase Realtime Channel für Organization-Events
+**Noch offen:**
+- Supabase Realtime Channel für echte Echtzeit-Updates (WebSocket)
 - "Wer ist online" Member-List
-- Live-Updates bei neuen Ratings/Strains in der Organization
-- Notification bei neuen Organization-Members
+- Live-Notification bei neuen Organization-Members
 
-**API Routes:**
+**API Routes (geplant):**
 - `/api/organizations/[id]/realtime/connect` – WebSocket upgrade
 - `/api/organizations/[id]/presence` – Online Status
 
 ### 2. Advanced Analytics Dashboard (Organizations)
 
-**Ziel:** Insights für Clubs und Apotheken über ihre Mitglieder.
+**Bereits implementiert:**
+- Analytics Page (`/settings/organization/analytics`)
+- Top Strains mit Ratings, Favoriten-Zahl, Sorten-Typ
+- Activity Heatmap (Tag × Stunde)
+- CSV Export
 
-**Komponenten:**
-- beliebteste Strains in der Organization
-- Durchschnittliche Ratings pro Strain
-- Member-Activity-Heatmap
-- CSV/PDF Export
-
-**API Routes:**
+**API Routes (implementiert):**
 - `/api/organizations/[id]/analytics/strains` – Strain-Ranking
-- `/api/organizations/[id]/analytics/activity` – Activity Stats
+- `/api/organizations/[id]/analytics/activity` – Activity Heatmap Data
 - `/api/organizations/[id]/analytics/export` – CSV Export
 
 ---

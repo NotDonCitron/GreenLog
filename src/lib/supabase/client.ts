@@ -65,7 +65,12 @@ export const supabase = new Proxy({} as SupabaseClient, {
 
 // Helper to create an authenticated client with access token
 export function getAuthenticatedClient(accessToken: string): SupabaseClient {
-    return createClient(supabaseUrl, supabaseAnonKey, {
+    const key = supabaseAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+    const url = supabaseUrl || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    if (!key) {
+        throw new Error(`Supabase anon key is missing! URL=${url}, KEY=${JSON.stringify(key)}, ENV=${JSON.stringify(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)}`);
+    }
+    return createClient(url, key, {
         auth: {
             persistSession: false,
             autoRefreshToken: false,

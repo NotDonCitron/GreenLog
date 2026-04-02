@@ -1,20 +1,16 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { jsonSuccess, jsonError } from "@/lib/api-response";
+import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
 export async function DELETE(request: Request, { params }: RouteParams) {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return jsonError("Unauthorized", 401);
-  }
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (auth instanceof Response) return auth;
 
   const { id } = await params;
 
   // Check if preset exists and user is the owner
-  const { data: preset, error: fetchError } = await supabase
+  const { data: preset, error: fetchError } = await auth.supabase
     .from("filter_presets")
     .select("user_id")
     .eq("id", id)
@@ -24,11 +20,11 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     return jsonError("Preset not found", 404);
   }
 
-  if (preset.user_id !== user.id) {
+  if (preset.user_id !== auth.user.id) {
     return jsonError("Forbidden", 403);
   }
 
-  const { error: deleteError } = await supabase
+  const { error: deleteError } = await auth.supabase
     .from("filter_presets")
     .delete()
     .eq("id", id);

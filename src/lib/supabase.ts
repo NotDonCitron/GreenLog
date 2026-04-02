@@ -7,14 +7,26 @@ declare global {
     var __greenlogSupabase__: SupabaseClient | undefined;
 }
 
-function createSupabaseSingleton(): SupabaseClient {
-    return createClient(supabaseUrl, supabaseAnonKey);
+// Lazy initialization - client is only created when first accessed
+// This prevents issues during SSR / Vercel build when env vars aren't yet inlined
+let lazyClient: SupabaseClient | null = null;
+
+function getClient(): SupabaseClient {
+    if (lazyClient) return lazyClient;
+    lazyClient = createClient(supabaseUrl, supabaseAnonKey);
+    return lazyClient;
 }
 
-export const supabase =
-    typeof window === "undefined"
-        ? createSupabaseSingleton()
-        : (globalThis.__greenlogSupabase__ ??= createSupabaseSingleton());
+// Proxy-based lazy client - all property accesses forward to the real client
+// This allows `supabase.from(...)` to work without triggering client creation at import time
+export const supabase = new Proxy({} as SupabaseClient, {
+    get(_target, prop) {
+        return getClient()[prop as keyof SupabaseClient];
+    },
+    has(_target, prop) {
+        return prop in getClient();
+    },
+});
 
 // Helper to create an authenticated client with access token
 export function getAuthenticatedClient(accessToken: string): SupabaseClient {
