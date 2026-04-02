@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { X, SlidersHorizontal } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RangeSlider } from "./range-slider";
-import { EFFECT_OPTIONS, THC_RANGE, CBD_RANGE } from "@/lib/constants";
+import { EFFECT_OPTIONS, FLAVOR_OPTIONS, THC_RANGE, CBD_RANGE } from "@/lib/constants";
+import { useAuth } from "@/components/auth-provider";
 
 interface FilterPanelProps {
   open: boolean;
@@ -17,6 +18,7 @@ interface FilterPanelProps {
 export function FilterPanel({ open, onOpenChange }: FilterPanelProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
 
   // URL params store English values for DB matching
   const initialEffects = searchParams.get("effects")?.split(",").filter(Boolean) || [];
@@ -24,20 +26,54 @@ export function FilterPanel({ open, onOpenChange }: FilterPanelProps) {
   const initialThcMax = Number(searchParams.get("thc_max") || THC_RANGE.max);
   const initialCbdMin = Number(searchParams.get("cbd_min") || CBD_RANGE.min);
   const initialCbdMax = Number(searchParams.get("cbd_max") || CBD_RANGE.max);
+  const initialFlavors = searchParams.get("flavors")?.split(",").filter(Boolean) || [];
 
   const [selectedEffects, setSelectedEffects] = useState<string[]>(initialEffects);
   const [thcRange, setThcRange] = useState<[number, number]>([initialThcMin, initialThcMax]);
   const [cbdRange, setCbdRange] = useState<[number, number]>([initialCbdMin, initialCbdMax]);
   const [effectSearch, setEffectSearch] = useState("");
+  const [selectedFlavors, setSelectedFlavors] = useState<string[]>(initialFlavors);
+  const [flavorSearch, setFlavorSearch] = useState("");
+
+  // Preset state
+  const [presets, setPresets] = useState<Array<{
+    id: string; name: string; effects: string[]; flavors: string[];
+    thc_min: number; thc_max: number; cbd_min: number; cbd_max: number;
+  }>>([]);
+  const [presetsExpanded, setPresetsExpanded] = useState(false);
+  const [savingPreset, setSavingPreset] = useState(false);
+  const [newPresetName, setNewPresetName] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    async function loadPresets() {
+      const res = await fetch("/api/filter-presets");
+      if (res.ok) {
+        const json = await res.json();
+        setPresets(json.data || []);
+      }
+    }
+    void loadPresets();
+  }, [open]);
 
   // Filter by German label for display
   const filteredEffects = EFFECT_OPTIONS.filter((opt) =>
     opt.label.toLowerCase().includes(effectSearch.toLowerCase())
   );
 
+  const filteredFlavors = FLAVOR_OPTIONS.filter((opt) =>
+    opt.label.toLowerCase().includes(flavorSearch.toLowerCase())
+  );
+
   const toggleEffect = (value: string) => {
     setSelectedEffects((prev) =>
       prev.includes(value) ? prev.filter((e) => e !== value) : [...prev, value]
+    );
+  };
+
+  const toggleFlavor = (value: string) => {
+    setSelectedFlavors((prev) =>
+      prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]
     );
   };
 
@@ -48,6 +84,7 @@ export function FilterPanel({ open, onOpenChange }: FilterPanelProps) {
     if (thcRange[1] !== THC_RANGE.max) params.set("thc_max", thcRange[1].toString());
     if (cbdRange[0] !== CBD_RANGE.min) params.set("cbd_min", cbdRange[0].toString());
     if (cbdRange[1] !== CBD_RANGE.max) params.set("cbd_max", cbdRange[1].toString());
+    if (selectedFlavors.length > 0) params.set("flavors", selectedFlavors.join(","));
     const queryString = params.toString();
     router.push(`/strains${queryString ? `?${queryString}` : ""}`, { scroll: false });
     onOpenChange(false);
@@ -58,6 +95,8 @@ export function FilterPanel({ open, onOpenChange }: FilterPanelProps) {
     setThcRange([THC_RANGE.min, THC_RANGE.max]);
     setCbdRange([CBD_RANGE.min, CBD_RANGE.max]);
     setEffectSearch("");
+    setSelectedFlavors([]);
+    setFlavorSearch("");
   };
 
   return (
@@ -135,6 +174,190 @@ export function FilterPanel({ open, onOpenChange }: FilterPanelProps) {
             formatLabel={(v) => `${v}%`}
           />
         </div>
+
+        {/* Flavors */}
+        <div className="space-y-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Geschmack</h3>
+          <Input
+            placeholder="Filter..."
+            value={flavorSearch}
+            onChange={(e) => setFlavorSearch(e.target.value)}
+            className="h-9 text-sm"
+          />
+          <div className="grid grid-cols-2 gap-2">
+            {filteredFlavors.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => toggleFlavor(opt.value)}
+                className={`py-2 px-3 rounded-lg text-xs font-medium border transition-all text-left ${
+                  selectedFlavors.includes(opt.value)
+                    ? "bg-[#00F5FF] border-[#00F5FF] text-black"
+                    : "bg-[var(--card)] border-[var(--border)] text-[var(--foreground)]/70 hover:border-[#00F5FF]/50"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Preset-Leiste */}
+        {user && (
+          <div className="border-t border-[var(--border)] pt-4">
+            <button
+              onClick={() => setPresetsExpanded(!presetsExpanded)}
+              className="flex items-center justify-between w-full text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] hover:text-[var(--foreground)] mb-2"
+            >
+              <span>Gespeicherte Presets</span>
+              <span>{presetsExpanded ? "▲" : "▼"}</span>
+            </button>
+
+            {presetsExpanded && (
+              <div className="space-y-2">
+                {presets.length === 0 && (
+                  <p className="text-[10px] text-[var(--muted-foreground)] italic">Noch keine Presets</p>
+                )}
+                {presets.map((preset) => (
+                  <div key={preset.id} className="flex items-center gap-1">
+                    <button
+                      onClick={() => {
+                        setSelectedEffects(preset.effects);
+                        setSelectedFlavors(preset.flavors);
+                        setThcRange([preset.thc_min, preset.thc_max]);
+                        setCbdRange([preset.cbd_min, preset.cbd_max]);
+                        // Apply filters to URL without closing panel
+                        const params = new URLSearchParams();
+                        if (preset.effects.length > 0) params.set("effects", preset.effects.join(","));
+                        if (preset.thc_min !== THC_RANGE.min) params.set("thc_min", preset.thc_min.toString());
+                        if (preset.thc_max !== THC_RANGE.max) params.set("thc_max", preset.thc_max.toString());
+                        if (preset.cbd_min !== CBD_RANGE.min) params.set("cbd_min", preset.cbd_min.toString());
+                        if (preset.cbd_max !== CBD_RANGE.max) params.set("cbd_max", preset.cbd_max.toString());
+                        if (preset.flavors.length > 0) params.set("flavors", preset.flavors.join(","));
+                        const queryString = params.toString();
+                        router.push(`/strains${queryString ? `?${queryString}` : ""}`, { scroll: false });
+                      }}
+                      className="flex-1 text-left px-2 py-1.5 rounded-lg text-xs font-medium bg-[var(--card)] border border-[var(--border)] hover:border-[#2FF801]/50 transition-all truncate"
+                    >
+                      {preset.name}
+                    </button>
+                    <button
+                      onClick={async () => {
+                        const res = await fetch(`/api/filter-presets/${preset.id}`, { method: "DELETE" });
+                        if (res.ok) {
+                          setPresets(presets.filter(p => p.id !== preset.id));
+                        }
+                      }}
+                      className="p-1 text-white/30 hover:text-red-400 transition-colors"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+
+                {!savingPreset ? (
+                  <>
+                  {(() => {
+                    const hasActiveFilters =
+                      selectedEffects.length > 0 ||
+                      selectedFlavors.length > 0 ||
+                      thcRange[0] !== THC_RANGE.min ||
+                      thcRange[1] !== THC_RANGE.max ||
+                      cbdRange[0] !== CBD_RANGE.min ||
+                      cbdRange[1] !== CBD_RANGE.max;
+                    return (
+                    <button
+                      onClick={() => hasActiveFilters && setSavingPreset(true)}
+                      disabled={!hasActiveFilters}
+                      className={`w-full py-1.5 px-2 rounded-lg text-[10px] font-bold border border-dashed transition-all ${
+                        hasActiveFilters
+                          ? "border-[#333] text-[#484849] hover:border-[#2FF801]/50 hover:text-[#2FF801]"
+                          : "border-[#333] text-[#484849]/30 cursor-not-allowed opacity-50"
+                      }`}
+                    >
+                      + Aktuelles speichern
+                    </button>
+                    );
+                  })()}
+                  </>
+                ) : (
+                  <div className="flex gap-1">
+                    <Input
+                      value={newPresetName}
+                      onChange={(e) => setNewPresetName(e.target.value.slice(0, 50))}
+                      placeholder="Preset-Name..."
+                      className="flex-1 h-8 text-xs"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && newPresetName.trim()) {
+                          // save preset
+                          const save = async () => {
+                            const res = await fetch("/api/filter-presets", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                name: newPresetName.trim(),
+                                effects: selectedEffects,
+                                flavors: selectedFlavors,
+                                thc_min: thcRange[0],
+                                thc_max: thcRange[1],
+                                cbd_min: cbdRange[0],
+                                cbd_max: cbdRange[1],
+                              }),
+                            });
+                            if (res.ok) {
+                              const json = await res.json();
+                              setPresets([json.data, ...presets]);
+                            }
+                            setSavingPreset(false);
+                            setNewPresetName("");
+                          };
+                          void save();
+                        }
+                        if (e.key === "Escape") { setSavingPreset(false); setNewPresetName(""); }
+                      }}
+                    />
+                    <Button
+                      size="sm"
+                      onClick={async () => {
+                        if (!newPresetName.trim()) return;
+                        const res = await fetch("/api/filter-presets", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            name: newPresetName.trim(),
+                            effects: selectedEffects,
+                            flavors: selectedFlavors,
+                            thc_min: thcRange[0],
+                            thc_max: thcRange[1],
+                            cbd_min: cbdRange[0],
+                            cbd_max: cbdRange[1],
+                          }),
+                        });
+                        if (res.ok) {
+                          const json = await res.json();
+                          setPresets([json.data, ...presets]);
+                        }
+                        setSavingPreset(false);
+                        setNewPresetName("");
+                      }}
+                      className="h-8 px-2 bg-[#2FF801] text-black font-bold text-xs"
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => { setSavingPreset(false); setNewPresetName(""); }}
+                      className="h-8 px-2 text-xs"
+                    >
+                      ✕
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Actions */}
         <div className="mt-auto space-y-2 pt-4 border-t border-[var(--border)]">
