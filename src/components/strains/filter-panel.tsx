@@ -255,12 +255,30 @@ export function FilterPanel({ open, onOpenChange }: FilterPanelProps) {
                 ))}
 
                 {!savingPreset ? (
-                  <button
-                    onClick={() => setSavingPreset(true)}
-                    className="w-full py-1.5 px-2 rounded-lg text-[10px] font-bold border border-dashed border-[#333] text-[#484849] hover:border-[#2FF801]/50 hover:text-[#2FF801] transition-all"
-                  >
-                    + Aktuelles speichern
-                  </button>
+                  <>
+                  {(() => {
+                    const hasActiveFilters =
+                      selectedEffects.length > 0 ||
+                      selectedFlavors.length > 0 ||
+                      thcRange[0] !== THC_RANGE.min ||
+                      thcRange[1] !== THC_RANGE.max ||
+                      cbdRange[0] !== CBD_RANGE.min ||
+                      cbdRange[1] !== CBD_RANGE.max;
+                    return (
+                    <button
+                      onClick={() => hasActiveFilters && setSavingPreset(true)}
+                      disabled={!hasActiveFilters}
+                      className={`w-full py-1.5 px-2 rounded-lg text-[10px] font-bold border border-dashed transition-all ${
+                        hasActiveFilters
+                          ? "border-[#333] text-[#484849] hover:border-[#2FF801]/50 hover:text-[#2FF801]"
+                          : "border-[#333] text-[#484849]/30 cursor-not-allowed opacity-50"
+                      }`}
+                    >
+                      + Aktuelles speichern
+                    </button>
+                    );
+                  })()}
+                  </>
                 ) : (
                   <div className="flex gap-1">
                     <Input
