@@ -17,3 +17,4 @@ export const EFFECT_OPTIONS = [
 
 export const THC_RANGE = { min: 0, max: 35 };
 export const CBD_RANGE = { min: 0, max: 25 };
+export const MAX_COMPARE_STRAINS = 3;
