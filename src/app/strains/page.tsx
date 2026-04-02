@@ -14,6 +14,7 @@ import { StrainCard } from "@/components/strains/strain-card";
 const FilterPanel = lazy(() => import("@/components/strains/filter-panel").then(m => ({ default: m.FilterPanel })));
 import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";
 import { THC_RANGE, CBD_RANGE } from "@/lib/constants";
+import { CompareFloatingBar } from "@/components/strains/compare-floating-bar";
 
 const SOURCE_OVERRIDE_STORAGE_KEY = "greenlog:strain-source-overrides";
 
@@ -432,6 +433,8 @@ export default function StrainsPage() {
       <Suspense fallback={null}>
         <FilterPanel open={filterPanelOpen} onOpenChange={setFilterPanelOpen} />
       </Suspense>
+
+      <CompareFloatingBar />
 
       <BottomNav />
     </main>
