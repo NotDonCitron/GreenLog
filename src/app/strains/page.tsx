@@ -60,6 +60,42 @@ function FilterParamReader({
 }
 
 export default function StrainsPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
+          <div className="fixed inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[80px] rounded-full" />
+          </div>
+          <div className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50 px-6 pt-12 pb-4">
+            <div className="flex justify-between items-end mb-5">
+              <div>
+                <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">Strains</h1>
+              </div>
+            </div>
+          </div>
+          <div className="p-6 relative z-10">
+            <div className="grid grid-cols-2 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="aspect-[3/4.5] rounded-3xl bg-[var(--card)] border border-[var(--border)]/50 animate-pulse flex flex-col p-4 gap-4">
+                  <div className="w-2/3 h-6 bg-[var(--muted)] rounded-lg" />
+                  <div className="w-full flex-1 bg-[var(--muted)] rounded-xl" />
+                  <div className="w-full h-12 bg-[var(--muted)] rounded-xl mt-auto" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <BottomNav />
+        </main>
+      }
+    >
+      <StrainsPageContent />
+    </Suspense>
+  );
+}
+
+function StrainsPageContent() {
   const { user, isDemoMode, activeOrganization } = useAuth();
   const router = useRouter();
   const [strains, setStrains] = useState<Strain[]>([]);
