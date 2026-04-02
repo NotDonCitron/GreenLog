@@ -434,7 +434,9 @@ export default function StrainsPage() {
         <FilterPanel open={filterPanelOpen} onOpenChange={setFilterPanelOpen} />
       </Suspense>
 
-      <CompareFloatingBar />
+      <Suspense fallback={null}>
+        <CompareFloatingBar />
+      </Suspense>
 
       <BottomNav />
     </main>
