@@ -5,15 +5,17 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
-import { 
-  ChevronLeft, 
-  Mail, 
-  Trash2, 
-  AlertTriangle, 
-  Loader2, 
+import {
+  ChevronLeft,
+  Mail,
+  Trash2,
+  AlertTriangle,
+  Loader2,
   CheckCircle2,
   Lock,
-  UserRound
+  UserRound,
+  Download,
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,18 +35,37 @@ export default function SettingsPage() {
   useEffect(() => {
     async function getProfile() {
       if (!user) return;
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('display_name, username')
         .eq('id', user.id)
         .single();
-      
+
       if (data) {
         setDisplayName(data.display_name || "");
         setUsername(data.username || "");
       }
     }
+    async function getConsents() {
+      if (!user) return;
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      if (!token) return;
+      try {
+        const res = await fetch('/api/gdpr/consent', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const json = await res.json();
+        if (json.data) {
+          const map: Record<string, { granted: boolean | null }> = {};
+          json.data.forEach((c: { consent_type: string; granted: boolean | null }) => {
+            map[c.consent_type] = { granted: c.granted };
+          });
+          setConsents(map);
+        }
+      } catch {}
+    }
     getProfile();
+    getConsents();
   }, [user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -71,8 +92,8 @@ export default function SettingsPage() {
       }
       
       setProfileStatus({ type: 'success', msg: "Profil erfolgreich aktualisiert." });
-    } catch (err: any) {
-      setProfileStatus({ type: 'error', msg: err.message });
+    } catch (err: unknown) {
+      setProfileStatus({ type: 'error', msg: err instanceof Error ? err instanceof Error ? err.message : String(err) : String(err) });
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -85,6 +106,14 @@ export default function SettingsPage() {
   const [isResetting, setIsResetting] = useState(false);
   const [confirmReset, setConfirmReset] = useState("");
   const [resetStatus, setResetStatus] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
+
+  // Data Export
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportStatus, setExportStatus] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
+
+  // Consent state
+  const [consents, setConsents] = useState<Record<string, { granted: boolean | null }>>({});
+  const [isUpdatingConsent, setIsUpdatingConsent] = useState(false);
 
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,8 +153,8 @@ export default function SettingsPage() {
         msg: `Anfrage für ${emailToSubmit} gesendet! Checke dein Gmail-Postfach.` 
       });
       setNewEmail("");
-    } catch (err: any) {
-      setEmailStatus({ type: 'error', msg: `${err.message}` });
+    } catch (err: unknown) {
+      setEmailStatus({ type: 'error', msg: `${err instanceof Error ? err.message : String(err)}` });
     } finally {
       setIsUpdatingEmail(false);
     }
@@ -133,51 +162,119 @@ export default function SettingsPage() {
 
   const handleResetAccount = async () => {
     if (confirmReset !== "LÖSCHEN" || isDemoMode) return;
-    
+
     setIsResetting(true);
     setResetStatus(null);
-    
-    try {
-      // 1. Delete all user data
-      const userId = user?.id;
-      if (!userId) throw new Error("Nicht eingeloggt");
 
-      // Wir löschen alle verknüpften Daten (Tabellen mit user_id)
-      const tables = ['user_collection', 'user_strain_relations', 'ratings', 'user_activities', 'user_badges', 'follows', 'follow_requests', 'grows'];
-      
-      for (const table of tables) {
-        // Bei follows und follow_requests müssen wir ggf. beide Spalten prüfen
-        if (table === 'follows') {
-            await supabase.from(table).delete().eq('follower_id', userId);
-            await supabase.from(table).delete().eq('following_id', userId);
-        } else if (table === 'follow_requests') {
-            await supabase.from(table).delete().eq('requester_id', userId);
-            await supabase.from(table).delete().eq('target_id', userId);
-        } else {
-            await supabase.from(table).delete().eq('user_id', userId);
-        }
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      if (!token) throw new Error("Nicht eingeloggt");
+
+      // Use GDPR deletion API (handles club memberships correctly)
+      const res = await fetch('/api/gdpr/delete', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json.error?.message || "Löschung fehlgeschlagen");
       }
 
-      // Profile löschen (optional, aber konsequent)
-      await supabase.from('profiles').delete().eq('id', userId);
+      setResetStatus({
+        type: 'success',
+        msg: json.data.has_active_memberships
+          ? "Account wurde anonymisiert. Club-Daten bleiben aus rechtlichen Gründen erhalten."
+          : "Account und alle Daten wurden vollständig gelöscht.",
+      });
 
-      setResetStatus({ type: 'success', msg: "Account-Daten wurden erfolgreich zurückgesetzt." });
-      
       // Nach kurzem Delay ausloggen
       setTimeout(async () => {
         await signOut();
         router.push("/login");
-      }, 2000);
+      }, 3000);
 
-    } catch (err: any) {
-      setResetStatus({ type: 'error', msg: err.message });
+    } catch (err: unknown) {
+      setResetStatus({ type: 'error', msg: err instanceof Error ? err.message : String(err) });
       setIsResetting(false);
     }
   };
 
+  const handleExportData = async () => {
+    if (isDemoMode) return;
+
+    setIsExporting(true);
+    setExportStatus(null);
+
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      if (!token) throw new Error("Nicht eingeloggt");
+
+      const res = await fetch('/api/gdpr/export', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error?.message || "Export fehlgeschlagen");
+      }
+
+      const json = await res.json();
+
+      // Download as JSON file
+      const blob = new Blob([JSON.stringify(json.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `greenlog-data-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      setExportStatus({ type: 'success', msg: "Daten wurden heruntergeladen." });
+    } catch (err: unknown) {
+      setExportStatus({ type: 'error', msg: err instanceof Error ? err.message : String(err) });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleUpdateConsent = async (consentType: string, granted: boolean) => {
+    if (isDemoMode) return;
+    setIsUpdatingConsent(true);
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      if (!token) return;
+      await fetch('/api/gdpr/consent', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ consent_type: consentType, granted }),
+      });
+      setConsents(prev => ({ ...prev, [consentType]: { granted } }));
+    } finally {
+      setIsUpdatingConsent(false);
+    }
+  };
+
   if (!user && !isDemoMode) {
-    router.push("/login");
-    return null;
+    return (
+      <main className="min-h-screen bg-white text-black pb-32 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <p className="text-sm text-black/60">Du musst eingeloggt sein.</p>
+          <Button onClick={() => router.push("/login")} className="bg-[#2FF801] text-black font-black">
+            Zum Login
+          </Button>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -297,8 +394,87 @@ export default function SettingsPage() {
           </div>
           <Card className="bg-[#1e3a24] border-black/10 p-6 rounded-[2rem]">
              <p className="text-xs text-black/60 leading-relaxed">
-               Um dein Passwort zu ändern, logge dich aus und nutze die "Passwort vergessen" Funktion im Login-Terminal.
+               Um dein Passwort zu ändern, logge dich aus und nutze die &ldquo;Passwort vergessen&rdquo; Funktion im Login-Terminal.
              </p>
+          </Card>
+        </section>
+
+        {/* Datenschutz & Consent */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 px-1">
+            <Shield size={16} className="text-[#2FF801]" />
+            <h2 className="text-xs font-black uppercase tracking-widest">Datenschutz</h2>
+          </div>
+
+          <Card className="bg-[#1e3a24] border-black/10 p-6 rounded-[2rem] space-y-4">
+            <p className="text-xs text-black/60 leading-relaxed">
+              Verwalte hier deine Einwilligungen gemäß DSGVO.
+            </p>
+
+            {[
+              { key: 'privacy_policy', label: 'Datenschutzerklärung', required: true },
+              { key: 'terms_of_service', label: 'Nutzungsbedingungen', required: true },
+              { key: 'health_data_processing', label: 'Verarbeitung von Gesundheitsdaten', required: false },
+              { key: 'marketing_emails', label: 'Marketing-E-Mails', required: false },
+              { key: 'analytics', label: 'Analyse-Cookies', required: false },
+            ].map(({ key, label, required }) => {
+              // Required consents are implicitly granted at signup (null = true for required)
+              const isGranted = required ? (consents[key]?.granted ?? true) : consents[key]?.granted ?? false;
+              return (
+              <div key={key} className="flex items-center justify-between py-2 border-b border-black/5 last:border-0">
+                <div>
+                  <p className="text-xs font-bold text-black/80">{label}</p>
+                  {required && <p className="text-[10px] text-black/40">Erforderlich</p>}
+                </div>
+                <button
+                  onClick={() => handleUpdateConsent(key, !isGranted)}
+                  disabled={isDemoMode || required || isUpdatingConsent}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${
+                    isGranted ? 'bg-[#2FF801]' : 'bg-black/20'
+                  } ${(required || isUpdatingConsent) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                >
+                  <span
+                    className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                      isGranted ? 'left-7' : 'left-1'
+                    }`}
+                  />
+                </button>
+              </div>
+              );
+            })}
+          </Card>
+        </section>
+
+        {/* Datenexport */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 px-1">
+            <Download size={16} className="text-[#00F5FF]" />
+            <h2 className="text-xs font-black uppercase tracking-widest">Meine Daten</h2>
+          </div>
+
+          <Card className="bg-[#1e3a24] border-black/10 p-6 rounded-[2rem] space-y-4">
+            <div className="space-y-2">
+              <p className="text-xs text-black/60 leading-relaxed">
+                Du kannst alle deine Daten als JSON-Datei exportieren (Art. 20 DSGVO).
+              </p>
+            </div>
+
+            {exportStatus && (
+              <div className={`p-3 rounded-xl flex items-start gap-2 text-xs font-bold border ${
+                exportStatus.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'
+              }`}>
+                <span>{exportStatus.msg}</span>
+              </div>
+            )}
+
+            <Button
+              onClick={handleExportData}
+              disabled={isExporting || isDemoMode}
+              className="w-full h-12 bg-[#00F5FF] text-black font-black uppercase tracking-widest rounded-xl"
+            >
+              {isExporting ? <Loader2 className="animate-spin" size={18} /> : "Daten herunterladen"}
+            </Button>
+            {isDemoMode && <p className="text-[8px] text-center text-black/20 italic">Im Demo-Modus deaktiviert</p>}
           </Card>
         </section>
 
@@ -313,13 +489,13 @@ export default function SettingsPage() {
             <div className="space-y-2">
               <h3 className="text-sm font-black uppercase text-red-500">Daten zurücksetzen</h3>
               <p className="text-xs text-black/40 leading-relaxed">
-                Dies löscht unwiderruflich alle deine gesammelten Strains, Grows, Badges und dein Profil. Diese Aktion kann nicht rückgängig gemacht werden.
+                Dies löscht unwiderruflich alle deine Daten gemäß Art. 17 DSGVO. Bei aktiver Club-Mitgliedschaft werden Daten aus rechtlichen Gründen anonymisiert statt gelöscht.
               </p>
             </div>
 
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-red-500/60 uppercase tracking-widest ml-1">Tippe "LÖSCHEN" zur Bestätigung</Label>
+                <Label className="text-[10px] font-bold text-red-500/60 uppercase tracking-widest ml-1">Tippe L&Ouml;SCHEN zur Best&auml;tigung</Label>
                 <Input 
                   value={confirmReset}
                   onChange={(e) => setConfirmReset(e.target.value)}
