@@ -12,7 +12,7 @@ import { Strain } from "@/lib/types";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeCollectionSource, normalizeTerpeneList } from "@/lib/strain-display";
 import { checkAndUnlockBadges } from "@/lib/badges";
-import { emitCollectionUpdate } from "@/lib/collection-events";
+import { useCollection } from "@/hooks/useCollection";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message) {
@@ -33,6 +33,7 @@ export default function StrainDetailPageClient() {
   const { user, isDemoMode, activeOrganization } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { toggleCollect } = useCollection();
 
   const [strain, setStrain] = useState<Strain & { organization?: { id: string; name: string; slug: string; organization_type: string } } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -383,15 +384,7 @@ export default function StrainDetailPageClient() {
       if (collectionError) throw collectionError;
 
       setHasCollected(true);
-      // Fire and forget badge check - don't block UI update
-      checkAndUnlockBadges(user.id, supabase).catch(() => {});
-      setShowRatingModal(false);
-      // Emit event to refresh other pages
-      emitCollectionUpdate();
-      // Invalidate React Query cache to refresh collection counters
-      try {
-        queryClient.invalidateQueries({ queryKey: ['collection', user.id] });
-      } catch (e) { /* ignore */ }
+      await toggleCollect(strain.id, { batchInfo, userNotes });
       // Refresh Next.js router to update page data
       try {
         router.refresh();
