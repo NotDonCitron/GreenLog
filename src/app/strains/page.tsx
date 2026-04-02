@@ -9,7 +9,7 @@ import { Search, Loader2, AlertCircle, Plus, Camera, SlidersHorizontal, Scale, X
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Strain, StrainSource } from "@/lib/types";
-import { onCollectionUpdate } from "@/lib/collection-events";
+import { useCollectionIds } from "@/hooks/useCollectionIds";
 const CreateStrainModal = lazy(() => import("@/components/strains/create-strain-modal").then(m => ({ default: m.CreateStrainModal })));
 import { StrainCard } from "@/components/strains/strain-card";
 const FilterPanel = lazy(() => import("@/components/strains/filter-panel").then(m => ({ default: m.FilterPanel })));
@@ -73,7 +73,6 @@ function StrainsPageContent() {
   const { user, isDemoMode, activeOrganization } = useAuth();
   const router = useRouter();
   const [strains, setStrains] = useState<Strain[]>([]);
-  const [userCollection, setUserCollection] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<StrainSource | "all" | "mine">("all");
@@ -90,6 +89,7 @@ function StrainsPageContent() {
   const [filterFlavors, setFilterFlavors] = useState<string[]>([]);
   const searchParams = useSearchParams();
   const compareSlugs = (searchParams.get("compare")?.split(",").filter(Boolean) || []);
+  const { collectedIds } = useCollectionIds();
 
   const toggleCompare = useCallback((slug: string) => {
     const current = compareSlugs;
@@ -242,23 +242,6 @@ function StrainsPageContent() {
           setStrains(normalizedStrains as Strain[]);
         }
 
-        if (user) {
-          const [collectionRes, ratingsRes] = await Promise.all([
-            supabase.from("user_collection").select("strain_id").eq("user_id", user.id),
-            supabase.from("ratings").select("strain_id").eq("user_id", user.id)
-          ]);
-
-          const collectedIds = new Set([
-            ...(collectionRes.data?.map(c => c.strain_id) || []),
-            ...(ratingsRes.data?.map(r => r.strain_id) || [])
-          ]);
-
-          setUserCollection(Array.from(collectedIds));
-        }
-
-        if (isDemoMode && allStrains) {
-          setUserCollection(allStrains.slice(0, 3).map((s) => s.id));
-        }
       } catch (err: unknown) {
         console.error("Fetch error:", err);
         setError(err instanceof Error ? err.message : "Failed to load database content.");
@@ -269,47 +252,6 @@ function StrainsPageContent() {
 
     fetchData();
   }, [user, isDemoMode, sourceOverridesReady, activeTab]);
-
-  // Re-fetch collection count when page becomes visible again OR when collection update event fires
-  useEffect(() => {
-    if (!user || !sourceOverridesReady) return;
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        // Re-fetch collection + ratings only
-        Promise.all([
-          supabase.from("user_collection").select("strain_id").eq("user_id", user.id),
-          supabase.from("ratings").select("strain_id").eq("user_id", user.id)
-        ]).then(([collectionRes, ratingsRes]) => {
-          const collectedIds = new Set([
-            ...(collectionRes.data?.map(c => c.strain_id) || []),
-            ...(ratingsRes.data?.map(r => r.strain_id) || [])
-          ]);
-          setUserCollection(Array.from(collectedIds));
-        }).catch(() => {});
-      }
-    };
-
-    const handleCollectionUpdate = () => {
-      Promise.all([
-        supabase.from("user_collection").select("strain_id").eq("user_id", user.id),
-        supabase.from("ratings").select("strain_id").eq("user_id", user.id)
-      ]).then(([collectionRes, ratingsRes]) => {
-        const collectedIds = new Set([
-          ...(collectionRes.data?.map(c => c.strain_id) || []),
-          ...(ratingsRes.data?.map(r => r.strain_id) || [])
-        ]);
-        setUserCollection(Array.from(collectedIds));
-      }).catch(() => {});
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    const unsubscribe = onCollectionUpdate(handleCollectionUpdate);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      unsubscribe();
-    };
-  }, [user, sourceOverridesReady]);
 
   const filteredStrains = strains.filter((s) => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
@@ -371,7 +313,7 @@ function StrainsPageContent() {
           </div>
           <div className="text-right">
             <p className="text-[10px] text-[var(--muted-foreground)] uppercase font-bold tracking-wider">Progress</p>
-            <p className="text-xl font-black text-[#2FF801] neon-text-green font-display">{userCollection.length} / {strains.length || 20}</p>
+            <p className="text-xl font-black text-[#2FF801] neon-text-green font-display">{collectedIds.length} / {strains.length || 20}</p>
           </div>
         </div>
 
@@ -493,7 +435,7 @@ function StrainsPageContent() {
         ) : (
           <div className="grid grid-cols-2 gap-6">
             {filteredStrains.map((strain, i) => {
-              const isCollected = userCollection.includes(strain.id);
+              const isCollected = collectedIds.includes(strain.id);
               const isSelected = compareSlugs.includes(strain.slug);
               return (
                 <div
