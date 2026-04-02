@@ -11,6 +11,7 @@ import { Strain, StrainSource } from "@/lib/types";
 import { StrainCard } from "@/components/strains/strain-card";
 import { Calendar } from "@/components/ui/calendar";
 import { normalizeCollectionSource } from "@/lib/strain-display";
+import { onCollectionUpdate } from "@/lib/collection-events";
 const FilterPanel = lazy(() => import("@/components/strains/filter-panel").then(m => ({ default: m.FilterPanel })));
 import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -133,7 +134,7 @@ export default function CollectionPageClient() {
 
   const strains = rawCollection || [];
 
-  // Re-fetch collection when page becomes visible (e.g., after navigating back)
+  // Re-fetch collection when page becomes visible OR when collection update event fires
   const queryClient = useQueryClient();
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -141,8 +142,15 @@ export default function CollectionPageClient() {
         queryClient.invalidateQueries({ queryKey: ['collection', user?.id] });
       }
     };
+    const handleCollectionUpdate = () => {
+      queryClient.invalidateQueries({ queryKey: ['collection', user?.id] });
+    };
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    const unsubscribe = onCollectionUpdate(handleCollectionUpdate);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      unsubscribe();
+    };
   }, [queryClient, user?.id]);
 
   const [search, setSearch] = useState("");

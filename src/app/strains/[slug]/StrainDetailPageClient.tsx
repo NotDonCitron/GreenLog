@@ -12,6 +12,7 @@ import { Strain } from "@/lib/types";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeCollectionSource, normalizeTerpeneList } from "@/lib/strain-display";
 import { checkAndUnlockBadges } from "@/lib/badges";
+import { emitCollectionUpdate } from "@/lib/collection-events";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message) {
@@ -385,6 +386,8 @@ export default function StrainDetailPageClient() {
       // Fire and forget badge check - don't block UI update
       checkAndUnlockBadges(user.id, supabase).catch(() => {});
       setShowRatingModal(false);
+      // Emit event to refresh other pages
+      emitCollectionUpdate();
       // Invalidate React Query cache to refresh collection counters
       try {
         queryClient.invalidateQueries({ queryKey: ['collection', user.id] });
