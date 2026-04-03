@@ -18,6 +18,7 @@ function LoginForm() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [healthDataConsent, setHealthDataConsent] = useState(false);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -63,6 +64,10 @@ function LoginForm() {
       setError("Bitte gib einen Benutzernamen ein.");
       return;
     }
+    if (!healthDataConsent) {
+      setError("Bitte stimme der Verarbeitung deiner Gesundheitsdaten zu.");
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -81,6 +86,13 @@ function LoginForm() {
         username: username.trim().toLowerCase().replace(/\s+/g, "_"),
         display_name: username.trim(),
         has_completed_onboarding: false,
+      });
+
+      // Record health data consent
+      await fetch("/api/gdpr/consent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ consent_type: "health_data_processing", granted: true, version: "1.0" }),
       });
 
       if (data.session === null) {
@@ -122,6 +134,23 @@ function LoginForm() {
                   required={isSignUp}
                 />
               </div>
+            </div>
+          )}
+
+          {isSignUp && (
+            <div className="space-y-2">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={healthDataConsent}
+                  onChange={(e) => setHealthDataConsent(e.target.checked)}
+                  className="mt-1 w-4 h-4 rounded border-[var(--border)] bg-[var(--input)] accent-[#00F5FF]"
+                />
+                <span className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                  Ich stimme zu, dass GreenLog meine medizinischen Cannabis-Daten (Strain-Bewertungen, medizinische Indikationen, Notizen) gemäß Art. 9(2)(a) DSGVO verarbeitet.{" "}
+                  <a href="/datenschutz" target="_blank" className="text-[#00F5FF] underline">Datenschutzerklärung</a>
+                </span>
+              </label>
             </div>
           )}
 
