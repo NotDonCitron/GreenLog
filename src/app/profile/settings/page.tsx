@@ -15,7 +15,8 @@ import {
   Lock,
   UserRound,
   Download,
-  Shield
+  Shield,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,6 +111,9 @@ export default function SettingsPage() {
   // Data Export
   const [isExporting, setIsExporting] = useState(false);
   const [exportStatus, setExportStatus] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
+
+  // Onboarding Reset
+  const [onboardingResetStatus, setOnboardingResetStatus] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
 
   // Consent state
   const [consents, setConsents] = useState<Record<string, { granted: boolean | null }>>({});
@@ -242,6 +246,36 @@ export default function SettingsPage() {
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const [isOnboardingResetting, setIsOnboardingResetting] = useState(false);
+
+  const handleResetOnboarding = async () => {
+    // 1. localStorage zurücksetzen
+    localStorage.removeItem("cannalog_onboarding_completed");
+
+    // 2. DB zurücksetzen (für eingeloggte User)
+    if (user && !isDemoMode) {
+      setIsOnboardingResetting(true);
+      try {
+        const { error } = await supabase
+            .from("profiles")
+            .update({ has_completed_onboarding: false })
+            .eq("id", user.id);
+        if (error) throw error;
+      } catch (err) {
+        setOnboardingResetStatus({ type: "error", msg: "Fehler beim Zurücksetzen." });
+        setIsOnboardingResetting(false);
+        return;
+      }
+      setIsOnboardingResetting(false);
+    }
+
+    // 3. Kurze Bestätigung
+    setOnboardingResetStatus({ type: "success", msg: "Onboarding wurde zurückgesetzt. Es erscheint beim nächsten Seitenbesuch." });
+
+    // 4. Auto-hide status after 3s
+    setTimeout(() => setOnboardingResetStatus(null), 3000);
   };
 
   const handleUpdateConsent = async (consentType: string, granted: boolean) => {
@@ -396,6 +430,37 @@ export default function SettingsPage() {
              <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
                Um dein Passwort zu ändern, logge dich aus und nutze die "Passwort vergessen" Funktion im Login-Terminal.
              </p>
+          </Card>
+        </section>
+
+        {/* Onboarding Test */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 px-1">
+            <Sparkles size={16} className="text-[#00F5FF]" />
+            <h2 className="text-xs font-black uppercase tracking-widest">Onboarding</h2>
+          </div>
+
+          <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-6 rounded-[2rem] space-y-4">
+            <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+              Dein Onboarding wurde bereits abgeschlossen.
+            </p>
+
+            {onboardingResetStatus && (
+              <div className={`p-3 rounded-xl flex items-start gap-2 text-xs font-bold border ${
+                onboardingResetStatus.type === 'success' ? 'bg-[#2FF801]/10 border-[#2FF801]/20 text-[#2FF801]' : 'bg-[#ff716c]/10 border-[#ff716c]/20 text-[#ff716c]'
+              }`}>
+                <span>{onboardingResetStatus.msg}</span>
+              </div>
+            )}
+
+            <Button
+              onClick={handleResetOnboarding}
+              disabled={isOnboardingResetting}
+              className="w-full h-12 bg-[#00F5FF] text-black font-black uppercase tracking-widest rounded-xl"
+            >
+              {isOnboardingResetting ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} className="mr-2" />}
+              {isOnboardingResetting ? "Wird zurückgesetzt..." : "Onboarding erneut starten"}
+            </Button>
           </Card>
         </section>
 
