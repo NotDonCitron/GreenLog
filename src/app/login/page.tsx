@@ -116,7 +116,6 @@ function LoginForm() {
         <div className="w-32 h-32 relative mx-auto mb-4 drop-shadow-2xl">
           <Image src="/logo.png" alt="CannaLog Logo" fill className="object-contain" priority />
         </div>
-        <span className="text-[12px] text-[#00F5FF] tracking-[0.5em] font-bold uppercase">CannaLog</span>
         <h1 className="text-3xl font-black uppercase italic tracking-tight mt-2 font-display">{isSignUp ? "Konto erstellen" : "Willkommen"}</h1>
         <p className="text-[var(--muted-foreground)] mt-2">{isSignUp ? "Wähle deinen Benutzernamen und leg los." : "Deine Reise zur perfekten Sammlung beginnt hier."}</p>
       </div>
@@ -142,25 +141,8 @@ function LoginForm() {
             </div>
           )}
 
-          {isSignUp && (
-            <div className="space-y-2">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={healthDataConsent}
-                  onChange={(e) => setHealthDataConsent(e.target.checked)}
-                  className="mt-1 w-4 h-4 rounded border-[var(--border)] bg-[var(--input)] accent-[#00F5FF]"
-                />
-                <span className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                  Ich stimme zu, dass GreenLog meine medizinischen Cannabis-Daten (Strain-Bewertungen, medizinische Indikationen, Notizen) gemäß Art. 9(2)(a) DSGVO verarbeitet.{" "}
-                  <a href="/datenschutz" target="_blank" className="text-[#00F5FF] underline">Datenschutzerklärung</a>
-                </span>
-              </label>
-            </div>
-          )}
-
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest ml-1 font-mono">Terminal Access: User ID</label>
+            <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest ml-1 font-mono">E-Mail-Adresse</label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 text-[var(--muted-foreground)]" size={18} />
               <Input
@@ -175,7 +157,7 @@ function LoginForm() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest ml-1 font-mono">Terminal Access: Passcode</label>
+            <label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest ml-1 font-mono">Passwort</label>
             <div className="relative">
               <Lock className="absolute left-3 top-3 text-[var(--muted-foreground)]" size={18} />
               <Input
@@ -200,6 +182,23 @@ function LoginForm() {
             <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-2 text-green-500 text-xs">
               <AlertCircle size={14} />
               {success}
+            </div>
+          )}
+
+          {isSignUp && (
+            <div className="space-y-2">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={healthDataConsent}
+                  onChange={(e) => setHealthDataConsent(e.target.checked)}
+                  className="mt-1 w-4 h-4 rounded border-[var(--border)] bg-[var(--input)] accent-[#00F5FF]"
+                />
+                <span className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                  Ich stimme zu, dass GreenLog meine medizinischen Cannabis-Daten (Strain-Bewertungen, medizinische Indikationen, Notizen) gemäß Art. 9(2)(a) DSGVO verarbeitet.{" "}
+                  <a href="/datenschutz" target="_blank" className="text-[#00F5FF] underline">Datenschutzerklärung</a>
+                </span>
+              </label>
             </div>
           )}
 
