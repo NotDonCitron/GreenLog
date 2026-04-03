@@ -243,8 +243,6 @@ function LoginForm() {
           Passwort vergessen?
         </button>
 
-      <p className="text-center text-[10px] text-[var(--muted-foreground)] uppercase tracking-[0.3em]">Authorized Access Only</p>
-
       <ForgotPasswordDialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen} />
     </div>
   );
