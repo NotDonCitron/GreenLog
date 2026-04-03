@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Loader2, LogIn, Mail, Lock, UserPlus, AlertCircle } from "lucide-react";
+import Image from "next/image";
 import { ForgotPasswordDialog } from "@/components/auth/forgot-password-dialog";
 import { AgeGate, useAgeVerified } from "@/components/age-gate";
 
@@ -22,9 +23,13 @@ function LoginForm() {
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const hasInitializedFromURL = useRef(false);
 
   useEffect(() => {
-    if (searchParams.get("signup") === "true") {
+    // Only apply URL param once on mount, not on subsequent searchParams changes
+    if (!hasInitializedFromURL.current && searchParams.get("signup") === "true") {
+      hasInitializedFromURL.current = true;
+      // eslint-disable-next-line -- URL params are external source; initial state from them is intentional
       setIsSignUp(true);
     }
   }, [searchParams]);
@@ -109,7 +114,7 @@ function LoginForm() {
     <div className="w-full max-w-md space-y-8">
       <div className="text-center">
         <div className="w-32 h-32 relative mx-auto mb-4 drop-shadow-2xl">
-          <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
+          <Image src="/logo.png" alt="CannaLog Logo" fill className="object-contain" priority />
         </div>
         <span className="text-[12px] text-[#00F5FF] tracking-[0.5em] font-bold uppercase">CannaLog</span>
         <h1 className="text-3xl font-black uppercase italic tracking-tight mt-2 font-display">{isSignUp ? "Konto erstellen" : "Willkommen"}</h1>
