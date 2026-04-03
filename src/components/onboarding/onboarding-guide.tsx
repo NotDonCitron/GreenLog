@@ -3,15 +3,17 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Image from "next/image";
-import { 
-    ChevronRight, 
-    ChevronLeft, 
-    Sparkles, 
-    Users, 
-    Globe, 
-    User as UserIcon, 
+import {
+    ChevronRight,
+    ChevronLeft,
+    Sparkles,
+    Users,
+    Globe,
+    User as UserIcon,
     Camera,
-    BookMarked
+    BookMarked,
+    Scale,
+    Building
 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
@@ -41,7 +43,7 @@ const ONBOARDING_STEPS: Step[] = [
     },
     {
         title: "World Collection",
-        description: "Die globale Datenbank. Suche nach Sorten und füge sie deiner Sammlung hinzu. Falls du deine Sorte nicht findest, kannst du auch eigene Strains erstellen.",
+        description: "Die globale Datenbank. Nutze Filter Presets für schnelle Suche nach Sorten und füge sie deiner Sammlung hinzu. Eigene Sorten können auch erstellt werden.",
         icon: <Globe size={48} />,
         color: "#fbbf24",
         path: "/strains"
@@ -52,6 +54,13 @@ const ONBOARDING_STEPS: Step[] = [
         icon: <Camera size={48} />,
         color: "#00F5FF",
         path: "/scanner"
+    },
+    {
+        title: "Vergleiche Sorten",
+        description: "Rechtsklick auf jede Sorte für Side-by-Side Vergleich. Bis zu 3 Sorten gleichzeitig analysieren – perfekt um die richtige Sorte zu finden.",
+        icon: <Scale size={48} />,
+        color: "#00F5FF",
+        path: "/strains/compare"
     },
     {
         title: "Deine Sammlung",
@@ -66,6 +75,13 @@ const ONBOARDING_STEPS: Step[] = [
         icon: <UserIcon size={48} />,
         color: "#2FF801",
         path: "/profile"
+    },
+    {
+        title: "Dein Club / Deine Apotheke",
+        description: "Erstelle oder trete Organizationen bei. Ideal für Clubs und Apotheken – teilt eure Sorten und Erfahrungen im Team.",
+        icon: <Building size={48} />,
+        color: "#2FF801",
+        path: "/discover"
     }
 ];
 
