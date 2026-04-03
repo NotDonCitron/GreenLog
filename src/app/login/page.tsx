@@ -195,7 +195,7 @@ function LoginForm() {
                   className="mt-1 w-4 h-4 rounded border-[var(--border)] bg-[var(--input)] accent-[#00F5FF]"
                 />
                 <span className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-                  Ich stimme zu, dass GreenLog meine medizinischen Cannabis-Daten (Strain-Bewertungen, medizinische Indikationen, Notizen) gemäß Art. 9(2)(a) DSGVO verarbeitet.{" "}
+                  Ich stimme zu, dass CannaLOG meine medizinischen Cannabis-Daten (Strain-Bewertungen, medizinische Indikationen, Notizen) gemäß Art. 9(2)(a) DSGVO verarbeitet.{" "}
                   <a href="/datenschutz" target="_blank" className="text-[#00F5FF] underline">Datenschutzerklärung</a>
                 </span>
               </label>
