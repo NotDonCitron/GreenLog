@@ -19,7 +19,7 @@ interface WriteActivityParams {
 /**
  * Writes an activity record to the organization_activities table.
  * Called from API routes after successful mutations.
- * Non-critical: logs errors but does not throw.
+ * Returns an error object if the write failed, null if successful.
  */
 export async function writeOrganizationActivity({
   supabase,
@@ -29,7 +29,7 @@ export async function writeOrganizationActivity({
   targetType,
   target,
   metadata = {},
-}: WriteActivityParams): Promise<void> {
+}: WriteActivityParams): Promise<{ error: unknown } | null> {
   const { error } = await supabase.from('organization_activities').insert({
     organization_id: organizationId,
     user_id: userId,
@@ -42,6 +42,7 @@ export async function writeOrganizationActivity({
 
   if (error) {
     console.error('[OrganizationActivity] Failed to write:', error);
-    // Non-critical - don't throw
+    return { error };
   }
+  return null;
 }

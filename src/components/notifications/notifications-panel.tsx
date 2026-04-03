@@ -67,7 +67,10 @@ export function NotificationsPanel() {
   usePushSubscription(session?.user?.id);
 
   useEffect(() => {
-    setPushEnabled(localStorage.getItem("cannalog_push_enabled") === "true");
+    // Initialize push state from browser permission status
+    if ("Notification" in window) {
+      setPushEnabled(Notification.permission === "granted");
+    }
   }, []);
 
   useEffect(() => {
@@ -139,8 +142,28 @@ export function NotificationsPanel() {
                 {"Notification" in window && Notification.permission !== "denied" && (
                   <button
                     onClick={async () => {
-                      const granted = await requestPushPermission();
-                      if (granted) setPushEnabled(true);
+                      if (pushEnabled) {
+                        // Disable push: unsubscribe from push manager
+                        try {
+                          const registration = await navigator.serviceWorker.ready;
+                          const sub = await registration.pushManager.getSubscription();
+                          if (sub) {
+                            await fetch("/api/push/unsubscribe", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ endpoint: sub.endpoint }),
+                            });
+                            await sub.unsubscribe();
+                            setPushEnabled(false);
+                            localStorage.removeItem("cannalog_push_enabled");
+                          }
+                        } catch (err) {
+                          console.warn("[Push] Unsubscribe failed:", err);
+                        }
+                      } else {
+                        const granted = await requestPushPermission();
+                        if (granted) setPushEnabled(true);
+                      }
                     }}
                     className={`p-2 rounded-lg transition-all ${pushEnabled ? "bg-[#2FF801]/10 text-[#2FF801]" : "hover:bg-[var(--muted)] text-[var(--muted-foreground)]"}`}
                     title={pushEnabled ? "Push aktiviert" : "Push aktivieren"}

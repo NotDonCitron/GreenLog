@@ -49,9 +49,9 @@ export default function InvitePage() {
       setPreviewError(null);
       try {
         const res = await fetch(`/api/invites/${token}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Invalid invite");
-        setPreview(data);
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error?.message || "Invalid invite");
+        setPreview(json.data);
       } catch (err: any) {
         setPreviewError(err.message);
       } finally {
@@ -78,8 +78,8 @@ export default function InvitePage() {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to accept invite");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error?.message || "Failed to accept invite");
       setAccepted(true);
       await refreshMemberships();
     } catch (err: any) {

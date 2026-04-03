@@ -15,6 +15,9 @@ export function usePushSubscription(userId: string | undefined) {
     subscribed.current = true;
 
     navigator.serviceWorker.ready.then(async (registration) => {
+      // Check if already subscribed in browser
+      const existingSub = await registration.pushManager.getSubscription();
+
       // Fetch VAPID public key from server
       let vapidKey = "";
       try {
@@ -33,6 +36,25 @@ export function usePushSubscription(userId: string | undefined) {
         return;
       }
 
+      // If already subscribed, ensure server has the subscription
+      if (existingSub) {
+        try {
+          const res = await fetch("/api/push/subscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(existingSub.toJSON()),
+          });
+          if (res.ok) {
+            localStorage.setItem(PUSH_ENABLED_KEY, "true");
+            console.log("[Push] Existing subscription synced to server");
+          }
+        } catch (err) {
+          console.warn("[Push] Failed to sync existing subscription:", err);
+        }
+        return;
+      }
+
+      // Subscribe new
       registration.pushManager
         .subscribe({
           userVisibleOnly: true,

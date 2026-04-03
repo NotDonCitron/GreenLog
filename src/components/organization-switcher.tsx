@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Building2, Check, Loader2, Plus, Shield, Users, X } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { Card } from "@/components/ui/card";
@@ -240,7 +241,10 @@ export function OrganizationSwitcher() {
         <Card className="bg-white/5 border-white/10 p-4 backdrop-blur-xl shadow-2xl">
             <div className="space-y-4">
                 <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-1">
+                    <Link
+                        href={activeOrganization ? `/community/${activeOrganization.organization_id}` : "#"}
+                        className="flex-1 space-y-1 hover:opacity-80 transition-opacity cursor-pointer"
+                    >
                         <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--foreground)]/40">Community</p>
                         <h3 className="text-base font-black uppercase tracking-tight text-[var(--foreground)]">
                             {activeMeta?.name ?? "Organisation auswählen"}
@@ -255,7 +259,7 @@ export function OrganizationSwitcher() {
                                 {activeMeta?.role ?? "Keine Rolle"}
                             </span>
                         </div>
-                    </div>
+                    </Link>
                     {activeOrganization && (
                         <div className="rounded-full bg-[#2FF801]/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#2FF801]">
                             Aktiv

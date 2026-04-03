@@ -56,8 +56,8 @@ export default function SettingsOrganizationPage() {
           body: JSON.stringify({ name: newName.trim() }),
         }
       );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Fehler beim Speichern");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error?.message || "Fehler beim Speichern");
       setNameMessage({ type: "success", msg: "Name erfolgreich geändert" });
       setShowNameForm(false);
       setNewName("");
@@ -83,8 +83,8 @@ export default function SettingsOrganizationPage() {
           },
         }
       );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Fehler beim Löschen");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error?.message || "Fehler beim Löschen");
       setDeleteMessage({ type: "success", msg: "Community gelöscht. Du wirst zurückgeleitet..." });
       setTimeout(() => router.push("/community"), 1500);
     } catch (err: any) {

@@ -1,10 +1,29 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError } from "@/lib/api-response";
 import { ALL_BADGES, BADGE_CRITERIA } from "@/lib/badges";
 import type { BadgeContext } from "@/lib/badges";
 
-export async function POST() {
-    const supabase = await createServerSupabaseClient();
+// Get admin client (bypasses RLS) for badge inserts
+function getSupabaseAdmin() {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !serviceKey) {
+        throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing!");
+    }
+    return import("@supabase/supabase-js").then(m =>
+        m.createClient(url, serviceKey, { auth: { persistSession: false } })
+    );
+}
+
+export async function POST(request: Request) {
+    const authHeader = request.headers.get("Authorization");
+    let supabase;
+    if (authHeader) {
+        supabase = await getAuthenticatedClient(authHeader.replace("Bearer ", ""));
+    } else {
+        supabase = await createServerSupabaseClient();
+    }
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -28,9 +47,14 @@ export async function POST() {
         try {
             const qualifies = await criteriaFn({ supabase: supabase as BadgeContext['supabase'], userId: user.id });
             if (qualifies) {
-                const { error } = await supabase
+                // Use admin client to bypass RLS for badge insert
+                const adminClient = await getSupabaseAdmin();
+                const { error } = await adminClient
                     .from('user_badges')
-                    .insert({ user_id: user.id, badge_id: badge.id });
+                    .upsert(
+                        { user_id: user.id, badge_id: badge.id },
+                        { onConflict: 'user_id,badge_id', ignoreDuplicates: true }
+                    );
 
                 if (!error) {
                     newlyUnlocked.push(badge.id);

@@ -29,7 +29,7 @@ export async function PATCH(
             return jsonError("Unauthorized", 401);
         }
 
-        const supabaseAuth = getAuthenticatedClient(accessToken);
+        const supabaseAuth = await getAuthenticatedClient(accessToken);
         const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
 
         if (authError || !user) {

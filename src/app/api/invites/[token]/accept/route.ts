@@ -4,12 +4,19 @@ import { jsonSuccess, jsonError } from "@/lib/api-response";
 
 type RouteParams = { params: Promise<{ token: string }> };
 
-function getAuthenticatedClient(accessToken: string) {
-    return createClient(
+async function getAuthenticatedClient(accessToken: string) {
+    const client = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL || "",
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
         { global: { headers: { Authorization: `Bearer ${accessToken}` } } }
     );
+    // Supabase's getUser() uses internal session storage, not Authorization header.
+    // Must call setSession() to properly set the session so getUser() works.
+    await client.auth.setSession({
+        access_token: accessToken,
+        refresh_token: "",
+    } as { access_token: string; refresh_token: string });
+    return client;
 }
 
 // POST /api/invites/[token]/accept
@@ -22,7 +29,7 @@ export async function POST(request: Request, { params }: RouteParams) {
         return jsonError("Unauthorized", 401);
     }
 
-    const supabase = getAuthenticatedClient(accessToken);
+    const supabase = await getAuthenticatedClient(accessToken);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
         return jsonError("Unauthorized", 401);
@@ -49,7 +56,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     const { data: existingMember } = await supabase
-        .from("organization_memberships")
+        .from("organization_members")
         .select("id")
         .eq("organization_id", invite.organization_id)
         .eq("user_id", user.id)
@@ -60,7 +67,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     const { data: membership, error: membershipError } = await supabase
-        .from("organization_memberships")
+        .from("organization_members")
         .insert({
             organization_id: invite.organization_id,
             user_id: user.id,

@@ -101,8 +101,8 @@ export default function OrgStrainsPage() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Fehler beim Erstellen der Sorte");
+        const json = await res.json();
+        throw new Error(json.error?.message || "Fehler beim Erstellen der Sorte");
       }
 
       router.push("/strains?tab=org");

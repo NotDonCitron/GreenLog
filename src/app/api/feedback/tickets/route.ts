@@ -1,22 +1,23 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError } from "@/lib/api-response";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const ALLOWED_CREATOR_IDS = (
     process.env.FEEDBACK_ALLOWED_CREATOR_IDS || ""
 ).split(",").map(id => id.trim()).filter(Boolean);
 
-function getUserFromRequest(request: Request) {
+async function getUserFromRequest(request: Request): Promise<SupabaseClient | null> {
     const authHeader = request.headers.get("Authorization");
     const accessToken = authHeader?.replace("Bearer ", "");
     if (!accessToken) return null;
-    return getAuthenticatedClient(accessToken);
+    return await getAuthenticatedClient(accessToken);
 }
 
 export async function POST(req: Request) {
     try {
         const { title, description, category, priority, page_url, context } = await req.json();
 
-        const supabase = getUserFromRequest(req);
+        const supabase = await getUserFromRequest(req);
         if (!supabase) {
             return jsonError("Nicht eingeloggt", 401);
         }
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
     try {
-        const supabase = getUserFromRequest(req);
+        const supabase = await getUserFromRequest(req);
         if (!supabase) {
             return jsonError("Nicht eingeloggt", 401);
         }

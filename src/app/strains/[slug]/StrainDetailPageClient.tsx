@@ -33,7 +33,7 @@ export default function StrainDetailPageClient() {
   const { user, isDemoMode, activeOrganization } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { toggleCollect } = useCollection();
+  const { collectedIds, toggleCollect, collectAction } = useCollection();
 
   const [strain, setStrain] = useState<Strain & { organization?: { id: string; name: string; slug: string; organization_type: string } } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,6 +46,9 @@ export default function StrainDetailPageClient() {
   const [globalImageRefresh, setGlobalImageRefresh] = useState(0);
   const [isFavorited, setIsFavorite] = useState(false);
   const [hasCollected, setHasCollected] = useState(false);
+
+  // Derive hasCollected from collectedIds - React Query handles updates via useCollection hook
+  const isCollected = collectedIds.includes(strain?.id || "");
   const [isDeletable, setIsDeletable] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [batchInfo, setBatchInfo] = useState("");
@@ -123,7 +126,7 @@ export default function StrainDetailPageClient() {
             .eq("user_id", user.id)
             .maybeSingle();
 
-          setHasCollected(Boolean(collection));
+          // Note: hasCollected state removed - UI derives isCollected from collectedIds via useCollection hook
           if (collection) {
             setUserImageUrl(collection.user_image_url || null);
             setBatchInfo(collection.batch_info || "");
@@ -257,7 +260,7 @@ export default function StrainDetailPageClient() {
 
       if (collectionError) throw collectionError;
 
-      setHasCollected(true);
+      // React Query will handle UI update via collectedIds from useCollection hook
       // Fire and forget badge check - don't block UI
       checkAndUnlockBadges(user.id, supabase).catch(() => {});
       queryClient.invalidateQueries({ queryKey: ['collection', user.id] });
@@ -309,7 +312,7 @@ export default function StrainDetailPageClient() {
       const json = await res.json();
 
       if (!res.ok) {
-        throw new Error(json.error || "Upload fehlgeschlagen");
+        throw new Error(json.error?.message || "Upload fehlgeschlagen");
       }
 
       setGlobalImageRefresh(prev => prev + 1);
@@ -359,6 +362,7 @@ export default function StrainDetailPageClient() {
     if (!user || !strain || isDemoMode) return;
     setIsSaving(true);
     try {
+      // 1. Save the rating itself
       const { error: rError } = await supabase.from("ratings").upsert({
         strain_id: strain.id,
         user_id: user.id,
@@ -371,25 +375,34 @@ export default function StrainDetailPageClient() {
 
       if (rError) throw rError;
 
-      const { error: collectionError } = await supabase.from("user_collection").upsert({
-        user_id: user.id,
-        strain_id: strain.id,
-        batch_info: batchInfo || null,
-        user_notes: userNotes || null,
-        user_thc_percent: strain.avg_thc ?? strain.thc_max ?? null,
-        user_cbd_percent: strain.avg_cbd ?? strain.cbd_max ?? null,
-        user_image_url: userImageUrl
-      }, { onConflict: 'user_id,strain_id' });
+      // 2. Close modal immediately after rating success to ensure UI responsiveness
+      setShowRatingModal(false);
 
-      if (collectionError) throw collectionError;
+      // 3. Add to collection using the mutation from useCollection
+      // This handles: user_collection upsert, cache invalidation, and badge checks
+      // We wrap it in try/catch to ensure its failures don't hang the UI
+      try {
+        await collectAction(strain.id, { 
+          batchInfo, 
+          userNotes, 
+          userImageUrl: userImageUrl || undefined,
+          userThc: strain.avg_thc ?? strain.thc_max ?? undefined,
+          userCbd: strain.avg_cbd ?? strain.cbd_max ?? undefined
+        });
+      } catch (collErr) {
+        console.warn("Collection/Badge check error (silent):", collErr);
+      }
 
       setHasCollected(true);
-      await toggleCollect(strain.id, { batchInfo, userNotes });
-      // Refresh Next.js router to update page data
-      try {
-        router.refresh();
-      } catch (e) { /* ignore */ }
+
+      // Refresh Next.js router to update page data from server components
+      setTimeout(() => {
+        try {
+          router.refresh();
+        } catch (e) { /* ignore */ }
+      }, 0);
     } catch (error: unknown) {
+      console.error("Save rating error:", error);
       alert("Error: " + getErrorMessage(error, "Bewertung konnte nicht gespeichert werden."));
     } finally {
       setIsSaving(false);
@@ -588,8 +601,8 @@ export default function StrainDetailPageClient() {
         </div>
 
         <div className="w-full max-w-[340px] mt-10">
-          <button onClick={() => !hasCollected && setShowRatingModal(true)} disabled={hasCollected} className={`w-full font-black py-5 rounded-2xl uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all ${hasCollected ? "bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/30" : "bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black hover:opacity-90"}`}>
-            {hasCollected ? <><CheckCircle2 size={24} /> In Collection</> : "Collect & Rate"}
+          <button onClick={() => !isCollected && setShowRatingModal(true)} disabled={isCollected} className={`w-full font-black py-5 rounded-2xl uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all ${isCollected ? "bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/30" : "bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black hover:opacity-90"}`}>
+            {isCollected ? <><CheckCircle2 size={24} /> In Collection</> : "Collect & Rate"}
           </button>
         </div>
       </div>

@@ -163,7 +163,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Fehler beim Senden des Feedbacks.");
+        throw new Error(data.error?.message || "Fehler beim Senden des Feedbacks.");
       }
 
       setIsSuccess(true);

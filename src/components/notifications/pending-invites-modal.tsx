@@ -53,9 +53,9 @@ export function PendingInvitesModal({ onClose, onInviteAccepted }: PendingInvite
             Authorization: `Bearer ${accessToken}`,
           },
         });
-        const data = await res.json();
+        const json = await res.json();
         if (res.ok) {
-          setInvites(data.invites || []);
+          setInvites(json.data?.invites || []);
         }
       } catch (err) {
         console.error("Error fetching pending invites:", err);

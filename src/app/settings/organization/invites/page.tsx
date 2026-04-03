@@ -122,11 +122,11 @@ export default function InvitesPage() {
         { headers: { Authorization: `Bearer ${session.access_token}` } }
       );
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Fehler beim Laden");
+        const json = await res.json();
+        throw new Error(json.error?.message || "Fehler beim Laden");
       }
-      const data = await res.json();
-      setInvites(data.invites || []);
+      const json = await res.json();
+      setInvites(json.data?.invites || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -165,11 +165,11 @@ export default function InvitesPage() {
           body: JSON.stringify({ email: newInvite.email, role: newInvite.role }),
         }
       );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Fehler beim Erstellen");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error?.message || "Fehler beim Erstellen");
 
-      setCreatedInviteToken(data.token);
-      setCreatedInviteEmail(data.invite.email);
+      setCreatedInviteToken(json.data?.token);
+      setCreatedInviteEmail(json.data?.invite?.email);
       setStatusMessage({ type: "success", msg: "Einladung erstellt! Bitte Link teilen." });
       setNewInvite({ email: "", role: "admin" });
       setShowCreateForm(false);
@@ -204,8 +204,8 @@ export default function InvitesPage() {
         }
       );
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Fehler beim Widerrufen");
+        const json = await res.json();
+        throw new Error(json.error?.message || "Fehler beim Widerrufen");
       }
       await fetchInvites();
     } catch (err: any) {

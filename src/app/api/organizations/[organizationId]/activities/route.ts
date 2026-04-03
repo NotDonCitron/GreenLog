@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 import type { OrganizationActivity } from "@/lib/types";

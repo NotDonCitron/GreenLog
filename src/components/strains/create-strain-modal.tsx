@@ -19,6 +19,7 @@ import { Plus, Globe, Wand2, Check, Loader2 } from "lucide-react";
 import { Strain, StrainSource } from "@/lib/types";
 import { safeParsePercent } from "@/lib/strain-display";
 import { useEffect } from "react";
+import { writeOrganizationActivity } from "@/lib/organization-activities";
 
 type NamedItem = string | { name?: string | null };
 
@@ -507,6 +508,17 @@ export function CreateStrainModal({ strain, onSuccess, trigger, organizationId }
                     user_id: user.id,
                     event_type: "strain_created",
                     reference_id: resultData.id,
+                });
+
+                // Write to organization_activities for the activities page
+                await writeOrganizationActivity({
+                    supabase,
+                    organizationId,
+                    userId: user.id,
+                    eventType: "strain_added",
+                    targetType: "strain",
+                    target: { id: resultData.id, name: resultData.name },
+                    metadata: { type: resultData.type, thc_max: resultData.thc_max },
                 });
             }
 

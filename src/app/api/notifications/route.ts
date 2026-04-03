@@ -1,9 +1,16 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError } from "@/lib/api-response";
 import { sendPushToUser, getSupabaseAdmin } from "@/lib/push";
 
 export async function GET(request: Request) {
-    const supabase = await createServerSupabaseClient();
+    const authHeader = request.headers.get("Authorization");
+    let supabase;
+    if (authHeader) {
+        supabase = await getAuthenticatedClient(authHeader.replace("Bearer ", ""));
+    } else {
+        supabase = await createServerSupabaseClient();
+    }
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {

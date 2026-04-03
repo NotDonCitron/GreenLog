@@ -194,7 +194,7 @@ export function useCollection() {
     isLoading: collectionQuery.isLoading || idsQuery.isLoading,
     error: collectionQuery.error ?? idsQuery.error,
     count: idsQuery.data?.length ?? 0,
-    collect,
+    collectAction: collect,
     uncollect,
     toggleCollect,
     refetch,

@@ -62,7 +62,7 @@ export default function NewCommunityPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Fehler beim Erstellen der Community");
+        throw new Error(data.error?.message || "Fehler beim Erstellen der Community");
       }
 
       const { organization } = await response.json();

@@ -53,14 +53,14 @@ export function getBearerToken(request: Request): string | null {
  */
 export async function authenticateRequest(
   request: Request,
-  getClient: (token: string) => SupabaseClient
+  getClient: (token: string) => Promise<SupabaseClient>
 ): Promise<{ user: { id: string; email?: string }; supabase: SupabaseClient } | NextResponse> {
   const token = getBearerToken(request);
   if (!token) {
     return jsonError("Unauthorized", 401);
   }
 
-  const supabase = getClient(token);
+  const supabase = await getClient(token);
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {

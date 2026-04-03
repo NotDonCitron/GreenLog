@@ -64,8 +64,10 @@ export async function POST(request: Request) {
     }
 
     // Write activity for organization strains (skip for personal strains without org)
+    let activityError = null;
     if (strain.organization_id) {
-        await writeOrganizationActivity({
+        console.log('[DEBUG] Attempting to write activity for strain:', strain.name, 'org:', strain.organization_id, 'user:', user.id);
+        const actErr = await writeOrganizationActivity({
             supabase,
             organizationId: strain.organization_id,
             userId: user.id,
@@ -73,7 +75,11 @@ export async function POST(request: Request) {
             targetType: 'strain',
             target: { id: strain.id, name: strain.name },
             metadata: { type: strain.type, thc_max: strain.thc_max },
-        }).catch(err => console.error('Activity write failed:', err));
+        });
+        if (actErr) {
+            console.error('[DEBUG] Activity write failed:', actErr.error);
+            activityError = actErr.error;
+        }
 
         // Also write to community_feed for the organization page
         const { error: feedError } = await supabase.from('community_feed').insert({
@@ -85,5 +91,5 @@ export async function POST(request: Request) {
         if (feedError) console.error('Community feed write failed:', feedError);
     }
 
-    return jsonSuccess({ strain }, 201);
+    return jsonSuccess({ strain, activityError }, 201);
 }

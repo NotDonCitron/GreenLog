@@ -18,7 +18,7 @@ export async function POST(request: Request, { params }: RouteParams) {
         return jsonError("Unauthorized", 401);
     }
 
-    const supabase = getAuthenticatedClient(accessToken);
+    const supabase = await getAuthenticatedClient(accessToken);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -140,8 +140,8 @@ export async function GET(request: Request, { params }: RouteParams) {
     });
 }
 
-function getAuthenticatedClient(accessToken: string) {
-    return createClient(
+async function getAuthenticatedClient(accessToken: string) {
+    const client = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL || "",
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
         {
@@ -149,4 +149,11 @@ function getAuthenticatedClient(accessToken: string) {
             auth: { autoRefreshToken: false, persistSession: false }
         }
     );
+    // Supabase's getUser() uses internal session storage, not Authorization header.
+    // Must call setSession() to properly set the session so getUser() works.
+    await client.auth.setSession({
+        access_token: accessToken,
+        refresh_token: "",
+    } as { access_token: string; refresh_token: string });
+    return client;
 }

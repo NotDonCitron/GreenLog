@@ -2,16 +2,17 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import StrainDetailPageClient from './StrainDetailPageClient'
 
 interface PageProps {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 export async function generateMetadata({ params }: PageProps) {
+  const { slug } = await params
   const supabase = await createServerSupabaseClient()
 
   const { data: strain } = await supabase
     .from('strains')
     .select('name, description, breeder, thc_max, thc_level, farmer, manufacturer, brand')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single()
 
   if (!strain) {

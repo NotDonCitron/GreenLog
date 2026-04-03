@@ -64,13 +64,13 @@ export const supabase = new Proxy({} as SupabaseClient, {
 });
 
 // Helper to create an authenticated client with access token
-export function getAuthenticatedClient(accessToken: string): SupabaseClient {
+export async function getAuthenticatedClient(accessToken: string): Promise<SupabaseClient> {
     const key = supabaseAnonKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
     const url = supabaseUrl || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     if (!key) {
         throw new Error(`Supabase anon key is missing! URL=${url}, KEY=${JSON.stringify(key)}, ENV=${JSON.stringify(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)}`);
     }
-    return createClient(url, key, {
+    const client = createClient(url, key, {
         auth: {
             persistSession: false,
             autoRefreshToken: false,
@@ -83,4 +83,14 @@ export function getAuthenticatedClient(accessToken: string): SupabaseClient {
         },
         realtime: typeof window === "undefined" ? { timeout: 0 } : undefined,
     });
+
+    // Supabase's getUser() uses internal session storage, not Authorization header.
+    // We must call setSession() to properly set the session so getUser() works.
+    // The refresh_token is optional for getUser() to work.
+    await client.auth.setSession({
+        access_token: accessToken,
+        refresh_token: "",
+    } as { access_token: string; refresh_token: string });
+
+    return client;
 }

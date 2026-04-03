@@ -57,9 +57,10 @@ export default function OrgActivitiesPage() {
         );
 
         if (!res.ok) throw new Error("Failed to fetch");
-        const data = await res.json();
-        setActivities(offset === 0 ? (data.activities ?? []) : [...activities, ...(data.activities ?? [])]);
-        setHasMore(data.has_more);
+        const json = await res.json();
+        const { activities: fetchedActivities, has_more: fetchedHasMore } = json.data ?? { activities: [], has_more: false };
+        setActivities(offset === 0 ? (fetchedActivities ?? []) : [...activities, ...(fetchedActivities ?? [])]);
+        setHasMore(fetchedHasMore);
       } catch (err) {
         console.error(err);
       } finally {

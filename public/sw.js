@@ -1,18 +1,20 @@
-const CACHE_NAME = 'cannalog-v1';
+const STATIC_CACHE = 'greenlog-static-v1';
+const API_CACHE = 'greenlog-api-v1';
+
+const MAX_STATIC = 100;
+const MAX_API = 50;
+
 const STATIC_ASSETS = [
   '/manifest.json',
-  '/logo.png',
   '/icon-192.png',
   '/icon-512.png',
   '/apple-touch-icon.png',
 ];
 
-// Install: cache static assets only (no HTML pages)
+// Install: cache static assets only
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
+    caches.open(STATIC_CACHE).then((cache) => cache.addAll(STATIC_ASSETS))
   );
   self.skipWaiting();
 });
@@ -20,26 +22,32 @@ self.addEventListener('install', (event) => {
 // Activate: clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME)
+          .filter((name) => name !== STATIC_CACHE && name !== API_CACHE)
           .map((name) => caches.delete(name))
-      );
-    })
+      )
+    )
   );
   self.clients.claim();
 });
+
+// LRU eviction helper
+async function evictLRU(cacheName, maxEntries) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length >= maxEntries) {
+    await cache.delete(keys[0]);
+  }
+}
 
 // Fetch: network-first for API, cache-first for static
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET
   if (request.method !== 'GET') return;
-
-  // Skip chrome-extension and other non-http(s)
   if (!url.protocol.startsWith('http')) return;
 
   // API routes → network first, fall back to cache
@@ -47,55 +55,48 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Clone and cache successful API responses
           if (response.ok) {
             const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
+            caches.open(API_CACHE).then((cache) => {
               cache.put(request, clone);
+              evictLRU(API_CACHE, MAX_API);
             });
           }
           return response;
         })
-        .catch(() => {
-          return caches.match(request);
-        })
+        .catch(() => caches.match(request))
     );
     return;
   }
 
-  // Navigation requests (HTML pages) → network only, never cache
-  // This ensures fresh HTML after deployments, preventing stale CSS class mismatches
+  // Navigation requests → network only, fallback to /offline
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request));
+    event.respondWith(
+      fetch(request).catch(() => caches.match('/offline'))
+    );
     return;
   }
 
-  // Static assets (JS/CSS/images) → cache first, fall back to network
+  // Static assets → cache first, fall back to network
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
 
-      return fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, clone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Offline fallback for other assets
-          if (request.mode === 'navigate') {
-            return caches.match('/');
-          }
-        })
+      return fetch(request).then((response) => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(STATIC_CACHE).then((cache) => {
+            cache.put(request, clone);
+            evictLRU(STATIC_CACHE, MAX_STATIC);
+          });
+        }
+        return response;
+      });
     })
   );
 });
 
-// Push notification handler (placeholder for future)
+// Push notification handler
 self.addEventListener('push', (event) => {
   if (!event.data) return;
 
@@ -111,7 +112,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'CannaLog', options)
+    self.registration.showNotification(data.title || 'GreenLog', options)
   );
 });
 
@@ -123,13 +124,11 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      // Focus existing window if available
       for (const client of clients) {
         if (client.url === urlToOpen && 'focus' in client) {
           return client.focus();
         }
       }
-      // Open new window
       if (self.clients.openWindow) {
         return self.clients.openWindow(urlToOpen);
       }
@@ -137,7 +136,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Background sync for offline actions (placeholder)
+// Background sync – placeholder for post-launch offline action queue
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-notifications') {
     event.waitUntil(syncNotifications());
@@ -145,6 +144,7 @@ self.addEventListener('sync', (event) => {
 });
 
 async function syncNotifications() {
-  // Future: sync any queued notification actions
-  console.log('[SW] Background sync triggered');
+  // TODO (post-launch): Implement IndexedDB queue for offline notification actions.
+  // When the browser comes back online, flush queued actions to the server.
+  console.log('[SW] Background sync triggered – not yet implemented');
 }

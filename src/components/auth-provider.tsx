@@ -185,7 +185,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Check badges on SIGNED_IN event
       if (event === 'SIGNED_IN' && nextSession?.user) {
         try {
-          await fetch('/api/badges/check', { method: 'POST' });
+          await fetch('/api/badges/check', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${nextSession.access_token}` },
+          });
         } catch (err) {
           console.warn('[Auth] Badge check failed:', err);
         }

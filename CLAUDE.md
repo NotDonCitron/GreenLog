@@ -159,7 +159,13 @@ gründer, admin, member, viewer
 - `supabase/migrations/20260330150000_strain_image_admin.sql` - Storage bucket + RLS
 - `src/app/api/strains/[id]/image/route.ts` - PATCH endpoint
 
-**Setup:** Add user IDs to `APP_ADMIN_IDS` env variable (Vercel dashboard or .env.local)
+**Setup:** Add user IDs to `APP_ADMIN_IDS` env variable (Vercel dashboard or .env.local). Find your User ID in: Supabase Dashboard > Authentication > Users > copy the UUID.
+
+### Legal Documents
+
+> **AGB:** Die AGB (`src/app/(legal)/agb/page.tsx`) haben echten Inhalt, aber minimale Struktur. Für Cannabis-B2B in Deutschland fehlen wichtige Sections (Widerrufsrecht, Zahlungsbedingungen). Vor Production-Launch sollte ein Anwalt die AGB prüfen und vervollständigen.
+
+> **Impressum:** Muss vor Production von Hand ausgefüllt werden (Betreiber-Name, Adresse, § 55 RStV).
 
 ---
 

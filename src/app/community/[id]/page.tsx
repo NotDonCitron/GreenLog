@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
@@ -39,9 +39,12 @@ function OrgTypeLabel({ type }: { type: string }) {
   );
 }
 
-function StatCard({ icon: Icon, value, label, color }: { icon: typeof Leaf; value: number | string; label: string; color: string }) {
+function StatCard({ icon: Icon, value, label, color, onClick }: { icon: typeof Leaf; value: number | string; label: string; color: string; onClick?: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-1 p-3">
+    <div
+      onClick={onClick}
+      className={`flex flex-col items-center gap-1 p-3 ${onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`}
+    >
       <div className={`w-10 h-10 rounded-full bg-[var(--card)] border border-[var(--border)]/50 flex items-center justify-center ${color}`}>
         <Icon size={18} />
       </div>
@@ -53,8 +56,9 @@ function StatCard({ icon: Icon, value, label, color }: { icon: typeof Leaf; valu
 
 export default function CommunityDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const organizationId = params.id as string;
-  const { user, memberships, loading: authLoading } = useAuth();
+  const { user, memberships, loading: authLoading, setActiveOrganizationId } = useAuth();
 
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [stats, setStats] = useState<OrganizationStats>({ followerCount: 0, strainCount: 0 });
@@ -192,6 +196,10 @@ export default function CommunityDetailPage() {
               value={stats.strainCount}
               label="Strains"
               color="text-[#2FF801]"
+              onClick={() => {
+                setActiveOrganizationId(organizationId);
+                router.push("/strains?tab=org");
+              }}
             />
             <div className="w-px h-12 bg-[#484849]/50" />
             <StatCard

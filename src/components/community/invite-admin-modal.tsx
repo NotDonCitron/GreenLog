@@ -36,7 +36,7 @@ export function InviteAdminModal({ organizationId, onClose, onSuccess }: InviteA
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Ein Fehler ist aufgetreten.");
+        setError(data.error?.message || "Ein Fehler ist aufgetreten.");
         return;
       }
 
