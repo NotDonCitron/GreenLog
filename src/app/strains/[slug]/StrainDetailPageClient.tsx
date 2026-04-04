@@ -17,6 +17,7 @@ import Image from 'next/image';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeCollectionSource, normalizeTerpeneList } from "@/lib/strain-display";
 import { checkAndUnlockBadges } from "@/lib/badges";
 import { useCollection } from "@/hooks/useCollection";
+import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message) {
@@ -167,7 +168,7 @@ export default function StrainDetailPageClient() {
 
   // Sync state from query data
   useEffect(() => {
-    if (detailData?.strain) setStrain(detailData.strain);
+    if (detailData?.strain) setStrain(detailData.strain as Strain & { organization?: { id: string; name: string; slug: string; organization_type: string } });
     if (detailData !== undefined) {
       setIsFavorite(detailData.isFavorited);
       setUserImageUrl(detailData.userImageUrl);
