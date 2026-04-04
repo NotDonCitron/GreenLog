@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/auth-provider";
 import { supabase } from "@/lib/supabase";
+import { followingKeys, followersKeys, followRequestsKeys } from "@/lib/query-keys";
 import type { FollowStatus } from "@/lib/types";
 
 interface FollowButtonProps {
@@ -24,32 +26,18 @@ export function FollowButton({
     onFollowChange,
     className = "",
 }: FollowButtonProps) {
-    const { user } = useAuth();
+    const { user, isDemoMode } = useAuth();
     const router = useRouter();
-    const [status, setStatus] = useState<FollowStatus>(
-        initialStatus ?? { is_following: false, is_following_me: false, has_pending_request: false }
-    );
+    const queryClient = useQueryClient();
     const [isLoading, setIsLoading] = useState(false);
-    const [isInitialized, setIsInitialized] = useState(!!initialStatus);
-    const [isPrivate, setIsPrivate] = useState(profileVisibility === "private");
+    const [localIsPrivate, setLocalIsPrivate] = useState(profileVisibility === "private");
 
-    // Update status when initialStatus changes
-    useEffect(() => {
-        if (initialStatus) {
-            setStatus(initialStatus);
-            setIsInitialized(true);
-        }
-    }, [initialStatus]);
-
-    // Fetch follow status and profile visibility if not provided
-    useEffect(() => {
-        if (!user) {
-            setIsInitialized(true);
-            return;
-        }
-
-        const fetchStatus = async () => {
+    // Fetch follow status if not provided via initialStatus
+    const { data: fetchedStatus } = useQuery({
+        queryKey: ['follow-status', userId] as const,
+        queryFn: async (): Promise<FollowStatus & { isPrivate: boolean }> => {
             // Fetch profile visibility if not provided
+            let currentIsPrivate = profileVisibility === "private";
             if (profileVisibility === undefined) {
                 const { data: profile } = await supabase
                     .from("profiles")
@@ -58,7 +46,8 @@ export function FollowButton({
                     .single();
 
                 if (profile) {
-                    setIsPrivate(profile.profile_visibility === "private");
+                    currentIsPrivate = profile.profile_visibility === "private";
+                    setLocalIsPrivate(currentIsPrivate);
                 }
             }
 
@@ -66,17 +55,17 @@ export function FollowButton({
             const { data: followData } = await supabase
                 .from("follows")
                 .select("id")
-                .eq("follower_id", user.id)
+                .eq("follower_id", user!.id)
                 .eq("following_id", userId)
                 .single();
 
             // Fetch pending request if profile is private
             let hasPending = false;
-            if (isPrivate || profileVisibility === "private") {
+            if (currentIsPrivate || profileVisibility === "private") {
                 const { data: requestData } = await supabase
                     .from("follow_requests")
                     .select("id, status")
-                    .eq("requester_id", user.id)
+                    .eq("requester_id", user!.id)
                     .eq("target_id", userId)
                     .eq("status", "pending")
                     .single();
@@ -84,16 +73,24 @@ export function FollowButton({
                 hasPending = !!requestData;
             }
 
-            setStatus({
+            return {
                 is_following: !!followData,
                 is_following_me: false,
-                has_pending_request: hasPending
-            });
-            setIsInitialized(true);
-        };
+                has_pending_request: hasPending,
+                isPrivate: currentIsPrivate,
+            };
+        },
+        enabled: !!user && !initialStatus && !isDemoMode,
+        staleTime: 30 * 1000, // 30 seconds
+    });
 
-        fetchStatus();
-    }, [user, userId, initialStatus, profileVisibility, isPrivate]);
+    // Use fetched status when available, otherwise use initialStatus
+    const computedStatus: FollowStatus = fetchedStatus ?? {
+        is_following: initialStatus?.is_following ?? false,
+        is_following_me: initialStatus?.is_following_me ?? false,
+        has_pending_request: initialStatus?.has_pending_request ?? false,
+    };
+    const isPrivate = fetchedStatus?.isPrivate ?? (profileVisibility === "private");
 
     const isOwnProfile = user?.id === userId;
 
@@ -103,9 +100,16 @@ export function FollowButton({
             return;
         }
 
+        // Demo mode: toggle local state without Supabase calls
+        if (isDemoMode) {
+            setIsLoading(false);
+            onFollowChange?.();
+            return;
+        }
+
         setIsLoading(true);
         try {
-            if (status.is_following) {
+            if (computedStatus.is_following) {
                 // Unfollow
                 const { error } = await supabase
                     .from("follows")
@@ -114,11 +118,13 @@ export function FollowButton({
                     .eq("following_id", userId);
 
                 if (!error) {
-                    setStatus((prev) => ({ ...prev, is_following: false }));
                     onFollowChange?.();
                     router.refresh();
+                    // Invalidate React Query cache
+                    queryClient.invalidateQueries({ queryKey: followingKeys.list(user.id) });
+                    queryClient.invalidateQueries({ queryKey: followersKeys.list(userId) });
                 }
-            } else if (status.has_pending_request) {
+            } else if (computedStatus.has_pending_request) {
                 // Cancel follow request
                 const { error } = await supabase
                     .from("follow_requests")
@@ -128,9 +134,10 @@ export function FollowButton({
                     .eq("status", "pending");
 
                 if (!error) {
-                    setStatus((prev) => ({ ...prev, has_pending_request: false }));
                     onFollowChange?.();
                     router.refresh();
+                    // Invalidate React Query cache
+                    queryClient.invalidateQueries({ queryKey: followRequestsKeys.list() });
                 }
             } else {
                 // Follow or send request - get session for auth
@@ -150,12 +157,17 @@ export function FollowButton({
 
                 if (result.success) {
                     if (result.action === "followed") {
-                        setStatus((prev) => ({ ...prev, is_following: true }));
+                        onFollowChange?.();
+                        router.refresh();
+                        // Invalidate React Query cache
+                        queryClient.invalidateQueries({ queryKey: followingKeys.list(user.id) });
+                        queryClient.invalidateQueries({ queryKey: followersKeys.list(userId) });
                     } else if (result.action === "request_sent") {
-                        setStatus((prev) => ({ ...prev, has_pending_request: true }));
+                        onFollowChange?.();
+                        router.refresh();
+                        // Invalidate React Query cache
+                        queryClient.invalidateQueries({ queryKey: followRequestsKeys.list() });
                     }
-                    onFollowChange?.();
-                    router.refresh();
                 }
             }
         } catch (err) {
@@ -165,12 +177,12 @@ export function FollowButton({
         }
     };
 
-    if (isOwnProfile || !isInitialized) {
+    if (isOwnProfile || ((!fetchedStatus && !initialStatus && !!user) && !isDemoMode)) {
         return null;
     }
 
-    const isFollowing = status.is_following;
-    const hasPendingRequest = status.has_pending_request;
+    const isFollowing = computedStatus.is_following;
+    const hasPendingRequest = computedStatus.has_pending_request;
 
     // Size classes
     const sizeClasses = size === "sm" ? "px-3 py-1.5 text-xs" : size === "lg" ? "px-6 py-3 text-base" : "px-4 py-2 text-sm";
