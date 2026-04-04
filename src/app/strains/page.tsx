@@ -76,6 +76,7 @@ function StrainsPageContent() {
   const { user, isDemoMode, activeOrganization } = useAuth();
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<StrainSource | "all" | "mine">("all");
   const [activeTab, setActiveTab] = useState<"catalog" | "org">("catalog");
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
@@ -93,6 +94,12 @@ function StrainsPageContent() {
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
   const lastScrollY = useRef(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Debounce search input by 300ms to avoid excessive Supabase queries
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const toggleCompare = useCallback((slug: string) => {
     const current = compareSlugs;
@@ -177,6 +184,7 @@ function StrainsPageContent() {
 
   // Query key includes all filter state for automatic refetch on changes
   const filters = {
+    search: debouncedSearch,
     activeTab,
     organizationId: activeOrganization?.organization_id,
     effects: filterEffects,
@@ -311,8 +319,8 @@ function StrainsPageContent() {
     }
 
     // Search filter (server-side ILIKE)
-    if (search.trim()) {
-      strainsQuery = strainsQuery.ilike('name', `%${search.trim()}%`);
+    if (debouncedSearch) {
+      strainsQuery = strainsQuery.ilike('name', `%${debouncedSearch}%`);
     }
 
     // Effects filter: strain must have ALL selected effects (PostgreSQL array contains)
@@ -444,92 +452,90 @@ function StrainsPageContent() {
 
         <div className={`px-6 pb-4 transition-transform duration-300 ${isSearchBarVisible ? "translate-y-0" : "-translate-y-full"}`}>
           <div className="relative mb-4">
-          <Search className="absolute left-4 top-3.5 text-[#484849]" size={18} />
-          <input
-            type="text"
-            placeholder="Sorte suchen..."
-            className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-[var(--foreground)] placeholder:text-[#484849] focus:outline-none focus:border-[#00F5FF]/50 transition-all"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+            <Search className="absolute left-4 top-3.5 text-[#484849]" size={18} />
+            <input
+              type="text"
+              placeholder="Sorte suchen..."
+              className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-[var(--foreground)] placeholder:text-[#484849] focus:outline-none focus:border-[#00F5FF]/50 transition-all"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
-          <button
-            onClick={() => setActiveTab("catalog")}
-            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${
-              activeTab === "catalog"
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
+            <button
+              onClick={() => setActiveTab("catalog")}
+              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${activeTab === "catalog"
                 ? "bg-[#2FF801] text-black"
                 : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)] hover:border-[#00F5FF]/50"
-            }`}
-          >
-            Katalog
-          </button>
-          {activeOrganization && (
-            <button
-              onClick={() => setActiveTab("org")}
-              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${
-                activeTab === "org"
+                }`}
+            >
+              Katalog
+            </button>
+            {activeOrganization && (
+              <button
+                onClick={() => setActiveTab("org")}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${activeTab === "org"
                   ? "bg-[#00F5FF] text-black"
                   : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)] hover:border-[#00F5FF]/50"
-              }`}
-            >
-              {activeOrganization.organizations?.name || "Organisation"}
-            </button>
-          )}
-        </div>
+                  }`}
+              >
+                {activeOrganization.organizations?.name || "Organisation"}
+              </button>
+            )}
+          </div>
 
-        <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
+          <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
+            <Button
+              size="sm"
+              variant={sourceFilter === "all" ? "default" : "outline"}
+              onClick={() => setSourceFilter("all")}
+              className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "all" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
+            >
+              Alle
+            </Button>
+            <Button
+              size="sm"
+              variant={sourceFilter === "pharmacy" ? "default" : "outline"}
+              onClick={() => setSourceFilter("pharmacy")}
+              className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "pharmacy" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
+            >
+              Apotheke
+            </Button>
+            <Button
+              size="sm"
+              variant={sourceFilter === "grow" ? "default" : "outline"}
+              onClick={() => setSourceFilter("grow")}
+              className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "grow" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
+            >
+              Eigenanbau
+            </Button>
+            <Button
+              size="sm"
+              variant={sourceFilter === "csc" ? "default" : "outline"}
+              onClick={() => setSourceFilter("csc")}
+              className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "csc" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
+            >
+              CSC
+            </Button>
+            <Button
+              size="sm"
+              variant={sourceFilter === "other" ? "default" : "outline"}
+              onClick={() => setSourceFilter("other")}
+              className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "other" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
+            >
+              Sonstiges
+            </Button>
+          </div>
           <Button
             size="sm"
-            variant={sourceFilter === "all" ? "default" : "outline"}
-            onClick={() => setSourceFilter("all")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "all" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
+            variant="outline"
+            onClick={() => setFilterPanelOpen(true)}
+            className="bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)] hover:border-[#00F5FF]/50"
           >
-            Alle
+            <SlidersHorizontal size={14} className="mr-1" />
+            Filter
           </Button>
-          <Button
-            size="sm"
-            variant={sourceFilter === "pharmacy" ? "default" : "outline"}
-            onClick={() => setSourceFilter("pharmacy")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "pharmacy" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
-          >
-            Apotheke
-          </Button>
-          <Button
-            size="sm"
-            variant={sourceFilter === "grow" ? "default" : "outline"}
-            onClick={() => setSourceFilter("grow")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "grow" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
-          >
-            Eigenanbau
-          </Button>
-          <Button
-            size="sm"
-            variant={sourceFilter === "csc" ? "default" : "outline"}
-            onClick={() => setSourceFilter("csc")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "csc" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
-          >
-            CSC
-          </Button>
-          <Button
-            size="sm"
-            variant={sourceFilter === "other" ? "default" : "outline"}
-            onClick={() => setSourceFilter("other")}
-            className={`rounded-xl text-[10px] font-bold whitespace-nowrap ${sourceFilter === "other" ? "bg-[#2FF801] text-black" : "bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)]"}`}
-          >
-            Sonstiges
-          </Button>
-        </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => setFilterPanelOpen(true)}
-          className="bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)] hover:border-[#00F5FF]/50"
-        >
-          <SlidersHorizontal size={14} className="mr-1" />
-          Filter
-        </Button>
         </div>
       </header>
 
