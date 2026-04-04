@@ -9,7 +9,7 @@ import { strainKeys } from "@/lib/query-keys";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Database, Trash2, Pencil, Lock } from "lucide-react";
+import { ChevronLeft, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Database, Trash2, Pencil, Lock, AlertCircle } from "lucide-react";
 import { Strain } from "@/lib/types";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeCollectionSource, normalizeTerpeneList } from "@/lib/strain-display";
@@ -156,7 +156,7 @@ export default function StrainDetailPageClient() {
     return { strain: strainData, isFavorited: userFav, userImageUrl: userCollection?.user_image_url || null, batchInfo: userCollection?.batch_info || "", userNotes: userCollection?.user_notes || "", isDeletable: isDeletableVal };
   }
 
-  const { data: detailData, isLoading, error: detailError } = useQuery({
+  const { data: detailData, isLoading, error: detailError, refetch } = useQuery({
     queryKey: strainKeys.detail(slug as string),
     queryFn: fetchStrainDetail,
     enabled: !!slug,
@@ -445,8 +445,53 @@ export default function StrainDetailPageClient() {
     return withoutFarmerPrefix || rawName;
   })();
 
-  if (isLoading) return <div className="min-h-screen bg-[var(--background)] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
-  if (detailError) return <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] text-center py-20 uppercase font-bold">Strain not found</div>;
+  if (isLoading) return (
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#2FF801]/5 blur-[80px] rounded-full" />
+      </div>
+      <div className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50 px-6 py-4 flex justify-between items-center">
+        <div className="w-10 h-10 rounded-full bg-[var(--card)] animate-pulse" />
+        <div className="flex gap-2">
+          <div className="w-10 h-10 rounded-full bg-[var(--card)] animate-pulse" />
+          <div className="w-10 h-10 rounded-full bg-[var(--card)] animate-pulse" />
+          <div className="w-10 h-10 rounded-full bg-[var(--card)] animate-pulse" />
+        </div>
+      </div>
+      <div className="px-6 flex flex-col items-center relative z-10">
+        <div className="w-full max-w-[340px] aspect-[3/4.5] rounded-[20px] bg-[var(--card)] border border-[var(--border)]/50 animate-pulse mt-4" />
+        <div className="w-full max-w-[340px] mt-10">
+          <div className="w-full h-16 rounded-2xl bg-[var(--card)] animate-pulse" />
+        </div>
+      </div>
+    </main>
+  );
+  if (detailError) return (
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#2FF801]/5 blur-[80px] rounded-full" />
+      </div>
+      <div className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50 px-6 py-4">
+        <button onClick={() => router.back()} className="p-2 rounded-full bg-[var(--card)] border border-[var(--border)]/50 hover:border-[#00F5FF]/50 transition-all">
+          <ChevronLeft size={24} className="text-[var(--foreground)]" />
+        </button>
+      </div>
+      <div className="flex flex-col items-center justify-center py-20 gap-4 text-[#ff716c]">
+        <AlertCircle size={48} />
+        <p className="text-sm font-bold uppercase tracking-widest text-center">
+          {detailError instanceof Error ? detailError.message : "Failed to load strain"}
+        </p>
+        <button
+          onClick={() => refetch()}
+          className="px-4 py-2 rounded-xl bg-[#ff716c]/10 border border-[#ff716c]/30 text-[#ff716c] text-xs font-bold uppercase tracking-widest hover:bg-[#ff716c]/20 transition-all"
+        >
+          Retry
+        </button>
+      </div>
+    </main>
+  );
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
