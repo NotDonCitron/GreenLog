@@ -8,7 +8,7 @@ progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # State: GreenLog
@@ -33,6 +33,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 
 | Date | Phase | Event |
 |------|-------|-------|
+| 2026-04-04 | 01-04 | Phase 1 plan 04 complete — FollowButton useQuery conversion with cache invalidation |
 | 2026-04-04 | 01-03 | Phase 1 plan 03 complete — Strain detail page useQuery conversion |
 | 2026-04-04 | 01-02 | Phase 1 plan 02 complete — Strains page useQuery conversion |
 | 2026-04-04 | 01-01 | Phase 1 plan 01 complete — Query keys centralized |
