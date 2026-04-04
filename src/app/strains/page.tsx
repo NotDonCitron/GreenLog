@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect, Suspense, useCallback, lazy } from "react";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
+import { strainKeys } from "@/lib/query-keys";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { Search, Loader2, AlertCircle, Plus, Camera, SlidersHorizontal, Scale, X } from "lucide-react";
@@ -72,14 +74,9 @@ export default function StrainsPage() {
 function StrainsPageContent() {
   const { user, isDemoMode, activeOrganization } = useAuth();
   const router = useRouter();
-  const [strains, setStrains] = useState<Strain[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<StrainSource | "all" | "mine">("all");
   const [activeTab, setActiveTab] = useState<"catalog" | "org">("catalog");
-  const [error, setError] = useState<string | null>(null);
-  const [sourceOverrides, setSourceOverrides] = useState<Record<string, StrainSource>>({});
-  const [sourceOverridesReady, setSourceOverridesReady] = useState(false);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [filterEffects, setFilterEffects] = useState<string[]>([]);
   const [filterThcMin, setFilterThcMin] = useState(THC_RANGE.min);
@@ -126,24 +123,18 @@ function StrainsPageContent() {
   }, []);
 
   const persistSourceOverride = (strainId: string, strainSource: StrainSource) => {
-    setSourceOverrides((current) => {
-      const next = {
-        ...current,
-        [strainId]: strainSource,
-      };
-
-      try {
-        window.localStorage.setItem(SOURCE_OVERRIDE_STORAGE_KEY, JSON.stringify(next));
-      } catch (storageError) {
-        console.warn("[StrainsPage] Failed to persist source override", {
-          strainId,
-          strainSource,
-          storageError,
-        });
-      }
-
-      return next;
-    });
+    try {
+      const stored = window.localStorage.getItem(SOURCE_OVERRIDE_STORAGE_KEY);
+      const current: Record<string, StrainSource> = stored ? JSON.parse(stored) : {};
+      const next = { ...current, [strainId]: strainSource };
+      window.localStorage.setItem(SOURCE_OVERRIDE_STORAGE_KEY, JSON.stringify(next));
+    } catch (storageError) {
+      console.warn("[StrainsPage] Failed to persist source override", {
+        strainId,
+        strainSource,
+        storageError,
+      });
+    }
   };
 
   const handleStrainCreated = (
@@ -178,80 +169,137 @@ function StrainsPageContent() {
     return strain.source === sourceFilter;
   };
 
-  useEffect(() => {
+  // Query key includes all filter state for automatic refetch on changes
+  const filters = {
+    activeTab,
+    organizationId: activeOrganization?.organization_id,
+    effects: filterEffects,
+    thcMin: filterThcMin,
+    thcMax: filterThcMax,
+    cbdMin: filterCbdMin,
+    cbdMax: filterCbdMax,
+    flavors: filterFlavors,
+  };
+
+  const { data: strainsData, isLoading, error } = useQuery({
+    queryKey: strainKeys.list(filters),
+    queryFn: fetchStrains,
+    placeholderData: keepPreviousData,
+  });
+
+  const strains = strainsData?.strains ?? [];
+
+  async function fetchStrains(): Promise<{ strains: Strain[]; sourceOverrides: Record<string, StrainSource> }> {
+    // Demo mode: return mock strains without Supabase calls
+    if (isDemoMode) {
+      const mockStrains: Strain[] = [
+        {
+          id: 'demo-1',
+          slug: 'gorilla-glue',
+          name: 'Gorilla Glue #4',
+          type: 'hybrid' as const,
+          source: 'pharmacy' as StrainSource,
+          effects: ['relaxing', 'euphoric'],
+          flavors: ['earthy', 'chocolate'],
+          avg_thc: 25,
+          avg_cbd: 0.1,
+          created_by: undefined,
+          organization_id: null,
+          image_url: undefined,
+          thc_max: 28,
+          cbd_max: 1,
+        },
+        {
+          id: 'demo-2',
+          slug: 'sour-diesel',
+          name: 'Sour Diesel',
+          type: 'sativa' as const,
+          source: 'pharmacy' as StrainSource,
+          effects: ['energetic', 'uplifting'],
+          flavors: ['citrus', 'diesel'],
+          avg_thc: 19,
+          avg_cbd: 0.2,
+          created_by: undefined,
+          organization_id: null,
+          image_url: undefined,
+          thc_max: 22,
+          cbd_max: 1,
+        },
+        {
+          id: 'demo-3',
+          slug: 'blue-dream',
+          name: 'Blue Dream',
+          type: 'hybrid' as const,
+          source: 'pharmacy' as StrainSource,
+          effects: ['relaxing', 'creative'],
+          flavors: ['berry', 'vanilla'],
+          avg_thc: 18,
+          avg_cbd: 0.1,
+          created_by: undefined,
+          organization_id: null,
+          image_url: undefined,
+          thc_max: 20,
+          cbd_max: 1,
+        },
+      ];
+      return { strains: mockStrains, sourceOverrides: {} };
+    }
+
+    // Load source overrides from localStorage
+    let localSourceOverrides: Record<string, StrainSource> = {};
     try {
-      const storedOverrides = window.localStorage.getItem(SOURCE_OVERRIDE_STORAGE_KEY);
-      if (storedOverrides) {
-        const parsedOverrides = JSON.parse(storedOverrides) as Record<string, StrainSource>;
-        setSourceOverrides(parsedOverrides);
-      }
-    } catch (storageError) {
-      console.warn("[StrainsPage] Failed to load source overrides", storageError);
-    } finally {
-      setSourceOverridesReady(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!sourceOverridesReady) {
-      return;
+      const stored = window.localStorage.getItem(SOURCE_OVERRIDE_STORAGE_KEY);
+      if (stored) localSourceOverrides = JSON.parse(stored);
+    } catch {
+      // ignore
     }
 
-    async function fetchData() {
-      setLoading(true);
-      setError(null);
+    let strainsQuery = supabase
+      .from('strains')
+      .select('*')
+      .order('name');
 
-      try {
-        let strainsQuery = supabase
-          .from("strains")
-          .select("*")
-          .order("name");
+    if (activeTab === 'catalog') {
+      strainsQuery = strainsQuery.is('organization_id', null);
+    } else if (activeOrganization) {
+      strainsQuery = strainsQuery.eq('organization_id', activeOrganization.organization_id);
+    }
 
-        if (activeTab === "catalog") {
-          strainsQuery = strainsQuery.is("organization_id", null);
-        } else if (activeOrganization) {
-          strainsQuery = strainsQuery.eq("organization_id", activeOrganization.organization_id);
-        }
+    const { data: allStrains, error: strainError } = await strainsQuery;
 
-        const { data: allStrains, error: strainError } = await strainsQuery;
+    if (strainError) throw new Error(strainError.message);
 
-        if (strainError) throw new Error(strainError.message);
+    const mergedOverrides = { ...localSourceOverrides };
+    if (user) {
+      const { data: collectionSettings } = await supabase
+        .from('user_collection')
+        .select('strain_id, batch_info')
+        .eq('user_id', user.id);
 
-        let mergedOverrides = { ...sourceOverrides };
-        if (user) {
-          const { data: collectionSettings, error: collectionError } = await supabase
-            .from("user_collection")
-            .select("strain_id, batch_info")
-            .eq("user_id", user.id);
-
-          if (!collectionError && collectionSettings) {
-            collectionSettings.forEach(item => {
-              if (["apotheke", "street", "grow", "pharmacy"].includes(item.batch_info || "")) {
-                mergedOverrides[item.strain_id] = item.batch_info as StrainSource;
-              }
-            });
-            setSourceOverrides(mergedOverrides);
+      if (collectionSettings) {
+        collectionSettings.forEach((item: { strain_id: string; batch_info: string | null }) => {
+          if (['apotheke', 'street', 'grow', 'pharmacy'].includes(item.batch_info || '')) {
+            mergedOverrides[item.strain_id] = item.batch_info as StrainSource;
           }
+        });
+        // Persist merged overrides to localStorage
+        try {
+          window.localStorage.setItem(SOURCE_OVERRIDE_STORAGE_KEY, JSON.stringify(mergedOverrides));
+        } catch {
+          // ignore
         }
-
-        if (allStrains) {
-          const normalizedStrains = allStrains.map((strain) => ({
-            ...strain,
-            source: strain.source ?? mergedOverrides[strain.id] ?? "pharmacy",
-          }));
-          setStrains(normalizedStrains as Strain[]);
-        }
-
-      } catch (err: unknown) {
-        console.error("Fetch error:", err);
-        setError(err instanceof Error ? err.message : "Failed to load database content.");
-      } finally {
-        setLoading(false);
       }
     }
 
-    fetchData();
-  }, [user, isDemoMode, sourceOverridesReady, activeTab]);
+    const normalizedStrains = (allStrains ?? []).map((strain) => ({
+      ...strain,
+      source: strain.source ?? mergedOverrides[strain.id] ?? 'pharmacy',
+    }));
+
+    return { strains: normalizedStrains as Strain[], sourceOverrides: mergedOverrides };
+  }
+
+
 
   const filteredStrains = strains.filter((s) => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
@@ -420,9 +468,9 @@ function StrainsPageContent() {
         {error ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-[#ff716c]">
             <AlertCircle size={48} />
-            <p className="text-sm font-bold uppercase tracking-widest text-center">{error}</p>
+            <p className="text-sm font-bold uppercase tracking-widest text-center">{error instanceof Error ? error.message : String(error)}</p>
           </div>
-        ) : loading && strains.length === 0 ? (
+        ) : isLoading && strains.length === 0 ? (
           <div className="grid grid-cols-2 gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="aspect-[3/4.5] rounded-3xl bg-[var(--card)] border border-[var(--border)]/50 animate-pulse flex flex-col p-4 gap-4">
