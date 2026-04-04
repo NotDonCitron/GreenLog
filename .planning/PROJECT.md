@@ -23,14 +23,12 @@ Reliable strain data management with fast, consistent UI — mutations (collect,
 - ✓ Organization management with invite system — April 2026
 - ✓ Organization analytics with CSV export — April 2026
 - ✓ React Query Provider + useCollection hooks (partial) — April 2026
+- ✓ React Query core integration (strains page, strain detail, FollowButton, centralized query-keys) — Phase 1 complete April 2026
 
 ### Active
 
-- [ ] **RQ-01**: Strains page fetches via useQuery instead of useEffect
-- [ ] **RQ-02**: Collection page uses React Query with consistent query keys
-- [ ] **RQ-03**: Follow/unfollow mutations invalidate follow queries
-- [ ] **RQ-04**: Rate/add relation mutations invalidate strain queries
-- [ ] **RQ-05**: Loading/error states consistent across all data-fetching pages
+- [ ] Collection page React Query conversion (RQ-04, RQ-05 from REQUIREMENTS.md)
+- [ ] Advanced React Query: prefetch on hover (RQ-15), infinite scroll (RQ-16), offline support (RQ-17), optimistic follow updates (RQ-18)
 
 ### Out of Scope
 
@@ -42,10 +40,11 @@ Reliable strain data management with fast, consistent UI — mutations (collect,
 
 ### Current State (April 2026)
 
-GreenLog MVP is complete. The codebase uses:
+GreenLog MVP is complete. Phase 1 (React Query core integration) is now complete:
 - **Next.js 16 Pages Router** with TypeScript and Tailwind CSS
 - **Supabase** for PostgreSQL, Auth, Storage, and RLS
-- **React Query** (`@tanstack/react-query`) partially integrated — `QueryProvider` exists, `useCollection`/`useCollectionIds` hooks use it, but main pages (strains, collection, strain detail) still use `useEffect + supabase.from`
+- **React Query** (`@tanstack/react-query`) fully integrated — centralized query-keys.ts, strains page, strain detail page, and FollowButton all converted to useQuery with proper cache invalidation
+- **Remaining**: Collection page (RQ-04/RQ-05), advanced features (RQ-15-RQ-18) in future phases
 
 ### Problem to Solve
 
@@ -78,4 +77,4 @@ React Query is already in the tree (`QueryProvider` configured). The `useCollect
 
 ---
 
-*Last updated: 2026-04-04 after React Query gap analysis*
+*Last updated: 2026-04-04 after Phase 1 completion*
