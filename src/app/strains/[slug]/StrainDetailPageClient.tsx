@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
+import { strainKeys } from "@/lib/query-keys";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
@@ -36,7 +38,6 @@ export default function StrainDetailPageClient() {
   const { collectedIds, toggleCollect, collectAction } = useCollection();
 
   const [strain, setStrain] = useState<Strain & { organization?: { id: string; name: string; slug: string; organization_type: string } } | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [userImageUrl, setUserImageUrl] = useState<string | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -69,10 +70,21 @@ export default function StrainDetailPageClient() {
     }));
   };
 
-  useEffect(() => {
-    async function fetchStrain() {
-      // Try to fetch by slug first, then by id (in case slug is actually an id)
-      let { data, error } = await supabase.from("strains").select(`
+  async function fetchStrainDetail() {
+    // Try to fetch by slug first, then by id (in case slug is actually an id)
+    let { data, error } = await supabase.from("strains").select(`
+      *,
+      organization:organization_id (
+        id,
+        name,
+        slug,
+        organization_type
+      )
+    `).eq("slug", slug).single();
+
+    // If not found and slug looks like a UUID, try fetching by id
+    if (error && !isDemoMode && slug && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug as string)) {
+      const { data: idData, error: idError } = await supabase.from("strains").select(`
         *,
         organization:organization_id (
           id,
@@ -80,86 +92,87 @@ export default function StrainDetailPageClient() {
           slug,
           organization_type
         )
-      `).eq("slug", slug).single();
+      `).eq("id", slug).single();
 
-      // If not found and slug looks like a UUID, try fetching by id
-      if (error && !isDemoMode && slug && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug as string)) {
-        const { data: idData, error: idError } = await supabase.from("strains").select(`
-          *,
-          organization:organization_id (
-            id,
-            name,
-            slug,
-            organization_type
-          )
-        `).eq("id", slug).single();
-
-        if (!idError && idData) {
-          data = idData;
-          error = null;
-        }
+      if (!idError && idData) {
+        data = idData;
+        error = null;
       }
-
-      if (error && !isDemoMode) {
-        console.error("Strain fetch error:", error);
-      }
-
-      if (data) {
-        setStrain({
-          ...(data as Strain & { organization?: { id: string; name: string; slug: string; organization_type: string } }),
-          source: normalizeCollectionSource((data as Strain).source),
-        });
-
-        if (user) {
-          const { data: fav } = await supabase
-            .from("user_strain_relations")
-            .select("is_favorite")
-            .eq("strain_id", data.id)
-            .eq("user_id", user.id)
-            .maybeSingle();
-          setIsFavorite(Boolean(fav?.is_favorite));
-
-          const { data: collection } = await supabase
-            .from("user_collection")
-            .select("user_image_url, batch_info, user_notes")
-            .eq("strain_id", data.id)
-            .eq("user_id", user.id)
-            .maybeSingle();
-
-          // Note: hasCollected state removed - UI derives isCollected from collectedIds via useCollection hook
-          if (collection) {
-            setUserImageUrl(collection.user_image_url || null);
-            setBatchInfo(collection.batch_info || "");
-            setUserNotes(collection.user_notes || "");
-          } else {
-            setUserImageUrl(null);
-            setBatchInfo("");
-            setUserNotes("");
-          }
-
-          const { count: othersCount } = await supabase
-            .from("user_collection")
-            .select("*", { count: 'exact', head: true })
-            .eq("strain_id", data.id)
-            .neq("user_id", user.id);
-
-          setIsDeletable((othersCount || 0) === 0);
-        }
-      } else if (isDemoMode) {
-        setStrain({
-          id: "sim-1",
-          name: (slug as string).split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
-          slug: slug as string,
-          type: "hybrid",
-          thc_max: 25,
-          description: "Simulation Mode: This is a placeholder description for the demo experience.",
-          image_url: `/strains/${slug}.jpg`
-        });
-      }
-      setLoading(false);
     }
-    fetchStrain();
-  }, [slug, user, isDemoMode]);
+
+    if (error && !isDemoMode) {
+      throw new Error(error.message);
+    }
+
+    let strainData = null;
+    let userFav = false;
+    let userCollection: { user_image_url: string | null; batch_info: string | null; user_notes: string | null } | null = null;
+    let othersCount = 0;
+    let isDeletableVal = false;
+
+    if (data) {
+      strainData = {
+        ...(data as Strain & { organization?: { id: string; name: string; slug: string; organization_type: string } }),
+        source: normalizeCollectionSource((data as Strain).source),
+      };
+
+      if (user) {
+        const { data: fav } = await supabase
+          .from("user_strain_relations")
+          .select("is_favorite")
+          .eq("strain_id", data.id)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        userFav = Boolean(fav?.is_favorite);
+
+        const { data: coll } = await supabase
+          .from("user_collection")
+          .select("user_image_url, batch_info, user_notes")
+          .eq("strain_id", data.id)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        userCollection = coll;
+
+        const { count } = await supabase
+          .from("user_collection")
+          .select("*", { count: 'exact', head: true })
+          .eq("strain_id", data.id)
+          .neq("user_id", user.id);
+        othersCount = count || 0;
+        isDeletableVal = othersCount === 0;
+      }
+    } else if (isDemoMode) {
+      strainData = {
+        id: "sim-1",
+        name: (slug as string).split('-').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+        slug: slug as string,
+        type: "hybrid",
+        thc_max: 25,
+        description: "Simulation Mode: This is a placeholder description for the demo experience.",
+        image_url: `/strains/${slug}.jpg`
+      };
+    }
+
+    return { strain: strainData, isFavorited: userFav, userImageUrl: userCollection?.user_image_url || null, batchInfo: userCollection?.batch_info || "", userNotes: userCollection?.user_notes || "", isDeletable: isDeletableVal };
+  }
+
+  const { data: detailData, isLoading, error: detailError } = useQuery({
+    queryKey: strainKeys.detail(slug as string),
+    queryFn: fetchStrainDetail,
+    enabled: !!slug,
+  });
+
+  // Sync state from query data
+  useEffect(() => {
+    if (detailData?.strain) setStrain(detailData.strain);
+    if (detailData !== undefined) {
+      setIsFavorite(detailData.isFavorited);
+      setUserImageUrl(detailData.userImageUrl);
+      setBatchInfo(detailData.batchInfo);
+      setUserNotes(detailData.userNotes);
+      setIsDeletable(detailData.isDeletable);
+    }
+  }, [detailData]);
 
   const isOrgStrain = Boolean(strain?.organization_id);
   const hasOrgAccess = isOrgStrain && activeOrganization?.organization_id === strain?.organization_id;
@@ -351,6 +364,7 @@ export default function StrainDetailPageClient() {
       if (nextState) {
         await checkAndUnlockBadges(user.id, supabase);
       }
+      queryClient.invalidateQueries({ queryKey: strainKeys.detail(slug as string) });
     } catch (err) {
       console.error("Fav error:", err);
       setIsFavorite(previousState);
@@ -375,7 +389,10 @@ export default function StrainDetailPageClient() {
 
       if (rError) throw rError;
 
-      // 2. Close modal immediately after rating success to ensure UI responsiveness
+      // 2. Invalidate strain detail cache so ratings reflect immediately
+      queryClient.invalidateQueries({ queryKey: strainKeys.detail(slug as string) });
+
+      // 3. Close modal immediately after rating success to ensure UI responsiveness
       setShowRatingModal(false);
 
       // 3. Add to collection using the mutation from useCollection
@@ -428,8 +445,8 @@ export default function StrainDetailPageClient() {
     return withoutFarmerPrefix || rawName;
   })();
 
-  if (loading) return <div className="min-h-screen bg-[var(--background)] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
-  if (!strain) return <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] text-center py-20 uppercase font-bold">Strain not found</div>;
+  if (isLoading) return <div className="min-h-screen bg-[var(--background)] flex items-center justify-center"><Loader2 className="animate-spin text-[#00F5FF]" size={40} /></div>;
+  if (detailError) return <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] text-center py-20 uppercase font-bold">Strain not found</div>;
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
