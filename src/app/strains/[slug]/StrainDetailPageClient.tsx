@@ -1,17 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { strainKeys } from "@/lib/query-keys";
 import { useAuth } from "@/components/auth-provider";
+import { useToast } from "@/components/toast-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Database, Trash2, Pencil, Lock, AlertCircle } from "lucide-react";
 import { Strain } from "@/lib/types";
-import { CreateStrainModal } from "@/components/strains/create-strain-modal";
+import { escapeRegExp } from '@/lib/string-utils';
+import Image from 'next/image';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeCollectionSource, normalizeTerpeneList } from "@/lib/strain-display";
 import { checkAndUnlockBadges } from "@/lib/badges";
 import { useCollection } from "@/hooks/useCollection";
@@ -36,6 +38,7 @@ export default function StrainDetailPageClient() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { collectedIds, toggleCollect, collectAction } = useCollection();
+  const { error: toastError, success: toastSuccess } = useToast();
 
   const [strain, setStrain] = useState<Strain & { organization?: { id: string; name: string; slug: string; organization_type: string } } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -61,7 +64,7 @@ export default function StrainDetailPageClient() {
     look: 4.5
   });
 
-  const fileInputRef = { current: null as HTMLInputElement | null };
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleStarClick = (key: keyof typeof ratings, value: number) => {
     setRatings(prev => ({
@@ -182,12 +185,12 @@ export default function StrainDetailPageClient() {
     if (!strain || !user || isDemoMode) return;
 
     if (strain.created_by !== user.id) {
-      alert("Nur der Ersteller kann diese Sorte löschen.");
+      toastError("Nur der Ersteller kann diese Sorte löschen.");
       return;
     }
 
     if (!isDeletable) {
-      alert("Diese Sorte kann nicht mehr gelöscht werden, da sie bereits von anderen Community-Mitgliedern gesammelt wurde.");
+      toastError("Diese Sorte kann nicht mehr gelöscht werden, da sie bereits von anderen Community-Mitgliedern gesammelt wurde.");
       return;
     }
 
@@ -228,7 +231,7 @@ export default function StrainDetailPageClient() {
       router.refresh();
     } catch (error: unknown) {
       console.error("Delete failure:", error);
-      alert(getErrorMessage(error, "Die Sorte konnte nicht gelöscht werden."));
+      toastError(getErrorMessage(error, "Die Sorte konnte nicht gelöscht werden."));
     } finally {
       setIsDeleting(false);
     }
@@ -240,13 +243,13 @@ export default function StrainDetailPageClient() {
 
     const isValidMimeType = ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type);
     if (!isValidMimeType) {
-      alert("Bitte lade nur JPG, PNG, WEBP oder GIF hoch.");
+      toastError("Bitte lade nur JPG, PNG, WEBP oder GIF hoch.");
       e.target.value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("Das Bild ist zu groß. Maximal 5 MB sind erlaubt.");
+      toastError("Das Bild ist zu groß. Maximal 5 MB sind erlaubt.");
       e.target.value = "";
       return;
     }
@@ -277,9 +280,9 @@ export default function StrainDetailPageClient() {
       // Fire and forget badge check - don't block UI
       checkAndUnlockBadges(user.id, supabase).catch(() => {});
       queryClient.invalidateQueries({ queryKey: ['collection', user.id] });
-      alert("Foto hochgeladen!");
+      toastSuccess("Foto hochgeladen!");
     } catch (error: unknown) {
-      alert("Error: " + getErrorMessage(error, "Foto konnte nicht hochgeladen werden."));
+      toastError("Error: " + getErrorMessage(error, "Foto konnte nicht hochgeladen werden."));
     } finally {
       e.target.value = "";
       setIsUploading(false);
@@ -292,13 +295,13 @@ export default function StrainDetailPageClient() {
 
     const isValidMimeType = ["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type);
     if (!isValidMimeType) {
-      alert("Bitte lade nur JPG, PNG, WEBP oder GIF hoch.");
+      toastError("Bitte lade nur JPG, PNG, WEBP oder GIF hoch.");
       e.target.value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("Das Bild ist zu groß. Maximal 5 MB sind erlaubt.");
+      toastError("Das Bild ist zu groß. Maximal 5 MB sind erlaubt.");
       e.target.value = "";
       return;
     }
@@ -312,7 +315,7 @@ export default function StrainDetailPageClient() {
       const accessToken = sessionData?.session?.access_token;
 
       if (!accessToken) {
-        alert("Du musst eingeloggt sein.");
+        toastError("Du musst eingeloggt sein.");
         return;
       }
 
@@ -330,9 +333,9 @@ export default function StrainDetailPageClient() {
 
       setGlobalImageRefresh(prev => prev + 1);
       window.location.reload();
-      alert("Globales Strain-Bild erfolgreich aktualisiert!");
+      toastSuccess("Globales Strain-Bild erfolgreich aktualisiert!");
     } catch (error: unknown) {
-      alert("Error: " + getErrorMessage(error, "Bild konnte nicht hochgeladen werden."));
+      toastError("Error: " + getErrorMessage(error, "Bild konnte nicht hochgeladen werden."));
     } finally {
       e.target.value = "";
       setIsAdminUploading(false);
@@ -368,7 +371,7 @@ export default function StrainDetailPageClient() {
     } catch (err) {
       console.error("Fav error:", err);
       setIsFavorite(previousState);
-      alert("Favorit konnte nicht gespeichert werden.");
+      toastError("Favorit konnte nicht gespeichert werden.");
     }
   };
 
@@ -420,7 +423,7 @@ export default function StrainDetailPageClient() {
       }, 0);
     } catch (error: unknown) {
       console.error("Save rating error:", error);
-      alert("Error: " + getErrorMessage(error, "Bewertung konnte nicht gespeichert werden."));
+      toastError("Error: " + getErrorMessage(error, "Bewertung konnte nicht gespeichert werden."));
     } finally {
       setIsSaving(false);
     }
@@ -434,7 +437,6 @@ export default function StrainDetailPageClient() {
   const effectDisplay = strain ? getEffectDisplay(strain) : 'Euphorie';
 
   const farmerDisplay = strain?.farmer?.trim() || strain?.manufacturer?.trim() || strain?.brand?.trim() || 'Unbekannter Farmer';
-  const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const normalizedStrainName = (() => {
     const rawName = strain?.name?.trim() || '';
     if (!rawName || farmerDisplay === 'Unbekannter Farmer') return rawName;
@@ -570,7 +572,7 @@ export default function StrainDetailPageClient() {
                 </button>
               ) : (
                 <button
-                  onClick={() => alert("Diese Sorte kann nicht mehr gelöscht werden, da sie bereits von anderen Community-Mitgliedern gesammelt wurde.")}
+                  onClick={() => toastError("Diese Sorte kann nicht mehr gelöscht werden, da sie bereits von anderen Community-Mitgliedern gesammelt wurde.")}
                   className="p-2 rounded-full border border-[var(--border)]/50 bg-[var(--card)] text-[#484849]"
                 >
                   <Lock size={20} />
@@ -600,7 +602,13 @@ export default function StrainDetailPageClient() {
               </div>
               <div className="px-5 w-full">
                 <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-[var(--border)]/50">
-                  <img src={userImageUrl || (strain.image_url ? strain.image_url + (globalImageRefresh ? `?v=${globalImageRefresh}` : '') : "/strains/placeholder-1.svg")} alt={strain.name} className="w-full h-full object-cover" />
+                  <Image
+                    src={userImageUrl || (strain.image_url ? strain.image_url + (globalImageRefresh ? `?v=${globalImageRefresh}` : '') : "/strains/placeholder-1.svg")}
+                    alt={strain.name}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
                   <div className="absolute bottom-2 left-2 border bg-black/70 backdrop-blur-md uppercase text-[9px] px-2 py-1 rounded-sm font-bold" style={{ borderColor: themeColor, color: themeColor }}>{strain.type || 'HYBRID'}</div>
                 </div>
               </div>

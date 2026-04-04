@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Building2, Check, Loader2, Plus, Shield, Users, X } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import { useToast } from "@/components/toast-provider";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +54,7 @@ export function OrganizationSwitcher() {
         setActiveOrganizationId,
         refreshMemberships,
     } = useAuth();
+    const { error: toastError } = useToast();
 
     const router = useRouter();
 
@@ -106,7 +108,7 @@ export function OrganizationSwitcher() {
             setNewOrg({ name: "", slug: "", type: "club" });
         } catch (error) {
             console.error("Error creating organization:", error);
-            alert("Fehler beim Erstellen der Organisation");
+            toastError("Fehler beim Erstellen der Organisation");
         } finally {
             setIsCreating(false);
         }

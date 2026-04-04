@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
+import { useToast } from "@/components/toast-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -54,6 +55,7 @@ export default function GrowDetailPage() {
     const { id } = useParams();
     const { user, isDemoMode } = useAuth();
     const router = useRouter();
+    const { error: toastError, success: toastSuccess } = useToast();
 
     const [grow, setGrow] = useState<Grow | null>(null);
     const [entries, setEntries] = useState<GrowEntry[]>([]);
@@ -140,7 +142,7 @@ export default function GrowDetailPage() {
             router.refresh();
         } catch (err) {
             console.error("Error updating grow:", err);
-            alert("Fehler beim Aktualisieren");
+            toastError("Fehler beim Aktualisieren");
         } finally {
             setIsSaving(false);
         }
@@ -177,7 +179,7 @@ export default function GrowDetailPage() {
             setPreviewImage(null);
         } catch (err) {
             console.error("Error adding entry:", err);
-            alert("Fehler beim Hinzufügen");
+            toastError("Fehler beim Hinzufügen");
         } finally {
             setIsSaving(false);
         }
@@ -196,7 +198,7 @@ export default function GrowDetailPage() {
             setPreviewImage(publicUrl);
         } catch (err) {
             console.error("Upload error:", err);
-            alert("Upload fehlgeschlagen");
+            toastError("Upload fehlgeschlagen");
         } finally {
             setIsUploading(false);
         }
@@ -212,7 +214,7 @@ export default function GrowDetailPage() {
             router.push("/grows");
         } catch (err) {
             console.error("Error deleting grow:", err);
-            alert("Fehler beim Löschen");
+            toastError("Fehler beim Löschen");
         }
     };
 

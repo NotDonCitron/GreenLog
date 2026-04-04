@@ -154,25 +154,13 @@ export async function POST(request: Request) {
   // Finally, delete the Supabase Auth user
   // This requires service role and the admin API
   try {
-    const adminResponse = await fetch(
-      `${supabaseUrl}/auth/v1/admin/users/${user.id}`,
-      {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${supabaseServiceKey}`,
-          'apikey': supabaseServiceKey,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const { error: deleteAuthError } = await serviceClient.auth.admin.deleteUser(user.id);
 
-    if (!adminResponse.ok && adminResponse.status !== 404) {
-      console.error("Auth user deletion failed:", await adminResponse.text());
-      // Don't fail the whole request - profile is already deleted
+    if (deleteAuthError) {
+      console.error("Auth user deletion failed:", deleteAuthError.message);
     }
   } catch (err) {
     console.error("Auth user deletion error:", err);
-    // Don't fail - the profile data is deleted which is the main GDPR concern
   }
 
   return jsonSuccess({

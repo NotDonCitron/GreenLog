@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CannaLog – Offline</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: 2rem;
+    }
+    .container {
+      text-align: center;
+      max-width: 400px;
+    }
+    .icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+      border-radius: 50%;
+      background: rgba(47, 248, 1, 0.1);
+      border: 1px solid rgba(47, 248, 1, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      color: #2FF801;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    p {
+      color: #888;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    button {
+      background: #2FF801;
+      color: #0a0a0a;
+      border: none;
+      padding: 0.75rem 2rem;
+      border-radius: 0.75rem;
+      font-weight: 700;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2FF801" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1.5 1.5L5 5"/>
+        <path d="m19 5 3.5-3.5"/>
+        <path d="M12 22a7 7 0 0 0 7-7c0-3.5-3-6.5-5.5-10L12 2 10.5 5C8 8.5 5 11.5 5 15a7 7 0 0 0 7 7z"/>
+      </svg>
+    </div>
+    <h1>Keine Verbindung</h1>
+    <p>Du bist offline. Überprüfe deine Internetverbindung und versuche es erneut. Gespeicherte Daten sind weiterhin verfügbar.</p>
+    <button onclick="window.location.reload()">Erneut versuchen</button>
+  </div>
+</body>
+</html>

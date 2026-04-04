@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Loader2, Search, UserPlus, Building2 } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { SuggestedUsers } from "@/components/social/suggested-users";
@@ -238,7 +239,7 @@ export default function DiscoverPage() {
                                                         <div className="flex items-center gap-4 min-w-0">
                                                             <div className="w-16 h-16 rounded-full overflow-hidden bg-[var(--muted)] border-2 border-[var(--border)] flex-shrink-0 flex items-center justify-center">
                                                                 {friend.avatar_url ? (
-                                                                    <img src={friend.avatar_url} alt={friend.username || "User"} className="w-full h-full object-cover" />
+                                                                    <Image src={friend.avatar_url} alt={friend.username || "User"} fill className="object-cover" sizes="64px" />
                                                                 ) : (
                                                                     <span className="text-xl font-black text-[#00F5FF]">{(friend.username || "U")[0].toUpperCase()}</span>
                                                                 )}
@@ -366,7 +367,7 @@ export default function DiscoverPage() {
                                         <Link href={`/user/${profile.username}`} className="flex flex-col items-center gap-2">
                                             <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--border)] bg-[var(--muted)] flex items-center justify-center">
                                                 {profile.avatar_url ? (
-                                                    <img src={profile.avatar_url} className="w-full h-full object-cover" />
+                                                    <Image src={profile.avatar_url} alt={profile.username || "User"} fill className="object-cover" sizes="64px" />
                                                 ) : (
                                                     <span className="text-xl font-black text-[#00F5FF]">{profile.username?.[0]?.toUpperCase()}</span>
                                                 )}

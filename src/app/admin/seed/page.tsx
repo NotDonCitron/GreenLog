@@ -38,6 +38,23 @@ export default function AdminSeedPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
+  const ADMIN_IDS = (process.env.NEXT_PUBLIC_APP_ADMIN_IDS || "").split(",").filter(Boolean);
+  const isAdmin = user && ADMIN_IDS.includes(user.id);
+
+  if (!isAdmin) {
+    return (
+      <main className="min-h-screen bg-white text-black flex flex-col items-center justify-center p-6">
+        <Card className="max-w-md w-full p-10 bg-[var(--card)] border-red-500/20 text-center space-y-8 shadow-2xl border-t-4 border-t-red-500">
+          <AlertCircle className="text-red-500 mx-auto" size={64} />
+          <h1 className="text-xl font-black uppercase tracking-tighter text-red-500">Access Denied</h1>
+          <p className="text-black/30 text-[10px] uppercase tracking-widest leading-relaxed">
+            Admin access required for this page.
+          </p>
+        </Card>
+      </main>
+    );
+  }
+
   const handleUpsertSeed = async () => {
     if (!user) return;
     setStatus("loading");

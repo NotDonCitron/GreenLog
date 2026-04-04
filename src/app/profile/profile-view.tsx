@@ -471,7 +471,7 @@ export default function ProfilePage() {
             </div>
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-xl bg-[var(--card)] border border-[var(--border)]/50 flex items-center justify-center overflow-hidden p-1">
-                <img src="/logo.png" alt="CannaLog" className="w-full h-full object-contain" />
+                <Image src="/logo.png" alt="CannaLog" fill className="object-contain" sizes="48px" />
               </div>
               <Link href="/login" className="px-5 py-2 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                 <LogIn size={14} /> Login
@@ -562,7 +562,7 @@ export default function ProfilePage() {
             <div className="relative">
               <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#00F5FF]/50 bg-[var(--muted)] flex items-center justify-center">
                 {identity.avatarUrl ? (
-                  <img src={identity.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  <Image src={identity.avatarUrl} alt="Avatar" fill className="object-cover" sizes="120px" />
                 ) : (
                   <span className="text-2xl font-black text-[#00F5FF]">{identity.initials}</span>
                 )}

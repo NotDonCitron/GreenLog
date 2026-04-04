@@ -5,7 +5,7 @@ import { Providers } from "@/components/providers";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import OnboardingGuide from "@/components/onboarding";
-import { ThemeInit } from "@/components/theme-init";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     description: 'Cannabis Strain Tracking & Collection',
     images: [
       {
-        url: '/api/og',
+        url: '/api/og?title=CannaLog%20%E2%80%93%20Strain%20Tracking',
         width: 1200,
         height: 630,
         alt: 'CannaLog',
@@ -64,8 +64,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
   themeColor: "#22c55e",
   viewportFit: "cover",
 };
@@ -83,16 +83,47 @@ export default function RootLayout({
     >
       <head>
         <meta name="color-scheme" content="dark" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("cannalog_theme");"light"===t&&(document.documentElement.classList.add("light"),document.documentElement.style.colorScheme="light")}catch(e){}})();`,
+          }}
+        />
       </head>
       <body className="h-full bg-[var(--background)] text-[var(--foreground)] overflow-x-hidden font-body">
-        <ThemeInit />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              "name": "CannaLog",
+              "alternateName": "GreenLog",
+              "description": "Cannabis Strain Tracking & Collection – Die Plattform für CSCs, Apotheken und Patienten zur Verwaltung von Cannabis-Sorten.",
+              "applicationCategory": "LifestyleApplication",
+              "operatingSystem": "Web, iOS, Android",
+              "url": "https://greenlog.app",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "EUR",
+              },
+              "author": {
+                "@type": "Organization",
+                "name": "CannaLog",
+                "url": "https://greenlog.app",
+              },
+            }),
+          }}
+        />
         <ServiceWorkerRegister />
         <Providers>
-          <div className="flex h-full flex-col">
-            <main className="flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
-          </div>
-          <OnboardingGuide />
-          <CookieConsentBanner />
+          <ErrorBoundary name="app">
+            <div className="flex h-full flex-col">
+              <main className="flex-1 overflow-y-auto overflow-x-hidden">{children}</main>
+            </div>
+            <OnboardingGuide />
+            <CookieConsentBanner />
+          </ErrorBoundary>
         </Providers>
       </body>
     </html>

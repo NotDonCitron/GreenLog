@@ -38,7 +38,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     const { data: invite, error: inviteError } = await supabase
         .from("organization_invites")
         .select("*")
-        .eq("token", token)
+        .eq("token_hash", token)
         .eq("status", "pending")
         .single();
 

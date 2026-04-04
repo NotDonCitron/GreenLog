@@ -11,7 +11,7 @@ import { Search, Loader2, AlertCircle, Plus, Camera, SlidersHorizontal, Scale, X
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Strain, StrainSource } from "@/lib/types";
-import { useCollectionIds } from "@/hooks/useCollectionIds";
+import { useCollection } from "@/hooks/useCollection";
 const CreateStrainModal = lazy(() => import("@/components/strains/create-strain-modal").then(m => ({ default: m.CreateStrainModal })));
 import { StrainCard } from "@/components/strains/strain-card";
 const FilterPanel = lazy(() => import("@/components/strains/filter-panel").then(m => ({ default: m.FilterPanel })));
@@ -87,7 +87,7 @@ function StrainsPageContent() {
   const [filterFlavors, setFilterFlavors] = useState<string[]>([]);
   const searchParams = useSearchParams();
   const compareSlugs = (searchParams.get("compare")?.split(",").filter(Boolean) || []);
-  const { collectedIds } = useCollectionIds();
+  const { collectedIds } = useCollection();
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const [totalStrainCount, setTotalStrainCount] = useState(0);
 
@@ -295,17 +295,57 @@ function StrainsPageContent() {
 
     const offset = pageParam ?? 0;
 
+    // Build query with server-side filters
     let strainsQuery = supabase
       .from('strains')
-      .select('*', { count: 'exact' })
-      .order('name')
-      .range(offset, offset + STRAINS_PAGE_SIZE - 1);
+      .select('*', { count: 'exact' });
 
+    // Tab filter (catalog vs org)
     if (activeTab === 'catalog') {
       strainsQuery = strainsQuery.is('organization_id', null);
     } else if (activeOrganization) {
       strainsQuery = strainsQuery.eq('organization_id', activeOrganization.organization_id);
     }
+
+    // Search filter (server-side ILIKE)
+    if (search.trim()) {
+      strainsQuery = strainsQuery.ilike('name', `%${search.trim()}%`);
+    }
+
+    // Effects filter: strain must have ALL selected effects (PostgreSQL array contains)
+    if (filterEffects.length > 0) {
+      strainsQuery = strainsQuery.contains('effects', filterEffects);
+    }
+
+    // THC filter (server-side range)
+    const thcMin = filterThcMin > THC_RANGE.min ? filterThcMin : undefined;
+    const thcMax = filterThcMax < THC_RANGE.max ? filterThcMax : undefined;
+    if (thcMin !== undefined) {
+      strainsQuery = strainsQuery.gte('thc_max', thcMin);
+    }
+    if (thcMax !== undefined) {
+      strainsQuery = strainsQuery.lte('thc_min', thcMax);
+    }
+
+    // CBD filter (server-side range)
+    const cbdMin = filterCbdMin > CBD_RANGE.min ? filterCbdMin : undefined;
+    const cbdMax = filterCbdMax < CBD_RANGE.max ? filterCbdMax : undefined;
+    if (cbdMin !== undefined) {
+      strainsQuery = strainsQuery.gte('cbd_max', cbdMin);
+    }
+    if (cbdMax !== undefined) {
+      strainsQuery = strainsQuery.lte('cbd_min', cbdMax);
+    }
+
+    // Flavors filter: strain must have ALL selected flavors
+    if (filterFlavors.length > 0) {
+      strainsQuery = strainsQuery.contains('flavors', filterFlavors);
+    }
+
+    // Apply pagination last
+    strainsQuery = strainsQuery
+      .order('name')
+      .range(offset, offset + STRAINS_PAGE_SIZE - 1);
 
     const { data: pageStraings, error: strainError, count } = await strainsQuery;
 
@@ -333,51 +373,19 @@ function StrainsPageContent() {
       }
     }
 
-    const normalizedStrains = (pageStraings ?? []).map((strain) => ({
+    let normalizedStrains = (pageStraings ?? []).map((strain) => ({
       ...strain,
       source: strain.source ?? mergedOverrides[strain.id] ?? 'pharmacy',
     }));
 
+    // Source filter still needs client-side (custom logic with overrides)
+    if (sourceFilter !== 'all') {
+      normalizedStrains = normalizedStrains.filter(matchesSourceFilter);
+    }
+
     const hasMore = (count ?? 0) > offset + STRAINS_PAGE_SIZE;
     return { strains: normalizedStrains as Strain[], nextCursor: hasMore ? offset + STRAINS_PAGE_SIZE : undefined, totalCount: count ?? 0 };
   }
-
-
-
-  const filteredStrains = strains.filter((s) => {
-    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
-    const matchesFilter = matchesSourceFilter(s);
-
-    // Effect filter: strain must have ALL selected effects
-    const matchesEffects =
-      filterEffects.length === 0 ||
-      filterEffects.every((ef) =>
-        (s.effects || []).some(
-          (se) => se.toLowerCase() === ef.toLowerCase()
-        )
-      );
-
-    // THC filter: strain.avg_thc or thc_max within range
-    const strainThc = s.avg_thc || s.thc_max || 0;
-    const matchesThc =
-      strainThc >= filterThcMin && strainThc <= filterThcMax;
-
-    // CBD filter
-    const strainCbd = s.avg_cbd || s.cbd_max || 0;
-    const matchesCbd =
-      strainCbd >= filterCbdMin && strainCbd <= filterCbdMax;
-
-    // Flavor filter: strain must have ALL selected flavors
-    const matchesFlavors =
-      filterFlavors.length === 0 ||
-      filterFlavors.every((ff) =>
-        (s.flavors || []).some(
-          (sf) => sf.toLowerCase() === ff.toLowerCase()
-        )
-      );
-
-    return matchesSearch && matchesFilter && matchesEffects && matchesThc && matchesCbd && matchesFlavors;
-  });
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
@@ -532,7 +540,7 @@ function StrainsPageContent() {
         ) : (
           <>
             <div className="grid grid-cols-2 gap-6">
-              {filteredStrains.map((strain, i) => {
+              {strains.map((strain, i) => {
                 const isCollected = collectedIds.includes(strain.id);
                 const isSelected = compareSlugs.includes(strain.slug);
                 return (

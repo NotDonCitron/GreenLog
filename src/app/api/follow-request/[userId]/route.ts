@@ -1,36 +1,16 @@
-import { createClient } from "@supabase/supabase-js";
-import { decodeToken } from "@/lib/auth/utils";
-import { jsonSuccess, jsonError } from "@/lib/api-response";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-function getSupabaseClient(token: string) {
-    return createClient(supabaseUrl, supabaseAnonKey, {
-        global: { headers: { Authorization: `Bearer ${token}` } }
-    });
-}
+import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 
 export async function POST(
     request: Request,
     { params }: { params: Promise<{ userId: string }> }
 ) {
-    const authHeader = request.headers.get("Authorization");
-    const accessToken = authHeader?.replace("Bearer ", "");
-
-    if (!accessToken) {
-        return jsonError("Unauthorized - no token", 401);
-    }
-
-    const requesterId = decodeToken(accessToken);
-    if (!requesterId) {
-        return jsonError("Invalid token", 401);
-    }
-
-    const supabase = getSupabaseClient(accessToken);
+    const auth = await authenticateRequest(request, getAuthenticatedClient);
+    if (!auth || auth instanceof Response) return auth || jsonError("Unauthorized - no token", 401);
+    const { user, supabase } = auth;
     const { userId: targetId } = await params;
 
-    if (requesterId === targetId) {
+    if (user.id === targetId) {
         return jsonError("Cannot follow yourself", 400);
     }
 
@@ -47,7 +27,7 @@ export async function POST(
     const { data: existingFollow } = await supabase
         .from("follows")
         .select("id")
-        .eq("follower_id", requesterId)
+        .eq("follower_id", user.id)
         .eq("following_id", targetId)
         .single();
 
@@ -58,7 +38,7 @@ export async function POST(
     if (targetProfile.profile_visibility === "public") {
         const { error: followError } = await supabase
             .from("follows")
-            .insert({ follower_id: requesterId, following_id: targetId });
+            .insert({ follower_id: user.id, following_id: targetId });
 
         if (followError) {
             return jsonError(followError.message, 500, followError.code);
@@ -70,7 +50,7 @@ export async function POST(
     const { data: existingRequest } = await supabase
         .from("follow_requests")
         .select("id, status")
-        .eq("requester_id", requesterId)
+        .eq("requester_id", user.id)
         .eq("target_id", targetId)
         .single();
 
@@ -92,7 +72,7 @@ export async function POST(
         if (existingRequest.status === "approved") {
             const { error: followError } = await supabase
                 .from("follows")
-                .insert({ follower_id: requesterId, following_id: targetId });
+                .insert({ follower_id: user.id, following_id: targetId });
 
             if (followError) {
                 return jsonError(followError.message, 500, followError.code);
@@ -103,7 +83,7 @@ export async function POST(
 
     const { error: requestError } = await supabase
         .from("follow_requests")
-        .insert({ requester_id: requesterId, target_id: targetId, status: "pending" });
+        .insert({ requester_id: user.id, target_id: targetId, status: "pending" });
 
     if (requestError) {
         return jsonError(requestError.message, 500, requestError.code);
@@ -116,25 +96,15 @@ export async function DELETE(
     request: Request,
     { params }: { params: Promise<{ userId: string }> }
 ) {
-    const authHeader = request.headers.get("Authorization");
-    const accessToken = authHeader?.replace("Bearer ", "");
-
-    if (!accessToken) {
-        return jsonError("Unauthorized", 401);
-    }
-
-    const requesterId = decodeToken(accessToken);
-    if (!requesterId) {
-        return jsonError("Invalid token", 401);
-    }
-
-    const supabase = getSupabaseClient(accessToken);
+    const auth = await authenticateRequest(request, getAuthenticatedClient);
+    if (!auth || auth instanceof Response) return auth || jsonError("Unauthorized", 401);
+    const { user, supabase } = auth;
     const { userId: targetId } = await params;
 
     const { error: deleteError } = await supabase
         .from("follow_requests")
         .delete()
-        .eq("requester_id", requesterId)
+        .eq("requester_id", user.id)
         .eq("target_id", targetId)
         .eq("status", "pending");
 

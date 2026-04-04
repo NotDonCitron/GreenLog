@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 
 const COOKIE_CONSENT_KEY = 'cookie_consent'
@@ -10,26 +10,36 @@ type ConsentLevel = 'all' | 'essential' | null
 export function CookieConsentBanner() {
   const [consent, setConsent] = useState<ConsentLevel>(null)
   const [isVisible, setIsVisible] = useState(false)
+  const bannerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Check localStorage on mount
-    const stored = localStorage.getItem(COOKIE_CONSENT_KEY) as ConsentLevel
-    if (stored === 'all' || stored === 'essential') {
-      setConsent(stored)
-      setIsVisible(false)
-    } else {
+    try {
+      const stored = localStorage.getItem(COOKIE_CONSENT_KEY) as ConsentLevel
+      if (stored === 'all' || stored === 'essential') {
+        setConsent(stored)
+        setIsVisible(false)
+      } else {
+        setIsVisible(true)
+      }
+    } catch {
       setIsVisible(true)
     }
   }, [])
 
+  useEffect(() => {
+    if (isVisible && bannerRef.current) {
+      bannerRef.current.focus()
+    }
+  }, [isVisible])
+
   const handleAcceptAll = () => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, 'all')
+    try { try { localStorage.setItem(COOKIE_CONSENT_KEY, 'all') } catch { console.warn('Cookie consent storage failed') } } catch { console.warn('Cookie consent storage failed') }
     setConsent('all')
     setIsVisible(false)
   }
 
   const handleEssentialOnly = () => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, 'essential')
+    try { try { localStorage.setItem(COOKIE_CONSENT_KEY, 'essential') } catch { console.warn('Cookie consent storage failed') } } catch { console.warn('Cookie consent storage failed') }
     setConsent('essential')
     setIsVisible(false)
   }
@@ -38,86 +48,47 @@ export function CookieConsentBanner() {
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 9999,
-        padding: '16px 24px',
-        backgroundColor: 'var(--card)',
-        borderTop: '1px solid var(--border)',
-        boxShadow: '0 -4px 24px rgba(0, 0, 0, 0.5)',
-      }}
+      ref={bannerRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Cookie consent"
+      aria-describedby="cookie-consent-text"
+      tabIndex={-1}
+      className="fixed bottom-16 left-0 right-0 z-40 bg-[var(--card)] border-t border-[var(--border)] shadow-lg p-4 sm:p-6"
     >
-      <div
-        style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '24px',
-          flexWrap: 'wrap',
-        }}
-      >
-        <div style={{ flex: 1, minWidth: '300px' }}>
-          <p style={{ fontSize: '14px', color: 'var(--foreground)', margin: 0 }}>
+      <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex-1">
+          <p id="cookie-consent-text" className="text-sm text-[var(--foreground)]">
             Wir verwenden Cookies, um deine Erfahrung zu verbessern.{' '}
             <a
               href="/datenschutz"
-              style={{ color: 'var(--primary)', textDecoration: 'underline' }}
+              className="text-[var(--primary)] underline hover:no-underline"
             >
               Mehr erfahren
             </a>
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+        <div className="flex gap-3 flex-shrink-0">
           <button
             onClick={handleEssentialOnly}
-            style={{
-              padding: '10px 20px',
-              borderRadius: '8px',
-              border: '1px solid var(--border)',
-              backgroundColor: 'transparent',
-              color: 'var(--foreground)',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 500,
-              transition: 'all 0.2s',
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--accent)'
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent'
-            }}
+            className="px-4 py-2 rounded-lg border border-[var(--border)] bg-transparent text-[var(--foreground)] text-sm font-medium hover:bg-[var(--accent)] transition-colors"
           >
             Nur essenzielle
           </button>
           <button
             onClick={handleAcceptAll}
-            style={{
-              padding: '10px 20px',
-              borderRadius: '8px',
-              border: 'none',
-              backgroundColor: 'var(--primary)',
-              color: 'white',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 500,
-              transition: 'opacity 0.2s',
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.opacity = '0.9'
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.opacity = '1'
-            }}
+            className="px-4 py-2 rounded-lg border-none bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
           >
             Alle akzeptieren
           </button>
         </div>
+        <button
+          onClick={() => setIsVisible(false)}
+          className="absolute top-2 right-2 p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+          aria-label="Dismiss cookie banner"
+        >
+          <X size={16} />
+        </button>
       </div>
     </div>
   )

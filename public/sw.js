@@ -9,6 +9,7 @@ const STATIC_ASSETS = [
   '/icon-192.png',
   '/icon-512.png',
   '/apple-touch-icon.png',
+  '/offline',
 ];
 
 // Install: cache static assets only
@@ -74,6 +75,12 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request).catch(() => caches.match('/offline'))
     );
+    return;
+  }
+
+  // Next.js dev chunks → never cache, always network
+  if (url.pathname.startsWith('/_next/')) {
+    event.respondWith(fetch(request));
     return;
   }
 

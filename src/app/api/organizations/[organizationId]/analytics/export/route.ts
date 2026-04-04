@@ -3,6 +3,14 @@ import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response"
 
 type RouteParams = { params: Promise<{ organizationId: string }> };
 
+const sanitizeCsvCell = (value: string): string => {
+  if (!value) return "";
+  if (/^[=+\-@]/.test(value)) {
+    return "'" + value;
+  }
+  return value.replace(/"/g, '""');
+};
+
 // GET /api/organizations/[organizationId]/analytics/export
 // Returns CSV export of organization strain analytics
 export async function GET(request: Request, { params }: RouteParams) {
@@ -95,7 +103,7 @@ export async function GET(request: Request, { params }: RouteParams) {
   for (let i = 0; i < Math.min(sortedStrains.length, 50); i++) {
     const s = sortedStrains[i] as any;
     const avg = s.ratings > 0 ? (s.total / s.ratings).toFixed(1) : "-";
-    lines.push(`"${s.name}",${i + 1},${s.ratings},${avg},""`);
+    lines.push(`"${sanitizeCsvCell(s.name)}",${i + 1},${s.ratings},${avg},""`);
   }
 
   lines.push("");
@@ -105,9 +113,9 @@ export async function GET(request: Request, { params }: RouteParams) {
   for (const r of (ratingsData || []).slice(0, 100)) {
     const username = (r.user as any)?.display_name || (r.user as any)?.username || "Unbekannt";
     const strainName = (r.strain as any)?.name || "Unbekannt";
-    const review = ((r.review as string) || "").replace(/"/g, '""');
+    const review = (r.review as string) || "";
     const date = new Date(r.created_at).toLocaleDateString("de-DE");
-    lines.push(`"${strainName}","${username}",${r.rating},"${review}",${date}`);
+    lines.push(`"${sanitizeCsvCell(strainName)}","${sanitizeCsvCell(username)}",${r.rating},"${sanitizeCsvCell(review)}",${date}`);
   }
 
   const csv = lines.join("\n");

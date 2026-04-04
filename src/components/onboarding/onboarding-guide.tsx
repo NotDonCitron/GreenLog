@@ -29,59 +29,38 @@ interface Step {
 const ONBOARDING_STEPS: Step[] = [
     {
         title: "Willkommen bei CannaLog",
-        description: "Dein digitaler Begleiter für alles rund um Cannabis. Entdecke, tracke und teile deine Erfahrungen mit der Community.",
+        description: "Dein digitaler Begleiter für Cannabis-Sorten. Entdecke über 470 Sorten, tracke deine Favoriten und teile Erfahrungen.",
         icon: <div className="relative w-full h-full p-2"><Image src="/logo.png" alt="Logo" fill className="object-contain" priority /></div>,
         color: "#00F5FF",
         path: "/"
     },
     {
-        title: "Social & Community",
-        description: "Hier siehst du die Aktivitäten deiner Freunde. Besuche ihre Profile, um ihre Sammlungen zu entdecken und ihnen zu folgen.",
-        icon: <Users size={48} />,
-        color: "#2FF801",
-        path: "/discover"
-    },
-    {
-        title: "World Collection",
-        description: "Die globale Datenbank. Nutze Filter Presets für schnelle Suche nach Sorten und füge sie deiner Sammlung hinzu. Eigene Sorten können auch erstellt werden.",
+        title: "Sorten entdecken & vergleichen",
+        description: "Durchsuche die Datenbank mit Filtern, vergleiche Sorten im Side-by-Side-Modus und füge Favoriten per Rechtsklick hinzu.",
         icon: <Globe size={48} />,
         color: "#fbbf24",
         path: "/strains"
     },
     {
-        title: "Label Scanner",
-        description: "Digitalisiere Etiketten blitzschnell per Kamera. Der Scanner ist auch direkt über den Kamera-Button in der Sorten-Suche erreichbar.",
-        icon: <Camera size={48} />,
-        color: "#00F5FF",
-        path: "/scanner"
-    },
-    {
-        title: "Vergleiche Sorten",
-        description: "Rechtsklick auf jede Sorte für Side-by-Side Vergleich. Bis zu 3 Sorten gleichzeitig analysieren – perfekt um die richtige Sorte zu finden.",
-        icon: <Scale size={48} />,
-        color: "#00F5FF",
-        path: "/strains/compare"
-    },
-    {
-        title: "Deine Sammlung",
-        description: "Hier landen alle deine Sorten. Du kannst eigene Bilder hochladen, Chargen-Nummern (Batch Info) und persönliche Notizen ergänzen.",
+        title: "Deine Sammlung & Scanner",
+        description: "Speichere deine Sorten mit Notizen und Batch-Info. Der Label-Scanner digitalisiert Etiketten per Kamera.",
         icon: <BookMarked size={48} />,
         color: "#A3E4D7",
         path: "/collection"
     },
     {
-        title: "Dein Profil & Badges",
-        description: "Behalte deine Statistiken und Erfolge im Blick. Personalisiere dein Profil und schalte exklusive Abzeichen frei.",
+        title: "Community & Social",
+        description: "Folge anderen Nutzern, entdecke neue Sorten durch die Community und tritt Clubs oder Apotheken bei.",
+        icon: <Users size={48} />,
+        color: "#2FF801",
+        path: "/discover"
+    },
+    {
+        title: "Profil & Badges",
+        description: "Personalisiere dein Profil, behalte deine Statistiken im Blick und schalte exklusive Abzeichen frei.",
         icon: <UserIcon size={48} />,
         color: "#2FF801",
         path: "/profile"
-    },
-    {
-        title: "Dein Club / Deine Apotheke",
-        description: "Erstelle oder trete Organizationen bei. Ideal für Clubs und Apotheken – teilt eure Sorten und Erfahrungen im Team.",
-        icon: <Building size={48} />,
-        color: "#2FF801",
-        path: "/discover"
     }
 ];
 
@@ -106,7 +85,6 @@ export function OnboardingGuide() {
     }, [isVisible, motionComponents]);
 
     useEffect(() => {
-        console.log("[Onboarding] Component mounted.");
     }, []);
 
     useEffect(() => {
@@ -115,14 +93,12 @@ export function OnboardingGuide() {
             if (typeof window !== "undefined") {
                 const localStatus = localStorage.getItem("cannalog_onboarding_completed");
                 if (localStatus === "true") {
-                    console.log("[Onboarding] Found completed status in localStorage.");
                     return;
                 }
             }
 
             // In Demo mode, always show onboarding if not explicitly dismissed in session
             if (isDemoMode) {
-                console.log("[Onboarding] Demo mode detected");
                 const dismissed = sessionStorage.getItem("cannalog_onboarding_dismissed");
                 if (!dismissed) {
                     setIsVisible(true);
@@ -131,11 +107,9 @@ export function OnboardingGuide() {
             }
 
             if (!user) {
-                console.log("[Onboarding] No user session found");
                 return;
             }
 
-            console.log("[Onboarding] Checking profile for user:", user.id);
             try {
                 const { data, error } = await supabase
                     .from("profiles")
@@ -144,23 +118,18 @@ export function OnboardingGuide() {
                     .single();
 
                 if (error) {
-                    console.warn("[Onboarding] Database check failed (likely schema cache). Falling back to first-time show.", error);
                     setIsVisible(true);
                     return;
                 }
 
-                console.log("[Onboarding] Data found:", data);
                 // Show if value is NOT explicitly true
                 if (data?.has_completed_onboarding !== true) {
-                    console.log("[Onboarding] Showing guide...");
                     setIsVisible(true);
                 } else {
                     // Sync local storage if DB says it's completed
                     localStorage.setItem("cannalog_onboarding_completed", "true");
-                    console.log("[Onboarding] User already completed onboarding according to DB.");
                 }
             } catch (err) {
-                console.error("[Onboarding] Unexpected error during check:", err);
                 setIsVisible(true);
             }
         }
@@ -193,7 +162,6 @@ export function OnboardingGuide() {
         }
         
         if (isDemoMode) {
-            console.log("[Onboarding] Dismissing in Demo Mode");
             sessionStorage.setItem("cannalog_onboarding_dismissed", "true");
             setIsVisible(false);
             router.push("/");
@@ -202,7 +170,6 @@ export function OnboardingGuide() {
 
         if (!user) return;
         setIsLoading(true);
-        console.log("[Onboarding] Saving completion status to DB...");
 
         try {
             const { error } = await supabase
@@ -211,16 +178,13 @@ export function OnboardingGuide() {
                 .eq("id", user.id);
 
             if (error) {
-                console.error("[Onboarding] Error saving status to DB (Schema might still be updating):", error);
             } else {
-                console.log("[Onboarding] Successfully saved status to DB.");
             }
             
             // Always close UI if we reached this point
             setIsVisible(false);
             router.push("/");
         } catch (err) {
-            console.error("[Onboarding] Failed to complete onboarding:", err);
             setIsVisible(false);
         } finally {
             setIsLoading(false);

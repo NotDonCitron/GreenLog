@@ -44,9 +44,6 @@ function HomeContent() {
 
     async function fetchHomeData() {
       try {
-        // Small delay to avoid hammering cold Supabase
-        await new Promise(resolve => setTimeout(resolve, 500));
-
         if (cancelled) return;
 
         if (isDemoMode) {

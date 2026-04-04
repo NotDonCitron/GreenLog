@@ -3,9 +3,19 @@ import * as Sentry from "@sentry/nextjs";
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
 
-  // Set tracesSampleRate to 1.0 to capture 100%
-  // of transactions for performance monitoring.
-  tracesSampleRate: 1.0,
+  tracesSampleRate: 0.5,
 
   enabled: process.env.NODE_ENV === "production",
+
+  sendDefaultPii: false,
+
+  beforeSend(event) {
+    if (event.user?.id) {
+      event.user.id = "[REDACTED]";
+    }
+    if (event.user?.email) {
+      event.user.email = "[REDACTED]";
+    }
+    return event;
+  },
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense, useCallback, lazy, useMemo } from "react";
+import Link from "next/link";
 import { useCollection } from "@/hooks/useCollection";
 import { BottomNav } from "@/components/bottom-nav";
 import { Search, CalendarDays, Loader2, AlertCircle, X, Filter, Plus, SlidersHorizontal } from "lucide-react";
@@ -262,10 +263,10 @@ export default function CollectionPageClient() {
         )}
       </div>
 
-      {/* FAB */}
-      <button className="fixed bottom-28 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-[#00F5FF] to-[#00e5ee] flex items-center justify-center shadow-lg shadow-[#00F5FF]/30 hover:scale-110 transition-transform z-40">
+      {/* FAB: Navigate to strains page to add new strains */}
+      <Link href="/strains" className="fixed bottom-28 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-[#00F5FF] to-[#00e5ee] flex items-center justify-center shadow-lg shadow-[#00F5FF]/30 hover:scale-110 transition-transform z-40" aria-label="Neue Sorte hinzufügen">
         <Plus size={24} className="text-black font-bold" />
-      </button>
+      </Link>
 
       {/* Calendar Dialog */}
       <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>

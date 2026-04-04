@@ -32,8 +32,18 @@ export function jsonError(
   code?: string,
   details?: unknown
 ) {
+  const isProd = process.env.NODE_ENV === "production";
+  const isServerError = status >= 500;
+
   return NextResponse.json<ErrorResponse>(
-    { data: null, error: { message, code, details } },
+    {
+      data: null,
+      error: {
+        message: isProd && isServerError ? "Internal server error" : message,
+        code: isProd && isServerError ? undefined : code,
+        details: isProd && isServerError ? undefined : details,
+      },
+    },
     { status }
   );
 }

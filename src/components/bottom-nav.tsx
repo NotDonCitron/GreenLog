@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Home, Leaf, BookMarked, Users, User } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
@@ -23,6 +23,7 @@ export function BottomNav() {
   const { user } = useAuth();
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [showRequestsModal, setShowRequestsModal] = useState(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const handleBadgeClick = () => {
     if (pendingRequestsCount > 0) {
@@ -33,6 +34,15 @@ export function BottomNav() {
   };
 
   useEffect(() => {
+    const isFeedPage = pathname.startsWith("/feed");
+    if (!isFeedPage) {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+      return;
+    }
+
     const fetchPendingRequests = async () => {
       if (!user) {
         setPendingRequestsCount(0);
@@ -55,13 +65,18 @@ export function BottomNav() {
     };
 
     fetchPendingRequests();
-    const interval = setInterval(fetchPendingRequests, 30000);
-    return () => clearInterval(interval);
-  }, [user]);
+    pollingRef.current = setInterval(fetchPendingRequests, 30000);
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+  }, [user, pathname]);
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 glass-surface border-t border-[var(--border)]/50 safe-bottom">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 glass-surface border-t border-[var(--border)]/50 safe-bottom" role="navigation" aria-label="Main navigation">
         <div className="mx-auto flex h-16 w-full max-w-lg items-center justify-around px-2 relative">
           {navItems.map((item) => {
             const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -71,7 +86,8 @@ export function BottomNav() {
                 <button
                   key={item.href}
                   onClick={handleBadgeClick}
-                  className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] uppercase font-bold tracking-tight transition-all active:scale-95 ${isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"}`}
+                  className={`flex flex-1 flex-col items-center gap-1 py-1 text-[11px] uppercase font-bold tracking-tight transition-all active:scale-95 ${isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"}`}
+                  aria-label={`${item.label}${pendingRequestsCount > 0 ? `, ${pendingRequestsCount} pending requests` : ""}`}
                 >
                   <div className="relative">
                     <item.icon size={22} className={isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"} />
@@ -93,7 +109,8 @@ export function BottomNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-1 flex-col items-center gap-1 py-1 text-[9px] uppercase font-bold tracking-tight transition-all active:scale-95 ${isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"}`}
+                className={`flex flex-1 flex-col items-center gap-1 py-1 text-[11px] uppercase font-bold tracking-tight transition-all active:scale-95 ${isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"}`}
+                aria-label={item.label}
               >
                 <div className="relative">
                   <item.icon size={22} className={isActive ? "text-[#00F5FF]" : "text-[var(--muted-foreground)]"} />

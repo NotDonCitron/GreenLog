@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Strain } from '@/lib/types';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay } from '@/lib/strain-display';
+import { escapeRegExp } from '@/lib/string-utils';
 
 interface MarketingStrainCardProps {
   strain: Strain;
@@ -19,7 +20,6 @@ export const MarketingStrainCard = memo(function MarketingStrainCard({ strain }:
   const effectDisplay = getEffectDisplay(strain);
 
   // Strip farmer prefix from strain name
-  const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const normalizedStrainName = (() => {
     const rawName = strain.name?.trim() || '';
 

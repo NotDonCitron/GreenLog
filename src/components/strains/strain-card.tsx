@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Strain } from '@/lib/types';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay } from '@/lib/strain-display';
-
+import { escapeRegExp } from '@/lib/string-utils';
 interface StrainCardProps {
   strain: Strain;
   index?: number;
@@ -21,7 +21,6 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
 
   // Strip farmer prefix from strain name — handles "420 Pharma: Natural Gorilla Glue" -> "Natural Gorilla Glue"
   // and "420 Natural Gorilla Glue" (farmer="420 Pharma") -> "Natural Gorilla Glue"
-  const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const normalizedStrainName = (() => {
     const rawName = strain.name?.trim() || '';
 

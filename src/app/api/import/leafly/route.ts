@@ -1,5 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jsonError, jsonSuccess } from "@/lib/api-response";
+import { jsonError, jsonSuccess, authenticateRequest } from "@/lib/api-response";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
+import dns from "dns";
+import net from "net";
+
+const ADMIN_IDS = (process.env.NEXT_PUBLIC_APP_ADMIN_IDS || "").split(",").filter(Boolean);
+
+const LEAFLY_HOSTS = new Set(["leafly.com", "www.leafly.com"]);
+
+const PRIVATE_IP_RANGES = [
+    /^10\./,
+    /^172\.(1[6-9]|2\d|3[01])\./,
+    /^192\.168\./,
+    /^127\./,
+    /^localhost$/i,
+    /^::1$/,
+    /^fe80:/i,
+    /^fc00:/i,
+    /^fd00:/i,
+];
+
+const isPrivateIp = (ip: string): boolean => {
+    return PRIVATE_IP_RANGES.some((pattern) => pattern.test(ip));
+};
+
+const verifyLeaflyHost = async (hostname: string): Promise<boolean> => {
+    if (!LEAFLY_HOSTS.has(hostname)) return false;
+
+    try {
+        const addresses = await dns.promises.resolve(hostname);
+        return addresses.every((addr) => !isPrivateIp(addr));
+    } catch {
+        return false;
+    }
+};
 
 type JsonRecord = Record<string, unknown>;
 
@@ -30,11 +64,11 @@ const extractNames = (items: unknown): string[] => {
     }).filter(Boolean);
 };
 
-const parseLeaflyUrl = (rawUrl: unknown) => {
+const parseLeaflyUrl = (rawUrl: unknown): string | null => {
     if (typeof rawUrl !== "string" || !rawUrl.trim()) return null;
     try {
         const parsedUrl = new URL(rawUrl.trim());
-        const isValidHost = parsedUrl.hostname === "leafly.com" || parsedUrl.hostname === "www.leafly.com";
+        const isValidHost = LEAFLY_HOSTS.has(parsedUrl.hostname);
         const isValidPath = parsedUrl.pathname.startsWith("/strains/");
         if (!isValidHost || !isValidPath) return null;
         return parsedUrl.toString();
@@ -59,11 +93,26 @@ const uniqueNormalized = (values: string[]) =>
 
 export async function POST(req: NextRequest) {
     try {
+        const auth = await authenticateRequest(req, getAuthenticatedClient);
+        if (!auth || auth instanceof Response) return auth || jsonError("Unauthorized", 401);
+        const { user } = auth;
+
+        if (!ADMIN_IDS.includes(user.id)) {
+            return jsonError("Forbidden", 403);
+        }
+
         const body = await req.json();
         const url = parseLeaflyUrl(body?.url);
 
         if (!url) {
             return jsonError("Ungültige Leafly-URL", 400);
+        }
+
+        // SSRF protection: verify the resolved IP is not private/internal
+        const parsedUrl = new URL(url);
+        const hostVerified = await verifyLeaflyHost(parsedUrl.hostname);
+        if (!hostVerified) {
+            return jsonError("Host-Verifizierung fehlgeschlagen", 400);
         }
 
         const response = await fetch(url, {

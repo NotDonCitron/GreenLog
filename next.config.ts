@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  compress: true,
   images: {
     remotePatterns: [
       {
@@ -21,11 +22,35 @@ const nextConfig: NextConfig = {
         hostname: 'images.leafly.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pollinations.ai',
+        port: '',
+        pathname: '/**',
       }
+    ],
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 31536000,
+  },
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      '@supabase/supabase-js',
+      'date-fns',
+      'framer-motion',
     ],
   },
 };
 
 export default withSentryConfig(nextConfig, {
   silent: true,
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  sourcemaps: {
+    disable: true,
+  },
+  widenClientFileUpload: true,
+  tunnelRoute: "/monitoring",
 });

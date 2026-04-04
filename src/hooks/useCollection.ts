@@ -1,7 +1,6 @@
-// src/hooks/useCollection.ts
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
@@ -53,7 +52,6 @@ async function fetchFullCollection(userId: string): Promise<CollectionStrain[]> 
   if (error) throw new Error(error.message);
   if (!data) return [];
 
-  // Supabase returns `any[]` from the typed select, so we assert once to the correct row type
   const rows = data as CollectionRow[];
   return rows.reduce<CollectionStrain[]>((acc, item) => {
     const rawStrain = Array.isArray(item.strain) ? item.strain[0] : item.strain;
@@ -72,16 +70,6 @@ async function fetchFullCollection(userId: string): Promise<CollectionStrain[]> 
   }, []);
 }
 
-async function fetchCollectionIds(userId: string): Promise<string[]> {
-  const { data, error } = await supabase
-    .from("user_collection")
-    .select("strain_id")
-    .eq("user_id", userId);
-
-  if (error) throw new Error(error.message);
-  return (data ?? []).map((r: { strain_id: string }) => r.strain_id);
-}
-
 export function useCollection() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -92,27 +80,17 @@ export function useCollection() {
     enabled: !!user,
   });
 
-  const idsQuery = useQuery({
-    queryKey: ["collection-ids", user?.id],
-    queryFn: () => fetchCollectionIds(user!.id),
-    enabled: !!user,
-  });
+  const collectedIds = useMemo(
+    () => (collectionQuery.data ?? []).map((s) => s.id),
+    [collectionQuery.data]
+  );
 
   const sharedCallbacks = {
-    onMutate: async (strainId: string, optimisticUpdate: (old: string[] | undefined) => string[] | undefined) => {
-      await queryClient.cancelQueries({ queryKey: ["collection-ids", user?.id] });
-      const previousIds = queryClient.getQueryData<string[]>(["collection-ids", user?.id]);
-      queryClient.setQueryData<string[]>(["collection-ids", user?.id], optimisticUpdate);
-      return { previousIds };
-    },
-    onError: (_err: Error, _vars: unknown, context: { previousIds?: string[] } | undefined) => {
-      if (context?.previousIds) {
-        queryClient.setQueryData<string[]>(["collection-ids", user?.id], context.previousIds);
-      }
+    onError: (_err: Error) => {
+      queryClient.invalidateQueries({ queryKey: ["collection", user?.id] });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["collection", user?.id] });
-      queryClient.invalidateQueries({ queryKey: ["collection-ids", user?.id] });
       emitCollectionUpdate();
       if (user) {
         checkAndUnlockBadges(user.id, supabase).catch(() => {});
@@ -136,10 +114,6 @@ export function useCollection() {
       });
       if (error) throw error;
     },
-    onMutate: async ({ strainId }) => sharedCallbacks.onMutate(strainId, (old) => {
-      if (!old) return old;
-      return [...new Set([...old, strainId])];
-    }),
     onError: sharedCallbacks.onError,
     onSettled: sharedCallbacks.onSettled,
   });
@@ -153,10 +127,6 @@ export function useCollection() {
         .eq("strain_id", strainId);
       if (error) throw error;
     },
-    onMutate: async ({ strainId }) => sharedCallbacks.onMutate(strainId, (old) => {
-      if (!old) return old;
-      return old.filter((id) => id !== strainId);
-    }),
     onError: sharedCallbacks.onError,
     onSettled: sharedCallbacks.onSettled,
   });
@@ -173,27 +143,25 @@ export function useCollection() {
 
   const toggleCollect = useCallback(
     async (strainId: string, opts?: CollectOptions) => {
-      const ids = idsQuery.data ?? [];
-      if (ids.includes(strainId)) {
+      if (collectedIds.includes(strainId)) {
         await uncollectMutation.mutateAsync({ strainId });
       } else {
         await collectMutation.mutateAsync({ strainId, opts });
       }
     },
-    [idsQuery.data, collectMutation, uncollectMutation]
+    [collectedIds, collectMutation, uncollectMutation]
   );
 
   const refetch = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["collection", user?.id] });
-    queryClient.invalidateQueries({ queryKey: ["collection-ids", user?.id] });
   }, [queryClient, user?.id]);
 
   return {
-    collectedIds: idsQuery.data ?? [],
+    collectedIds,
     collection: collectionQuery.data ?? [],
-    isLoading: collectionQuery.isLoading || idsQuery.isLoading,
-    error: collectionQuery.error ?? idsQuery.error,
-    count: idsQuery.data?.length ?? 0,
+    isLoading: collectionQuery.isLoading,
+    error: collectionQuery.error,
+    count: collectedIds.length,
     collectAction: collect,
     uncollect,
     toggleCollect,

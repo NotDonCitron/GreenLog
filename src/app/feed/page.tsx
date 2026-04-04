@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Sparkles, Users, Compass, Loader2 } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { ActivityFeed } from "@/components/social/activity-feed";
@@ -195,7 +196,7 @@ export default function FeedPage() {
                       >
                         <div className="w-12 h-12 rounded-full bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
                           {org.logo_url ? (
-                            <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
+                            <Image src={org.logo_url} alt={org.name} fill className="object-cover" sizes="40px" />
                           ) : (
                             <span className="text-[#2FF801] font-bold text-lg">{org.name.charAt(0)}</span>
                           )}
@@ -273,7 +274,7 @@ export default function FeedPage() {
                       >
                         <div className="w-10 h-10 rounded-full bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
                           {org.logo_url ? (
-                            <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
+                            <Image src={org.logo_url} alt={org.name} fill className="object-cover" sizes="40px" />
                           ) : (
                             <span className="text-[#2FF801] font-bold text-sm">{org.name.charAt(0)}</span>
                           )}
@@ -321,7 +322,7 @@ export default function FeedPage() {
                       >
                         <div className="w-10 h-10 rounded-full bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
                           {org.logo_url ? (
-                            <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
+                            <Image src={org.logo_url} alt={org.name} fill className="object-cover" sizes="40px" />
                           ) : (
                             <span className="text-[#00F5FF] font-bold text-sm">{org.name.charAt(0)}</span>
                           )}

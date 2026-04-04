@@ -6,7 +6,7 @@
 
 **Goal:** Replace all `useEffect + supabase.from` patterns with `useQuery`, add centralized query keys and consistent invalidation.
 
-**Plans:** 5/5 plans executed
+**Plans:** 0/6 plans complete
 
 ### Plans:
 

@@ -6,6 +6,7 @@ import { Camera, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-provider";
+import { useToast } from "@/components/toast-provider";
 import { supabase } from "@/lib/supabase";
 
 interface AvatarUploadProps {
@@ -45,6 +46,7 @@ export function AvatarUpload({
     const { user } = useAuth();
     const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { error: toastError } = useToast();
     const [isUploading, setIsUploading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -54,13 +56,13 @@ export function AvatarUpload({
 
         // Validate file type
         if (!file.type.startsWith("image/")) {
-            alert("Please select an image file");
+            toastError("Please select an image file");
             return;
         }
 
         // Validate file size (max 2MB)
         if (file.size > 2 * 1024 * 1024) {
-            alert("File size must be less than 2MB");
+            toastError("File size must be less than 2MB");
             return;
         }
 
@@ -105,7 +107,7 @@ export function AvatarUpload({
             router.refresh();
         } catch (err) {
             console.error("Error uploading avatar:", err);
-            alert("Failed to upload avatar");
+            toastError("Failed to upload avatar");
             setPreviewUrl(null);
         } finally {
             setIsUploading(false);

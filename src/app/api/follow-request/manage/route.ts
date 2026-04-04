@@ -1,40 +1,10 @@
-import { createClient } from "@supabase/supabase-js";
-import { jsonSuccess, jsonError } from "@/lib/api-response";
+import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-function decodeToken(token: string): string | null {
-    try {
-        const payload = token.split(".")[1];
-        const decoded = JSON.parse(Buffer.from(payload, "base64").toString());
-        return decoded.sub || null;
-    } catch {
-        return null;
-    }
-}
-
-function getSupabaseClient(token: string) {
-    return createClient(supabaseUrl, supabaseAnonKey, {
-        global: { headers: { Authorization: `Bearer ${token}` } }
-    });
-}
-
-// GET /api/follow-request/manage
 export async function GET(request: Request) {
-    const authHeader = request.headers.get("Authorization");
-    const accessToken = authHeader?.replace("Bearer ", "");
-
-    if (!accessToken) {
-        return jsonError("Unauthorized", 401);
-    }
-
-    const userId = decodeToken(accessToken);
-    if (!userId) {
-        return jsonError("Invalid token", 401);
-    }
-
-    const supabase = getSupabaseClient(accessToken);
+    const auth = await authenticateRequest(request, getAuthenticatedClient);
+    if (!auth || auth instanceof Response) return auth || jsonError("Unauthorized", 401);
+    const { user, supabase } = auth;
 
     const { data: requests, error: requestsError } = await supabase
         .from("follow_requests")
@@ -42,7 +12,7 @@ export async function GET(request: Request) {
             id, status, created_at,
             requester:profiles!follow_requests_requester_id_fkey(id, username, display_name, avatar_url, bio)
         `)
-        .eq("target_id", userId)
+        .eq("target_id", user.id)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
 
@@ -53,21 +23,10 @@ export async function GET(request: Request) {
     return jsonSuccess({ requests: requests || [] });
 }
 
-// PUT /api/follow-request/manage
 export async function PUT(request: Request) {
-    const authHeader = request.headers.get("Authorization");
-    const accessToken = authHeader?.replace("Bearer ", "");
-
-    if (!accessToken) {
-        return jsonError("Unauthorized", 401);
-    }
-
-    const userId = decodeToken(accessToken);
-    if (!userId) {
-        return jsonError("Invalid token", 401);
-    }
-
-    const supabase = getSupabaseClient(accessToken);
+    const auth = await authenticateRequest(request, getAuthenticatedClient);
+    if (!auth || auth instanceof Response) return auth || jsonError("Unauthorized", 401);
+    const { user, supabase } = auth;
 
     const body = await request.json();
     const { requestId, action } = body;
@@ -86,15 +45,15 @@ export async function PUT(request: Request) {
         return jsonError("Request not found", 404);
     }
 
-    if (followRequest.target_id !== userId) {
+    if (followRequest.target_id !== user.id) {
         return jsonError("Unauthorized", 403);
     }
 
     if (action === "approve") {
-        const { data: followData, error: followError } = await supabase
+        const { error: followError } = await supabase
             .rpc("create_follow", {
                 follower_uuid: followRequest.requester_id,
-                following_uuid: userId
+                following_uuid: user.id
             });
 
         if (followError) {

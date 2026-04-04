@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,7 +83,7 @@ function UpdatePasswordForm() {
     <div className="w-full max-w-md space-y-8">
       <div className="text-center">
         <div className="w-32 h-32 relative mx-auto mb-4 drop-shadow-2xl">
-          <img src="/logo.png" alt="CannaLog Logo" className="w-full h-full object-contain" />
+          <Image src="/logo.png" alt="CannaLog Logo" fill className="object-contain" />
         </div>
         <span className="text-[12px] text-[#00F5FF] tracking-[0.5em] font-bold uppercase">CannaLog</span>
         <h1 className="text-3xl font-bold text-black mt-2">Neues Passwort</h1>

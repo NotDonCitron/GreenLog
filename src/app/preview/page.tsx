@@ -1,257 +1,231 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Leaf, Minus, LayoutGrid, Terminal, Crown, ArrowRight, CreditCard } from "lucide-react";
+import { useAuth } from "@/components/auth-provider";
 
-type Theme = "minimalist" | "modern" | "earthy";
-
-const themes: { id: Theme; name: string; description: string }[] = [
-  { id: "minimalist", name: "Minimalist Premium", description: "Medical & Clean - Apotheken-Feeling" },
-  { id: "modern", name: "Modern & Energetic", description: "Lifestyle / Pop - Lebendig & Modern" },
-  { id: "earthy", name: "Earthy & Organic", description: "Craft Grower - Natur & Handwerk" },
+const landingConcepts = [
+  {
+    id: "organic",
+    name: "Organic / Natural",
+    description: "Warme Erdtöne, organische Formen, Blatt-Motive, weiche Gradienten – natürlicher Look",
+    icon: <Leaf size={28} />,
+    color: "from-green-500 to-emerald-600",
+    bg: "bg-[#f5f0e8]",
+    textColor: "text-[#2c2416]",
+  },
+  {
+    id: "minimal",
+    name: "Minimal / Swiss",
+    description: "Clean Typography, Grid-basiert, viel Whitespace, subtile Animationen – reduziert & elegant",
+    icon: <Minus size={28} />,
+    color: "from-neutral-700 to-black",
+    bg: "bg-white",
+    textColor: "text-black",
+  },
+  {
+    id: "bento",
+    name: "Bento Modern",
+    description: "Card-basiertes Bento Grid Layout, Apple-inspiriert, moderne UI-Patterns",
+    icon: <LayoutGrid size={28} />,
+    color: "from-blue-500 to-indigo-600",
+    bg: "bg-[#fafafa]",
+    textColor: "text-[#1a1a1a]",
+  },
+  {
+    id: "cyber",
+    name: "Cyber Data",
+    description: "Tech-fokussiert, Grid-Patterns, Data-Visualization Ästhetik, Matrix-artig",
+    icon: <Terminal size={28} />,
+    color: "from-green-600 to-green-800",
+    bg: "bg-[#0a0a0a]",
+    textColor: "text-[#00ff41]",
+  },
+  {
+    id: "premium",
+    name: "Premium Luxury",
+    description: "Gold-Akzente, dunkle reiche Hintergründe, elegante Typografie – High-End Feeling",
+    icon: <Crown size={28} />,
+    color: "from-amber-500 to-yellow-600",
+    bg: "bg-[#0c0c0c]",
+    textColor: "text-[#f5f0e8]",
+  },
 ];
 
-const strains = [
-  { name: "Super Lemon Haze", type: "Sativa", thc: "25%", cbd: "0.1%" },
-  { name: "Purple Kush", type: "Indica", thc: "22%", cbd: "0.3%" },
-  { name: "Gorilla Glue #4", type: "Hybrid", thc: "26%", cbd: "0.1%" },
-  { name: "Jack Herer", type: "Sativa", thc: "24%", cbd: "0.1%" },
-  { name: "Northern Lights", type: "Indica", thc: "18%", cbd: "0.1%" },
+const cardConcepts = [
+  {
+    id: "organic",
+    name: "Organic Cards",
+    description: "Runde Formen, warme Farben, Serif-Typografie, weiche Schatten",
+    icon: <Leaf size={28} />,
+    color: "from-green-500 to-emerald-600",
+    bg: "bg-[#f5f0e8]",
+    textColor: "text-[#2c2416]",
+  },
+  {
+    id: "minimal",
+    name: "Minimal Cards",
+    description: "Clean, reduziert, Grayscale-Hover, typografie-fokussiert",
+    icon: <Minus size={28} />,
+    color: "from-neutral-700 to-black",
+    bg: "bg-white",
+    textColor: "text-black",
+  },
+  {
+    id: "bento",
+    name: "Bento Cards",
+    description: "Moderne Cards mit Gradient-Badges, Stats-Grids, horizontale Varianten",
+    icon: <LayoutGrid size={28} />,
+    color: "from-blue-500 to-indigo-600",
+    bg: "bg-[#fafafa]",
+    textColor: "text-[#1a1a1a]",
+  },
+  {
+    id: "cyber",
+    name: "Cyber Cards",
+    description: "Terminal-Style, HUD-Overlays, Data-Panel, Matrix-Ästhetik",
+    icon: <Terminal size={28} />,
+    color: "from-green-600 to-green-800",
+    bg: "bg-[#0a0a0a]",
+    textColor: "text-[#00ff41]",
+  },
+  {
+    id: "premium",
+    name: "Premium Cards",
+    description: "Gold-Gradient-Borders, elegante Typografie, Luxury-Feeling",
+    icon: <Crown size={28} />,
+    color: "from-amber-500 to-yellow-600",
+    bg: "bg-[#0c0c0c]",
+    textColor: "text-[#f5f0e8]",
+  },
 ];
 
-const typeColors: Record<string, string> = {
-  Sativa: "bg-green-500",
-  Indica: "bg-purple-500",
-  Hybrid: "bg-blue-500",
-};
+export default function PreviewIndex() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
 
-export default function ColorPreviewPage() {
-  const [activeTheme, setActiveTheme] = useState<Theme>("minimalist");
-  const [activeTab, setActiveTab] = useState<"cards" | "buttons" | "badges">("cards");
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login?redirect=/preview");
+    }
+  }, [loading, user, router]);
+
+  if (loading || !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className={`theme-preview min-h-screen ${activeTheme === "minimalist" ? "theme-minimalist" : activeTheme === "modern" ? "theme-modern" : "theme-earthy"}`}>
-      {/* Header */}
-      <div className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <h1 className="text-2xl font-bold title-font text-foreground">CannaLog Color Preview</h1>
-          <div className="flex gap-2">
-            {themes.map((theme) => (
-              <button
-                key={theme.id}
-                onClick={() => setActiveTheme(theme.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeTheme === theme.id
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                }`}
-              >
-                {theme.name}
-              </button>
-            ))}
-          </div>
-        </div>
+    <main className="min-h-screen bg-[#0e0e0f] text-white">
+      {/* Ambient background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[120%] h-[50%] bg-[#00F5FF]/5 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[100%] h-[40%] bg-[#2FF801]/4 blur-[100px] rounded-full animate-pulse [animation-delay:2s]" />
       </div>
 
-      {/* Theme Description */}
-      <div className="bg-primary/10 border-b">
-        <div className="container mx-auto px-4 py-3">
-          <p className="text-sm text-foreground/80">
-            <span className="font-semibold">{themes.find((t) => t.id === activeTheme)?.name}</span> —{" "}
-            {themes.find((t) => t.id === activeTheme)?.description}
-          </p>
-        </div>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-4">
-          <div className="flex gap-1">
-            {(["cards", "buttons", "badges"] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-6 py-3 text-sm font-medium capitalize transition-all border-b-2 ${
-                  activeTab === tab
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+      <div className="relative z-10 px-6 py-12">
+        <div className="max-w-5xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-4 font-display">
+              Design Konzepte
+            </h1>
+            <p className="text-xl text-[var(--muted-foreground)] max-w-2xl mx-auto">
+              5 Landing Page + 5 Strain Card Konzepte für GreenLog.
+            </p>
           </div>
-        </div>
-      </div>
 
-      {/* Content */}
-      <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Color Palette */}
-        <section>
-          <h2 className="text-lg font-semibold mb-4 text-foreground">Farbpalette</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            <ColorSwatch name="Background" variable="--background" />
-            <ColorSwatch name="Foreground" variable="--foreground" />
-            <ColorSwatch name="Primary" variable="--primary" />
-            <ColorSwatch name="Secondary" variable="--secondary" />
-            <ColorSwatch name="Accent" variable="--accent" />
-            <ColorSwatch name="Muted" variable="--muted" />
-            <ColorSwatch name="Border" variable="--border" />
-            <ColorSwatch name="Card" variable="--card" />
-            <ColorSwatch name="Destructive" variable="--destructive" />
-            <ColorSwatch name="Chart 1" variable="--chart-1" />
-            <ColorSwatch name="Chart 2" variable="--chart-2" />
-            <ColorSwatch name="Chart 3" variable="--chart-3" />
-          </div>
-        </section>
-
-        {/* Cards */}
-        {activeTab === "cards" && (
-          <section>
-            <h2 className="text-lg font-semibold mb-4 text-foreground">Strain Cards</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {strains.map((strain, i) => (
-                <div key={i} className="premium-card rounded-2xl overflow-hidden">
-                  <div className="aspect-[4/3] bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                    <span className="text-4xl opacity-30">🌿</span>
-                  </div>
-                  <div className="p-4 space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-card-foreground">{strain.name}</h3>
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full text-[var(--foreground)] ${typeColors[strain.type]}`}>
-                          {strain.type}
-                        </span>
+          {/* Landing Pages */}
+          <section className="mb-16">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-8 h-px bg-[#00F5FF]/40" />
+              <h2 className="text-sm uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Landing Pages</h2>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              {landingConcepts.map((concept) => (
+                <Link key={`landing-${concept.id}`} href={`/preview/${concept.id}`}>
+                  <div className="group relative rounded-2xl overflow-hidden border border-[var(--border)]/50 hover:border-[var(--border)] transition-all duration-300 hover:shadow-2xl hover:shadow-[#00F5FF]/5">
+                    <div className={`h-2 bg-gradient-to-r ${concept.color}`} />
+                    <div className="p-6 bg-[var(--card)]">
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${concept.color} flex items-center justify-center text-white shrink-0`}>
+                          {concept.icon}
+                        </div>
+                        <div className="text-left">
+                          <h3 className="font-bold text-lg mb-1">{concept.name}</h3>
+                          <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">
+                            {concept.description}
+                          </p>
+                        </div>
                       </div>
-                      <span className="text-sm text-muted-foreground">{strain.thc} THC</span>
-                    </div>
-                    <div className="flex gap-4 text-sm text-muted-foreground">
-                      <span>CBD: {strain.cbd}</span>
+                      <div className={`mt-4 p-3 rounded-lg ${concept.bg} ${concept.textColor}`}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium opacity-60">Vorschau</span>
+                          <div className="flex items-center gap-1 text-xs font-medium opacity-60 group-hover:opacity-100 transition-opacity">
+                            Ansehen
+                            <ArrowRight size={12} />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </section>
-        )}
 
-        {/* Buttons */}
-        {activeTab === "buttons" && (
-          <section>
-            <h2 className="text-lg font-semibold mb-4 text-foreground">Buttons</h2>
-            <div className="bg-card rounded-2xl p-8 space-y-6">
-              <div className="flex flex-wrap gap-4 items-center">
-                <button className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity">
-                  Primary Button
-                </button>
-                <button className="px-6 py-2.5 bg-secondary text-secondary-foreground rounded-lg font-medium hover:opacity-90 transition-opacity">
-                  Secondary Button
-                </button>
-                <button className="px-6 py-2.5 bg-accent text-accent-foreground rounded-lg font-medium hover:opacity-90 transition-opacity">
-                  Accent Button
-                </button>
-                <button className="px-6 py-2.5 bg-destructive text-[var(--foreground)] rounded-lg font-medium hover:opacity-90 transition-opacity">
-                  Destructive
-                </button>
-                <button className="px-6 py-2.5 bg-background text-foreground border border-border rounded-lg font-medium hover:bg-secondary transition-colors">
-                  Outline
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-4 items-center">
-                <button className="px-6 py-2.5 bg-primary/80 text-primary-foreground rounded-lg font-medium hover:opacity-80 transition-opacity" disabled>
-                  Disabled
-                </button>
-                <button className="px-4 py-2 text-primary underline-offset-4 hover:underline">
-                  Link Primary
-                </button>
-                <button className="px-4 py-2 text-accent underline-offset-4 hover:underline">
-                  Link Accent
-                </button>
-              </div>
+          {/* Strain Cards */}
+          <section className="mb-16">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-8 h-px bg-[#2FF801]/40" />
+              <h2 className="text-sm uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Strain Cards</h2>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              {cardConcepts.map((concept) => (
+                <Link key={`card-${concept.id}`} href={`/preview/cards/${concept.id}`}>
+                  <div className="group relative rounded-2xl overflow-hidden border border-[var(--border)]/50 hover:border-[var(--border)] transition-all duration-300 hover:shadow-2xl hover:shadow-[#2FF801]/5">
+                    <div className={`h-2 bg-gradient-to-r ${concept.color}`} />
+                    <div className="p-6 bg-[var(--card)]">
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${concept.color} flex items-center justify-center text-white shrink-0`}>
+                          {concept.icon}
+                        </div>
+                        <div className="text-left">
+                          <h3 className="font-bold text-lg mb-1">{concept.name}</h3>
+                          <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">
+                            {concept.description}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={`mt-4 p-3 rounded-lg ${concept.bg} ${concept.textColor}`}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium opacity-60">Vorschau</span>
+                          <div className="flex items-center gap-1 text-xs font-medium opacity-60 group-hover:opacity-100 transition-opacity">
+                            Ansehen
+                            <ArrowRight size={12} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
             </div>
           </section>
-        )}
 
-        {/* Badges */}
-        {activeTab === "badges" && (
-          <section>
-            <h2 className="text-lg font-semibold mb-4 text-foreground">Badges & Tags</h2>
-            <div className="bg-card rounded-2xl p-8 space-y-6">
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Strain Types</p>
-                <div className="flex flex-wrap gap-3">
-                  <span className="px-3 py-1 bg-green-500/20 text-green-700 dark:text-green-400 border border-green-500/30 rounded-full text-sm font-medium">
-                    Sativa
-                  </span>
-                  <span className="px-3 py-1 bg-purple-500/20 text-purple-700 dark:text-purple-400 border border-purple-500/30 rounded-full text-sm font-medium">
-                    Indica
-                  </span>
-                  <span className="px-3 py-1 bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30 rounded-full text-sm font-medium">
-                    Hybrid
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Status Badges</p>
-                <div className="flex flex-wrap gap-3">
-                  <span className="px-3 py-1 bg-primary/20 text-primary border border-primary/30 rounded-full text-sm">
-                    Active
-                  </span>
-                  <span className="px-3 py-1 bg-accent/20 text-accent border border-accent/30 rounded-full text-sm">
-                    New
-                  </span>
-                  <span className="px-3 py-1 bg-yellow-500/20 text-yellow-700 border border-yellow-500/30 rounded-full text-sm">
-                    Pending
-                  </span>
-                  <span className="px-3 py-1 bg-red-500/20 text-red-700 border border-red-500/30 rounded-full text-sm">
-                    Revoked
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Simple Tags</p>
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-2.5 py-1 bg-muted text-muted-foreground rounded-md text-sm">Fruity</span>
-                  <span className="px-2.5 py-1 bg-muted text-muted-foreground rounded-md text-sm">Earthy</span>
-                  <span className="px-2.5 py-1 bg-muted text-muted-foreground rounded-md text-sm">Citrus</span>
-                  <span className="px-2.5 py-1 bg-muted text-muted-foreground rounded-md text-sm">Diesel</span>
-                  <span className="px-2.5 py-1 bg-muted text-muted-foreground rounded-md text-sm">Sweet</span>
-                  <span className="px-2.5 py-1 bg-muted text-muted-foreground rounded-md text-sm">Spicy</span>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Typography */}
-        <section>
-          <h2 className="text-lg font-semibold mb-4 text-foreground">Typography</h2>
-          <div className="bg-card rounded-2xl p-8 space-y-4">
-            <p className="text-4xl font-bold text-foreground">Heading 1</p>
-            <p className="text-3xl font-bold text-foreground">Heading 2</p>
-            <p className="text-2xl font-semibold text-foreground">Heading 3</p>
-            <p className="text-xl font-semibold text-foreground">Heading 4</p>
-            <p className="text-lg text-foreground">Body Large</p>
-            <p className="text-base text-foreground">Body Regular</p>
-            <p className="text-sm text-foreground">Body Small</p>
-            <p className="text-xs text-muted-foreground">Muted Text</p>
+          <div className="text-center pb-12">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors">
+              Zurück zur App
+              <ArrowRight size={14} />
+            </Link>
           </div>
-        </section>
+        </div>
       </div>
-    </div>
-  );
-}
-
-function ColorSwatch({ name, variable }: { name: string; variable: string }) {
-  return (
-    <div className="space-y-2">
-      <div
-        className="h-16 rounded-xl border border-border"
-        style={{ background: `var(${variable})` }}
-      />
-      <div className="space-y-1">
-        <p className="text-sm font-medium text-foreground">{name}</p>
-        <p className="text-xs text-muted-foreground font-mono">{variable}</p>
-      </div>
-    </div>
+    </main>
   );
 }

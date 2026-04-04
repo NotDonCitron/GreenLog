@@ -1,33 +1,13 @@
-import { createClient } from "@supabase/supabase-js";
-import { decodeToken } from "@/lib/auth/utils";
-import { jsonSuccess, jsonError } from "@/lib/api-response";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-function getSupabaseClient(token: string) {
-    return createClient(supabaseUrl, supabaseAnonKey, {
-        global: { headers: { Authorization: `Bearer ${token}` } }
-    });
-}
+import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 
 export async function POST(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    const authHeader = request.headers.get("Authorization");
-    const accessToken = authHeader?.replace("Bearer ", "");
-
-    if (!accessToken) {
-        return jsonError("Unauthorized", 401);
-    }
-
-    const userId = decodeToken(accessToken);
-    if (!userId) {
-        return jsonError("Invalid token", 401);
-    }
-
-    const supabase = getSupabaseClient(accessToken);
+    const auth = await authenticateRequest(request, getAuthenticatedClient);
+    if (!auth || auth instanceof Response) return auth || jsonError("Unauthorized", 401);
+    const { user, supabase } = auth;
     const { id: organizationId } = await params;
 
     const { data: org, error: orgError } = await supabase
@@ -48,7 +28,7 @@ export async function POST(
         .from("organization_members")
         .select("id, membership_status")
         .eq("organization_id", organizationId)
-        .eq("user_id", userId)
+        .eq("user_id", user.id)
         .single();
 
     if (existingMember && existingMember.membership_status === "active") {
@@ -69,7 +49,7 @@ export async function POST(
             .from("organization_members")
             .insert({
                 organization_id: organizationId,
-                user_id: userId,
+                user_id: user.id,
                 role: "member",
                 membership_status: "active",
                 joined_at: new Date().toISOString()

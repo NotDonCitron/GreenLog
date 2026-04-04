@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
-
+import Image from "next/image";
 const AGE_VERIFIED_KEY = "cannalog_age_verified";
 const AGE_REJECTED_KEY = "cannalog_age_rejected";
 
@@ -67,7 +67,7 @@ export function AgeGate({ onVerified }: AgeGateProps) {
         <div className="relative z-10 text-center space-y-6">
           {/* Logo */}
           <div className="w-16 h-16 mx-auto rounded-2xl bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
-            <img src="/logo.png" alt="GreenLog" className="w-12 h-12 object-contain" />
+            <Image src="/logo.png" alt="GreenLog" width={48} height={48} className="object-contain" />
           </div>
 
           <div className="space-y-2">
@@ -133,11 +133,15 @@ export function AgeGate({ onVerified }: AgeGateProps) {
 
 // Hook to check age verification (call in pages that need protection)
 export function useAgeVerified() {
-  const [verified, setVerified] = useState<boolean | null>(null);
+  const [verified, setVerified] = useState<boolean | null>(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem(AGE_VERIFIED_KEY);
-    setVerified(stored === "true");
+    try {
+      const stored = localStorage.getItem(AGE_VERIFIED_KEY);
+      setVerified(stored === "true");
+    } catch {
+      setVerified(true);
+    }
   }, []);
 
   const markVerified = () => {

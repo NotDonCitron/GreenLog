@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { Camera, Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import { useToast } from "@/components/toast-provider";
 import { supabase } from "@/lib/supabase/client";
 
 interface OrgLogoUploadProps {
@@ -20,6 +21,7 @@ export function OrgLogoUpload({
 }: OrgLogoUploadProps) {
     const { user } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { error: toastError } = useToast();
     const [isUploading, setIsUploading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -28,11 +30,11 @@ export function OrgLogoUpload({
         if (!file || !user) return;
 
         if (!file.type.startsWith("image/")) {
-            alert("Bitte ein Bild auswählen");
+            toastError("Bitte ein Bild auswählen");
             return;
         }
         if (file.size > 2 * 1024 * 1024) {
-            alert("Maximal 2MB erlaubt");
+            toastError("Maximal 2MB erlaubt");
             return;
         }
 
@@ -68,7 +70,7 @@ export function OrgLogoUpload({
             onSuccess?.(logoUrl);
         } catch (err) {
             console.error("Error uploading logo:", err);
-            alert("Upload fehlgeschlagen");
+            toastError("Upload fehlgeschlagen");
             setPreviewUrl(null);
         } finally {
             setIsUploading(false);

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/auth-provider";
+import { useToast } from "@/components/toast-provider";
 import { supabase } from "@/lib/supabase";
 import { followingKeys, followersKeys, followRequestsKeys } from "@/lib/query-keys";
 import type { FollowStatus } from "@/lib/types";
@@ -29,6 +30,7 @@ export function FollowButton({
     const { user, isDemoMode } = useAuth();
     const router = useRouter();
     const queryClient = useQueryClient();
+    const { error: toastError } = useToast();
     const [isLoading, setIsLoading] = useState(false);
     const [localIsPrivate, setLocalIsPrivate] = useState(profileVisibility === "private");
     const [optimisticStatus, setOptimisticStatus] = useState<FollowStatus | null>(null);
@@ -197,7 +199,7 @@ export function FollowButton({
                 setOptimisticStatus(previousStatusRef.current);
             }
             // Show error to user
-            alert("Aktion fehlgeschlagen. Bitte versuche es erneut.");
+            toastError("Aktion fehlgeschlagen. Bitte versuche es erneut.");
         } finally {
             setIsLoading(false);
         }
