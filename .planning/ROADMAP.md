@@ -6,6 +6,16 @@
 
 **Goal:** Replace all `useEffect + supabase.from` patterns with `useQuery`, add centralized query keys and consistent invalidation.
 
+**Plans:** 5 plans in 3 wave(s)
+
+### Plans:
+
+- [ ] 01-01-PLAN.md — Create centralized query-keys.ts
+- [ ] 01-02-PLAN.md — Convert strains page to useQuery
+- [ ] 01-03-PLAN.md — Convert strain detail page to useQuery
+- [ ] 01-04-PLAN.md — Convert FollowButton to useQuery with invalidation
+- [ ] 01-05-PLAN.md — Consistent loading/error states across pages
+
 ### Requirements (RQ-01 — RQ-14)
 
 | ID | Requirement |
