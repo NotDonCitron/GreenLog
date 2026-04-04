@@ -12,7 +12,7 @@
 
 - [x] 01-01-PLAN.md — Create centralized query-keys.ts
 - [x] 01-02-PLAN.md — Convert strains page to useQuery
-- [ ] 01-03-PLAN.md — Convert strain detail page to useQuery
+- [x] 01-03-PLAN.md — Convert strain detail page to useQuery
 - [ ] 01-04-PLAN.md — Convert FollowButton to useQuery with invalidation
 - [ ] 01-05-PLAN.md — Consistent loading/error states across pages
 
@@ -75,7 +75,9 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | RQ-01, RQ-02, RQ-03, RQ-14 | Phase 1 | Done (01-02) |
-| RQ-04 — RQ-12 | Phase 1 | Pending |
+| RQ-04 — RQ-05 | Phase 1 | Pending |
+| RQ-06, RQ-07, RQ-08 | Phase 1 | Done (01-03) |
+| RQ-09 — RQ-12 | Phase 1 | Pending |
 | RQ-13 | Phase 1 | Done (01-01) |
 | RQ-15 — RQ-18 | Phase 2 | Pending |
 
