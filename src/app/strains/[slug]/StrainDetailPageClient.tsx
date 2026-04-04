@@ -493,6 +493,30 @@ export default function StrainDetailPageClient() {
     </main>
   );
 
+  if (!detailData?.strain || !strain) return (
+    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#2FF801]/5 blur-[80px] rounded-full" />
+      </div>
+      <div className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50 px-6 py-4">
+        <button onClick={() => router.back()} className="p-2 rounded-full bg-[var(--card)] border border-[var(--border)]/50 hover:border-[#00F5FF]/50 transition-all">
+          <ChevronLeft size={24} className="text-[var(--foreground)]" />
+        </button>
+      </div>
+      <div className="flex flex-col items-center justify-center py-20 gap-4 text-[#ff716c]">
+        <AlertCircle size={48} />
+        <p className="text-sm font-bold uppercase tracking-widest text-center">Strain not found</p>
+        <button
+          onClick={() => router.push('/strains')}
+          className="px-4 py-2 rounded-xl bg-[#ff716c]/10 border border-[#ff716c]/30 text-[#ff716c] text-xs font-bold uppercase tracking-widest hover:bg-[#ff716c]/20 transition-all"
+        >
+          Back to Strains
+        </button>
+      </div>
+    </main>
+  );
+
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
       {/* Ambient glow */}
