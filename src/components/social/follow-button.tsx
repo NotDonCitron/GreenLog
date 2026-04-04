@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -31,6 +31,8 @@ export function FollowButton({
     const queryClient = useQueryClient();
     const [isLoading, setIsLoading] = useState(false);
     const [localIsPrivate, setLocalIsPrivate] = useState(profileVisibility === "private");
+    const [optimisticStatus, setOptimisticStatus] = useState<FollowStatus | null>(null);
+    const previousStatusRef = useRef<FollowStatus | null>(null);
 
     // Fetch follow status if not provided via initialStatus
     const { data: fetchedStatus } = useQuery({
@@ -85,7 +87,8 @@ export function FollowButton({
     });
 
     // Use fetched status when available, otherwise use initialStatus
-    const computedStatus: FollowStatus = fetchedStatus ?? {
+    // Optimistic status overrides when available (immediate UI update)
+    const computedStatus: FollowStatus = optimisticStatus ?? fetchedStatus ?? {
         is_following: initialStatus?.is_following ?? false,
         is_following_me: initialStatus?.is_following_me ?? false,
         has_pending_request: initialStatus?.has_pending_request ?? false,
@@ -100,9 +103,13 @@ export function FollowButton({
             return;
         }
 
+        // Save for rollback on error
+        previousStatusRef.current = computedStatus;
+
         // Demo mode: toggle local state without Supabase calls
         if (isDemoMode) {
             setIsLoading(false);
+            setOptimisticStatus(null);
             onFollowChange?.();
             return;
         }
@@ -110,7 +117,9 @@ export function FollowButton({
         setIsLoading(true);
         try {
             if (computedStatus.is_following) {
-                // Unfollow
+                // Optimistic update - immediately show unfollowed
+                setOptimisticStatus({ ...computedStatus, is_following: false });
+
                 const { error } = await supabase
                     .from("follows")
                     .delete()
@@ -118,6 +127,7 @@ export function FollowButton({
                     .eq("following_id", userId);
 
                 if (!error) {
+                    setOptimisticStatus(null);
                     onFollowChange?.();
                     router.refresh();
                     // Invalidate React Query cache
@@ -125,7 +135,9 @@ export function FollowButton({
                     queryClient.invalidateQueries({ queryKey: followersKeys.list(userId) });
                 }
             } else if (computedStatus.has_pending_request) {
-                // Cancel follow request
+                // Optimistic update - immediately show not following
+                setOptimisticStatus({ ...computedStatus, has_pending_request: false });
+
                 const { error } = await supabase
                     .from("follow_requests")
                     .delete()
@@ -134,12 +146,17 @@ export function FollowButton({
                     .eq("status", "pending");
 
                 if (!error) {
+                    setOptimisticStatus(null);
                     onFollowChange?.();
                     router.refresh();
                     // Invalidate React Query cache
                     queryClient.invalidateQueries({ queryKey: followRequestsKeys.list() });
                 }
             } else {
+                // Follow or send request
+                // Optimistic update - immediately show followed or pending
+                setOptimisticStatus({ ...computedStatus, is_following: true, has_pending_request: false });
+
                 // Follow or send request - get session for auth
                 const { data: { session } } = await supabase.auth.getSession();
                 const accessToken = session?.access_token;
@@ -156,6 +173,7 @@ export function FollowButton({
                 const result = await response.json();
 
                 if (result.success) {
+                    setOptimisticStatus(null);
                     if (result.action === "followed") {
                         onFollowChange?.();
                         router.refresh();
@@ -163,6 +181,7 @@ export function FollowButton({
                         queryClient.invalidateQueries({ queryKey: followingKeys.list(user.id) });
                         queryClient.invalidateQueries({ queryKey: followersKeys.list(userId) });
                     } else if (result.action === "request_sent") {
+                        setOptimisticStatus({ ...computedStatus, has_pending_request: true, is_following: false });
                         onFollowChange?.();
                         router.refresh();
                         // Invalidate React Query cache
@@ -172,6 +191,12 @@ export function FollowButton({
             }
         } catch (err) {
             console.error("Follow action failed:", err);
+            // Rollback optimistic update
+            if (previousStatusRef.current) {
+                setOptimisticStatus(previousStatusRef.current);
+            }
+            // Show error to user
+            alert("Aktion fehlgeschlagen. Bitte versuche es erneut.");
         } finally {
             setIsLoading(false);
         }
