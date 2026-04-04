@@ -181,7 +181,7 @@ function StrainsPageContent() {
     flavors: filterFlavors,
   };
 
-  const { data: strainsData, isLoading, error } = useQuery({
+  const { data: strainsData, isLoading, error, refetch } = useQuery({
     queryKey: strainKeys.list(filters),
     queryFn: fetchStrains,
     placeholderData: keepPreviousData,
@@ -469,6 +469,12 @@ function StrainsPageContent() {
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-[#ff716c]">
             <AlertCircle size={48} />
             <p className="text-sm font-bold uppercase tracking-widest text-center">{error instanceof Error ? error.message : String(error)}</p>
+            <button
+              onClick={() => refetch()}
+              className="px-4 py-2 rounded-xl bg-[#ff716c]/10 border border-[#ff716c]/30 text-[#ff716c] text-xs font-bold uppercase tracking-widest hover:bg-[#ff716c]/20 transition-all"
+            >
+              Retry
+            </button>
           </div>
         ) : isLoading && strains.length === 0 ? (
           <div className="grid grid-cols-2 gap-6">
