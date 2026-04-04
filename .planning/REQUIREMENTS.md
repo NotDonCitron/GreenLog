@@ -31,7 +31,7 @@
 
 - [ ] **RQ-11**: All pages show consistent loading states (skeleton/shimmer) during `isLoading`
 - [ ] **RQ-12**: All pages show consistent error states with retry option during `isError`
-- [ ] **RQ-13**: Query keys defined in central `src/lib/query-keys.ts` for consistency
+- [x] **RQ-13**: Query keys defined in central `src/lib/query-keys.ts` for consistency
 - [ ] **RQ-14**: No regression in demo mode (simulated data without Supabase)
 
 ## v2 Requirements
@@ -70,7 +70,7 @@
 | RQ-10 | Phase 1 | Pending |
 | RQ-11 | Phase 1 | Pending |
 | RQ-12 | Phase 1 | Pending |
-| RQ-13 | Phase 1 | Pending |
+| RQ-13 | Phase 1 | Complete |
 | RQ-14 | Phase 1 | Pending |
 | RQ-15 | Phase 2 | Pending |
 | RQ-16 | Phase 2 | Pending |
