@@ -1,5 +1,5 @@
 ---
-status: testing
+status: diagnosed
 phase: 01-react-query-core-integration
 source:
   - 01-01-SUMMARY.md
@@ -97,19 +97,35 @@ blocked: 1
   reason: "User reported: with infinite scroll, strains.length grows as you scroll. Should always show collectedIds.length / total catalog count, not collectedIds.length / strains.length"
   severity: minor
   test: 1
-  artifacts: []
-  missing: []
+  root_cause: "fetchStrains retrieves count from Supabase but does not return it. Function returns {strains, nextCursor} only, losing totalCount."
+  artifacts:
+    - path: "src/app/strains/page.tsx"
+      issue: "fetchStrains returns count but discards it"
+  missing:
+    - "Return totalCount from fetchStrains"
+    - "Store totalCount from first page in component"
+    - "Display totalStrainCount in progress counter"
+
 - truth: "Strain detail page loads without crashing"
   status: failed
   reason: "User reported: TypeError: can't access property image_url, strain is null — page crashes at StrainDetailPageClient.tsx:579"
   severity: blocker
   test: 3
-  artifacts: []
-  missing: []
+  root_cause: "useQuery succeeds but returns null strain (invalid slug). Component renders JSX accessing strain.image_url without null check."
+  artifacts:
+    - path: "src/app/strains/[slug]/StrainDetailPageClient.tsx"
+      issue: "No null guard for detailData?.strain before rendering main JSX"
+  missing:
+    - "Add null guard: if (!detailData?.strain) return Strain not found UI"
+
 - truth: "Clicking Following button unfollows the user and button reverts to Follow"
   status: failed
   reason: "User reported: clicking Following button doesn't trigger unfollow — button stays as Following after clicking"
   severity: major
   test: 6
-  artifacts: []
-  missing: []
+  root_cause: "After unfollow, ['follow-status', userId] query key is not invalidated. When optimisticStatus clears, computedStatus falls back to stale cached is_following: true."
+  artifacts:
+    - path: "src/components/social/follow-button.tsx"
+      issue: "Missing invalidateQueries for ['follow-status', userId] in unfollow success path"
+  missing:
+    - "Add queryClient.invalidateQueries({ queryKey: ['follow-status', userId] }) after unfollow success"
