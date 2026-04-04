@@ -35,6 +35,7 @@ export function SuggestedUsers({
     const [users, setUsers] = useState<SuggestedUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [followingUsers, setFollowingUsers] = useState<Set<string>>(new Set());
     const [communities, setCommunities] = useState<SuggestedCommunity[]>([]);
     const [joinedCommunityIds, setJoinedCommunityIds] = useState<Set<string>>(new Set());
@@ -95,6 +96,7 @@ export function SuggestedUsers({
 
     const fetchSuggestedUsers = async (isRefresh = false) => {
         if (!user) {
+            console.log('[SuggestedUsers] No user, skipping fetch');
             setIsLoading(false);
             return;
         }
@@ -103,31 +105,35 @@ export function SuggestedUsers({
         else setIsLoading(true);
 
         try {
+            console.log('[SuggestedUsers] Starting fetch with user:', user.id, 'limit:', limit, 'showCommunities:', showCommunities);
             const authClient = supabase;
 
             // Get users with similar strain ratings first
-            const { data: userRatings } = await authClient
+            const { data: userRatings, error: ratingsError } = await authClient
                 .from("ratings")
                 .select("strain_id")
                 .eq("user_id", user.id);
 
+            console.log('[SuggestedUsers] User ratings:', { count: userRatings?.length, error: ratingsError });
             const userStrainIds = userRatings?.map((r: { strain_id: string }) => r.strain_id) ?? [];
 
             // Get users already being followed
-            const { data: followingData } = await authClient
+            const { data: followingData, error: followsError } = await authClient
                 .from("follows")
                 .select("following_id")
                 .eq("follower_id", user.id);
 
+            console.log('[SuggestedUsers] Following data:', { count: followingData?.length, error: followsError });
             const followingIds = followingData?.map((f: { following_id: string }) => f.following_id) ?? [];
 
             // Get pending follow requests for private profiles
-            const { data: pendingRequests } = await authClient
+            const { data: pendingRequests, error: requestsError } = await authClient
                 .from("follow_requests")
                 .select("target_id, status")
                 .eq("requester_id", user.id)
                 .eq("status", "pending");
 
+            console.log('[SuggestedUsers] Pending requests:', { count: pendingRequests?.length, error: requestsError });
             const pendingRequestIds = pendingRequests?.map((r: { target_id: string }) => r.target_id) ?? [];
 
             // Build suggested users query - include both public profiles AND private profiles with pending requests
@@ -151,6 +157,12 @@ export function SuggestedUsers({
             }
 
             const { data, error } = await query.limit(limit * 3);
+
+            console.log('[SuggestedUsers] Profiles query result:', { 
+                dataCount: data?.length, 
+                error,
+                firstUser: data?.[0] 
+            });
 
             if (error) throw error;
 
@@ -199,23 +211,35 @@ export function SuggestedUsers({
             );
 
             setUsers(usersWithCommonStrains.slice(0, limit));
+            console.log('[SuggestedUsers] Final users to display:', usersWithCommonStrains.slice(0, limit).length);
 
             // Fetch suggested communities (only if showCommunities is true)
             if (showCommunities) {
+                console.log('[SuggestedUsers] Fetching communities...');
                 // Get organizations user is already member of
-                const { data: memberships } = await supabase
+                const { data: memberships, error: membersError } = await supabase
                     .from("organization_members")
                     .select("organization_id")
                     .eq("user_id", user.id)
                     .eq("membership_status", "active");
 
+                console.log('[SuggestedUsers] Organization memberships:', { 
+                    count: memberships?.length, 
+                    error: membersError 
+                });
+
                 const joinedOrgIds = memberships?.map((m: { organization_id: string }) => m.organization_id) ?? [];
 
-                const { data: orgsData } = await supabase
+                const { data: orgsData, error: orgsError } = await supabase
                     .from("organizations")
                     .select("id, name, organization_type, logo_url")
                     .eq("status", "active")
                     .limit(limit * 3);
+
+                console.log('[SuggestedUsers] Organizations query:', { 
+                    count: orgsData?.length, 
+                    error: orgsError 
+                });
 
                 const filteredOrgs = (orgsData ?? []).filter(
                     (org) => !joinedOrgIds.includes(org.id)
@@ -229,11 +253,14 @@ export function SuggestedUsers({
                     is_member: false,
                 }));
 
+                console.log('[SuggestedUsers] Suggested communities:', suggested.length);
                 setCommunities(suggested);
                 setJoinedCommunityIds(new Set(joinedOrgIds));
             }
         } catch (err) {
-            console.error("Error fetching suggested users:", err);
+            console.error("[SuggestedUsers] Error fetching suggested users:", err);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setError("Fehler beim Laden");
         } finally {
             setIsLoading(false);
             setIsRefreshing(false);
@@ -254,8 +281,20 @@ export function SuggestedUsers({
         );
     }
 
-    if (users.length === 0) {
-        return null;
+    if (users.length === 0 && (communities.length === 0 || !showCommunities) && !error) {
+        return (
+            <div className={`py-4 ${className}`}>
+                <p className="text-xs text-[var(--muted-foreground)] text-center">Keine Vorschläge verfügbar</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className={`py-4 ${className}`}>
+                <p className="text-xs text-red-500 text-center">{error}</p>
+            </div>
+        );
     }
 
     return (

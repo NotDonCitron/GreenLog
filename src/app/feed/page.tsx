@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Sparkles, Users, Compass, Loader2 } from "lucide-react";
+import { Sparkles, Users, Compass, Loader2, Search } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { ActivityFeed } from "@/components/social/activity-feed";
 import { SuggestedUsers } from "@/components/social/suggested-users";
+import { FollowButton } from "@/components/social/follow-button";
 import { useAuth } from "@/components/auth-provider";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
@@ -13,6 +14,7 @@ import { useEffect } from "react";
 
 type FeedTab = "foryou" | "following" | "discover";
 type FollowingFilter = "users" | "communities";
+type DiscoverFilter = "suggestions" | "browse";
 
 export default function FeedPage() {
   const { user } = useAuth();
@@ -21,6 +23,11 @@ export default function FeedPage() {
   const [communities, setCommunities] = useState<any[]>([]);
   const [otherCommunities, setOtherCommunities] = useState<any[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
+  const [discoverFilter, setDiscoverFilter] = useState<DiscoverFilter>("suggestions");
+  const [browseUsers, setBrowseUsers] = useState<any[]>([]);
+  const [loadingBrowseUsers, setLoadingBrowseUsers] = useState(false);
+  const [discoverSearch, setDiscoverSearch] = useState("");
+  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
 
   const tabs: { id: FeedTab; label: string; icon: typeof Sparkles }[] = [
     { id: "foryou", label: "Für dich", icon: Sparkles },
@@ -56,6 +63,36 @@ export default function FeedPage() {
         setOtherCommunities(otherOrgs);
 
         setLoadingCommunities(false);
+      }).catch(err => {
+        console.error('Error fetching communities:', err);
+        setLoadingCommunities(false);
+      });
+    }
+  }, [activeTab, user]);
+
+  // Fetch browse users and following IDs for discover tab
+  useEffect(() => {
+    if (activeTab === "discover" && user) {
+      setLoadingBrowseUsers(true);
+      Promise.all([
+        // Fetch following IDs
+        supabase
+          .from("follows")
+          .select("following_id")
+          .eq("follower_id", user.id),
+        // Fetch browse users
+        supabase
+          .from("profiles")
+          .select("*")
+          .neq("id", user.id)
+          .limit(20)
+      ]).then(([followsRes, browseRes]) => {
+        setFollowingIds(new Set(followsRes.data?.map((f: any) => f.following_id) ?? []));
+        setBrowseUsers(browseRes.data ?? []);
+        setLoadingBrowseUsers(false);
+      }).catch(err => {
+        console.error('Error fetching browse users:', err);
+        setLoadingBrowseUsers(false);
       });
     }
   }, [activeTab, user]);
@@ -81,11 +118,10 @@ export default function FeedPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                activeTab === tab.id
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${activeTab === tab.id
                   ? "bg-[#00F5FF] text-black shadow-lg shadow-[#00F5FF]/20"
                   : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-              }`}
+                }`}
             >
               <tab.icon size={14} />
               {tab.label}
@@ -136,21 +172,19 @@ export default function FeedPage() {
             <div className="flex gap-2 p-1 bg-[var(--muted)] rounded-xl">
               <button
                 onClick={() => setFollowingFilter("users")}
-                className={`flex-1 py-2 px-4 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
-                  followingFilter === "users"
+                className={`flex-1 py-2 px-4 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${followingFilter === "users"
                     ? "bg-[#00F5FF] text-black"
                     : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                }`}
+                  }`}
               >
                 Following
               </button>
               <button
                 onClick={() => setFollowingFilter("communities")}
-                className={`flex-1 py-2 px-4 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
-                  followingFilter === "communities"
+                className={`flex-1 py-2 px-4 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${followingFilter === "communities"
                     ? "bg-[#2FF801] text-black"
                     : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                }`}
+                  }`}
               >
                 Communities
               </button>
@@ -194,7 +228,7 @@ export default function FeedPage() {
                         href={`/community/${org.id}`}
                         className="flex items-center gap-3 p-4 bg-[var(--card)] rounded-xl border border-[var(--border)] hover:border-[#00F5FF]/50 transition-colors"
                       >
-                        <div className="w-12 h-12 rounded-full bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
+                        <div className="relative w-12 h-12 rounded-full bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
                           {org.logo_url ? (
                             <Image src={org.logo_url} alt={org.name} fill className="object-cover" sizes="40px" />
                           ) : (
@@ -248,100 +282,201 @@ export default function FeedPage() {
           </div>
         )}
         {activeTab === "discover" && user && (
-          <div className="space-y-6">
-            {/* Suggested Users */}
-            <section>
-              <SuggestedUsers limit={10} showViewAll={false} showCommunities={false} />
-            </section>
+          <div className="space-y-4">
+            {/* Sub-tabs for Discover */}
+            <div className="flex gap-2 p-1 bg-[var(--muted)] rounded-xl">
+              <button
+                onClick={() => setDiscoverFilter("suggestions")}
+                className={`flex-1 py-2 px-4 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${discoverFilter === "suggestions"
+                    ? "bg-[#00F5FF] text-black"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  }`}
+              >
+                Vorschläge
+              </button>
+              <button
+                onClick={() => setDiscoverFilter("browse")}
+                className={`flex-1 py-2 px-4 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${discoverFilter === "browse"
+                    ? "bg-[#2FF801] text-black"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  }`}
+              >
+                Durchsuchen
+              </button>
+            </div>
 
-            {/* My Communities */}
-            {user && (
-              <section>
-                <h3 className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
-                  Meine Communities
-                </h3>
-                {loadingCommunities ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 size={20} className="animate-spin text-[#00F5FF]" />
-                  </div>
-                ) : communities.length > 0 ? (
-                  <div className="space-y-2">
-                    {communities.map((org: any) => (
-                      <Link
-                        key={org.id}
-                        href={`/community/${org.id}`}
-                        className="flex items-center gap-3 p-3 bg-[var(--card)] rounded-xl border border-[var(--border)] hover:border-[#00F5FF]/50 transition-colors"
-                      >
-                        <div className="w-10 h-10 rounded-full bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
-                          {org.logo_url ? (
-                            <Image src={org.logo_url} alt={org.name} fill className="object-cover" sizes="40px" />
-                          ) : (
-                            <span className="text-[#2FF801] font-bold text-sm">{org.name.charAt(0)}</span>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-sm text-[var(--foreground)] truncate">{org.name}</p>
-                          <p className="text-[10px] text-[var(--muted-foreground)] uppercase">
-                            {org.organization_type}
-                          </p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-6 bg-[var(--card)] rounded-xl border border-[var(--border)]">
-                    <p className="text-xs text-[var(--muted-foreground)]">Noch keine Communities</p>
-                    <Link
-                      href="/community/new"
-                      className="inline-block mt-2 px-4 py-1.5 bg-[#2FF801]/10 text-[#2FF801] text-xs font-bold rounded-full"
-                    >
-                      Erstelle eine
-                    </Link>
-                  </div>
+            {/* Suggestions View */}
+            {discoverFilter === "suggestions" && (
+              <div className="space-y-6">
+                {/* Suggested Users */}
+                <section>
+                  <SuggestedUsers limit={10} showViewAll={false} showCommunities={true} />
+                </section>
+
+                {/* My Communities */}
+                {user && (
+                  <section>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
+                      Meine Communities
+                    </h3>
+                    {loadingCommunities ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 size={20} className="animate-spin text-[#00F5FF]" />
+                      </div>
+                    ) : communities.length > 0 ? (
+                      <div className="space-y-2">
+                        {communities.map((org: any) => (
+                          <Link
+                            key={org.id}
+                            href={`/community/${org.id}`}
+                            className="flex items-center gap-3 p-3 bg-[var(--card)] rounded-xl border border-[var(--border)] hover:border-[#00F5FF]/50 transition-colors"
+                          >
+                            <div className="relative w-10 h-10 rounded-full bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
+                              {org.logo_url ? (
+                                <Image src={org.logo_url} alt={org.name} fill className="object-cover" sizes="40px" />
+                              ) : (
+                                <span className="text-[#2FF801] font-bold text-sm">{org.name.charAt(0)}</span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm text-[var(--foreground)] truncate">{org.name}</p>
+                              <p className="text-[10px] text-[var(--muted-foreground)] uppercase">
+                                {org.organization_type}
+                              </p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-6 bg-[var(--card)] rounded-xl border border-[var(--border)]">
+                        <p className="text-xs text-[var(--muted-foreground)]">Noch keine Communities</p>
+                        <Link
+                          href="/community/new"
+                          className="inline-block mt-2 px-4 py-1.5 bg-[#2FF801]/10 text-[#2FF801] text-xs font-bold rounded-full"
+                        >
+                          Erstelle eine
+                        </Link>
+                      </div>
+                    )}
+                  </section>
                 )}
-              </section>
+
+                {/* Other Communities to Explore */}
+                {user && (
+                  <section>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
+                      Andere Communities entdecken
+                    </h3>
+                    {loadingCommunities ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 size={20} className="animate-spin text-[#00F5FF]" />
+                      </div>
+                    ) : otherCommunities.length > 0 ? (
+                      <div className="space-y-2">
+                        {otherCommunities.slice(0, 10).map((org: any) => (
+                          <Link
+                            key={org.id}
+                            href={`/community/${org.id}`}
+                            className="flex items-center gap-3 p-3 bg-[var(--card)] rounded-xl border border-[var(--border)] hover:border-[#2FF801]/50 transition-colors"
+                          >
+                            <div className="relative w-10 h-10 rounded-full bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
+                              {org.logo_url ? (
+                                <Image src={org.logo_url} alt={org.name} fill className="object-cover" sizes="40px" />
+                              ) : (
+                                <span className="text-[#00F5FF] font-bold text-sm">{org.name.charAt(0)}</span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-sm text-[var(--foreground)] truncate">{org.name}</p>
+                              <p className="text-[10px] text-[var(--muted-foreground)] uppercase">
+                                {org.organization_type}
+                              </p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-6 bg-[var(--card)] rounded-xl border border-[var(--border)]">
+                        <p className="text-xs text-[var(--muted-foreground)]">Keine weiteren Communities verfügbar</p>
+                      </div>
+                    )}
+                  </section>
+                )}
+              </div>
             )}
 
-            {/* Other Communities to Explore */}
-            {user && (
-              <section>
-                <h3 className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
-                  Andere Communities entdecken
-                </h3>
-                {loadingCommunities ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 size={20} className="animate-spin text-[#00F5FF]" />
-                  </div>
-                ) : otherCommunities.length > 0 ? (
-                  <div className="space-y-2">
-                    {otherCommunities.slice(0, 10).map((org: any) => (
-                      <Link
-                        key={org.id}
-                        href={`/community/${org.id}`}
-                        className="flex items-center gap-3 p-3 bg-[var(--card)] rounded-xl border border-[var(--border)] hover:border-[#2FF801]/50 transition-colors"
-                      >
-                        <div className="w-10 h-10 rounded-full bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
-                          {org.logo_url ? (
-                            <Image src={org.logo_url} alt={org.name} fill className="object-cover" sizes="40px" />
-                          ) : (
-                            <span className="text-[#00F5FF] font-bold text-sm">{org.name.charAt(0)}</span>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-sm text-[var(--foreground)] truncate">{org.name}</p>
-                          <p className="text-[10px] text-[var(--muted-foreground)] uppercase">
-                            {org.organization_type}
-                          </p>
-                        </div>
-                      </Link>
-                    ))}
+            {/* Browse View */}
+            {discoverFilter === "browse" && (
+              <div className="space-y-4">
+                {/* Search Field */}
+                <div className="relative">
+                  <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#484849]" />
+                  <input
+                    type="text"
+                    value={discoverSearch}
+                    onChange={(e) => setDiscoverSearch(e.target.value)}
+                    placeholder="Nutzer suchen..."
+                    className="w-full h-12 pl-11 pr-4 bg-[var(--input)] border border-[var(--border)]/50 rounded-xl text-[var(--foreground)] placeholder:text-[#484849] text-sm font-medium focus:outline-none focus:border-[#00F5FF]/50 transition-colors"
+                  />
+                </div>
+
+                {/* Browse Users Grid */}
+                {loadingBrowseUsers ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 size={24} className="animate-spin text-[#00F5FF]" />
                   </div>
                 ) : (
-                  <div className="text-center py-6 bg-[var(--card)] rounded-xl border border-[var(--border)]">
-                    <p className="text-xs text-[var(--muted-foreground)]">Keine weiteren Communities verfügbar</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {browseUsers
+                      .filter((profile) => {
+                        if (!discoverSearch.trim()) return true;
+                        const q = discoverSearch.toLowerCase();
+                        return (
+                          (profile.display_name || "").toLowerCase().includes(q) ||
+                          (profile.username || "").toLowerCase().includes(q)
+                        );
+                      })
+                      .map((profile) => (
+                        <div key={profile.id} className="bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-4 flex flex-col items-center text-center gap-3 hover:border-[#00F5FF]/50 transition-all">
+                          <Link href={`/user/${profile.username}`} className="flex flex-col items-center gap-2">
+                            <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--border)] bg-[var(--muted)] flex items-center justify-center">
+                              {profile.avatar_url ? (
+                                <Image src={profile.avatar_url} alt={profile.username || "User"} fill className="object-cover" sizes="64px" />
+                              ) : (
+                                <span className="text-xl font-black text-[#00F5FF]">{profile.username?.[0]?.toUpperCase()}</span>
+                              )}
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-[var(--foreground)] uppercase truncate max-w-[120px] font-display">{profile.display_name || profile.username}</p>
+                              <p className="text-[9px] text-[var(--muted-foreground)]">@{profile.username}</p>
+                            </div>
+                          </Link>
+                          <FollowButton
+                            userId={profile.id}
+                            size="sm"
+                            className="text-xs px-3 py-1"
+                            initialStatus={{
+                              is_following: followingIds.has(profile.id),
+                              is_following_me: false,
+                              has_pending_request: false,
+                            }}
+                            onFollowChange={() => {
+                              setFollowingIds(prev => {
+                                const next = new Set(prev);
+                                if (next.has(profile.id)) {
+                                  next.delete(profile.id);
+                                } else {
+                                  next.add(profile.id);
+                                }
+                                return next;
+                              });
+                            }}
+                          />
+                        </div>
+                      ))}
                   </div>
                 )}
-              </section>
+              </div>
             )}
           </div>
         )}

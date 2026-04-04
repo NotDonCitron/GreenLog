@@ -29,7 +29,7 @@ interface Step {
 const ONBOARDING_STEPS: Step[] = [
     {
         title: "Willkommen bei CannaLog",
-        description: "Dein digitaler Begleiter für Cannabis-Sorten. Entdecke über 470 Sorten, tracke deine Favoriten und teile Erfahrungen.",
+        description: "Dein digitaler Begleiter für Cannabis-Sorten. Entdecke unsere Sortenvielfalt, tracke deine Favoriten und teile Erfahrungen.",
         icon: <div className="relative w-full h-full p-2"><Image src="/logo.png" alt="Logo" fill className="object-contain" priority /></div>,
         color: "#00F5FF",
         path: "/"

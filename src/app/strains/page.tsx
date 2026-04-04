@@ -90,6 +90,9 @@ function StrainsPageContent() {
   const { collectedIds } = useCollection();
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const [totalStrainCount, setTotalStrainCount] = useState(0);
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const toggleCompare = useCallback((slug: string) => {
     const current = compareSlugs;
@@ -387,8 +390,29 @@ function StrainsPageContent() {
     return { strains: normalizedStrains as Strain[], nextCursor: hasMore ? offset + STRAINS_PAGE_SIZE : undefined, totalCount: count ?? 0 };
   }
 
+  // Hide search bar when scrolling down, show when scrolling up or at top
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      const currentScrollY = scrollContainer.scrollTop;
+      if (currentScrollY <= 50) {
+        setIsSearchBarVisible(true);
+      } else if (currentScrollY > lastScrollY.current + 5) {
+        setIsSearchBarVisible(false);
+      } else if (currentScrollY < lastScrollY.current - 5) {
+        setIsSearchBarVisible(true);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
+    return () => scrollContainer.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
+    <main ref={scrollContainerRef} className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32 overflow-y-auto">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
@@ -405,18 +429,21 @@ function StrainsPageContent() {
         />
       </Suspense>
 
-      <header className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50 px-6 pt-12 pb-4">
-        <div className="flex justify-between items-end mb-5">
-          <div>
-            <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">Strains</h1>
-          </div>
-          <div className="text-right">
-            <p className="text-[10px] text-[var(--muted-foreground)] uppercase font-bold tracking-wider">Progress</p>
-            <p className="text-xl font-black text-[#2FF801] neon-text-green font-display">{collectedIds.length} / {totalStrainCount || strains.length || 20}</p>
+      <header className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50">
+        <div className="px-6 pt-12 pb-2">
+          <div className="flex justify-between items-end">
+            <div>
+              <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">Strains</h1>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] text-[var(--muted-foreground)] uppercase font-bold tracking-wider">Progress</p>
+              <p className="text-xl font-black text-[#2FF801] neon-text-green font-display">{collectedIds.length} / {totalStrainCount || strains.length || 20}</p>
+            </div>
           </div>
         </div>
 
-        <div className="relative mb-4">
+        <div className={`px-6 pb-4 transition-transform duration-300 ${isSearchBarVisible ? "translate-y-0" : "-translate-y-full"}`}>
+          <div className="relative mb-4">
           <Search className="absolute left-4 top-3.5 text-[#484849]" size={18} />
           <input
             type="text"
@@ -503,6 +530,7 @@ function StrainsPageContent() {
           <SlidersHorizontal size={14} className="mr-1" />
           Filter
         </Button>
+        </div>
       </header>
 
       <Suspense fallback={null}>
