@@ -89,6 +89,7 @@ function StrainsPageContent() {
   const compareSlugs = (searchParams.get("compare")?.split(",").filter(Boolean) || []);
   const { collectedIds } = useCollectionIds();
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const [totalStrainCount, setTotalStrainCount] = useState(0);
 
   const toggleCompare = useCallback((slug: string) => {
     const current = compareSlugs;
@@ -200,6 +201,13 @@ function StrainsPageContent() {
 
   const strains = data?.pages.flatMap((page) => page.strains) ?? [];
 
+  // Store totalCount from first page fetch (catalog-wide count, does not change with filters/scroll)
+  useEffect(() => {
+    if (data?.pages[0]?.totalCount) {
+      setTotalStrainCount(data.pages[0].totalCount);
+    }
+  }, [data]);
+
   // Infinite scroll trigger
   useEffect(() => {
     if (!hasNextPage || isFetchingNextPage) return;
@@ -220,7 +228,7 @@ function StrainsPageContent() {
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  async function fetchStrains(pageParam?: number): Promise<{ strains: Strain[]; nextCursor?: number }> {
+  async function fetchStrains(pageParam?: number): Promise<{ strains: Strain[]; nextCursor?: number; totalCount: number }> {
     // Demo mode: return mock strains without Supabase calls
     if (isDemoMode) {
       const mockStrains: Strain[] = [
@@ -273,7 +281,7 @@ function StrainsPageContent() {
           cbd_max: 1,
         },
       ];
-      return { strains: mockStrains, nextCursor: undefined };
+      return { strains: mockStrains, nextCursor: undefined, totalCount: mockStrains.length };
     }
 
     // Load source overrides from localStorage
@@ -331,7 +339,7 @@ function StrainsPageContent() {
     }));
 
     const hasMore = (count ?? 0) > offset + STRAINS_PAGE_SIZE;
-    return { strains: normalizedStrains as Strain[], nextCursor: hasMore ? offset + STRAINS_PAGE_SIZE : undefined };
+    return { strains: normalizedStrains as Strain[], nextCursor: hasMore ? offset + STRAINS_PAGE_SIZE : undefined, totalCount: count ?? 0 };
   }
 
 
@@ -396,7 +404,7 @@ function StrainsPageContent() {
           </div>
           <div className="text-right">
             <p className="text-[10px] text-[var(--muted-foreground)] uppercase font-bold tracking-wider">Progress</p>
-            <p className="text-xl font-black text-[#2FF801] neon-text-green font-display">{collectedIds.length} / {strains.length || 20}</p>
+            <p className="text-xl font-black text-[#2FF801] neon-text-green font-display">{collectedIds.length} / {totalStrainCount || strains.length || 20}</p>
           </div>
         </div>
 
