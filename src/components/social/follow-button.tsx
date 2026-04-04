@@ -133,6 +133,7 @@ export function FollowButton({
                     // Invalidate React Query cache
                     queryClient.invalidateQueries({ queryKey: followingKeys.list(user.id) });
                     queryClient.invalidateQueries({ queryKey: followersKeys.list(userId) });
+                    queryClient.invalidateQueries({ queryKey: ['follow-status', userId] });
                 }
             } else if (computedStatus.has_pending_request) {
                 // Optimistic update - immediately show not following
