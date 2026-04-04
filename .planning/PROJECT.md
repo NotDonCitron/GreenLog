@@ -22,13 +22,14 @@ Reliable strain data management with fast, consistent UI — mutations (collect,
 - ✓ GDPR compliance (consent, data export, account deletion) — April 2026
 - ✓ Organization management with invite system — April 2026
 - ✓ Organization analytics with CSV export — April 2026
-- ✓ React Query Provider + useCollection hooks (partial) — April 2026
+- ✓ React Query Provider + useCollection hooks — Phase 1+2 complete April 2026
 - ✓ React Query core integration (strains page, strain detail, FollowButton, centralized query-keys) — Phase 1 complete April 2026
+- ✓ React Query advanced (infinite scroll, optimistic follow updates, collection verification) — Phase 2 complete April 2026
 
 ### Active
 
-- [ ] Collection page React Query conversion (RQ-04, RQ-05 from REQUIREMENTS.md)
-- [ ] Advanced React Query: prefetch on hover (RQ-15), infinite scroll (RQ-16), offline support (RQ-17), optimistic follow updates (RQ-18)
+- [ ] Prefetch strain details on hover (RQ-15)
+- [ ] Offline support via persistence (RQ-17)
 
 ### Out of Scope
 
@@ -40,11 +41,11 @@ Reliable strain data management with fast, consistent UI — mutations (collect,
 
 ### Current State (April 2026)
 
-GreenLog MVP is complete. Phase 1 (React Query core integration) is now complete:
+GreenLog MVP is complete. Phase 1 + Phase 2 (React Query integration) are now complete:
 - **Next.js 16 Pages Router** with TypeScript and Tailwind CSS
 - **Supabase** for PostgreSQL, Auth, Storage, and RLS
-- **React Query** (`@tanstack/react-query`) fully integrated — centralized query-keys.ts, strains page, strain detail page, and FollowButton all converted to useQuery with proper cache invalidation
-- **Remaining**: Collection page (RQ-04/RQ-05), advanced features (RQ-15-RQ-18) in future phases
+- **React Query** (`@tanstack/react-query`) fully integrated — centralized query-keys.ts, useInfiniteQuery for strains list with infinite scroll, optimistic FollowButton updates, useCollection hooks with proper cache invalidation
+- **Remaining**: Prefetch on hover (RQ-15), offline support (RQ-17)
 
 ### Problem to Solve
 
@@ -77,4 +78,4 @@ React Query is already in the tree (`QueryProvider` configured). The `useCollect
 
 ---
 
-*Last updated: 2026-04-04 after Phase 1 completion*
+*Last updated: 2026-04-04 after Phase 1+2 completion (React Query integration)*
