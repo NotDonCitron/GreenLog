@@ -53,13 +53,13 @@
 
 **Goal:** Prefetching, infinite scroll, offline support.
 
-**Plans:** 0/3 plans ready
+**Plans:** 3/3 plans executed
 
 ### Plans:
 
-- [ ] 02-01-PLAN.md — Verify Collection page React Query (RQ-04, RQ-05)
-- [ ] 02-02-PLAN.md — Infinite scroll for strains list (RQ-16)
-- [ ] 03-01-PLAN.md — Optimistic updates for follow/unfollow (RQ-18)
+- [x] 02-01-PLAN.md — Verify Collection page React Query (RQ-04, RQ-05)
+- [x] 02-02-PLAN.md — Infinite scroll for strains list (RQ-16)
+- [x] 02-03-PLAN.md — Optimistic updates for follow/unfollow (RQ-18)
 
 ### Requirements (RQ-15 — RQ-18)
 
