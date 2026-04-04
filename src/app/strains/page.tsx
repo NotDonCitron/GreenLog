@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback, lazy } from "react";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useState, useEffect, Suspense, useCallback, lazy, useRef } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { strainKeys } from "@/lib/query-keys";
@@ -19,6 +19,7 @@ import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";
 import { THC_RANGE, CBD_RANGE, MAX_COMPARE_STRAINS } from "@/lib/constants";
 
 const SOURCE_OVERRIDE_STORAGE_KEY = "greenlog:strain-source-overrides";
+const STRAINS_PAGE_SIZE = 50;
 
 function TabParamReader({
   activeOrganization,
@@ -87,6 +88,7 @@ function StrainsPageContent() {
   const searchParams = useSearchParams();
   const compareSlugs = (searchParams.get("compare")?.split(",").filter(Boolean) || []);
   const { collectedIds } = useCollectionIds();
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const toggleCompare = useCallback((slug: string) => {
     const current = compareSlugs;
@@ -181,15 +183,44 @@ function StrainsPageContent() {
     flavors: filterFlavors,
   };
 
-  const { data: strainsData, isLoading, error, refetch } = useQuery({
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: strainKeys.list(filters),
-    queryFn: fetchStrains,
-    placeholderData: keepPreviousData,
+    queryFn: ({ pageParam }) => fetchStrains(pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
-  const strains = strainsData?.strains ?? [];
+  const strains = data?.pages.flatMap((page) => page.strains) ?? [];
 
-  async function fetchStrains(): Promise<{ strains: Strain[]; sourceOverrides: Record<string, StrainSource> }> {
+  // Infinite scroll trigger
+  useEffect(() => {
+    if (!hasNextPage || isFetchingNextPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          void fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  async function fetchStrains(pageParam?: number): Promise<{ strains: Strain[]; nextCursor?: number }> {
     // Demo mode: return mock strains without Supabase calls
     if (isDemoMode) {
       const mockStrains: Strain[] = [
@@ -242,7 +273,7 @@ function StrainsPageContent() {
           cbd_max: 1,
         },
       ];
-      return { strains: mockStrains, sourceOverrides: {} };
+      return { strains: mockStrains, nextCursor: undefined };
     }
 
     // Load source overrides from localStorage
@@ -254,10 +285,13 @@ function StrainsPageContent() {
       // ignore
     }
 
+    const offset = pageParam ?? 0;
+
     let strainsQuery = supabase
       .from('strains')
-      .select('*')
-      .order('name');
+      .select('*', { count: 'exact' })
+      .order('name')
+      .range(offset, offset + STRAINS_PAGE_SIZE - 1);
 
     if (activeTab === 'catalog') {
       strainsQuery = strainsQuery.is('organization_id', null);
@@ -265,7 +299,7 @@ function StrainsPageContent() {
       strainsQuery = strainsQuery.eq('organization_id', activeOrganization.organization_id);
     }
 
-    const { data: allStrains, error: strainError } = await strainsQuery;
+    const { data: pageStraings, error: strainError, count } = await strainsQuery;
 
     if (strainError) throw new Error(strainError.message);
 
@@ -291,12 +325,13 @@ function StrainsPageContent() {
       }
     }
 
-    const normalizedStrains = (allStrains ?? []).map((strain) => ({
+    const normalizedStrains = (pageStraings ?? []).map((strain) => ({
       ...strain,
       source: strain.source ?? mergedOverrides[strain.id] ?? 'pharmacy',
     }));
 
-    return { strains: normalizedStrains as Strain[], sourceOverrides: mergedOverrides };
+    const hasMore = (count ?? 0) > offset + STRAINS_PAGE_SIZE;
+    return { strains: normalizedStrains as Strain[], nextCursor: hasMore ? offset + STRAINS_PAGE_SIZE : undefined };
   }
 
 
@@ -487,28 +522,58 @@ function StrainsPageContent() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-6">
-            {filteredStrains.map((strain, i) => {
-              const isCollected = collectedIds.includes(strain.id);
-              const isSelected = compareSlugs.includes(strain.slug);
-              return (
-                <div
-                  key={strain.id}
-                  className="relative"
-                  onContextMenu={(e) => { e.preventDefault(); void toggleCompare(strain.slug); }}
-                  onClick={() => { if (isSelected) void toggleCompare(strain.slug); }}
-                  title={isSelected ? "Aus Vergleich entfernen (Rechtsklick)" : "Zum Vergleich (Rechtsklick)"}
-                >
-                  <StrainCard strain={strain} index={i} isCollected={isCollected} />
-                  {isSelected && (
-                    <div className="absolute top-2 right-2 z-30 w-6 h-6 bg-[#2FF801] rounded-full flex items-center justify-center shadow-lg">
-                      <Scale size={12} className="text-black" />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <>
+            <div className="grid grid-cols-2 gap-6">
+              {filteredStrains.map((strain, i) => {
+                const isCollected = collectedIds.includes(strain.id);
+                const isSelected = compareSlugs.includes(strain.slug);
+                return (
+                  <div
+                    key={strain.id}
+                    className="relative"
+                    onContextMenu={(e) => { e.preventDefault(); void toggleCompare(strain.slug); }}
+                    onClick={() => { if (isSelected) void toggleCompare(strain.slug); }}
+                    title={isSelected ? "Aus Vergleich entfernen (Rechtsklick)" : "Zum Vergleich (Rechtsklick)"}
+                  >
+                    <StrainCard strain={strain} index={i} isCollected={isCollected} />
+                    {isSelected && (
+                      <div className="absolute top-2 right-2 z-30 w-6 h-6 bg-[#2FF801] rounded-full flex items-center justify-center shadow-lg">
+                        <Scale size={12} className="text-black" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {hasNextPage && (
+              <div ref={loadMoreRef} className="flex justify-center py-8">
+                {isFetchingNextPage ? (
+                  <div className="flex items-center gap-2 text-[var(--muted-foreground)]">
+                    <Loader2 className="animate-spin" size={20} />
+                    <span className="text-xs font-bold uppercase tracking-widest">Lade mehr...</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => void fetchNextPage()}
+                    className="px-6 py-3 rounded-xl bg-[var(--card)] border border-[var(--border)]/50 text-[var(--muted-foreground)] text-xs font-bold uppercase tracking-widest hover:border-[#00F5FF]/50 transition-all"
+                  >
+                    Mehr laden
+                  </button>
+                )}
+              </div>
+            )}
+            {isFetchingNextPage && (
+              <div className="grid grid-cols-2 gap-6 mt-6">
+                {[...Array(4)].map((_, i) => (
+                  <div key={`skeleton-${i}`} className="aspect-[3/4.5] rounded-3xl bg-[var(--card)] border border-[var(--border)]/50 animate-pulse flex flex-col p-4 gap-4">
+                    <div className="w-2/3 h-6 bg-[var(--muted)] rounded-lg" />
+                    <div className="w-full flex-1 bg-[var(--muted)] rounded-xl" />
+                    <div className="w-full h-12 bg-[var(--muted)] rounded-xl mt-auto" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 
