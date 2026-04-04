@@ -8,7 +8,7 @@ progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 5
-  completed_plans: 0
+  completed_plans: 2
 ---
 
 # State: GreenLog
@@ -33,6 +33,8 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 
 | Date | Phase | Event |
 |------|-------|-------|
+| 2026-04-04 | 01-02 | Phase 1 plan 02 complete — Strains page useQuery conversion |
+| 2026-04-04 | 01-01 | Phase 1 plan 01 complete — Query keys centralized |
 | 2026-04-04 | — | Project initialized — React Query integration |
 | 2026-04-03 | — | MVP complete — Social, badges, GDPR, analytics |
 | 2026-03-30 | — | Architecture analysis complete |
