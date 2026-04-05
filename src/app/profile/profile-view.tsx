@@ -584,10 +584,10 @@ export default function ProfilePage() {
                   <p className="text-xl font-black text-[#2FF801] font-display">{stats.following}</p>
                   <p className="text-[7px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mt-0.5">Following</p>
                 </button>
-                <div className="text-center px-1">
+                <Link href="/collection" className="text-center px-1">
                   <p className="text-xl font-black text-[var(--foreground)] font-display">{stats.totalStrains}</p>
                   <p className="text-[7px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)] mt-0.5">Strains</p>
-                </div>
+                </Link>
               </div>
 
               {/* Edit button */}

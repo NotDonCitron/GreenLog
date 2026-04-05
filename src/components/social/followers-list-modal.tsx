@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, X } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import type { ProfileRow } from "@/lib/types";
 import Link from "next/link";
@@ -63,7 +63,7 @@ export function FollowersListModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm"
