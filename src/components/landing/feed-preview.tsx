@@ -77,11 +77,8 @@ export function FeedPreview({ strainCount }: FeedPreviewProps) {
           .order("avg_thc", { ascending: false })
 
         if (data && data.length > 0) {
-          const normalized = data.map((s) => ({
-            ...s,
-            source: normalizeCollectionSource(s.source || "unknown"),
-          })) as Strain[]
-          setStrains(normalized)
+          // @ts-ignore - partial strain data from Supabase
+          setStrains(data)
         }
       } catch (err) {
         console.error("FeedPreview strains error:", err)
