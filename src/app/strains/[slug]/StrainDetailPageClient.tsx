@@ -13,7 +13,6 @@ import { Card } from "@/components/ui/card";
 import { ChevronLeft, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Database, Trash2, Pencil, Lock, AlertCircle } from "lucide-react";
 import { Strain } from "@/lib/types";
 import { escapeRegExp } from '@/lib/string-utils';
-import Image from 'next/image';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeCollectionSource, normalizeTerpeneList } from "@/lib/strain-display";
 import { checkAndUnlockBadges } from "@/lib/badges";
 import { useCollection } from "@/hooks/useCollection";
@@ -603,12 +602,10 @@ export default function StrainDetailPageClient() {
               </div>
               <div className="px-5 w-full">
                 <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-[var(--border)]/50">
-                  <Image
+                  <img
                     src={userImageUrl || (strain.image_url ? strain.image_url + (globalImageRefresh ? `?v=${globalImageRefresh}` : '') : "/strains/placeholder-1.svg")}
                     alt={strain.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="absolute inset-0 w-full h-full object-cover"
                   />
                   <div className="absolute bottom-2 left-2 border bg-black/70 backdrop-blur-md uppercase text-[9px] px-2 py-1 rounded-sm font-bold" style={{ borderColor: themeColor, color: themeColor }}>{strain.type || 'HYBRID'}</div>
                 </div>

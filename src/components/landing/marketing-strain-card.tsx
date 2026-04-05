@@ -2,7 +2,6 @@
 
 import { memo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Strain } from '@/lib/types';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay } from '@/lib/strain-display';
 import { escapeRegExp } from '@/lib/string-utils';
@@ -58,12 +57,10 @@ export const MarketingStrainCard = memo(function MarketingStrainCard({ strain }:
     >
       {/* Image with gradient overlay */}
       <div className="relative aspect-[4/3] overflow-hidden">
-        <Image
+        <img
           src={strain.image_url || "/strains/placeholder-1.svg"}
           alt={strain.name}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, 50vw"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
         />
         {/* Gradient overlay */}

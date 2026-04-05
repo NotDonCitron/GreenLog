@@ -2,7 +2,6 @@
 
 import { Strain } from "@/lib/types";
 import { formatPercent, getEffectDisplay, getStrainTheme, normalizeTerpeneList } from "@/lib/strain-display";
-import Image from "next/image";
 
 interface StrainCompareCardProps {
   strain: Strain;
@@ -28,12 +27,10 @@ export function StrainCompareCard({ strain }: StrainCompareCardProps) {
     >
       {/* Header: Image + Name */}
       <div className="relative aspect-[4/3] bg-[#252525]">
-        <Image
+        <img
           src={strain.image_url || "/strains/placeholder-1.svg"}
           alt={strain.name}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, 33vw"
+          className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute bottom-2 left-2">
           <span
