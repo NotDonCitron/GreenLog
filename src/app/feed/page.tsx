@@ -17,21 +17,48 @@ type FollowingFilter = "users" | "communities";
 type DiscoverView = "friends" | "browse";
 type FriendFilter = "friends" | "communities" | null;
 
+interface ProfileStub {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
 interface FriendProfile {
   id: string;
   username: string | null;
   display_name: string | null;
   avatar_url: string | null;
   strainCount: number;
-  topStrains: any[];
+  topStrains: StrainStub[];
+}
+
+interface StrainStub {
+  id?: string;
+  name?: string;
+  slug?: string;
+  image_url?: string | null;
+}
+
+interface CommunityOrg {
+  id: string;
+  name: string;
+  logo_url?: string | null;
+  organization_type?: string;
+  role?: string;
+}
+
+interface FavoriteRelation {
+  user_id: string;
+  strains: StrainStub | null;
 }
 
 export default function FeedPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<FeedTab>("foryou");
   const [followingFilter, setFollowingFilter] = useState<FollowingFilter>("users");
-  const [communities, setCommunities] = useState<any[]>([]);
-  const [otherCommunities, setOtherCommunities] = useState<any[]>([]);
+  const [communities, setCommunities] = useState<CommunityOrg[]>([]);
+  const [otherCommunities, setOtherCommunities] = useState<CommunityOrg[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
 
   // Discover tab state
@@ -39,7 +66,7 @@ export default function FeedPage() {
   const [friendFilter, setFriendFilter] = useState<FriendFilter>(null);
   const [friends, setFriends] = useState<FriendProfile[]>([]);
   const [loadingFriends, setLoadingFriends] = useState(false);
-  const [browseUsers, setBrowseUsers] = useState<any[]>([]);
+  const [browseUsers, setBrowseUsers] = useState<ProfileStub[]>([]);
   const [loadingBrowseUsers, setLoadingBrowseUsers] = useState(false);
   const [discoverSearch, setDiscoverSearch] = useState("");
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
@@ -67,14 +94,19 @@ export default function FeedPage() {
           .eq("status", "active")
           .order("name", { ascending: true })
       ]).then(([myCommunitiesRes, allCommunitiesRes]) => {
-        const myOrgs = (myCommunitiesRes.data || []).map((m: any) => ({
-          ...m.organizations,
-          role: m.role
-        })).filter(Boolean);
+        type OrgMemberRow = { organizations: CommunityOrg | null; role: string };
+        const myOrgs = ((myCommunitiesRes.data ?? []) as unknown as OrgMemberRow[]).map((m) => {
+          const org = m.organizations;
+          if (!org) return null;
+          return {
+            ...org,
+            role: m.role || "member"
+          } as CommunityOrg;
+        }).filter((o): o is CommunityOrg => o !== null);
         setCommunities(myOrgs);
 
-        const myOrgIds = new Set(myOrgs.map((o: any) => o.id));
-        const otherOrgs = (allCommunitiesRes.data || []).filter((org: any) => !myOrgIds.has(org.id));
+        const myOrgIds = new Set(myOrgs.map((o) => o.id));
+        const otherOrgs = (allCommunitiesRes.data || []).filter((org) => !myOrgIds.has(org.id));
         setOtherCommunities(otherOrgs);
 
         setLoadingCommunities(false);
@@ -132,11 +164,11 @@ export default function FeedPage() {
                 .in("user_id", pIds)
                 .eq("is_favorite", true);
 
-              const favoritesMap: Record<string, any[]> = {};
-              allFavoriteRelations?.forEach((rel: any) => {
+              const favoritesMap: Record<string, StrainStub[]> = {};
+              (allFavoriteRelations ?? []).forEach((rel) => {
                 if (!favoritesMap[rel.user_id]) favoritesMap[rel.user_id] = [];
                 if (favoritesMap[rel.user_id].length < 5) {
-                  favoritesMap[rel.user_id].push(rel.strains);
+                  favoritesMap[rel.user_id].push(rel.strains as StrainStub);
                 }
               });
 
@@ -152,12 +184,12 @@ export default function FeedPage() {
                   .in("user_id", friendsNeedingFallback)
                   .order("created_at", { ascending: false });
 
-                recentRatings?.forEach((r: any) => {
-                  if (!favoritesMap[r.user_id]) favoritesMap[r.user_id] = [];
-                  if (favoritesMap[r.user_id].length < 5) {
-                    favoritesMap[r.user_id].push(r.strains);
-                  }
-                });
+              (recentRatings ?? []).forEach((r) => {
+                if (!favoritesMap[r.user_id]) favoritesMap[r.user_id] = [];
+                if (favoritesMap[r.user_id].length < 5) {
+                  favoritesMap[r.user_id].push(r.strains as StrainStub);
+                }
+              });
               }
 
               const friendsWithStats = profiles.map(p => ({
@@ -316,7 +348,7 @@ export default function FeedPage() {
                   </div>
                 ) : communities.length > 0 ? (
                   <div className="space-y-2">
-                    {communities.map((org: any) => (
+                    {communities.map((org) => (
                       <Link
                         key={org.id}
                         href={`/community/${org.id}`}
@@ -460,7 +492,7 @@ export default function FeedPage() {
                                   <div className="bg-[var(--input)] rounded-2xl p-3 flex flex-col gap-2">
                                     <p className="text-[8px] font-semibold text-[var(--muted-foreground)] uppercase tracking-[0.2em]">Top Strains</p>
                                     <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-                                      {friend.topStrains.map((s: any, idx: number) => (
+                                      {friend.topStrains.map((s: StrainStub, idx: number) => (
                                         <div key={idx} className="flex flex-col items-center gap-1.5 w-14 flex-shrink-0">
                                           <div className="w-10 h-10 rounded-lg overflow-hidden border border-[var(--border)]/50 bg-[var(--card)]">
                                             <img
@@ -500,7 +532,7 @@ export default function FeedPage() {
                           </div>
                         ) : communities.length > 0 ? (
                           <div className="space-y-4 mt-4">
-                            {communities.map((comm: any) => (
+                            {communities.map((comm) => (
                               <Link key={comm.id} href={`/community/${comm.id}`}>
                                 <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-[2rem] p-5 flex flex-col gap-4 hover:border-[#00F5FF]/50 transition-all">
                                   <div className="flex items-center justify-between gap-4">

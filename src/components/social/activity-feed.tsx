@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ActivityItem } from "./activity-item";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
-import type { SocialFeedItem } from "@/lib/types";
+import type { SocialFeedItem, ProfileRow } from "@/lib/types";
 
 interface ActivityFeedProps {
     initialActivities?: SocialFeedItem[];
@@ -73,7 +73,7 @@ export function ActivityFeed({
                 .filter((activity) => activity.user != null)
                 .map((activity) => ({
                     activity,
-                    user: activity.user as any,
+                    user: activity.user as ProfileRow,
                 }));
 
             setActivities(feedItems);
@@ -117,8 +117,8 @@ export function ActivityFeed({
 
                     if (newActivity && newActivity.user) {
                         const feedItem: SocialFeedItem = {
-                            activity: newActivity as any,
-                            user: newActivity.user as any,
+                            activity: newActivity,
+                            user: newActivity.user as ProfileRow,
                         };
 
                         // Add to beginning of list (newest first)

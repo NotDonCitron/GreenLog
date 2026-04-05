@@ -138,9 +138,9 @@ export function useAgeVerified() {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(AGE_VERIFIED_KEY);
-      setVerified(stored === "true");
+      setTimeout(() => setVerified(stored === "true"), 0);
     } catch {
-      setVerified(true);
+      setTimeout(() => setVerified(true), 0);
     }
   }, []);
 

@@ -16,13 +16,12 @@ export function CookieConsentBanner() {
     try {
       const stored = localStorage.getItem(COOKIE_CONSENT_KEY) as ConsentLevel
       if (stored === 'all' || stored === 'essential') {
-        setConsent(stored)
-        setIsVisible(false)
+        setTimeout(() => { setConsent(stored); setIsVisible(false); }, 0)
       } else {
-        setIsVisible(true)
+        setTimeout(() => setIsVisible(true), 0)
       }
     } catch {
-      setIsVisible(true)
+      setTimeout(() => setIsVisible(true), 0)
     }
   }, [])
 

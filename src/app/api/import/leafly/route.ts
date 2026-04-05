@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { jsonError, jsonSuccess, authenticateRequest } from "@/lib/api-response";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import dns from "dns";
-import net from "net";
 
 const ADMIN_IDS = (process.env.NEXT_PUBLIC_APP_ADMIN_IDS || "").split(",").filter(Boolean);
 
@@ -49,6 +48,23 @@ type LeaflyImportResponse = {
     image_url: string | null;
 };
 
+type LeaflyStrainData = {
+    name?: unknown;
+    category?: unknown;
+    description?: unknown;
+    thc?: unknown;
+    cbd?: unknown;
+    topTerpenes?: unknown;
+    terpenes?: unknown;
+    flavors?: unknown;
+    flavorProfiles?: unknown;
+    feelings?: unknown;
+    effects?: unknown;
+    topEffects?: unknown;
+    imageUrl?: unknown;
+    heroImage?: unknown;
+};
+
 const isRecord = (value: unknown): value is JsonRecord => typeof value === "object" && value !== null;
 
 const extractNames = (items: unknown): string[] => {
@@ -56,9 +72,10 @@ const extractNames = (items: unknown): string[] => {
     return items.map((item) => {
         if (typeof item === "string") return item.trim();
         if (item && typeof item === "object") {
-            if ("name" in item && typeof (item as any).name === "string") return (item as any).name.trim();
-            if ("displayName" in item && typeof (item as any).displayName === "string") return (item as any).displayName.trim();
-            if ("label" in item && typeof (item as any).label === "string") return (item as any).label.trim();
+            const obj = item as Record<string, unknown>;
+            if ("name" in obj && typeof obj.name === "string") return obj.name.trim();
+            if ("displayName" in obj && typeof obj.displayName === "string") return obj.displayName.trim();
+            if ("label" in obj && typeof obj.label === "string") return obj.label.trim();
         }
         return "";
     }).filter(Boolean);
@@ -144,33 +161,33 @@ export async function POST(req: NextRequest) {
                             : {};
 
                 const extractedTerpenes = uniqueNormalized([
-                    ...extractNames((strainData as any).topTerpenes || []),
-                    ...extractNames((strainData as any).terpenes || []),
+                    ...extractNames((strainData as LeaflyStrainData).topTerpenes || []),
+                    ...extractNames((strainData as LeaflyStrainData).terpenes || []),
                 ]);
                 const extractedFlavors = uniqueNormalized([
-                    ...extractNames((strainData as any).flavors || []),
-                    ...extractNames((strainData as any).flavorProfiles || []),
+                    ...extractNames((strainData as LeaflyStrainData).flavors || []),
+                    ...extractNames((strainData as LeaflyStrainData).flavorProfiles || []),
                 ]);
                 const extractedEffects = uniqueNormalized([
-                    ...extractNames((strainData as any).feelings || []),
-                    ...extractNames((strainData as any).effects || []),
-                    ...extractNames((strainData as any).topEffects || []),
+                    ...extractNames((strainData as LeaflyStrainData).feelings || []),
+                    ...extractNames((strainData as LeaflyStrainData).effects || []),
+                    ...extractNames((strainData as LeaflyStrainData).topEffects || []),
                 ]);
 
-                scrapedData.name = typeof (strainData as any).name === "string" ? (strainData as any).name : "";
-                scrapedData.type = typeof (strainData as any).category === "string"
-                    ? (strainData as any).category.toLowerCase() : "hybrid";
-                scrapedData.description = typeof (strainData as any).description === "string"
-                    ? (strainData as any).description : "";
-                scrapedData.thc = getNumericValue((strainData as any).thc);
-                scrapedData.cbd = getNumericValue((strainData as any).cbd);
+                scrapedData.name = typeof (strainData as LeaflyStrainData).name === "string" ? String((strainData as LeaflyStrainData).name) : "";
+                scrapedData.type = typeof (strainData as LeaflyStrainData).category === "string"
+                    ? String((strainData as LeaflyStrainData).category).toLowerCase() : "hybrid";
+                scrapedData.description = typeof (strainData as LeaflyStrainData).description === "string"
+                    ? String((strainData as LeaflyStrainData).description) : "";
+                scrapedData.thc = getNumericValue((strainData as LeaflyStrainData).thc);
+                scrapedData.cbd = getNumericValue((strainData as LeaflyStrainData).cbd);
                 scrapedData.terpenes = extractedTerpenes;
                 scrapedData.flavors = extractedFlavors;
                 scrapedData.effects = extractedEffects;
-                scrapedData.image_url = typeof (strainData as any).imageUrl === "string"
-                    ? (strainData as any).imageUrl
-                    : typeof (strainData as any).heroImage === "string"
-                        ? (strainData as any).heroImage : null;
+                scrapedData.image_url = typeof (strainData as LeaflyStrainData).imageUrl === "string"
+                    ? String((strainData as LeaflyStrainData).imageUrl)
+                    : typeof (strainData as LeaflyStrainData).heroImage === "string"
+                        ? String((strainData as LeaflyStrainData).heroImage) : null;
             } catch (error) {
                 console.error("Leafly __NEXT_DATA__ parse error:", error);
             }

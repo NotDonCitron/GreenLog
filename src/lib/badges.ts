@@ -81,21 +81,21 @@ export const BADGE_CRITERIA: Record<string, BadgeCriteria> = {
     const { data } = await supabase
       .from('user_collection').select('strain_id, strains!inner(type)')
       .eq('user_id', userId);
-    const sativaStrains = (data || []).filter((c: any) => c.strains?.type === 'sativa');
+    const sativaStrains = (data || []).filter((c) => (c as { strains?: { type?: string } }).strains?.type === 'sativa');
     return sativaStrains.length >= 5;
   },
   'indica-5': async ({ supabase, userId }) => {
     const { data } = await supabase
       .from('user_collection').select('strain_id, strains!inner(type)')
       .eq('user_id', userId);
-    const indicaStrains = (data || []).filter((c: any) => c.strains?.type === 'indica');
+    const indicaStrains = (data || []).filter((c) => (c as { strains?: { type?: string } }).strains?.type === 'indica');
     return indicaStrains.length >= 5;
   },
   'hybrid-5': async ({ supabase, userId }) => {
     const { data } = await supabase
       .from('user_collection').select('strain_id, strains!inner(type)')
       .eq('user_id', userId);
-    const hybridStrains = (data || []).filter((c: any) => c.strains?.type === 'hybrid');
+    const hybridStrains = (data || []).filter((c) => (c as { strains?: { type?: string } }).strains?.type === 'hybrid');
     return hybridStrains.length >= 5;
   },
   // Collection by source
@@ -103,14 +103,14 @@ export const BADGE_CRITERIA: Record<string, BadgeCriteria> = {
     const { data } = await supabase
       .from('user_collection').select('strain_id, strains!inner(source)')
       .eq('user_id', userId);
-    const pharmacyStrains = (data || []).filter((c: any) => c.strains?.source === 'pharmacy');
+    const pharmacyStrains = (data || []).filter((c) => (c as { strains?: { source?: string } }).strains?.source === 'pharmacy');
     return pharmacyStrains.length >= 10;
   },
   'grow-master': async ({ supabase, userId }) => {
     const { data } = await supabase
       .from('user_collection').select('strain_id, strains!inner(source)')
       .eq('user_id', userId);
-    const growStrains = (data || []).filter((c: any) => c.strains?.source === 'grow');
+    const growStrains = (data || []).filter((c) => (c as { strains?: { source?: string } }).strains?.source === 'grow');
     return growStrains.length >= 10;
   },
   // THC Champion
@@ -118,8 +118,9 @@ export const BADGE_CRITERIA: Record<string, BadgeCriteria> = {
     const { data } = await supabase
       .from('user_collection').select('strain_id, strains!inner(avg_thc, thc_max)')
       .eq('user_id', userId);
-    const highThcStrains = (data || []).filter((c: any) => {
-      const thc = c.strains?.avg_thc || c.strains?.thc_max || 0;
+    const highThcStrains = (data || []).filter((c) => {
+      const strain = Array.isArray(c.strains) ? c.strains[0] : c.strains;
+      const thc = strain?.avg_thc || strain?.thc_max || 0;
       return thc > 20;
     });
     return highThcStrains.length >= 5;
@@ -179,7 +180,7 @@ export const BADGE_CRITERIA: Record<string, BadgeCriteria> = {
     const { data } = await supabase
       .from('organization_members').select('role')
       .eq('user_id', userId).eq('membership_status', 'active');
-    const isOrganizer = (data || []).some((m: any) => ['admin', 'gründer'].includes(m.role));
+    const isOrganizer = (data || []).some((m) => ['admin', 'gründer'].includes((m as { role?: string }).role || ''));
     return isOrganizer;
   },
   'lover-10': async ({ supabase, userId }) => {

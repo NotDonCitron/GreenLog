@@ -13,9 +13,8 @@ export async function GET(request: Request) {
         return jsonError("User email not found", 400);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error: invitesError } = await (supabase
-        .from("organization_invites") as any)
+    const { data, error: invitesError } = await supabase
+        .from("organization_invites")
         .select("*")
         .eq("email", userEmail)
         .eq("status", "pending")

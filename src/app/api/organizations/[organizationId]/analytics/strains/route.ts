@@ -3,6 +3,18 @@ import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response"
 
 type RouteParams = { params: Promise<{ organizationId: string }> };
 
+type StrainWithRelations = {
+  strain_id: string;
+  rating: number;
+  strain: {
+    id?: string;
+    name?: string;
+    slug?: string;
+    image_url?: string;
+    type?: string;
+  } | null;
+};
+
 // GET /api/organizations/[organizationId]/analytics/strains
 // Returns top strains by rating and collection count within an organization
 export async function GET(request: Request, { params }: RouteParams) {
@@ -69,15 +81,15 @@ export async function GET(request: Request, { params }: RouteParams) {
   }> = {};
 
   // Process ratings
-  for (const r of (ratingsData || [])) {
-    const sid = r.strain_id as string;
+  for (const r of (ratingsData || []) as StrainWithRelations[]) {
+    const sid = r.strain_id;
     if (!strainStats[sid]) {
       strainStats[sid] = {
         strain_id: sid,
-        strain_name: (r.strain as any)?.name || "Unbekannt",
-        strain_slug: (r.strain as any)?.slug || sid,
-        strain_image: (r.strain as any)?.image_url || null,
-        strain_type: (r.strain as any)?.type || null,
+        strain_name: r.strain?.name || "Unbekannt",
+        strain_slug: r.strain?.slug || sid,
+        strain_image: r.strain?.image_url || null,
+        strain_type: r.strain?.type || null,
         avg_rating: 0,
         rating_count: 0,
         favorite_count: 0,
@@ -85,7 +97,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         collected_count: 0,
       };
     }
-    strainStats[sid].avg_rating += r.rating as number;
+    strainStats[sid].avg_rating += r.rating;
     strainStats[sid].rating_count++;
   }
 

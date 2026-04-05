@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Leaf, Star, Droplets, ArrowUpRight, Shield, Zap } from "lucide-react";
+import { Leaf, Star, Droplets, ArrowUpRight } from "lucide-react";
 
 const strain = {
   name: "Ghost Train Haze",

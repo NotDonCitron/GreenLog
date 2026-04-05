@@ -6,8 +6,10 @@ import { ScrollAnimator } from "./scroll-animator"
 import { Leaf, Star, Users, Heart, ArrowRight } from "lucide-react"
 import { supabase } from "@/lib/supabase/client"
 import { Strain } from "@/lib/types"
-import { normalizeCollectionSource } from "@/lib/strain-display"
 import { StrainCard } from "@/components/strains/strain-card"
+
+// Narrow type matching the exact query projection
+type StrainPreview = Pick<Strain, "id" | "name" | "slug" | "brand" | "farmer" | "manufacturer" | "type" | "thc_max" | "avg_thc" | "flavors" | "image_url">
 
 const DEMO_ACTIVITIES = [
   {
@@ -65,7 +67,7 @@ function ActivityItem({ activity }: { activity: typeof DEMO_ACTIVITIES[0] }) {
 }
 
 export function FeedPreview({ strainCount }: FeedPreviewProps) {
-  const [strains, setStrains] = useState<Strain[]>([])
+  const [strains, setStrains] = useState<StrainPreview[]>([])
 
   useEffect(() => {
     async function fetchStrains() {
@@ -77,8 +79,7 @@ export function FeedPreview({ strainCount }: FeedPreviewProps) {
           .order("avg_thc", { ascending: false })
 
         if (data && data.length > 0) {
-          // @ts-ignore - partial strain data from Supabase
-          setStrains(data)
+          setStrains(data as StrainPreview[])
         }
       } catch (err) {
         console.error("FeedPreview strains error:", err)

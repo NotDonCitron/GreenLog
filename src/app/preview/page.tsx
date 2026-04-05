@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Leaf, Minus, LayoutGrid, Terminal, Crown, ArrowRight, CreditCard } from "lucide-react";
+import { Leaf, Minus, LayoutGrid, Terminal, Crown, ArrowRight } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 
 const landingConcepts = [

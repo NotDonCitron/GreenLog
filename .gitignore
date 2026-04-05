@@ -66,3 +66,4 @@ scripts/cleanup-*.mjs
 scripts/retry-*.mjs
 scripts/upload-missing-strain-images.mjs
 scripts/test-upload-check.mjs
+.env*.local

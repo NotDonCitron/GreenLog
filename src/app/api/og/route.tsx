@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '40px' }}>
           <img
             src="https://greenlog.app/logo.png"
-            width={100}
-            height={100}
+            width="100"
+            height="100"
             alt="CannaLog Logo"
             style={{ objectFit: 'contain' }}
           />

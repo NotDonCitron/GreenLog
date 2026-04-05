@@ -6,6 +6,7 @@ import { X, Zap, Image as ImageIcon, Camera, Loader2, CheckCircle2 } from "lucid
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Strain } from "@/lib/types";
 
 export default function ScannerPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function ScannerPage() {
   const [result, setResult] = useState<string | null>(null);
   const [debugText, setDebugText] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tesseract.js has no types
   const workerRef = useRef<any>(null);
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export default function ScannerPage() {
       }
     }
     initWorker();
-    return () => { if (workerRef.current) workerRef.current.terminate(); };
+    return () => { if (workerRef.current) (workerRef.current as { terminate: () => void }).terminate(); };
   }, []);
 
   useEffect(() => {
@@ -57,7 +59,7 @@ export default function ScannerPage() {
     };
   }, []);
 
-  const findBestMatch = (text: string, strains: any[]) => {
+  const findBestMatch = (text: string, strains: Strain[]) => {
     const lowerText = text.toLowerCase();
     let bestStrain = null;
     let highestScore = 0;

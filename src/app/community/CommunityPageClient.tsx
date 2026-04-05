@@ -73,7 +73,7 @@ export default function CommunityPageClient() {
   // Wait for client hydration
   useEffect(() => {
     mountedRef.current = true;
-    setHydrated(true);
+    setTimeout(() => setHydrated(true), 0);
     return () => { mountedRef.current = false; };
   }, []);
 

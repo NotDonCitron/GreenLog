@@ -135,7 +135,7 @@ const FeedItemCard = memo(function FeedItemCard({
               .eq("user_id", item.user_id)
               .maybeSingle();
             if (collectionData?.user_image_url) {
-              (strainData as any).image_url = collectionData.user_image_url;
+              strainData.image_url = collectionData.user_image_url;
             }
           }
           setStrain(strainData);

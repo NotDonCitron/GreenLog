@@ -10,9 +10,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Mail,
-  Shield,
-  UserRound,
-  LogIn
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -52,8 +50,8 @@ export default function InvitePage() {
         const json = await res.json();
         if (!res.ok) throw new Error(json.error?.message || "Invalid invite");
         setPreview(json.data);
-      } catch (err: any) {
-        setPreviewError(err.message);
+      } catch (err: unknown) {
+        setPreviewError(err instanceof Error ? err.message : "Invalid invite");
       } finally {
         setLoading(false);
       }
@@ -82,8 +80,8 @@ export default function InvitePage() {
       if (!res.ok) throw new Error(json.error?.message || "Failed to accept invite");
       setAccepted(true);
       await refreshMemberships();
-    } catch (err: any) {
-      setAcceptError(err.message);
+    } catch (err: unknown) {
+      setAcceptError(err instanceof Error ? err.message : "Failed to accept invite");
     } finally {
       setAccepting(false);
     }

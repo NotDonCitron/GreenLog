@@ -59,7 +59,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     const tokenHash = hashToken(token);
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
-    const { data: invite, error: inviteError } = await supabase
+    const { error: inviteError } = await supabase
         .from("organization_invites")
         .insert({
             organization_id: organizationId,

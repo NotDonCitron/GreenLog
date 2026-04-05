@@ -63,7 +63,8 @@ export default function FollowersPage() {
 
         if (followersError) throw followersError;
 
-        const userIds = (followersData || []).map((f: any) => f.user_id).filter(Boolean);
+        type RawFollower = { id: string; user_id: string; created_at: string };
+        const userIds = (followersData || []).map((f: RawFollower) => f.user_id).filter(Boolean);
         let profilesMap = new Map<string, FollowerUser>();
 
         if (userIds.length > 0) {
@@ -73,11 +74,11 @@ export default function FollowersPage() {
             .in("id", userIds);
 
           if (profilesData) {
-            profilesMap = new Map(profilesData.map((p: any) => [p.id, p as FollowerUser]));
+            profilesMap = new Map(profilesData.map((p: FollowerUser) => [p.id, p]));
           }
         }
 
-        const followersWithProfiles = (followersData || []).map((f: any) => ({
+        const followersWithProfiles = (followersData || []).map((f: RawFollower) => ({
           id: f.id,
           user_id: f.user_id,
           created_at: f.created_at,
@@ -86,8 +87,8 @@ export default function FollowersPage() {
 
         setFollowers(followersWithProfiles);
         setFollowerCount(followersWithProfiles.length);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : String(err));
       } finally {
         setLoading(false);
       }

@@ -102,7 +102,7 @@ export default function SettingsNotificationsPage() {
     try {
       const stored = localStorage.getItem(PREFERENCES_KEY);
       if (stored) {
-        setPrefs({ ...defaultPrefs, ...JSON.parse(stored) });
+        setTimeout(() => setPrefs({ ...defaultPrefs, ...JSON.parse(stored) }), 0);
       }
     } catch {
       // ignore
@@ -117,7 +117,7 @@ export default function SettingsNotificationsPage() {
         })
       );
     } else {
-      setCheckingPush(false);
+      setTimeout(() => setCheckingPush(false), 0);
     }
   }, [session, router]);
 

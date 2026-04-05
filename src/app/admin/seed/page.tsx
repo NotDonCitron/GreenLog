@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Loader2, Database, CheckCircle2, RefreshCw, ShieldCheck, ChevronLeft, AlertCircle } from "lucide-react";
+import { Loader2, Database, RefreshCw, ShieldCheck, ChevronLeft, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { Strain } from "@/lib/types";
 

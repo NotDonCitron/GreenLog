@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback, lazy, useMemo } from "react";
+import { useState, useEffect, Suspense, lazy, useMemo } from "react";
 import Link from "next/link";
 import { useCollection } from "@/hooks/useCollection";
 import { BottomNav } from "@/components/bottom-nav";
-import { Search, CalendarDays, Loader2, AlertCircle, X, Filter, Plus, SlidersHorizontal } from "lucide-react";
+import { Search, Loader2, AlertCircle, X, Filter, Plus, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-provider";
 import { Strain, StrainSource } from "@/lib/types";
@@ -126,11 +126,11 @@ export default function CollectionPageClient() {
       );
 
     // THC filter
-    const strainThc = s.avg_thc || (s as any).thc_max || 0;
+    const strainThc = s.avg_thc || (s as CollectionStrain).thc_max || 0;
     const matchesThc = strainThc >= filterThcMin && strainThc <= filterThcMax;
 
     // CBD filter
-    const strainCbd = s.avg_cbd || (s as any).cbd_max || 0;
+    const strainCbd = s.avg_cbd || (s as CollectionStrain).cbd_max || 0;
     const matchesCbd = strainCbd >= filterCbdMin && strainCbd <= filterCbdMax;
 
     return matchesSearch && matchesSource && matchesDate && matchesEffects && matchesThc && matchesCbd;

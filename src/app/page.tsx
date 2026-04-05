@@ -35,7 +35,6 @@ function HomeContent() {
   const { isDemoMode } = useAuth();
   const [strainOfTheDay, setStrainOfTheDay] = useState<Strain | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Fetch immediately — don't wait for auth
   useEffect(() => {
@@ -75,8 +74,7 @@ function HomeContent() {
       } catch (err) {
         if (!cancelled) {
           console.error("Home data error:", err);
-          setError("Konnte Daten nicht laden");
-          // Show demo data as fallback
+          setLoading(false);
           setStrainOfTheDay(DEMO_SIMULATION_DATA[0]);
         }
       } finally {
@@ -137,7 +135,7 @@ function AgeGateWrapper({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const stored = localStorage.getItem(AGE_VERIFIED_KEY);
-    setAgeVerified(stored === "true");
+    setTimeout(() => setAgeVerified(stored === "true"), 0);
   }, []);
 
   if (ageVerified === null) {

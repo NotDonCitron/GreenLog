@@ -19,13 +19,15 @@ const shimLocation = {
     hash: ""
 };
 if (typeof global !== "undefined" && !("location" in global)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (global as any).location = shimLocation;
 }
 if (typeof globalThis !== "undefined" && !("location" in globalThis)) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any).location = shimLocation;
 }
 
-function createSupabaseClientOptions(): any {
+function createSupabaseClientOptions() {
     const isBrowser = typeof window !== "undefined";
 
     return {

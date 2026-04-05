@@ -73,8 +73,9 @@ Format:
 
         return NextResponse.json(refinedContent);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("MiniMax Error:", error);
-        return jsonError(error.message || "Fehler bei der KI-Optimierung", 500);
+        const message = error instanceof Error ? error.message : "Fehler bei der KI-Optimierung";
+        return jsonError(message, 500);
     }
 }

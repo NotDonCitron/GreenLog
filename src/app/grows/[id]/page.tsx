@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
     Loader2, ChevronLeft, Sprout, Calendar, Edit2, Trash2,
-    CheckCircle2, XCircle, Plus, Leaf, Droplets, Sun, Wind, Upload, Image as ImageIcon
+    CheckCircle2, XCircle, Plus, Leaf, Droplets, Sun, Wind, Upload
 } from "lucide-react";
 import Link from "next/link";
 import { checkAndUnlockBadges } from "@/lib/badges";

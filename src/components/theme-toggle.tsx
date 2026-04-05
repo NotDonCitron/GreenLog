@@ -10,11 +10,11 @@ export function ThemeToggle() {
     // Check stored preference
     const stored = localStorage.getItem("cannalog_theme");
     if (stored === "light") {
-      setIsDark(false);
+      setTimeout(() => setIsDark(false), 0);
       document.documentElement.classList.add("light");
       document.documentElement.style.colorScheme = "light";
     } else {
-      setIsDark(true);
+      setTimeout(() => setIsDark(true), 0);
       document.documentElement.classList.remove("light");
       document.documentElement.style.colorScheme = "dark";
     }

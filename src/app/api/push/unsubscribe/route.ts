@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     }
 
     return jsonSuccess({ success: true });
-  } catch (err) {
+  } catch (_err) {
     return jsonError("Invalid request body", 400);
   }
 }

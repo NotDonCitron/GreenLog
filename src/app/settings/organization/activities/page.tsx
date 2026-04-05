@@ -165,7 +165,7 @@ export default function OrgActivitiesPage() {
                     {config.label}{" "}
                     {activity.target_name && (
                       <span className="text-[var(--foreground)] font-semibold">
-                        "{activity.target_name}"
+                        &ldquo;{activity.target_name}&rdquo;
                       </span>
                     )}
                   </p>

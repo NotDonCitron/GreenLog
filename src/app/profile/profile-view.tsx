@@ -100,7 +100,49 @@ function getInitials(value: string) {
   return cleaned || "CU";
 }
 
-function formatThcDisplay(strain: any) {
+type StrainForDisplay = {
+  avg_thc?: number | null;
+  thc_max?: number | null;
+};
+
+type FavoriteRelationData = {
+  strain_id: string;
+  strains: {
+    id: string;
+    name: string;
+    slug: string;
+    image_url: string | null;
+    type: string;
+  } | null;
+  position: number | null;
+};
+
+type BadgeData = {
+  badge_id: string;
+};
+
+type CollectionEntry = {
+  strain_id: string;
+  user_image_url: string | null;
+};
+
+type StrainForRelation = {
+  id: string;
+  name: string;
+  slug: string;
+  image_url: string | null;
+  type: string;
+  avg_thc: number | null;
+  thc_max: number | null;
+};
+
+type UserStrainRelation = {
+  strain_id: string;
+  position: number | null;
+  strains: StrainForRelation | null;
+};
+
+function formatThcDisplay(strain: StrainForDisplay | null | undefined) {
   if (!strain) return "Keine Daten";
   return `${strain.avg_thc || strain.thc_max || "—"}% THC`;
 }
@@ -319,7 +361,7 @@ export default function ProfilePage() {
         supabase.from("user_badges").select("*").eq("user_id", user?.id)
       ]);
 
-      const favoriteIds = (favsRes.data || []).map(f => (f.strains as any)?.id).filter(Boolean);
+      const favoriteIds = (favsRes.data || []).map((f: UserStrainRelation) => f.strains?.id).filter(Boolean);
       const { data: collectionData } = await supabase
         .from("user_collection")
         .select("strain_id, user_image_url")
@@ -338,14 +380,14 @@ export default function ProfilePage() {
         following: followingRes.count ?? 0
       };
 
-      const favorites: ProfileFavorite[] = (favsRes.data || []).map(f => {
-        const s = f.strains as any;
+      const favorites: ProfileFavorite[] = (favsRes.data || []).map((f) => {
+        const s = f.strains;
         if (!s) return null;
 
-        const customImage = collectionData?.find(c => c.strain_id === s.id)?.user_image_url;
+        const customImage = collectionData?.find((c: CollectionEntry) => c.strain_id === f.strain_id)?.user_image_url;
 
         return {
-          relationId: f.strain_id,  // strain_id is the stable identifier for the relation
+          relationId: f.strain_id,
           id: s.id,
           name: s.name,
           slug: s.slug,
@@ -358,7 +400,7 @@ export default function ProfilePage() {
 
       const badges: ProfileBadge[] = (badgesRes.data || []).map(b => {
         // Use badge_id as the badge identifier since there's no badges table
-        const badgeId = (b as any).badge_id;
+        const badgeId = (b as BadgeData).badge_id;
         if (!badgeId) return null;
         return {
           id: badgeId,

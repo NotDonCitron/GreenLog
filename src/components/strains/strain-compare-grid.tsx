@@ -9,9 +9,9 @@ interface StrainCompareGridProps {
 }
 
 export function StrainCompareGrid({ strains }: StrainCompareGridProps) {
-  const slots = [...strains];
+  const slots: (Strain | null)[] = [...strains];
   while (slots.length < 3) {
-    slots.push(null as any);
+    slots.push(null);
   }
 
   return (

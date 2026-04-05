@@ -61,8 +61,9 @@ export default function SettingsOrganizationPage() {
       setNameMessage({ type: "success", msg: "Name erfolgreich geändert" });
       setShowNameForm(false);
       setNewName("");
-    } catch (err: any) {
-      setNameMessage({ type: "error", msg: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Fehler beim Speichern";
+      setNameMessage({ type: "error", msg: message });
     } finally {
       setSavingName(false);
     }
@@ -87,8 +88,9 @@ export default function SettingsOrganizationPage() {
       if (!res.ok) throw new Error(json.error?.message || "Fehler beim Löschen");
       setDeleteMessage({ type: "success", msg: "Community gelöscht. Du wirst zurückgeleitet..." });
       setTimeout(() => router.push("/community"), 1500);
-    } catch (err: any) {
-      setDeleteMessage({ type: "error", msg: err.message });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Fehler beim Löschen";
+      setDeleteMessage({ type: "error", msg: message });
     } finally {
       setDeleting(false);
     }

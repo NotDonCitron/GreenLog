@@ -11,6 +11,24 @@ const sanitizeCsvCell = (value: string): string => {
   return value.replace(/"/g, '""');
 };
 
+type CsvStrainData = {
+  name: string;
+  ratings: number;
+  total: number;
+};
+
+type RatingWithRelations = {
+  rating: number;
+  review: string | null;
+  created_at: string;
+  user: { display_name?: string | null; username?: string | null } | null;
+  strain: { name?: string | null; slug?: string | null } | null;
+};
+
+type RelationWithStrain = {
+  strain: { name?: string | null; slug?: string | null } | null;
+};
+
 // GET /api/organizations/[organizationId]/analytics/export
 // Returns CSV export of organization strain analytics
 export async function GET(request: Request, { params }: RouteParams) {
@@ -81,27 +99,27 @@ export async function GET(request: Request, { params }: RouteParams) {
   lines.push("Strain,Ranking,Bewertungen,Durchschnitt,Aktionen");
 
   // Aggregate strain data
-  const strainData: Record<string, any> = {};
-  for (const r of (ratingsData || [])) {
-    const slug = (r.strain as any)?.slug || "unknown";
+  const strainData: Record<string, CsvStrainData> = {};
+  for (const r of (ratingsData || []) as RatingWithRelations[]) {
+    const slug = r.strain?.slug || "unknown";
     if (!strainData[slug]) {
-      strainData[slug] = { name: (r.strain as any)?.name || slug, ratings: 0, total: 0 };
+      strainData[slug] = { name: r.strain?.name || slug, ratings: 0, total: 0 };
     }
     strainData[slug].ratings++;
-    strainData[slug].total += r.rating as number;
+    strainData[slug].total += r.rating;
   }
-  for (const rel of (relationsData || [])) {
-    const slug = (rel.strain as any)?.slug || "unknown";
+  for (const rel of (relationsData || []) as RelationWithStrain[]) {
+    const slug = rel.strain?.slug || "unknown";
     if (!strainData[slug]) {
-      strainData[slug] = { name: (rel.strain as any)?.name || slug, ratings: 0, total: 0 };
+      strainData[slug] = { name: rel.strain?.name || slug, ratings: 0, total: 0 };
     }
   }
 
   const sortedStrains = Object.values(strainData)
-    .sort((a: any, b: any) => b.ratings - a.ratings);
+    .sort((a, b) => b.ratings - a.ratings);
 
   for (let i = 0; i < Math.min(sortedStrains.length, 50); i++) {
-    const s = sortedStrains[i] as any;
+    const s = sortedStrains[i];
     const avg = s.ratings > 0 ? (s.total / s.ratings).toFixed(1) : "-";
     lines.push(`"${sanitizeCsvCell(s.name)}",${i + 1},${s.ratings},${avg},""`);
   }
@@ -110,9 +128,9 @@ export async function GET(request: Request, { params }: RouteParams) {
   lines.push("=== RECENTE BEWERTUNGEN ===");
   lines.push("Strain,Benutzer,Bewertung,Review,Datum");
 
-  for (const r of (ratingsData || []).slice(0, 100)) {
-    const username = (r.user as any)?.display_name || (r.user as any)?.username || "Unbekannt";
-    const strainName = (r.strain as any)?.name || "Unbekannt";
+  for (const r of (ratingsData || []) as RatingWithRelations[]) {
+    const username = r.user?.display_name || r.user?.username || "Unbekannt";
+    const strainName = r.strain?.name || "Unbekannt";
     const review = (r.review as string) || "";
     const date = new Date(r.created_at).toLocaleDateString("de-DE");
     lines.push(`"${sanitizeCsvCell(strainName)}","${sanitizeCsvCell(username)}",${r.rating},"${sanitizeCsvCell(review)}",${date}`);

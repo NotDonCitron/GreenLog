@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { supabase, getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
 

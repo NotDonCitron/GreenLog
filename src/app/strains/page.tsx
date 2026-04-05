@@ -215,7 +215,7 @@ function StrainsPageContent() {
   // Store totalCount from first page fetch (catalog-wide count, does not change with filters/scroll)
   useEffect(() => {
     if (data?.pages[0]?.totalCount) {
-      setTotalStrainCount(data.pages[0].totalCount);
+      setTimeout(() => setTotalStrainCount(data.pages[0].totalCount), 0);
     }
   }, [data]);
 

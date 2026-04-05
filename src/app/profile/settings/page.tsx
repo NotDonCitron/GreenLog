@@ -428,7 +428,7 @@ export default function SettingsPage() {
           </div>
           <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-6 rounded-[2rem]">
              <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-               Um dein Passwort zu ändern, logge dich aus und nutze die "Passwort vergessen" Funktion im Login-Terminal.
+               Um dein Passwort zu ändern, logge dich aus und nutze die &ldquo;Passwort vergessen&rdquo; Funktion im Login-Terminal.
              </p>
           </Card>
         </section>

@@ -101,7 +101,7 @@ export default function InvitesPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; msg: string } | null>(null);
-  const [newInvite, setNewInvite] = useState({ email: "", role: "admin" as "admin" });
+  const [newInvite, setNewInvite] = useState({ email: "", role: "admin" as const });
   const [createdInviteToken, setCreatedInviteToken] = useState<string | null>(null);
   const [createdInviteEmail, setCreatedInviteEmail] = useState<string | null>(null);
 
@@ -127,8 +127,8 @@ export default function InvitesPage() {
       }
       const json = await res.json();
       setInvites(json.data?.invites || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -174,8 +174,8 @@ export default function InvitesPage() {
       setNewInvite({ email: "", role: "admin" });
       setShowCreateForm(false);
       await fetchInvites();
-    } catch (err: any) {
-      setStatusMessage({ type: "error", msg: err.message });
+    } catch (err: unknown) {
+      setStatusMessage({ type: "error", msg: err instanceof Error ? err.message : String(err) });
     } finally {
       setCreating(false);
     }
@@ -208,8 +208,8 @@ export default function InvitesPage() {
         throw new Error(json.error?.message || "Fehler beim Widerrufen");
       }
       await fetchInvites();
-    } catch (err: any) {
-      setStatusMessage({ type: "error", msg: err.message });
+    } catch (err: unknown) {
+      setStatusMessage({ type: "error", msg: err instanceof Error ? err.message : String(err) });
     } finally {
       setActionLoading(null);
     }

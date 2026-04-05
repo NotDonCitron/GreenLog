@@ -13,6 +13,22 @@ interface FeedbackModalProps {
   onClose: () => void;
 }
 
+interface TicketApproval {
+  user_id: string;
+}
+
+interface FeedbackTicket {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  priority: string;
+  status: string;
+  created_at: string;
+  profiles?: { username?: string };
+  ticket_approvals?: TicketApproval[];
+}
+
 export function FeedbackModal({ onClose }: FeedbackModalProps) {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<"create" | "browse">("browse");
@@ -27,13 +43,30 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
   const [error, setError] = useState<string | null>(null);
 
   // Tickets zum Absegnen
-  const [openTickets, setOpenTickets] = useState<any[]>([]);
+  const [openTickets, setOpenTickets] = useState<FeedbackTicket[]>([]);
   const [isLoadingTickets, setIsLoadingTickets] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [canCreate, setCanCreate] = useState(false);
 
   // Automatischer technischer Kontext
-  const [technicalContext, setTechnicalContext] = useState<any>({});
+  type TechnicalContext = {
+    userAgent: string;
+    language: string;
+    screenSize: string;
+    url: string;
+    pathname: string;
+    timestamp: string;
+    userId: string | null;
+  };
+  const [technicalContext, setTechnicalContext] = useState<TechnicalContext>({
+    userAgent: "unknown",
+    language: "unknown",
+    screenSize: "unknown",
+    url: "unknown",
+    pathname: pathname || "",
+    timestamp: new Date().toISOString(),
+    userId: null
+  });
 
   useEffect(() => {
     const init = async () => {
@@ -129,8 +162,9 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
       if (data.title && data.description) {
         setAiSuggestion(data);
       }
-    } catch (err: any) {
-      setError(err.message || "MiniMax konnte das Ticket nicht optimieren.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "MiniMax konnte das Ticket nicht optimieren.";
+      setError(message);
     } finally {
       setIsRefining(false);
     }
@@ -168,9 +202,10 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
 
       setIsSuccess(true);
       setTimeout(() => onClose(), 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error submitting feedback:", err);
-      setError(err.message || "Fehler beim Senden des Feedbacks.");
+      const message = err instanceof Error ? err.message : "Fehler beim Senden des Feedbacks.";
+      setError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -296,7 +331,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
                     <span className="text-zinc-500 font-normal mr-1">Titel:</span> {aiSuggestion.title}
                   </p>
                   <p className="text-xs text-zinc-300 leading-relaxed italic">
-                    "{aiSuggestion.description}"
+                    &ldquo;{aiSuggestion.description}&rdquo;
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -334,7 +369,7 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
               <div className="text-center py-12"><List size={48} className="mx-auto text-zinc-800 mb-2 opacity-50" /><p className="text-zinc-500 text-sm">Keine offenen Tickets zum Absegnen.</p></div>
             ) : (
               openTickets.map((ticket) => {
-                const isApprovedByMe = ticket.ticket_approvals?.some((a: any) => a.user_id === currentUserId);
+                const isApprovedByMe = ticket.ticket_approvals?.some((a: { user_id?: string }) => a.user_id === currentUserId);
                 return (
                   <div key={ticket.id} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 space-y-3 transition-all hover:border-zinc-700">
                     <div className="flex justify-between items-start gap-2">
@@ -347,11 +382,11 @@ export function FeedbackModal({ onClose }: FeedbackModalProps) {
                         <p className="text-[9px] text-zinc-600 font-mono italic">{new Date(ticket.created_at).toLocaleDateString()}</p>
                       </div>
                     </div>
-                    <p className="text-xs text-zinc-300 leading-relaxed bg-zinc-900/50 p-3 rounded-lg border border-zinc-800/30 italic text-left">"{ticket.description}"</p>
+                    <p className="text-xs text-zinc-300 leading-relaxed bg-zinc-900/50 p-3 rounded-lg border border-zinc-800/30 italic text-left">&ldquo;{ticket.description}&rdquo;</p>
                     <div className="flex items-center justify-between pt-2 border-t border-zinc-800/50">
                       <div className="flex items-center gap-2">
-                        <div className="flex -space-x-1.5">{ticket.ticket_approvals?.map((a: any, i: number) => <div key={i} title="Abgesegnet" className="w-5 h-5 rounded-full bg-emerald-600 border border-zinc-950 flex items-center justify-center text-[8px] font-bold shadow-sm">✓</div>)}</div>
-                        {ticket.ticket_approvals?.length > 0 && <span className="text-[10px] text-emerald-500 font-black tracking-tight">{ticket.ticket_approvals.length} OK</span>}
+                        <div className="flex -space-x-1.5">{ticket.ticket_approvals?.map((a: { user_id?: string }, i: number) => <div key={i} title="Abgesegnet" className="w-5 h-5 rounded-full bg-emerald-600 border border-zinc-950 flex items-center justify-center text-[8px] font-bold shadow-sm">✓</div>)}</div>
+                        {ticket.ticket_approvals && ticket.ticket_approvals.length > 0 && <span className="text-[10px] text-emerald-500 font-black tracking-tight">{ticket.ticket_approvals.length} OK</span>}
                       </div>
                       <button type="button" onClick={() => toggleApproval(ticket.id, !!isApprovedByMe)} className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-wider transition-all ${isApprovedByMe ? "bg-emerald-600 text-[var(--foreground)] shadow-lg shadow-emerald-900/40" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-[var(--foreground)]"}`}><ThumbsUp size={12} className={isApprovedByMe ? "fill-white" : ""} /><span>{isApprovedByMe ? "Abgesegnet" : "Absegnen"}</span></button>
                     </div>

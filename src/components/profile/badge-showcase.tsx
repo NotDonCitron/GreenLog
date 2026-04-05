@@ -16,10 +16,11 @@ interface BadgeShowcaseProps {
 }
 
 export function BadgeShowcase({ isOpen, userBadges, featuredBadges, onSelect, onClose }: BadgeShowcaseProps) {
-  if (!isOpen) return null;
-
   const unlockedIds = new Set(userBadges.map(ub => ub.badge_id));
   const [selected, setSelected] = useState<string[]>(featuredBadges);
+  const router = useRouter();
+
+  if (!isOpen) return null;
 
   const handleToggle = (badgeId: string) => {
     setSelected(prev => {
@@ -28,8 +29,6 @@ export function BadgeShowcase({ isOpen, userBadges, featuredBadges, onSelect, on
       return [...prev, badgeId];
     });
   };
-
-  const router = useRouter();
 
   const handleSave = async () => {
     await fetch('/api/badges/select', {
