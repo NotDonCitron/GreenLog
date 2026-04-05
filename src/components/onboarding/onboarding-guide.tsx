@@ -30,7 +30,7 @@ const ONBOARDING_STEPS: Step[] = [
     {
         title: "Willkommen bei CannaLog",
         description: "Dein digitaler Begleiter für Cannabis-Sorten. Entdecke unsere Sortenvielfalt, tracke deine Favoriten und teile Erfahrungen.",
-        icon: <div className="relative w-full h-full p-2"><Image src="/logo.png" alt="Logo" fill className="object-contain" priority /></div>,
+        icon: <Image src="/logo.png" alt="Logo" width={40} height={40} className="object-contain" priority />,
         color: "#00F5FF",
         path: "/"
     },
@@ -160,7 +160,7 @@ export function OnboardingGuide() {
         if (typeof window !== "undefined") {
             localStorage.setItem("cannalog_onboarding_completed", "true");
         }
-        
+
         if (isDemoMode) {
             sessionStorage.setItem("cannalog_onboarding_dismissed", "true");
             setIsVisible(false);
@@ -180,7 +180,7 @@ export function OnboardingGuide() {
             if (error) {
             } else {
             }
-            
+
             // Always close UI if we reached this point
             setIsVisible(false);
             router.push("/");
@@ -217,20 +217,20 @@ export function OnboardingGuide() {
                     className="relative w-full max-w-sm bg-[#121212]/95 border-2 border-[#2FF801]/30 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl pointer-events-auto overflow-hidden"
                 >
                     {/* Glowing Accent */}
-                    <div 
-                        className="absolute top-0 left-0 w-full h-1 opacity-50" 
-                        style={{ background: `linear-gradient(90deg, transparent, ${step.color}, transparent)` }} 
+                    <div
+                        className="absolute top-0 left-0 w-full h-1 opacity-50"
+                        style={{ background: `linear-gradient(90deg, transparent, ${step.color}, transparent)` }}
                     />
 
                     <div className="p-6">
                         <div className="flex items-start gap-4">
-                            <div 
+                            <div
                                 className="relative w-12 h-12 rounded-2xl bg-white/5 flex-shrink-0 flex items-center justify-center border border-white/10 shadow-inner overflow-hidden"
                                 style={{ color: step.color }}
                             >
                                 {step.icon}
                             </div>
-                            
+
                             <div className="flex-1 min-w-0 pt-1">
                                 <h2 className="text-sm font-black italic tracking-tighter uppercase text-[var(--foreground)] mb-1">
                                     {step.title}
@@ -245,8 +245,8 @@ export function OnboardingGuide() {
                         <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5">
                             <div className="flex gap-1">
                                 {ONBOARDING_STEPS.map((_, i) => (
-                                    <div 
-                                        key={i} 
+                                    <div
+                                        key={i}
                                         className={`h-1 rounded-full transition-all duration-500 ${i === currentStep ? "w-4 bg-[#2FF801]" : "w-1 bg-white/10"}`}
                                     />
                                 ))}
@@ -261,15 +261,14 @@ export function OnboardingGuide() {
                                         <ChevronLeft size={16} />
                                     </button>
                                 )}
-                                
+
                                 <button
                                     onClick={handleNext}
                                     disabled={isSaving}
-                                    className={`h-10 px-4 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 ${
-                                        currentStep === ONBOARDING_STEPS.length - 1 
-                                        ? "bg-[#2FF801] text-black" 
-                                        : "bg-white text-black"
-                                    }`}
+                                    className={`h-10 px-4 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 ${currentStep === ONBOARDING_STEPS.length - 1
+                                            ? "bg-[#2FF801] text-black"
+                                            : "bg-white text-black"
+                                        }`}
                                 >
                                     {currentStep === ONBOARDING_STEPS.length - 1 ? "Starten" : "Weiter"}
                                     <ChevronRight size={14} />
@@ -277,7 +276,7 @@ export function OnboardingGuide() {
                             </div>
                         </div>
 
-                        <button 
+                        <button
                             onClick={completeOnboarding}
                             className="w-full mt-4 text-[8px] font-black uppercase tracking-[0.2em] text-[var(--foreground)]/20 hover:text-[var(--foreground)]/40 transition-colors text-center"
                         >

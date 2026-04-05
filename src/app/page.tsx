@@ -112,7 +112,7 @@ function HomeContent() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 pt-6 shrink-0">
+      <div className="pt-6 shrink-0">
         <Link href="/feed" className="block">
           <button className="relative w-full h-16 group overflow-hidden rounded-2xl transition-all duration-300 active:scale-[0.98]">
             <div className="absolute inset-0 bg-[#2FF801]/10 transition-all duration-300 group-hover:bg-[#2FF801]/20" />
@@ -123,21 +123,6 @@ function HomeContent() {
               </div>
               <span className="text-[var(--foreground)] text-xs font-bold uppercase tracking-wide font-display">
                 Entdecken
-              </span>
-            </div>
-          </button>
-        </Link>
-
-        <Link href="/grows" className="block">
-          <button className="relative w-full h-16 group overflow-hidden rounded-2xl transition-all duration-300 active:scale-[0.98]">
-            <div className="absolute inset-0 bg-[#a1faff]/10 transition-all duration-300 group-hover:bg-[#a1faff]/20" />
-            <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#a1faff]/50 transition-all duration-300" />
-            <div className="relative flex items-center justify-center gap-2 h-full">
-              <div className="w-8 h-8 rounded-lg bg-[#a1faff]/20 flex items-center justify-center">
-                <span className="text-sm">🌱</span>
-              </div>
-              <span className="text-[var(--foreground)] text-xs font-bold uppercase tracking-wide font-display">
-                Grows
               </span>
             </div>
           </button>
