@@ -21,11 +21,26 @@ export function CTAForm() {
     setStatus('loading')
     setMessage('')
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const response = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
 
-    setStatus('success')
-    setMessage('Danke! Wir melden uns bald bei dir.')
+      const data = await response.json()
+
+      if (response.ok) {
+        setStatus('success')
+        setMessage(data.message || 'Danke! Wir melden uns bald bei dir.')
+      } else {
+        setStatus('error')
+        setMessage(data.error || 'Ein Fehler ist aufgetreten.')
+      }
+    } catch {
+      setStatus('error')
+      setMessage('Ein Fehler ist aufgetreten. Bitte versuche es erneut.')
+    }
   }
 
   return (

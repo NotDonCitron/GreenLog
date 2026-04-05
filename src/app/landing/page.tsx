@@ -1,5 +1,6 @@
 "use client";
 
+import Head from "next/head";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
@@ -10,6 +11,7 @@ import { StrainCard } from "@/components/strains/strain-card";
 import { FeatureBlock } from "@/components/landing/feature-block";
 import { CTAForm } from "@/components/landing/cta-form";
 import { ScrollAnimator } from "@/components/landing/scroll-animator";
+import { FeedPreview } from "@/components/landing/feed-preview";
 import { Leaf, Users, Star, ArrowRight } from "lucide-react";
 
 // Demo data fallback
@@ -30,6 +32,7 @@ const DEMO_STRAIN: Strain = {
 
 export default function LandingPage() {
   const [strainOfTheDay, setStrainOfTheDay] = useState<Strain | null>(null);
+  const [strainCount, setStrainCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,15 +43,24 @@ export default function LandingPage() {
         );
         const { data: allStrains } = await supabase
           .from("strains")
-          .select("*")
+          .select("id")
           .limit(500);
 
         if (allStrains && allStrains.length > 0) {
+          setStrainCount(allStrains.length);
           const strain = allStrains[dayOfYear % allStrains.length];
-          setStrainOfTheDay({
-            ...strain,
-            source: normalizeCollectionSource(strain.source),
-          } as Strain);
+          // Fetch full strain data for the card
+          const { data: fullStrain } = await supabase
+            .from("strains")
+            .select("*")
+            .eq("id", strain.id)
+            .single();
+          if (fullStrain) {
+            setStrainOfTheDay({
+              ...fullStrain,
+              source: normalizeCollectionSource(fullStrain.source),
+            } as Strain);
+          }
         } else {
           setStrainOfTheDay(DEMO_STRAIN);
         }
@@ -64,13 +76,28 @@ export default function LandingPage() {
   }, []);
 
   return (
+    <>
+      <Head>
+        <title>CannaLOG – Cannabis Strain Tracking & Collection</title>
+        <meta name="description" content="Die Plattform für Clubs, Apotheken und Enthusiasten zur Verwaltung von Cannabis-Sorten. Strain-Datenbank, Community-Features und professionelle Tools." />
+        <meta property="og:title" content="CannaLOG – Cannabis Strain Tracking & Collection" />
+        <meta property="og:description" content="Die Plattform für Clubs, Apotheken und Enthusiasten zur Verwaltung von Cannabis-Sorten." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://greenlog.app/landing" />
+        <meta property="og:image" content="/api/og?title=CannaLOG%20%E2%80%93%20Strain%20Tracking" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="CannaLOG – Cannabis Strain Tracking & Collection" />
+        <meta name="twitter:description" content="Die Plattform für Clubs, Apotheken und Enthusiasten zur Verwaltung von Cannabis-Sorten." />
+        <meta name="twitter:image" content="/api/og?title=CannaLOG%20%E2%80%93%20Strain%20Tracking" />
+        <link rel="canonical" href="https://greenlog.app/landing" />
+      </Head>
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       {/* HEADER */}
       <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 h-full flex items-center justify-between">
           {/* Logo */}
-          <Link href="/landing" className="font-black italic uppercase tracking-tighter font-display text-xl">
-            Green<span className="text-[#00F5FF]">Log</span>
+          <Link href="/landing" className="font-black italic uppercase tracking-tighter font-display text-xl text-white">
+            CannaLOG
           </Link>
 
           {/* Desktop Nav */}
@@ -106,7 +133,7 @@ export default function LandingPage() {
         <div className="text-center max-w-2xl mx-auto">
           {/* Label */}
           <ScrollAnimator animation="fade-up">
-            <span className="inline-block px-4 py-1.5 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/30 text-[#00F5FF] text-sm font-medium mb-6">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 border border-white/30 text-white text-sm font-medium mb-6">
               Für Clubs, Apotheken & Enthusiasten
             </span>
           </ScrollAnimator>
@@ -114,8 +141,7 @@ export default function LandingPage() {
           {/* Headline */}
           <ScrollAnimator animation="fade-up" delay={100}>
             <h1 className="text-5xl md:text-6xl font-black tracking-tight mb-6 font-display">
-              Deine Plattform für
-              <span className="text-[#00F5FF]"> Cannabis</span>
+              Deine Plattform für <span className="text-white">Cannabis</span>
             </h1>
           </ScrollAnimator>
 
@@ -131,13 +157,13 @@ export default function LandingPage() {
           <ScrollAnimator animation="fade-up" delay={300}>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link href="/login">
-                <button className="inline-flex items-center gap-2 px-8 py-4 h-14 rounded-xl bg-[#00F5FF]/10 border border-[#00F5FF]/30 text-[#00F5FF] font-bold text-lg hover:bg-[#00F5FF]/20 transition-all">
+                <button className="inline-flex items-center gap-2 px-8 py-4 h-14 rounded-xl bg-white/10 border border-white/30 text-white font-bold text-lg hover:bg-white/20 transition-all">
                   Jetzt starten
                   <ArrowRight size={20} />
                 </button>
               </Link>
               <Link href="/strains">
-                <button className="inline-flex items-center gap-2 px-8 py-4 h-14 rounded-xl border-2 border-[var(--border)] text-[var(--foreground)] font-bold text-lg hover:border-[#2FF801]/50 hover:bg-[#2FF801]/5 transition-all">
+                <button className="inline-flex items-center gap-2 px-8 py-4 h-14 rounded-xl border-2 border-white/20 text-white font-bold text-lg hover:bg-white/5 transition-all">
                   Strains ansehen
                   <ArrowRight size={20} />
                 </button>
@@ -208,7 +234,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* WHY GREENLOG SECTION */}
+      {/* FEED PREVIEW SECTION */}
+      <FeedPreview strainCount={strainCount} />
+
+      {/* WHY CANNALOG SECTION */}
       <section className="relative z-10 py-24 px-6 bg-[var(--background)]/50">
         <div className="max-w-5xl mx-auto">
           <ScrollAnimator animation="fade-up">
@@ -290,5 +319,6 @@ export default function LandingPage() {
         </div>
       </footer>
     </main>
+    </>
   );
 }

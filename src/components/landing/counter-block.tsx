@@ -5,6 +5,7 @@ import { ScrollAnimator } from "./scroll-animator";
 
 interface CounterBlockProps {
   end: number;
+  prefix?: string;
   suffix?: string;
   label: string;
   index?: number;
@@ -12,6 +13,7 @@ interface CounterBlockProps {
 
 export function CounterBlock({
   end,
+  prefix = "",
   suffix = "",
   label,
   index = 0,
@@ -64,8 +66,7 @@ export function CounterBlock({
           ref={ref}
           className="text-4xl md:text-5xl font-black text-[#00F5FF] [text-shadow:0_0_10px_#00F5FF,0_0_20px_#00F5FF,0_0_30px_#00F5FF]"
         >
-          {count}
-          {suffix}
+          {prefix}{count}{suffix}
         </span>
         <p className="text-sm text-[var(--muted-foreground)] uppercase tracking-wider mt-2">
           {label}

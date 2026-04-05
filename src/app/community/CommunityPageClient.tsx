@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { BottomNav } from "@/components/bottom-nav";
 import Image from "next/image";
@@ -8,7 +8,6 @@ import { Card } from "@/components/ui/card";
 import { Leaf, Building2, Loader2, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
-import { useRouter } from "next/navigation";
 
 interface Organization {
   id: string;
@@ -65,51 +64,76 @@ function CommunityCard({ org, role }: { org: Organization; role?: string }) {
 
 export default function CommunityPageClient() {
   const { user, memberships } = useAuth();
-  const router = useRouter();
   const [myOrgs, setMyOrgs] = useState<MemberOrg[]>([]);
   const [otherOrgs, setOtherOrgs] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hydrated, setHydrated] = useState(false);
+  const mountedRef = useRef(true);
+
+  // Wait for client hydration
+  useEffect(() => {
+    mountedRef.current = true;
+    setHydrated(true);
+    return () => { mountedRef.current = false; };
+  }, []);
 
   useEffect(() => {
-    const fetchOrganizations = async () => {
-      if (!user) {
-        const { data } = await supabase
+    if (!hydrated) return;
+    let cancelled = false;
+
+    async function fetchOrganizations() {
+      try {
+        if (!user) {
+          const { data } = await supabase
+            .from("organizations")
+            .select("id, name, slug, organization_type, license_number, status, logo_url")
+            .eq("status", "active")
+            .order("name", { ascending: true })
+            .limit(50);
+
+          if (cancelled || !mountedRef.current) return;
+          setOtherOrgs(data || []);
+          setLoading(false);
+          return;
+        }
+
+        const { data: allOrgs } = await supabase
           .from("organizations")
           .select("id, name, slug, organization_type, license_number, status, logo_url")
           .eq("status", "active")
-          .order("name", { ascending: true });
-        setOtherOrgs(data || []);
-        setLoading(false);
-        return;
-      }
+          .order("name", { ascending: true })
+          .limit(50);
 
-      const { data: allOrgs } = await supabase
-        .from("organizations")
-        .select("id, name, slug, organization_type, license_number, status, logo_url")
-        .eq("status", "active")
-        .order("name", { ascending: true });
+        if (cancelled || !mountedRef.current) return;
 
-      const myOrgIds = new Set(memberships.map((m) => m.organization_id));
+        const myOrgIds = new Set(memberships.map((m) => m.organization_id));
+        const mine: MemberOrg[] = [];
+        const others: Organization[] = [];
 
-      const mine: MemberOrg[] = [];
-      const others: Organization[] = [];
+        for (const org of allOrgs || []) {
+          if (myOrgIds.has(org.id)) {
+            const membership = memberships.find((m) => m.organization_id === org.id);
+            mine.push({ ...org, membership_role: membership?.role });
+          } else {
+            others.push(org);
+          }
+        }
 
-      for (const org of allOrgs || []) {
-        if (myOrgIds.has(org.id)) {
-          const membership = memberships.find((m) => m.organization_id === org.id);
-          mine.push({ ...org, membership_role: membership?.role });
-        } else {
-          others.push(org);
+        if (!cancelled && mountedRef.current) {
+          setMyOrgs(mine);
+          setOtherOrgs(others);
+          setLoading(false);
+        }
+      } catch {
+        if (mountedRef.current) {
+          setLoading(false);
         }
       }
-
-      setMyOrgs(mine);
-      setOtherOrgs(others);
-      setLoading(false);
-    };
+    }
 
     void fetchOrganizations();
-  }, [user, memberships]);
+    return () => { cancelled = true; };
+  }, [user, memberships, hydrated]);
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
@@ -129,6 +153,16 @@ export default function CommunityPageClient() {
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 size={24} className="animate-spin text-[#00F5FF]" />
+          </div>
+        ) : error ? (
+          <div className="text-center py-12 space-y-3">
+            <p className="text-[var(--muted-foreground)] text-sm">Konnte Communities nicht laden.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="text-xs text-[#00F5FF] hover:underline"
+            >
+              Erneut versuchen
+            </button>
           </div>
         ) : (
           <>
