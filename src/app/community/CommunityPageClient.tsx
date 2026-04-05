@@ -154,16 +154,6 @@ export default function CommunityPageClient() {
           <div className="flex items-center justify-center py-12">
             <Loader2 size={24} className="animate-spin text-[#00F5FF]" />
           </div>
-        ) : error ? (
-          <div className="text-center py-12 space-y-3">
-            <p className="text-[var(--muted-foreground)] text-sm">Konnte Communities nicht laden.</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="text-xs text-[#00F5FF] hover:underline"
-            >
-              Erneut versuchen
-            </button>
-          </div>
         ) : (
           <>
             {/* My Communities */}
