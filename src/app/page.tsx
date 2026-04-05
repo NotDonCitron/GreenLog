@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
@@ -195,12 +194,10 @@ export default function Home() {
             <div className="relative group">
               <div className="absolute inset-0 bg-[#00F5FF]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="w-12 h-12 relative rounded-2xl glass-surface border border-[var(--border)]/50 flex items-center justify-center transform group-hover:rotate-6 transition-transform duration-500 overflow-hidden">
-                <Image
+                <img
                   src="/logo.png"
                   alt="CannaLog Logo"
-                  fill
-                  className="object-contain p-1.5"
-                  priority
+                  className="absolute inset-0 w-full h-full object-contain p-1.5"
                 />
               </div>
             </div>
