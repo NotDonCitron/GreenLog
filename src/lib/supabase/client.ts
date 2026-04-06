@@ -37,14 +37,7 @@ function createSupabaseClientOptions() {
             persistSession: isBrowser,
         },
         global: {
-            fetch: (url: string | URL | Request, init?: RequestInit) => {
-                const updatedInit = { ...init };
-                if (!updatedInit.method || updatedInit.method.toUpperCase() === 'GET') {
-                    // Mobile Safari PWA fetch cache buster - ensures React Query background fetches aren't intercepted by stale disk cache
-                    updatedInit.cache = 'no-store';
-                }
-                return fetch(url, updatedInit);
-            },
+            fetch: (url: string | URL | Request, init?: RequestInit) => fetch(url, init),
         },
         realtime: isBrowser ? undefined : { timeout: 0 },
     };
