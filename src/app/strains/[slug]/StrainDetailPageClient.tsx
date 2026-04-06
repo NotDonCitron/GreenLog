@@ -400,18 +400,13 @@ export default function StrainDetailPageClient() {
 
       // 3. Add to collection using the mutation from useCollection
       // This handles: user_collection upsert, cache invalidation, and badge checks
-      // We wrap it in try/catch to ensure its failures don't hang the UI
-      try {
-        await collectAction(strain.id, {
-          batchInfo,
-          userNotes,
-          userImageUrl: userImageUrl || undefined,
-          userThc: strain.avg_thc ?? strain.thc_max ?? undefined,
-          userCbd: strain.avg_cbd ?? strain.cbd_max ?? undefined
-        });
-      } catch (collErr) {
-        console.warn("Collection/Badge check error (silent):", collErr);
-      }
+      await collectAction(strain.id, {
+        batchInfo,
+        userNotes,
+        userImageUrl: userImageUrl || undefined,
+        userThc: strain.avg_thc ?? strain.thc_max ?? undefined,
+        userCbd: strain.avg_cbd ?? strain.cbd_max ?? undefined
+      });
 
       setHasCollected(true);
 

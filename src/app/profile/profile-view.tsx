@@ -52,14 +52,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
-import { FeedbackButton } from "@/components/feedback/feedback-button";
 
-const FEEDBACK_BUTTON_USER_IDS = [
-  "6129fd73-ec07-4551-ba32-3c8ef5c5923a",
-  "2d797325-5a17-4620-8b94-a55f338996c1",
-  "dab750b5-8023-45d6-844e-b044b681905c",
-  "236a110e-0dbe-4500-97db-edf100158e4f",
-];
 import { FollowersListModal } from "@/components/social/followers-list-modal";
 import { lazy, Suspense } from "react";
 const BadgeShowcase = lazy(() => import("@/components/profile/badge-showcase").then(m => ({ default: m.BadgeShowcase })));
@@ -575,7 +568,6 @@ export default function ProfilePage() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <FeedbackButton variant="header" canSee={!!user && FEEDBACK_BUTTON_USER_IDS.includes(user.id)} />
             <NotificationBell />
             <ThemeToggle />
             <Link href="/profile/settings">

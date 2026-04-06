@@ -193,6 +193,7 @@ function StrainsPageContent() {
     cbdMin: filterCbdMin,
     cbdMax: filterCbdMax,
     flavors: filterFlavors,
+    sourceFilter,
   };
 
   const {

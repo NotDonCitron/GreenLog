@@ -2,10 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { BottomNav } from "@/components/bottom-nav";
-import { X, Zap, Image as ImageIcon, Camera, Loader2, CheckCircle2 } from "lucide-react";
+import { Camera, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Strain } from "@/lib/types";
 
 export default function ScannerPage() {
@@ -16,10 +15,13 @@ export default function ScannerPage() {
   const [result, setResult] = useState<string | null>(null);
   const [debugText, setDebugText] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
+  const [isCapacitor, setIsCapacitor] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tesseract.js has no types
   const workerRef = useRef<any>(null);
 
   useEffect(() => {
+    // Check if running in Capacitor
+    setIsCapacitor(!!window.Capacitor);
     async function initWorker() {
       try {
         const { createWorker } = await import("tesseract.js");
@@ -37,17 +39,70 @@ export default function ScannerPage() {
   useEffect(() => {
     async function startCamera() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
-          audio: false
-        });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          setCameraActive(true);
+        if (isCapacitor) {
+          // Capacitor path - use Camera plugin
+          const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+          try {
+            const image = await Camera.getPhoto({
+              quality: 90,
+              allowEditing: false,
+              resultType: CameraResultType.DataUrl,
+              source: CameraSource.Camera,
+            });
+            if (videoRef.current && image.dataUrl) {
+              videoRef.current.src = image.dataUrl;
+              setCameraActive(true);
+              setStatus("idle");
+            }
+          } catch (camErr: unknown) {
+            const err = camErr as { message?: string };
+            console.error("Capacitor Camera error:", err);
+            setStatus("error");
+            if (err.message?.includes('denied') || err.message?.includes('permission')) {
+              setResult("Kamera-Erlaubnis verweigert");
+            } else {
+              setResult("Kamera-Fehler");
+            }
+          }
+        } else {
+          // Browser path - use getUserMedia
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            setStatus("error");
+            setResult("Kamera nicht unterstützt");
+            return;
+          }
+
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: "environment" },
+              width: { ideal: 1280, max: 1920 },
+              height: { ideal: 720, max: 1080 }
+            },
+            audio: false
+          });
+
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.muted = true;
+            videoRef.current.play().catch(err => {
+              console.error("Video play error:", err);
+            });
+            setCameraActive(true);
+          }
         }
-      } catch (err) {
+      } catch (err: unknown) {
+        const error = err as Error;
+        console.error("Camera error:", error);
         setStatus("error");
-        setResult("Kamera-Fehler");
+        if (error.name === 'NotAllowedError' || error.message?.includes('Permission')) {
+          setResult("Keine Kamera-Erlaubnis");
+        } else if (error.name === 'NotFoundError' || error.message?.includes('NotFound')) {
+          setResult("Keine Kamera gefunden");
+        } else if (error.name === 'NotReadableError' || error.message?.includes('in use')) {
+          setResult("Kamera wird verwendet");
+        } else {
+          setResult("Kamera-Fehler");
+        }
       }
     }
     startCamera();
@@ -57,7 +112,7 @@ export default function ScannerPage() {
         tracks.forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [isCapacitor]);
 
   const findBestMatch = (text: string, strains: Strain[]) => {
     const lowerText = text.toLowerCase();
@@ -149,9 +204,32 @@ export default function ScannerPage() {
       </div>
 
       <div className="flex-1 relative z-10 flex items-center justify-center overflow-hidden">
-        <video ref={videoRef} autoPlay playsInline className={`w-full h-full object-cover transition-opacity duration-1000 ${cameraActive ? "opacity-100" : "opacity-0"}`} />
+        <video ref={videoRef} autoPlay playsInline muted className={`w-full h-full object-cover transition-opacity duration-1000 ${cameraActive ? "opacity-100" : "opacity-0"}`} />
 
         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 pointer-events-none">
+          {!cameraActive && status !== "error" && (
+            <div className="text-center text-[var(--muted-foreground)]">
+              <Camera size={64} className="mx-auto mb-4 opacity-30" />
+              <p className="text-sm uppercase tracking-widest font-bold">Kamera wird geladen...</p>
+            </div>
+          )}
+
+          {status === "error" && (
+            <div className="text-center">
+              <AlertCircle size={64} className="mx-auto mb-4 text-[#ff716c]" />
+              <p className="text-lg uppercase tracking-widest font-black text-[#ff716c]">{result}</p>
+              <button
+                onClick={() => {
+                  setStatus("idle");
+                  setResult(null);
+                }}
+                className="mt-4 px-6 py-2 bg-[var(--card)] border border-[#00F5FF]/30 rounded-full text-xs uppercase tracking-widest font-bold hover:border-[#00F5FF]/60 transition-all"
+              >
+                Erneut versuchen
+              </button>
+            </div>
+          )}
+
           <div className="w-full aspect-square max-w-sm border-2 border-[#00F5FF]/20 rounded-3xl relative">
             {/* Neon corner accents */}
             <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-[#00F5FF] rounded-tl-3xl shadow-[0_0_20px_#00F5FF]" />
