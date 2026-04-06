@@ -135,7 +135,7 @@ export default function CommunityPageClient() {
   }, [user, memberships, hydrated]);
 
   return (
-    <main className="h-full bg-[var(--background)] text-[var(--foreground)] pb-32 overflow-y-auto">
+    <>
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
@@ -148,7 +148,7 @@ export default function CommunityPageClient() {
         </h1>
       </header>
 
-      <div className="px-6 space-y-6 mt-4 relative z-10">
+      <div className="px-6 space-y-6 mt-4 relative z-10 pb-32">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 size={24} className="animate-spin text-[#00F5FF]" />
@@ -210,6 +210,6 @@ export default function CommunityPageClient() {
       </div>
 
       <BottomNav />
-    </main>
+    </>
   );
 }
