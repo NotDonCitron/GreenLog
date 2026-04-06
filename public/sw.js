@@ -1,5 +1,5 @@
-const STATIC_CACHE = 'greenlog-static-v1';
-const API_CACHE = 'greenlog-api-v1';
+const STATIC_CACHE = 'greenlog-static-v2';
+const API_CACHE = 'greenlog-api-v2';
 
 const MAX_STATIC = 100;
 const MAX_API = 50;
@@ -85,22 +85,28 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Static assets → cache first, fall back to network
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
+  // Only cache same-origin requests to prevent accidentally caching external APIs (like Supabase) forever!
+  if (url.origin === self.location.origin) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
 
-      return fetch(request).then((response) => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(STATIC_CACHE).then((cache) => {
-            cache.put(request, clone);
-            evictLRU(STATIC_CACHE, MAX_STATIC);
-          });
-        }
-        return response;
-      });
-    })
-  );
+        return fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(request, clone);
+              evictLRU(STATIC_CACHE, MAX_STATIC);
+            });
+          }
+          return response;
+        });
+      })
+    );
+  } else {
+    // External APIs (Supabase etc.) → Network only!
+    event.respondWith(fetch(request));
+  }
 });
 
 // Push notification handler
