@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
+import { useAuth } from '@/components/auth-provider'
+import { enableSentryAfterConsent } from '@/lib/sentry-consent'
+import { syncAnalyticsConsentToSupabase } from '@/lib/sentry-consent'
 
 const COOKIE_CONSENT_KEY = 'cookie_consent'
 
@@ -11,6 +14,7 @@ export function CookieConsentBanner() {
   const [consent, setConsent] = useState<ConsentLevel>(null)
   const [isVisible, setIsVisible] = useState(false)
   const bannerRef = useRef<HTMLDivElement>(null)
+  const { user } = useAuth()
 
   useEffect(() => {
     try {
@@ -31,14 +35,33 @@ export function CookieConsentBanner() {
     }
   }, [isVisible])
 
-  const handleAcceptAll = () => {
-    try { try { localStorage.setItem(COOKIE_CONSENT_KEY, 'all') } catch { console.warn('Cookie consent storage failed') } } catch { console.warn('Cookie consent storage failed') }
+  // Sync analytics consent to Supabase when user logs in (if previously granted)
+  useEffect(() => {
+    if (user && consent === 'all') {
+      syncAnalyticsConsentToSupabase(user.id)
+    }
+  }, [user, consent])
+
+  const handleAcceptAll = async () => {
+    try {
+      localStorage.setItem(COOKIE_CONSENT_KEY, 'all')
+    } catch {
+      console.warn('Cookie consent storage failed')
+    }
     setConsent('all')
     setIsVisible(false)
+    await enableSentryAfterConsent()
+    if (user) {
+      await syncAnalyticsConsentToSupabase(user.id)
+    }
   }
 
   const handleEssentialOnly = () => {
-    try { try { localStorage.setItem(COOKIE_CONSENT_KEY, 'essential') } catch { console.warn('Cookie consent storage failed') } } catch { console.warn('Cookie consent storage failed') }
+    try {
+      localStorage.setItem(COOKIE_CONSENT_KEY, 'essential')
+    } catch {
+      console.warn('Cookie consent storage failed')
+    }
     setConsent('essential')
     setIsVisible(false)
   }

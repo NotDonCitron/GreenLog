@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
+import { enableSentryAfterConsent, disableSentryAfterRevoke } from "@/lib/sentry-consent";
 import {
   ChevronLeft,
   Mail,
@@ -293,6 +294,18 @@ export default function SettingsPage() {
         body: JSON.stringify({ consent_type: consentType, granted }),
       });
       setConsents(prev => ({ ...prev, [consentType]: { granted } }));
+
+      // Sync to localStorage and enable/disable Sentry for analytics consent
+      if (consentType === 'analytics') {
+        const key = 'cookie_consent';
+        if (granted) {
+          localStorage.setItem(key, 'all');
+          await enableSentryAfterConsent();
+        } else {
+          localStorage.setItem(key, 'essential');
+          await disableSentryAfterRevoke();
+        }
+      }
     } finally {
       setIsUpdatingConsent(false);
     }

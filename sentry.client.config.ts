@@ -1,5 +1,13 @@
 import * as Sentry from "@sentry/nextjs";
 
+const COOKIE_CONSENT_KEY = 'cookie_consent';
+
+function isConsentGranted(): boolean {
+  if (process.env.NODE_ENV !== "production") return false;
+  if (typeof window === 'undefined') return false;
+  return window.localStorage.getItem(COOKIE_CONSENT_KEY) === 'all';
+}
+
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
@@ -10,11 +18,16 @@ Sentry.init({
   replaysSessionSampleRate: 0.01,
   replaysOnErrorSampleRate: 0.1,
 
-  enabled: process.env.NODE_ENV === "production",
+  // Only enabled in production AND when analytics consent is granted
+  enabled: isConsentGranted(),
 
   sendDefaultPii: false,
 
   beforeSend(event) {
+    // Fallback guard: if consent was revoked after init, drop all events
+    if (!isConsentGranted()) {
+      return null;
+    }
     if (event.request?.url) {
       const url = new URL(event.request.url);
       if (url.pathname.includes("profile") || url.pathname.includes("user")) {
