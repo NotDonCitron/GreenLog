@@ -278,7 +278,7 @@ export default function StrainDetailPageClient() {
 
       // React Query will handle UI update via collectedIds from useCollection hook
       // Fire and forget badge check - don't block UI
-      checkAndUnlockBadges(user.id, supabase).catch(() => {});
+      checkAndUnlockBadges(user.id, supabase).catch(() => { });
       queryClient.invalidateQueries({ queryKey: ['collection', user.id] });
       toastSuccess("Foto hochgeladen!");
     } catch (error: unknown) {
@@ -402,9 +402,9 @@ export default function StrainDetailPageClient() {
       // This handles: user_collection upsert, cache invalidation, and badge checks
       // We wrap it in try/catch to ensure its failures don't hang the UI
       try {
-        await collectAction(strain.id, { 
-          batchInfo, 
-          userNotes, 
+        await collectAction(strain.id, {
+          batchInfo,
+          userNotes,
           userImageUrl: userImageUrl || undefined,
           userThc: strain.avg_thc ?? strain.thc_max ?? undefined,
           userCbd: strain.avg_cbd ?? strain.cbd_max ?? undefined
@@ -611,12 +611,12 @@ export default function StrainDetailPageClient() {
                 </div>
               </div>
               {strain.image_attribution && strain.image_attribution.source !== 'none' && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Foto: {strain.image_attribution?.author} · {strain.image_attribution?.license}
-                    {strain.image_attribution?.url && (
-                      <> · <a href={strain.image_attribution?.url} target="_blank" rel="noopener noreferrer" className="underline">Quelle</a></>
-                    )}
-                  </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Foto: {strain.image_attribution?.author} · {strain.image_attribution?.license}
+                  {strain.image_attribution?.url && (
+                    <> · <a href={strain.image_attribution?.url} target="_blank" rel="noopener noreferrer" className="underline">Quelle</a></>
+                  )}
+                </p>
               )}
               <div className="px-5 mt-5 w-full mb-5">
                 <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-xl p-4">
@@ -693,7 +693,7 @@ export default function StrainDetailPageClient() {
         </div>
 
         <div className="w-full max-w-[340px] mt-10">
-          <button onClick={() => !isCollected && setShowRatingModal(true)} disabled={isCollected} className={`w-full font-black py-5 rounded-2xl uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all ${isCollected ? "bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/30" : "bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black hover:opacity-90"}`}>
+          <button type="button" onClick={() => !isCollected && setShowRatingModal(true)} disabled={isCollected} className={`w-full font-black py-5 rounded-2xl uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all ${isCollected ? "bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/30" : "bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black hover:opacity-90"}`}>
             {isCollected ? <><CheckCircle2 size={24} /> In Collection</> : "Collect & Rate"}
           </button>
         </div>
@@ -702,7 +702,7 @@ export default function StrainDetailPageClient() {
       {showRatingModal && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowRatingModal(false)} />
-          <Card className="relative w-full max-w-md bg-[var(--card)] border border-[var(--border)]/50 rounded-t-3xl sm:rounded-3xl p-8 space-y-8 shadow-2xl animate-in slide-in-from-bottom duration-300">
+          <Card className="relative w-full max-w-md bg-[var(--card)] border border-[var(--border)]/50 rounded-t-3xl sm:rounded-3xl p-6 pb-12 sm:pb-8 sm:p-8 space-y-8 shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90dvh] overflow-y-auto overscroll-contain">
             <h2 className="text-2xl font-black italic uppercase text-[#00F5FF] text-center font-display">Tasting Log</h2>
 
             <div className="space-y-6">
@@ -731,13 +731,13 @@ export default function StrainDetailPageClient() {
               <input type="text" placeholder="Batch / Apotheke" className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-xl py-3 px-4 text-xs text-[var(--foreground)] placeholder:text-[#484849] outline-none focus:border-[#00F5FF]" value={batchInfo} onChange={(e) => setBatchInfo(e.target.value)} />
               <textarea placeholder="Deine Notizen..." className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-xl py-3 px-4 text-xs text-[var(--foreground)] placeholder:text-[#484849] min-h-[100px] outline-none focus:border-[#00F5FF]" value={userNotes} onChange={(e) => setUserNotes(e.target.value)} />
             </div>
-            <button onClick={saveRating} disabled={isSaving} className="w-full h-16 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black font-black uppercase rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-[#00F5FF]/20">
+            <button type="button" onClick={saveRating} disabled={isSaving} className="w-full h-16 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black font-black uppercase rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-[#00F5FF]/20 relative z-20">
               {isSaving ? <Loader2 className="animate-spin" /> : "SAVE LOG"}
             </button>
           </Card>
         </div>
       )}
-      <BottomNav />
+      {!showRatingModal && <BottomNav />}
     </main>
   );
 }
