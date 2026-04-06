@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { Sparkles, Users, Compass, Loader2, Search, Building2 } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { ActivityFeed } from "@/components/social/activity-feed";
@@ -356,7 +355,7 @@ export default function FeedPage() {
                       >
                         <div className="relative w-12 h-12 rounded-full bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
                           {org.logo_url ? (
-                            <Image src={org.logo_url} alt={org.name} fill className="object-cover" sizes="40px" />
+                            <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
                           ) : (
                             <span className="text-[#2FF801] font-bold text-lg">{org.name.charAt(0)}</span>
                           )}
@@ -472,7 +471,7 @@ export default function FeedPage() {
                                     <div className="flex items-center gap-4 min-w-0">
                                       <div className="relative w-16 h-16 rounded-full overflow-hidden bg-[var(--muted)] border-2 border-[var(--border)] flex-shrink-0 flex items-center justify-center">
                                         {friend.avatar_url ? (
-                                          <Image src={friend.avatar_url} alt={friend.username || "User"} fill className="object-cover" sizes="64px" />
+                                          <img src={friend.avatar_url} alt={friend.username || "User"} className="w-full h-full object-cover" />
                                         ) : (
                                           <span className="text-xl font-black text-[#00F5FF]">{(friend.username || "U")[0].toUpperCase()}</span>
                                         )}
@@ -539,7 +538,7 @@ export default function FeedPage() {
                                     <div className="flex items-center gap-4 min-w-0">
                                       <div className="relative w-16 h-16 rounded-full overflow-hidden bg-[var(--muted)] border-2 border-[var(--border)] flex-shrink-0 flex items-center justify-center">
                                         {comm.logo_url ? (
-                                          <Image src={comm.logo_url} alt={comm.name} fill className="object-cover" sizes="64px" />
+                                          <img src={comm.logo_url} alt={comm.name} className="w-full h-full object-cover" />
                                         ) : (
                                           <Building2 size={24} className="text-[#00F5FF]" />
                                         )}
@@ -620,7 +619,7 @@ export default function FeedPage() {
                           <Link href={`/user/${profile.username}`} className="flex flex-col items-center gap-2">
                             <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--border)] bg-[var(--muted)] flex items-center justify-center">
                               {profile.avatar_url ? (
-                                <Image src={profile.avatar_url} alt={profile.username || "User"} fill className="object-cover" sizes="64px" />
+                                <img src={profile.avatar_url} alt={profile.username || "User"} className="w-full h-full object-cover" />
                               ) : (
                                 <span className="text-xl font-black text-[#00F5FF]">{profile.username?.[0]?.toUpperCase()}</span>
                               )}

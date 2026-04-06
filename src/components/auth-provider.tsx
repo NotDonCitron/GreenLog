@@ -53,46 +53,52 @@ function readStoredActiveOrganizationId(): string | null {
 }
 
 async function fetchMembershipsForUser(userId: string): Promise<OrganizationMembership[]> {
-  const { data, error } = await supabase
-    .from("organization_members")
-    .select(`
-      id,
-      organization_id,
-      user_id,
-      role,
-      membership_status,
-      joined_at,
-      invited_by,
-      created_at,
-      updated_at,
-      organizations:organization_id (
+  try {
+    const { data, error } = await supabase
+      .from("organization_members")
+      .select(`
         id,
-        name,
-        slug,
-        organization_type,
-        license_number,
-        status,
-        created_by,
+        organization_id,
+        user_id,
+        role,
+        membership_status,
+        joined_at,
+        invited_by,
         created_at,
-        updated_at
-      )
-    `)
-    .eq("user_id", userId)
-    .eq("membership_status", "active")
-    .order("created_at", { ascending: true });
+        updated_at,
+        organizations:organization_id (
+          id,
+          name,
+          slug,
+          organization_type,
+          license_number,
+          status,
+          created_by,
+          created_at,
+          updated_at
+        )
+      `)
+      .eq("user_id", userId)
+      .eq("membership_status", "active")
+      .order("created_at", { ascending: true });
 
-  if (error) {
-    throw error;
+    if (error) {
+      console.warn("[Auth] Membership fetch error (expected if table missing):", error.message);
+      return [];
+    }
+
+    const rows = (data ?? []) as unknown as OrganizationMembership[];
+
+    return rows.map((membership) => ({
+      ...membership,
+      organizations: Array.isArray(membership.organizations)
+        ? membership.organizations[0] ?? null
+        : membership.organizations ?? null,
+    }));
+  } catch (e) {
+    console.error("[Auth] Unexpected error in fetchMembershipsForUser:", e);
+    return [];
   }
-
-  const rows = (data ?? []) as unknown as OrganizationMembership[];
-
-  return rows.map((membership) => ({
-    ...membership,
-    organizations: Array.isArray(membership.organizations)
-      ? membership.organizations[0] ?? null
-      : membership.organizations ?? null,
-  }));
 }
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {

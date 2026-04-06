@@ -1,6 +1,5 @@
 import { memo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Strain } from '@/lib/types';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay } from '@/lib/strain-display';
 import { escapeRegExp } from '@/lib/string-utils';
@@ -66,14 +65,12 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
         animationFillMode: 'both'
       }}
     >
-      {/* 1. IMAGE fills entire card */}
-      <Image
+      {/* 1. IMAGE fills entire card — using img tag to bypass Vercel image optimization limit */}
+      <img
         src={strain.image_url || "/strains/placeholder-1.svg"}
         alt={strain.name}
-        fill
-        className="object-cover transition-transform duration-500 group-hover:scale-110"
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         loading="lazy"
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
 
       {/* 2. HEADER OVERLAY: Farmer + Strain Name — gradient top */}

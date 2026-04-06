@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef } from "react";
-import Image from "next/image";
 import { Strain } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { RefreshCw } from "lucide-react";
@@ -75,12 +74,12 @@ export function CollectionStack({
 
           <div className="px-5 w-full">
             <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-white/10 shadow-lg">
-              <Image 
-                src={currentStrain.image_url || "/strains/placeholder-1.svg"} 
-                alt={currentStrain.name} 
-                fill
-                className="object-cover"
-                priority
+              {/* Using img tag to bypass Vercel image optimization limit */}
+              <img
+                src={currentStrain.image_url || "/strains/placeholder-1.svg"}
+                alt={currentStrain.name}
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="eager"
               />
               <div className="absolute bottom-2 left-2 border bg-black/70 backdrop-blur-md uppercase text-[9px] px-2 py-1 rounded-sm font-bold" style={{ borderColor: themeColor, color: themeColor }}>{typeDisplay}</div>
             </div>

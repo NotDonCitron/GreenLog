@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -162,7 +161,7 @@ export default function CommunityDetailPage() {
         <div className="flex items-center gap-4">
           {organization.logo_url ? (
             <div className="w-14 h-14 rounded-full overflow-hidden bg-[var(--card)] border border-[var(--border)] flex-shrink-0">
-              <Image src={organization.logo_url} alt={organization.name} fill className="object-cover" sizes="80px" />
+              <img src={organization.logo_url} alt={organization.name} className="w-full h-full object-cover" />
             </div>
           ) : (
             <div className="w-14 h-14 rounded-full bg-[#2FF801]/10 border border-[#2FF801]/30 flex items-center justify-center flex-shrink-0">

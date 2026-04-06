@@ -168,11 +168,16 @@ export default function Home() {
 
         <div className="relative mx-auto w-full px-4 pt-12 flex flex-col h-screen overflow-hidden">
           <header className="flex justify-between items-center shrink-0">
-            <div className="flex items-center gap-3">
-              <NotificationBell />
-              <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
-                CannaLog
-              </h1>
+            <div className="flex flex-col gap-2">
+              <div className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full animate-pulse text-center">
+                LOKALE APP AKTIV: 10.211.24.200
+              </div>
+              <div className="flex items-center gap-3">
+                <NotificationBell />
+                <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
+                  CannaLog
+                </h1>
+              </div>
             </div>
             <div className="relative group">
               <div className="absolute inset-0 bg-[#00F5FF]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />

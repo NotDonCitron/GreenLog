@@ -2,7 +2,6 @@
 
 import { memo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Star, Sprout, Trophy, Heart, TrendingUp, Loader2, HeartOff } from "lucide-react";
 import type { UserActivity, ProfileRow } from "@/lib/types";
 import { supabase } from "@/lib/supabase/client";
@@ -125,12 +124,10 @@ export const ActivityItem = memo(function ActivityItem({ activity, user, classNa
             <Link href={`/user/${user.username}`} className="flex-shrink-0">
                 <div className="relative w-11 h-11 rounded-full overflow-hidden bg-[var(--muted)] flex items-center justify-center ring-2 ring-[var(--border)]">
                     {user.avatar_url ? (
-                        <Image
+                        <img
                             src={user.avatar_url}
                             alt={user.display_name ?? user.username ?? ""}
-                            fill
-                            sizes="44px"
-                            className="object-cover"
+                            className="w-full h-full object-cover"
                         />
                     ) : (
                         <span className="text-sm font-bold text-[var(--muted-foreground)]">
@@ -163,12 +160,10 @@ export const ActivityItem = memo(function ActivityItem({ activity, user, classNa
                 {activity.target_image_url && (
                     <Link href={`/strains/${activity.target_id}`} className="block mt-3">
                         <div className="relative h-20 w-20 rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--muted)]">
-                            <Image
+                            <img
                                 src={activity.target_image_url}
                                 alt={activity.target_name ?? ""}
-                                fill
-                                sizes="80px"
-                                className="object-cover"
+                                className="absolute inset-0 w-full h-full object-cover"
                             />
                         </div>
                     </Link>

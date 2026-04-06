@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import {
     Loader2,
     MapPin,
@@ -303,11 +302,10 @@ export default function UserProfilePage() {
                         <div className="flex-shrink-0">
                             <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-[#00F5FF]/50 bg-[var(--muted)] shadow-xl">
                                 {profile.avatar_url ? (
-                                    <Image
+                                    <img
                                         src={profile.avatar_url}
                                         alt={profile.display_name ?? profile.username ?? ""}
-                                        fill
-                                        className="object-cover"
+                                        className="w-full h-full object-cover"
                                     />
                                 ) : (
                                     <span className="text-2xl font-bold text-[#00F5FF]">
@@ -497,11 +495,10 @@ export default function UserProfilePage() {
                                             <Link key={fav.strain_id} href={`/strains/${fav.strains?.slug}`} className="min-w-0">
                                                 <div className="relative aspect-square overflow-hidden rounded-xl border border-[var(--border)]/50 bg-[var(--card)]">
                                                     {fav.strains?.image_url && (
-                                                        <Image
+                                                        <img
                                                             src={fav.strains.image_url}
                                                             alt={fav.strains?.name ?? ""}
-                                                            fill
-                                                            className="object-cover"
+                                                            className="absolute inset-0 w-full h-full object-cover"
                                                         />
                                                     )}
                                                     <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0f]/80 to-transparent" />

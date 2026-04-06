@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Strain } from "@/lib/types";
 import { formatPercent, getEffectDisplay, getStrainTheme, normalizeTerpeneList } from "@/lib/strain-display";
 
@@ -26,13 +25,12 @@ export function StrainCompareCard({ strain }: StrainCompareCardProps) {
       className="rounded-2xl bg-[#1a1a1a] border-t-2 overflow-hidden"
       style={{ borderTopColor: themeColor }}
     >
-      {/* Header: Image + Name */}
+      {/* Header: Image + Name — using img tag to bypass Vercel image optimization limit */}
       <div className="relative aspect-[4/3] bg-[#252525]">
-        <Image
+        <img
           src={strain.image_url || "/strains/placeholder-1.svg"}
           alt={strain.name}
-          fill
-          className="object-cover"
+          className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute bottom-2 left-2">
           <span

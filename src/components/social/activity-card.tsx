@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Leaf, Sprout, Star } from "lucide-react";
 import type { UserActivity } from "@/lib/types";
@@ -49,12 +48,10 @@ export function ActivityCard({
       <div className="flex items-center gap-3 mb-3">
         <div className="w-8 h-8 rounded-full bg-[#F5F5F5] flex items-center justify-center overflow-hidden">
           {activity.user?.avatar_url ? (
-            <Image
+            <img
               src={activity.user.avatar_url}
               alt={activity.user.display_name || "User"}
-              width={32}
-              height={32}
-              className="object-cover"
+              className="w-full h-full object-cover"
             />
           ) : (
             <span className="text-sm font-bold text-[#999]">

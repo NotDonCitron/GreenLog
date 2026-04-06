@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { BottomNav } from "@/components/bottom-nav";
-import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Leaf, Building2, Loader2, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
@@ -39,7 +38,7 @@ function CommunityCard({ org, role }: { org: Organization; role?: string }) {
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-[var(--muted)] border border-[var(--border)]/50 flex items-center justify-center shrink-0 overflow-hidden">
             {org.logo_url ? (
-              <Image src={org.logo_url} alt={org.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
+              <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
             ) : (
               <Leaf size={20} className="text-[#2FF801]" />
             )}

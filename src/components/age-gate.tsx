@@ -66,8 +66,8 @@ export function AgeGate({ onVerified }: AgeGateProps) {
 
         <div className="relative z-10 text-center space-y-6">
           {/* Logo */}
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
-            <Image src="/logo.png" alt="GreenLog" width={48} height={48} className="object-contain" />
+          <div className="w-32 h-32 relative mx-auto mb-4 drop-shadow-2xl">
+            <Image src="/logo.webp" alt="GreenLog" fill className="object-contain" priority />
           </div>
 
           <div className="space-y-2">

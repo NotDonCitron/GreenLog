@@ -2,7 +2,6 @@
 
 import { useState, memo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import type { SuggestedUser, SuggestedCommunity } from "@/lib/types";
 import { supabase } from "@/lib/supabase/client";
@@ -42,12 +41,10 @@ export const UserSuggestionItem = memo(function UserSuggestionItem({ user, onFol
           <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#FCB045]" />
           <div className="absolute inset-[3px] rounded-full bg-white flex items-center justify-center overflow-hidden">
             {user.avatar_url ? (
-              <Image
+              <img
                 src={user.avatar_url}
                 alt={user.display_name || user.username}
-                width={52}
-                height={52}
-                className="object-cover rounded-full"
+                className="w-full h-full object-cover"
               />
             ) : (
               <span className="text-xl font-bold text-[#999]">
@@ -120,12 +117,10 @@ export const CommunitySuggestionItem = memo(function CommunitySuggestionItem({ c
           <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#833AB4] via-[#FD1D1D] to-[#FCB045]" />
           <div className="absolute inset-[3px] rounded-full bg-white flex items-center justify-center overflow-hidden">
             {community.logo_url ? (
-              <Image
+              <img
                 src={community.logo_url}
                 alt={community.name}
-                width={52}
-                height={52}
-                className="object-cover rounded-full"
+                className="w-full h-full object-cover"
               />
             ) : (
               <span className="text-xl font-bold text-[#999]">

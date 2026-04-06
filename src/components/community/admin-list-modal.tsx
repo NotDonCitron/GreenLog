@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { X, Loader2, Crown, Shield, UserMinus, ArrowDown } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
@@ -123,11 +122,10 @@ export function AdminListModal({ organizationId, onClose, onSuccess, onInvite }:
                 >
                   <div className="w-10 h-10 rounded-full bg-[var(--card)] border border-[var(--border)] flex items-center justify-center shrink-0 overflow-hidden">
                     {admin.profile?.avatar_url ? (
-                      <Image
+                      <img
                         src={admin.profile.avatar_url}
                         alt={admin.profile.display_name || admin.profile.username || "Admin"}
-                        fill
-                        className="object-cover"
+                        className="w-full h-full object-cover"
                       />
                     ) : (
                       <Shield size={18} className="text-[#00F5FF]" />

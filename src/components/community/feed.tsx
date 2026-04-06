@@ -2,7 +2,6 @@
 
 import { useState, useEffect, memo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Leaf, Sprout, Star, Loader2, Trash2, Building2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase/client";
@@ -271,7 +270,7 @@ const FeedItemCard = memo(function FeedItemCard({
         {/* Org logo — top right */}
         <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-[#2FF801]/10 border border-[#2FF801]/30 flex items-center justify-center overflow-hidden z-20">
           {orgLogoUrl ? (
-            <Image src={orgLogoUrl} alt="Community Logo" fill className="object-cover" sizes="32px" />
+            <img src={orgLogoUrl} alt="Community Logo" className="w-full h-full object-cover" />
           ) : (
             <Building2 size={12} className="text-[#2FF801]/60" />
           )}
@@ -296,7 +295,7 @@ const FeedItemCard = memo(function FeedItemCard({
         {/* Avatar */}
         <div className="w-10 h-10 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center shrink-0 overflow-hidden">
           {avatarUrl ? (
-            <Image src={avatarUrl} alt={displayName} fill className="object-cover" sizes="40px" />
+            <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
           ) : (
             <span className="text-[#00F5FF] text-sm font-bold">
               {displayName.charAt(0).toUpperCase()}

@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   compress: true,
+  distDir: "out",
   images: {
     remotePatterns: [
       {

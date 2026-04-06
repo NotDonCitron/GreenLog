@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { X, Loader2, Building2, CheckCircle2, Shield, UserPlus, AlertTriangle } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
@@ -170,7 +169,7 @@ export function PendingInvitesModal({ onClose, onInviteAccepted }: PendingInvite
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-full bg-[var(--card)] border border-[var(--border)] flex items-center justify-center shrink-0 overflow-hidden">
                     {invite.organization?.logo_url ? (
-                      <Image src={invite.organization.logo_url} alt={invite.organization.name} fill className="object-cover" sizes="40px" />
+                      <img src={invite.organization.logo_url} alt={invite.organization.name} className="w-full h-full object-cover" />
                     ) : (
                       <Building2 size={18} className="text-[#2FF801]" />
                     )}

@@ -5,7 +5,9 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 // VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "";
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "";
-const VAPID_SUBJECT = process.env.NEXT_PUBLIC_SITE_URL || "mailto:admin@greenlog.app";
+const VAPID_SUBJECT = process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https")
+  ? process.env.NEXT_PUBLIC_SITE_URL
+  : "mailto:admin@greenlog.app";
 
 if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);

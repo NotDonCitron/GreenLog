@@ -114,7 +114,7 @@ function LoginForm() {
     <div className="w-full max-w-md space-y-8">
       <div className="text-center">
         <div className="w-32 h-32 relative mx-auto mb-4 drop-shadow-2xl">
-          <Image src="/logo.png" alt="CannaLog Logo" fill className="object-contain" priority />
+          <Image src="/logo-transparent.png" alt="CannaLog Logo" fill className="object-contain" priority />
         </div>
         <h1 className="text-3xl font-black uppercase italic tracking-tight mt-2 font-display">{isSignUp ? "Konto erstellen" : "Willkommen"}</h1>
         <p className="text-[var(--muted-foreground)] mt-2">{isSignUp ? "Wähle deinen Benutzernamen und leg los." : "Deine Reise zur perfekten Sammlung beginnt hier."}</p>
