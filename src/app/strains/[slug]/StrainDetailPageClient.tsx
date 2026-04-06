@@ -415,12 +415,6 @@ export default function StrainDetailPageClient() {
 
       setHasCollected(true);
 
-      // Refresh Next.js router to update page data from server components
-      setTimeout(() => {
-        try {
-          router.refresh();
-        } catch (e) { /* ignore */ }
-      }, 0);
     } catch (error: unknown) {
       console.error("Save rating error:", error);
       toastError("Error: " + getErrorMessage(error, "Bewertung konnte nicht gespeichert werden."));
