@@ -52,7 +52,7 @@ export default function StrainDetailPageClient() {
   const [hasCollected, setHasCollected] = useState(false);
 
   // Derive hasCollected from collectedIds - React Query handles updates via useCollection hook
-  const isCollected = collectedIds.includes(strain?.id || "");
+  const isCollected = hasCollected || collectedIds.includes(strain?.id || "");
   const [isDeletable, setIsDeletable] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [batchInfo, setBatchInfo] = useState("");
