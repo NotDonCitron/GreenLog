@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Building2, Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
@@ -24,6 +24,11 @@ export default function NewCommunityPage() {
   const [orgType, setOrgType] = useState<"club" | "pharmacy">("club");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Refresh memberships on mount to ensure we have the latest state
+  useEffect(() => {
+    refreshMemberships();
+  }, []);
 
   const isAlreadyGründer = memberships.some((m) => m.role === USER_ROLES.GRUENDER);
 
@@ -193,7 +198,9 @@ export default function NewCommunityPage() {
                 </SelectTrigger>
                 <SelectContent className="bg-[var(--card)] border border-[var(--border)]/50 text-[var(--foreground)]">
                   <SelectItem value="club">Club</SelectItem>
-                  <SelectItem value="pharmacy">Apotheke</SelectItem>
+                  <SelectItem value="pharmacy" disabled>
+                    Apotheke (auf Anfrage)
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
