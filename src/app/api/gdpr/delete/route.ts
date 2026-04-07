@@ -153,14 +153,39 @@ export async function POST(request: Request) {
 
   // Finally, delete the Supabase Auth user
   // This requires service role and the admin API
+  let authDeletionSucceeded = false;
+
   try {
     const { error: deleteAuthError } = await serviceClient.auth.admin.deleteUser(user.id);
 
     if (deleteAuthError) {
       console.error("Auth user deletion failed:", deleteAuthError.message);
+      authDeletionSucceeded = false;
+    } else {
+      authDeletionSucceeded = true;
     }
   } catch (err) {
     console.error("Auth user deletion error:", err);
+    authDeletionSucceeded = false;
+  }
+
+  // Update the deletion request with auth status
+  await serviceClient
+    .from('gdpr_deletion_requests')
+    .update({
+      auth_deleted: authDeletionSucceeded,
+      auth_deletion_error: !authDeletionSucceeded ? 'Failed to delete auth user — manual intervention required' : null,
+    })
+    .eq('id', deletionRequest.id);
+
+  // Return failure indicator if auth deletion failed
+  if (!authDeletionSucceeded) {
+    return jsonError(
+      "Account data deleted but auth deletion failed. Please contact support.",
+      500,
+      "AUTH_DELETION_FAILED",
+      { deleted_tables: deletedTables, has_active_memberships: hasActiveMemberships }
+    );
   }
 
   return jsonSuccess({
@@ -170,6 +195,7 @@ export async function POST(request: Request) {
     deletion_type: hasActiveMemberships ? 'anonymize' : 'full_delete',
     deleted_tables: deletedTables,
     has_active_memberships: hasActiveMemberships,
+    auth_deleted: true,
     organizations_retained: hasActiveMemberships
       ? (memberships as OrgMembership[] | null)?.map(m => ({
           id: m.organization_id,
