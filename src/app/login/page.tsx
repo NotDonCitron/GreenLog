@@ -20,6 +20,7 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [healthDataConsent, setHealthDataConsent] = useState(false);
+  const [termsConsent, setTermsConsent] = useState(false);
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -73,6 +74,10 @@ function LoginForm() {
       setError("Bitte stimme der Verarbeitung deiner Gesundheitsdaten zu.");
       return;
     }
+    if (!termsConsent) {
+      setError("Bitte akzeptiere die Nutzungsbedingungen.");
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -98,6 +103,13 @@ function LoginForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ consent_type: "health_data_processing", granted: true, version: "1.0" }),
+      });
+
+      // Record ToS consent
+      await fetch("/api/gdpr/consent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ consent_type: "terms_of_service", granted: true, version: "1.0" }),
       });
 
       if (data.session === null) {
@@ -199,6 +211,21 @@ function LoginForm() {
                   <a href="/datenschutz" target="_blank" className="text-[#00F5FF] underline">Datenschutzerklärung</a>
                 </span>
               </label>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={termsConsent}
+                  onChange={(e) => setTermsConsent(e.target.checked)}
+                  className="mt-1 w-4 h-4 rounded border-[var(--border)] bg-[var(--input)] accent-[#00F5FF]"
+                />
+                <span className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                  Ich habe die{" "}
+                  <a href="/agb" target="_blank" className="text-[#00F5FF] underline">Nutzungsbedingungen</a>{" "}
+                  und{" "}
+                  <a href="/datenschutz" target="_blank" className="text-[#00F5FF] underline">Datenschutzerklärung</a>{" "}
+                  gelesen und akzeptiere diese.
+                </span>
+              </label>
             </div>
           )}
 
@@ -206,7 +233,7 @@ function LoginForm() {
             <Button
               type={isSignUp ? "button" : "submit"}
               onClick={isSignUp ? handleSignUp : undefined}
-              disabled={loading}
+              disabled={loading || isSignUp && (!healthDataConsent || !termsConsent)}
               className="w-full h-12 bg-[#00F5FF] text-black font-black hover:bg-[#00F5FF]/80 transition-all tracking-widest"
             >
               {loading ? <Loader2 className="animate-spin" size={20} /> : (
