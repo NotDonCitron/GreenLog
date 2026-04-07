@@ -24,10 +24,12 @@ export default function NewCommunityPage() {
   const [orgType, setOrgType] = useState<"club" | "pharmacy">("club");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(true);
 
   // Refresh memberships on mount to ensure we have the latest state
   useEffect(() => {
-    refreshMemberships();
+    setIsRefreshing(true);
+    refreshMemberships().finally(() => setIsRefreshing(false));
   }, []);
 
   const isAlreadyGründer = memberships.some((m) => m.role === USER_ROLES.GRUENDER);
@@ -83,7 +85,7 @@ export default function NewCommunityPage() {
     }
   };
 
-  if (membershipsLoading) {
+  if (membershipsLoading || isRefreshing) {
     return (
       <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-8">
