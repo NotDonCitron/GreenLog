@@ -36,12 +36,12 @@ export default function BentoLanding() {
         <div className="max-w-6xl mx-auto text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-100 text-sm text-neutral-600 mb-6">
             <Zap size={14} />
-            <span>Die moderne Cannabis-Plattform</span>
+            <span>Die moderne Plattform für Strain-Management</span>
           </div>
           <h1 className="text-5xl md:text-7xl font-semibold tracking-tight mb-6">
             Alles rund um
             <br />
-            <span className="text-neutral-300">Cannabis.</span>
+            <span className="text-neutral-300">Strains.</span>
           </h1>
           <p className="text-xl text-neutral-500 max-w-xl mx-auto mb-10">
             Strains verwalten, Community entdecken, Bewertungen teilen – alles an einem Ort.

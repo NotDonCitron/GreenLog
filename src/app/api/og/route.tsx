@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
               letterSpacing: '0.01em',
             }}
           >
-            Cannabis Strain Tracking
+            Strain Management
           </div>
         </div>
 

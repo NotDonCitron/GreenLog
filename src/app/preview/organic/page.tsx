@@ -125,7 +125,7 @@ export default function OrganicLanding() {
               <span className="text-[#6b8f3c] italic">Natur</span>
             </h1>
             <p className="text-xl text-[#6b5d4f] mb-10 leading-relaxed max-w-lg">
-              Deine Plattform für Cannabis-Kultur. Verwalte Strains, tracke dein Wachstum und verbinde dich mit Gleichgesinnten.
+              Strain-Verwaltung für Cannabis-Organisationen. Verwalte Strains, tracke dein Wachstum und verbinde dich mit Gleichgesinnten.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/login">

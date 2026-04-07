@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     default: 'CannaLog',
     template: '%s | CannaLog',
   },
-  description: 'Cannabis Strain Tracking & Collection',
+  description: 'Strain database and collection management for cannabis organizations',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     url: 'https://greenlog.app',
     siteName: 'CannaLog',
     title: 'CannaLog',
-    description: 'Cannabis Strain Tracking & Collection',
+    description: 'Strain database and collection management for cannabis organizations',
     images: [
       {
         url: '/api/og?title=CannaLog%20%E2%80%93%20Strain%20Tracking',
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'CannaLog',
-    description: 'Cannabis Strain Tracking & Collection',
+    description: 'Strain database and collection management for cannabis organizations',
     images: ['/api/og'],
   },
   robots: {
@@ -98,7 +98,7 @@ export default function RootLayout({
               "@type": "WebApplication",
               "name": "CannaLog",
               "alternateName": "GreenLog",
-              "description": "Cannabis Strain Tracking & Collection – Die Plattform für CSCs, Apotheken und Patienten zur Verwaltung von Cannabis-Sorten.",
+              "description": "Strain database and collection management for cannabis organizations – Die Plattform für CSCs, Apotheken und Patienten zur Verwaltung von Cannabis-Sorten.",
               "applicationCategory": "LifestyleApplication",
               "operatingSystem": "Web, iOS, Android",
               "url": "https://greenlog.app",

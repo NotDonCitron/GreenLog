@@ -141,7 +141,7 @@ export default function LandingPage() {
           {/* Headline */}
           <ScrollAnimator animation="fade-up" delay={100}>
             <h1 className="text-5xl md:text-6xl font-black tracking-tight mb-6 font-display">
-              Deine Plattform für <span className="text-white">Cannabis</span>
+              Strain-Datenbank für <span className="text-white">Cannabis-Organisationen</span>
             </h1>
           </ScrollAnimator>
 
@@ -149,7 +149,7 @@ export default function LandingPage() {
           <ScrollAnimator animation="fade-up" delay={200}>
             <p className="text-xl text-[var(--muted-foreground)] mb-10 max-w-2xl mx-auto">
               Verwalte Strains, teile Bewertungen und entdecke neue Sorten.
-              CannaLog macht es einfach.
+              Für Clubs und Apotheken.
             </p>
           </ScrollAnimator>
 

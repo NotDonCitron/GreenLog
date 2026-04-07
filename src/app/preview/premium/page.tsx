@@ -77,7 +77,7 @@ export default function PremiumLanding() {
 
               <div className="inline-flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-[#c9a84c]/70 mb-8">
                 <Sparkles size={14} />
-                <span>Exklusive Cannabis-Plattform</span>
+                <span>Exklusive Plattform für Organisationen</span>
               </div>
 
               <h1 className="text-5xl md:text-7xl font-light leading-[1.1] mb-8 tracking-tight">
@@ -211,7 +211,7 @@ export default function PremiumLanding() {
                 Für <span className="text-[#c9a84c] italic" style={{ fontFamily: "Georgia, serif" }}>Anspruchsvolle</span>
               </h2>
               <p className="text-[#f5f0e8]/50 leading-relaxed mb-8 font-light">
-                GreenLog ist mehr als eine Datenbank – es ist eine Hommage an die Kultur des Cannabis. Jede Sorte wird mit der Sorgfalt präsentiert, die sie verdient.
+                GreenLog ist mehr als eine Datenbank – es ist eine Plattform für professionelles Strain-Management. Jede Sorte wird mit der Sorgfalt präsentiert, die sie verdient.
               </p>
               <div className="space-y-4">
                 {["Handverlesene Qualität", "Detaillierte Terpene-Profile", "Exklusive Bewertungen", "Private Sammlung"].map((item, i) => (
