@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input";
 import { OrgLogoUpload } from "@/components/community/org-logo-upload";
 
 export default function SettingsOrganizationPage() {
-  const { activeOrganization, session, isDemoMode } = useAuth();
+  const { activeOrganization, session, isDemoMode, refreshMemberships } = useAuth();
   const router = useRouter();
 
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -87,6 +87,8 @@ export default function SettingsOrganizationPage() {
       );
       const json = await res.json();
       if (!res.ok) throw new Error(json.error?.message || "Fehler beim Löschen");
+      // Refresh memberships so the org is removed from auth state
+      await refreshMemberships();
       setDeleteMessage({ type: "success", msg: "Community gelöscht. Du wirst zurückgeleitet..." });
       setTimeout(() => router.push("/community"), 1500);
     } catch (err: unknown) {
