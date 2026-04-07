@@ -87,8 +87,7 @@ export async function POST(request: Request) {
             message: message,
             type: type,
             read: false,
-            data: data,
-            pushed_at: new Date().toISOString()
+            data: data
         })
         .select()
         .single();

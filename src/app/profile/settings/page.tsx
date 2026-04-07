@@ -331,7 +331,6 @@ export default function SettingsPage() {
           <ChevronLeft size={20} />
         </button>
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#00F5FF]">Account</p>
           <h1 className="text-2xl font-black italic uppercase font-display">Einstellungen</h1>
         </div>
       </header>
