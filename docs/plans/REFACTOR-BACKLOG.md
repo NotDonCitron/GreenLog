@@ -46,6 +46,8 @@ export async function getUserMembership(supabase, organizationId: string, userId
 - Manche brauchen nur `role`, andere `role + membership_status`
 - Breaking Change wenn sich das Query ändert
 
+**Status: SKIPPED** — no membership tests in tests/ directory (per task constraint)
+
 **Empfehlung:** Erst Tests schreiben, dann refactoren.
 
 ---
@@ -59,6 +61,8 @@ export async function getUserMembership(supabase, organizationId: string, userId
 - Organization-Member-Listen
 - Invite-Flows
 - Dropdown-Menüs für Rollen-Auswahl
+
+**Status: DONE** — already completed (17 Dateien umgestellt per prior work)
 
 **Aufwand:** Mittel (20+ Dateien, aber jeder Replace ist trivial)
 
@@ -128,3 +132,5 @@ if (!STRAIN_TYPES.includes(scrapedData.type)) {
 - [x] `toLocaleDateString()` → ISO slice in CSV-Export
 - [x] WHAT-Kommentare aus API-Routen entfernt
 - [x] Redundanter String-Check bei Bild-Löschung entfernt
+- [x] Item 2: Role-Strings Frontend auf `USER_ROLES` umgestellt (bereits erledigt)
+- [ ] Item 1: Membership-Check Helper (SKIPPED — keine membership tests)
