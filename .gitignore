@@ -52,6 +52,15 @@ scripts/.image-pipeline-lock.json
 !package.json
 !tsconfig.json
 
+# strain images (stored in Supabase storage, not needed for deploy)
+public/strains/
+
+# android / capacitor (not deployed)
+android/
+
+# build output
+out/
+
 # dev docs
 docs/strains-missing-images.md
 
