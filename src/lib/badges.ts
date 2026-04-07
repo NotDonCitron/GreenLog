@@ -27,12 +27,6 @@ export const ALL_BADGES: BadgeDefinition[] = [
   { id: 'indica-5', name: 'Indica Kenner', description: '5 Indica Strains', icon: 'moon', category: 'collection', tier: 2, criteriaKey: 'indica-5' },
   { id: 'hybrid-5', name: 'Hybrid Liebhaber', description: '5 Hybrid Strains', icon: 'sparkles', category: 'collection', tier: 2, criteriaKey: 'hybrid-5' },
   { id: 'pharmacy-10', name: 'Apotheke Favorit', description: '10 Apotheken-Strains', icon: 'building', category: 'collection', tier: 2, criteriaKey: 'pharmacy-10' },
-  { id: 'grow-master', name: 'Grow Master', description: '10 Eigenanbau-Strains', icon: 'sprout', category: 'collection', tier: 2, criteriaKey: 'grow-master' },
-  { id: 'thc-champion', name: 'THC Champion', description: '5 Strains mit >20% THC', icon: 'zap', category: 'collection', tier: 3, criteriaKey: 'thc-champion' },
-  // Grow Badges
-  { id: 'first-grow', name: 'Greenhorn', description: 'Erster Grow gestartet', icon: 'sprout', category: 'grow', tier: 1, criteriaKey: 'first-grow' },
-  { id: 'harvest-1', name: 'Erntezeit', description: '1 Grow abgeschlossen', icon: 'wheat', category: 'grow', tier: 2, criteriaKey: 'harvest-1' },
-  { id: 'perfectionist-5', name: 'Perfektionist', description: '5 Grows abgeschlossen', icon: 'star', category: 'grow', tier: 3, criteriaKey: 'perfectionist-5' },
   // Social Badges
   { id: 'first-follower', name: 'Neuling', description: 'Erster Follower', icon: 'users', category: 'social', tier: 1, criteriaKey: 'first-follower' },
   { id: 'community-10', name: 'Community', description: '10 Follower', icon: 'users', category: 'social', tier: 2, criteriaKey: 'community-10' },
@@ -105,43 +99,6 @@ export const BADGE_CRITERIA: Record<string, BadgeCriteria> = {
       .eq('user_id', userId);
     const pharmacyStrains = (data || []).filter((c) => (c as { strains?: { source?: string } }).strains?.source === 'pharmacy');
     return pharmacyStrains.length >= 10;
-  },
-  'grow-master': async ({ supabase, userId }) => {
-    const { data } = await supabase
-      .from('user_collection').select('strain_id, strains!inner(source)')
-      .eq('user_id', userId);
-    const growStrains = (data || []).filter((c) => (c as { strains?: { source?: string } }).strains?.source === 'grow');
-    return growStrains.length >= 10;
-  },
-  // THC Champion
-  'thc-champion': async ({ supabase, userId }) => {
-    const { data } = await supabase
-      .from('user_collection').select('strain_id, strains!inner(avg_thc, thc_max)')
-      .eq('user_id', userId);
-    const highThcStrains = (data || []).filter((c) => {
-      const strain = Array.isArray(c.strains) ? c.strains[0] : c.strains;
-      const thc = strain?.avg_thc || strain?.thc_max || 0;
-      return thc > 20;
-    });
-    return highThcStrains.length >= 5;
-  },
-  'first-grow': async ({ supabase, userId }) => {
-    const { count } = await supabase
-      .from('grows').select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
-    return (count ?? 0) >= 1;
-  },
-  'harvest-1': async ({ supabase, userId }) => {
-    const { count } = await supabase
-      .from('grows').select('*', { count: 'exact', head: true })
-      .eq('user_id', userId).eq('status', 'completed');
-    return (count ?? 0) >= 1;
-  },
-  'perfectionist-5': async ({ supabase, userId }) => {
-    const { count } = await supabase
-      .from('grows').select('*', { count: 'exact', head: true })
-      .eq('user_id', userId).eq('status', 'completed');
-    return (count ?? 0) >= 5;
   },
   'first-follower': async ({ supabase, userId }) => {
     const { count } = await supabase

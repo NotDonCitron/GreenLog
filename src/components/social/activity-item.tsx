@@ -2,7 +2,7 @@
 
 import { memo, useState } from "react";
 import Link from "next/link";
-import { Star, Sprout, Trophy, Heart, TrendingUp, Loader2, HeartOff } from "lucide-react";
+import { Star, Trophy, Heart, Loader2 } from "lucide-react";
 import type { UserActivity, ProfileRow } from "@/lib/types";
 import { supabase } from "@/lib/supabase/client";
 
@@ -16,10 +16,6 @@ function getActivityIcon(type: string) {
     switch (type) {
         case "rating":
             return Star;
-        case "grow_started":
-            return Sprout;
-        case "grow_completed":
-            return TrendingUp;
         case "badge_earned":
             return Trophy;
         case "favorite_added":
@@ -35,10 +31,6 @@ function getActivityIconColor(type: string): string {
     switch (type) {
         case "rating":
             return "text-yellow-400";
-        case "grow_started":
-            return "text-[#2FF801]";
-        case "grow_completed":
-            return "text-[#2FF801]";
         case "badge_earned":
             return "text-yellow-400";
         case "favorite_added":
@@ -55,11 +47,6 @@ function getActivityText(activity: UserActivity): string {
         case "rating":
             const rating = activity.metadata?.rating as number | undefined;
             return `hat ${activity.target_name} bewertet${rating ? ` (${rating}/5)` : ""}`;
-        case "grow_started":
-            return `hat einen neuen Grow gestartet: ${activity.target_name}`;
-        case "grow_completed":
-            const yield_grams = activity.metadata?.yield_grams as number | undefined;
-            return `hat Grow abgeschlossen: ${activity.target_name}${yield_grams ? ` (${yield_grams}g Ertrag)` : ""}`;
         case "badge_earned":
             return `hat Badge freigeschaltet: ${activity.target_name}`;
         case "favorite_added":

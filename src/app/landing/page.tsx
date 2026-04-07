@@ -317,6 +317,33 @@ export default function LandingPage() {
             </Link>
           </div>
         </div>
+        {/* Jugendschutz & Suchtberatung */}
+        <div className="max-w-5xl mx-auto mt-6 pt-6 border-t border-[var(--border)] text-center">
+          <p className="text-xs text-[var(--muted-foreground)]">
+            <strong>Jugendschutz:</strong> Cannabis und Vermehrungsmaterial müssen vor dem Zugriff Minderjähriger geschützt werden (§ 10 KCanG).
+            Diese Plattform richtet sich ausschließlich an volljährige Personen.
+          </p>
+          <p className="text-xs text-[var(--muted-foreground)] mt-2">
+            Du oder jemand, den du kennst, hat Probleme mit Cannabis?&nbsp;
+            <a
+              href="https://www.bundesgesundheitsministerium.de/service/iv-beratungsstellensuche"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-[#00F5FF] transition-colors"
+            >
+              Beratungsstellen in deiner Nähe finden
+            </a>
+            &nbsp;— oder kontaktiere die&nbsp;
+            <a
+              href="https://www.dhs.de/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-[#00F5FF] transition-colors"
+            >
+              Deutsche Hauptstelle für Suchtfragen (DHS)
+            </a>.
+          </p>
+        </div>
       </footer>
     </main>
     </>

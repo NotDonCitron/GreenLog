@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'AGB',
-  description: 'Allgemeine Geschäftsbedingungen von CannaLog',
+  description: 'Allgemeine Geschäftsbedingungen von CannaLog — Widerrufsrecht, Zahlungsbedingungen, Vertragsschluss und Kündigung.',
 }
 
 export default function AGBPage() {
@@ -72,9 +72,53 @@ export default function AGBPage() {
       </section>
 
       <section>
-        <h2>8. Schlussbestimmungen</h2>
+        <h2>8. Widerrufsrecht</h2>
         <p>
-          Es gilt das Recht der Bundesrepublik Deutschland.
+          Verbrauchern steht ein gesetzliches Widerrufsrecht zu. Sofern Sie als Verbraucher
+          handeln, können Sie Ihre Vertragserklärung innerhalb von 14 Tagen ohne Angabe von
+          Gründen widerrufen. Die Widerrufsfrist beginnt mit dem Tag des Vertragsschlusses.
+          Um Ihr Widerrufsrecht auszuüben, genügt eine eindeutige Erklärung (z. B. per
+          E-Mail an <a href="mailto:support@greenlog.app">support@greenlog.app</a>).
+        </p>
+      </section>
+
+      <section>
+        <h2>9. Zahlungsbedingungen</h2>
+        <p>
+          Kostenpflichtige Premium-Features werden über die angebotenen Zahlungsmethoden
+          abgerechnet. Alle Preise verstehen sich in Euro inklusive der gesetzlichen
+          Umsatzsteuer. Die Bezahlung erfolgt je nach gewählter Zahlungsmethode im Voraus.
+          Bei Zahlungsverzug sind wir berechtigt, den Zugang zu Premium-Features zu sperren.
+        </p>
+      </section>
+
+      <section>
+        <h2>10. Vertragsschluss und Laufzeit</h2>
+        <p>
+          Der Vertrag über die Nutzung der CannaLog-Plattform kommt mit der erfolgreichen
+          Registrierung zustande. Premium-Abonnements werden für die gewählte Laufzeit
+          (monatlich oder jährlich) abgeschlossen und verlängern sich automatisch, sofern
+          sie nicht mindestens 30 Tage vor Ende der Laufzeit gekündigt werden.
+        </p>
+      </section>
+
+      <section>
+        <h2>11. Kündigung und Account-Löschung</h2>
+        <p>
+          Sie können Ihren Account jederzeit löschen. Die Löschung kann über die
+          Account-Einstellungen oder per E-Mail an <a href="mailto:support@greenlog.app">support@greenlog.app</a> erfolgen.
+          Nach der Löschung werden Ihre personenbezogenen Daten gemäß unserer
+          Datenschutzerklärung verarbeitet und gelöscht. Laufende Premium-Abos werden
+          nicht rückerstattet.
+        </p>
+      </section>
+
+      <section>
+        <h2>12. Schlussbestimmungen</h2>
+        <p>
+          Es gilt das Recht der Bundesrepublik Deutschland. Soweit gesetzlich zulässig,
+          ist Gerichtsstand für alle Streitigkeiten aus oder im Zusammenhang mit diesen
+          AGB der Sitz von CannaLog.
         </p>
       </section>
     </div>
