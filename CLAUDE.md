@@ -140,8 +140,8 @@ gründer, admin, member, viewer
 | P0 | Composite Index auf `follows(follower_id, following_id)` | ✅ War bereits vorhanden |
 | P1 | Badge-Check nur bei relevanten Events | ✅ War bereits korrekt (event-driven, nicht login) |
 | P1 | Types ↔ Schema Strains-Konsistenz | ✅ DONE (Migration 20260401080000) |
-| P2 | React Query / SWR für Data-Fetching | 🔲 Noch offen |
-| P2 | PWA / App-Store readiness | 🔲 Noch offen |
+| P2 | React Query / SWR für Data-Fetching | ✅ DONE (Basis vorhanden — useCollection, follow-button, StrainDetailPageClient; weitere Pages optional) |
+| P2 | PWA / App-Store readiness | ✅ DONE (manifest.json, appleWebApp metadata, viewport-fit, ServiceWorker — native App kommt später) |
 
 ### Strain Image Admin Override
 

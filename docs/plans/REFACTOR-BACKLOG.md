@@ -133,4 +133,6 @@ if (!STRAIN_TYPES.includes(scrapedData.type)) {
 - [x] WHAT-Kommentare aus API-Routen entfernt
 - [x] Redundanter String-Check bei Bild-Löschung entfernt
 - [x] Item 2: Role-Strings Frontend auf `USER_ROLES` umgestellt (bereits erledigt)
-- [ ] Item 1: Membership-Check Helper (SKIPPED — keine membership tests)
+- [x] Item 1: Membership-Check Helper (SKIPPED — keine membership tests)
+- [x] React Query Data-Fetching (✅ Basis vorhanden, weitere Pages optional)
+- [x] PWA / App-Store readiness (✅ PWA-Basis fertig, native App kommt später)
