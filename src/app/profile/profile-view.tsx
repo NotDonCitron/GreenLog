@@ -52,6 +52,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
+import { useToast } from "@/components/toast-provider";
 
 import { FollowersListModal } from "@/components/social/followers-list-modal";
 import { lazy, Suspense } from "react";
@@ -174,6 +175,7 @@ export default function ProfilePage() {
   const { user, signOut, loading, isDemoMode } = useAuth();
   const router = useRouter();
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const { success: toastSuccess, error: toastError } = useToast();
 
   const [viewModel, setViewModel] = useState<ProfileViewModel>(() => createFallbackViewModel(false));
   const [pageState, setPageState] = useState<"loading" | "ready" | "error">("loading");
@@ -188,6 +190,7 @@ export default function ProfilePage() {
   const [showBadgeShowcase, setShowBadgeShowcase] = useState(false);
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const [userBadges, setUserBadges] = useState<Array<{ badge_id: string; badges?: Partial<import("@/lib/badges").BadgeDefinition> }>>([]);
+  const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
   const currentUserId = user?.id ?? "";
 
   useEffect(() => {
@@ -452,8 +455,19 @@ export default function ProfilePage() {
   };
 
   const handleToggleVisibility = async () => {
-    if (!user || isDemoMode) return;
-    const nextVisibility = identity.profileVisibility === "public" ? "private" : "public";
+    if (!user || isDemoMode || isTogglingVisibility) return;
+
+    setIsTogglingVisibility(true);
+
+    // Optimistic update
+    const wasPublic = identity.profileVisibility === "public";
+    const nextVisibility = wasPublic ? "private" : "public";
+
+    // Immediately update UI
+    setViewModel(prev => ({
+      ...prev,
+      identity: { ...prev.identity, profileVisibility: nextVisibility }
+    }));
 
     try {
       const { error } = await supabase
@@ -462,9 +476,20 @@ export default function ProfilePage() {
         .eq("id", user.id);
 
       if (error) throw error;
-      await fetchProfile();
+
+      toastSuccess(`Profil ist nun ${nextVisibility === "public" ? "öffentlich" : "privat"}`);
     } catch (e) {
       console.error("Visibility toggle error:", e);
+
+      // Revert optimistic update on error
+      setViewModel(prev => ({
+        ...prev,
+        identity: { ...prev.identity, profileVisibility: wasPublic ? "public" : "private" }
+      }));
+
+      toastError("Fehler beim Ändern der Sichtbarkeit. Bitte versuche es erneut.");
+    } finally {
+      setIsTogglingVisibility(false);
     }
   };
 
@@ -804,9 +829,20 @@ export default function ProfilePage() {
             </div>
             <button
               onClick={handleToggleVisibility}
-              className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${isPublic ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]' : 'bg-[var(--muted)] border-[var(--border)]/50 text-[var(--muted-foreground)]'}`}
+              disabled={isTogglingVisibility}
+              className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${
+                isPublic
+                  ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]'
+                  : 'bg-[var(--muted)] border-[var(--border)]/50 text-[var(--muted-foreground)]'
+              } ${isTogglingVisibility ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80'}`}
             >
-              {isPublic ? <Eye size={20} /> : <EyeOff size={20} />}
+              {isTogglingVisibility ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : isPublic ? (
+                <Eye size={20} />
+              ) : (
+                <EyeOff size={20} />
+              )}
             </button>
           </div>
         </section>
