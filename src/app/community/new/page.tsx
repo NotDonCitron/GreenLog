@@ -113,10 +113,17 @@ export default function NewCommunityPage() {
               Du bist bereits Gründer
             </h1>
             <p className="text-[var(--muted-foreground)] text-sm">
-              Du hast bereits eine Community gegründet. Du kannst nur eine Community pro Account erstellen.
+              Du hast bereits eine Community gegründet und kannst keine weitere erstellen.
             </p>
             <Button
-              onClick={() => router.push("/community")}
+              onClick={() => {
+                const myMembership = memberships.find((m) => m.role === USER_ROLES.GRUENDER);
+                if (myMembership?.organization?.id) {
+                  router.push(`/community/${myMembership.organization.id}`);
+                } else {
+                  router.push("/community");
+                }
+              }}
               className="w-full bg-gradient-to-r from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black text-xs font-black uppercase tracking-widest"
             >
               Zu meiner Community
