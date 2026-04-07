@@ -36,6 +36,6 @@ export async function POST(request: Request) {
 
         return jsonSuccess({ notification: "Test Benachrichtigung erstellt", push: pushResult });
     } catch (error) {
-        return jsonError(`Unexpected error: ${(error as Error).message}`, 500);
+        return new Response(JSON.stringify({ error: (error as Error).message }), { status: 500 });
     }
 }

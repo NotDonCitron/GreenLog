@@ -1,13 +1,6 @@
 import { supabase, getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
-
-const APP_ADMIN_IDS = process.env.APP_ADMIN_IDS || "";
-
-function isAppAdmin(userId: string): boolean {
-    if (!APP_ADMIN_IDS) return false;
-    const adminIds = APP_ADMIN_IDS.split(",").map(id => id.trim()).filter(Boolean);
-    return adminIds.includes(userId);
-}
+import { isAppAdmin } from "@/lib/auth";
 
 function getErrorMessage(error: unknown, fallback: string): string {
     if (error instanceof Error && error.message) return error.message;

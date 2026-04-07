@@ -1,5 +1,7 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { sanitizeSlug } from "@/lib/sanitize";
+import { USER_ROLES, ORG_STATUS_VALUES } from "@/lib/roles";
 
 type RouteParams = { params: Promise<{ organizationId: string }> };
 

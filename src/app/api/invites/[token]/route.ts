@@ -1,12 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
-import { createHash } from "crypto";
 import { jsonSuccess, jsonError } from "@/lib/api-response";
+import { hashToken } from "@/lib/invites";
 
 type RouteParams = { params: Promise<{ token: string }> };
-
-function hashToken(token: string): string {
-    return createHash("sha256").update(token).digest("hex");
-}
 
 // POST /api/invites/[token]
 export async function POST(request: Request, { params }: RouteParams) {

@@ -1,17 +1,11 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
-import { createHash, randomBytes } from "crypto";
 import { writeOrganizationActivity } from "@/lib/organization-activities";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { generateInviteToken, hashToken } from "@/lib/invites";
+import { USER_ROLES } from "@/lib/roles";
+import { isValidEmail } from "@/lib/validation";
 
 type RouteParams = { params: Promise<{ organizationId: string }> };
-
-function generateInviteToken(): string {
-    return randomBytes(32).toString("hex");
-}
-
-function hashToken(token: string): string {
-    return createHash("sha256").update(token).digest("hex");
-}
 
 // GET /api/organizations/[organizationId]/invites
 export async function GET(request: Request, { params }: RouteParams) {
@@ -33,7 +27,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         return jsonError("Forbidden", 403);
     }
 
-    const canManage = membership.role === "gründer" || membership.role === "admin";
+    const canManage = membership.role === USER_ROLES.GRUENDER || membership.role === USER_ROLES.ADMIN;
 
     if (!canManage) {
         return jsonError("Forbidden", 403);
@@ -73,7 +67,7 @@ export async function POST(request: Request, { params }: RouteParams) {
         return jsonError("Forbidden", 403);
     }
 
-    const canManage = membership.role === "gründer" || membership.role === "admin";
+    const canManage = membership.role === USER_ROLES.GRUENDER || membership.role === USER_ROLES.ADMIN;
 
     if (!canManage) {
         return jsonError("Forbidden", 403);
@@ -86,8 +80,7 @@ export async function POST(request: Request, { params }: RouteParams) {
         return jsonError("email and role are required", 400);
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!isValidEmail(email)) {
         return jsonError("Invalid email format", 400);
     }
 
@@ -95,7 +88,7 @@ export async function POST(request: Request, { params }: RouteParams) {
         return jsonError("role must be admin, staff, or member", 400);
     }
 
-    if (role === "admin" && membership.role !== "gründer") {
+    if (role === "admin" && membership.role !== USER_ROLES.GRUENDER) {
         return jsonError("Only gründer can invite admins", 403);
     }
 
@@ -184,7 +177,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         return jsonError("Forbidden", 403);
     }
 
-    const canManage = membership.role === "gründer" || membership.role === "admin";
+    const canManage = membership.role === USER_ROLES.GRUENDER || membership.role === USER_ROLES.ADMIN;
 
     if (!canManage) {
         return jsonError("Forbidden", 403);
