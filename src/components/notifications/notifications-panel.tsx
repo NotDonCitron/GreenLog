@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Bell, Loader2, UserPlus, X, Check, BellRing } from "lucide-react";
+import { Bell, Loader2, UserPlus, X, Check, BellRing, Award, Star } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { usePushSubscription, requestPushPermission } from "@/hooks/usePushSubscription";
@@ -45,7 +45,7 @@ export function NotificationsPanel() {
       });
       if (notifRes.ok) {
         const notifData = await notifRes.json();
-        setNotifications(notifData.notifications || []);
+        setNotifications(notifData.data?.notifications || []);
       }
 
       // Fetch pending invites
@@ -54,7 +54,7 @@ export function NotificationsPanel() {
       });
       if (invitesRes.ok) {
         const invitesData = await invitesRes.json();
-        setPendingInvites(invitesData.invites || []);
+        setPendingInvites(invitesData.data?.invites || []);
       }
     } catch (err) {
       console.error("Error fetching notifications:", err);
@@ -178,11 +178,11 @@ export function NotificationsPanel() {
             </div>
 
             <div className="max-h-[60vh] overflow-y-auto">
-              {/* Follower Notifications */}
+              {/* Notifications */}
               {notifications.length > 0 && (
                 <div className="p-4 border-b border-[var(--border)]">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
-                    Neue Follower
+                    Aktivität
                   </h3>
                   <div className="space-y-2">
                     {notifications.map(n => (
@@ -190,17 +190,25 @@ export function NotificationsPanel() {
                         key={n.id}
                         className={`flex items-center gap-3 p-3 rounded-xl ${n.read ? "bg-[var(--muted)]/30" : "bg-[#00F5FF]/10 border border-[#00F5FF]/30"}`}
                       >
-                        <div className="w-10 h-10 rounded-full bg-[var(--primary)] flex items-center justify-center">
-                          <UserPlus size={18} />
+                        <div className="w-10 h-10 rounded-full bg-[var(--muted)] flex items-center justify-center flex-shrink-0">
+                          {n.type === "new_follower" || n.type === "follow_request" ? (
+                            <UserPlus size={18} className="text-[#00F5FF]" />
+                          ) : n.type === "badge_unlocked" ? (
+                            <Award size={18} className="text-yellow-500" />
+                          ) : n.type === "strain_review" ? (
+                            <Star size={18} className="text-[#2FF801]" />
+                          ) : (
+                            <Bell size={18} />
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm">{n.title}</p>
-                          <p className="text-xs text-[var(--muted-foreground)] truncate">{n.message}</p>
+                          <p className="text-xs text-[var(--muted-foreground)] line-clamp-2">{n.message}</p>
                         </div>
                         {!n.read && (
                           <button
                             onClick={() => void markAsRead(n.id)}
-                            className="text-xs text-[#00F5FF] hover:underline"
+                            className="text-[10px] font-bold text-[#00F5FF] uppercase tracking-wider flex-shrink-0"
                           >
                             Gelesen
                           </button>
