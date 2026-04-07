@@ -105,7 +105,15 @@ export function CookieConsentBanner() {
           </button>
         </div>
         <button
-          onClick={() => setIsVisible(false)}
+          onClick={() => {
+            try {
+              localStorage.setItem(COOKIE_CONSENT_KEY, 'essential')
+            } catch {
+              console.warn('Cookie consent storage failed')
+            }
+            setConsent('essential')
+            setIsVisible(false)
+          }}
           className="absolute top-2 right-2 p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
           aria-label="Dismiss cookie banner"
         >

@@ -68,9 +68,15 @@ export function NotificationsPanel() {
   usePushSubscription(session?.user?.id);
 
   useEffect(() => {
-    // Initialize push state from browser permission status
+    // Initialize push state from localStorage (persisted unsubscriptions)
+    // Only override with permission if localStorage flag doesn't exist
     if ("Notification" in window) {
-      setPushEnabled(Notification.permission === "granted");
+      const stored = localStorage.getItem("cannalog_push_enabled");
+      if (stored !== null) {
+        setPushEnabled(stored === "true");
+      } else {
+        setPushEnabled(Notification.permission === "granted");
+      }
     }
   }, []);
 
@@ -123,6 +129,9 @@ export function NotificationsPanel() {
 
   if (!session) return null;
 
+  const pushAvailable = "Notification" in window && Notification.permission !== "denied";
+  const showPushHint = pushAvailable && !pushEnabled;
+
   return (
     <>
       <button
@@ -140,6 +149,9 @@ export function NotificationsPanel() {
             {totalUnread > 9 ? "9+" : totalUnread}
           </span>
         )}
+        {showPushHint && (
+          <span className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-[#F5A623] border-2 border-[var(--card)]" title="Push deaktiviert – Klicke für Benachrichtigungen" />
+        )}
       </button>
 
       {isOpen && (
@@ -153,26 +165,36 @@ export function NotificationsPanel() {
                   <button
                     onClick={async () => {
                       if (pushEnabled) {
-                        // Disable push: unsubscribe from push manager
+                        // Optimistic UI update immediately
+                        setPushEnabled(false);
+                        localStorage.setItem("cannalog_push_enabled", "false");
+
+                        // Then unsubscribe from push manager
                         try {
                           const registration = await navigator.serviceWorker.ready;
                           const sub = await registration.pushManager.getSubscription();
                           if (sub) {
+                            await sub.unsubscribe();
                             await fetch("/api/push/unsubscribe", {
                               method: "POST",
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify({ endpoint: sub.endpoint }),
                             });
-                            await sub.unsubscribe();
-                            setPushEnabled(false);
-                            localStorage.removeItem("cannalog_push_enabled");
                           }
                         } catch (err) {
                           console.warn("[Push] Unsubscribe failed:", err);
+                          // Revoke on failure so state stays consistent
+                          const permission = Notification.permission;
+                          if (permission === "granted") {
+                            // stay disabled, localStorage already set
+                          }
                         }
                       } else {
                         const granted = await requestPushPermission();
-                        if (granted) setPushEnabled(true);
+                        if (granted) {
+                          setPushEnabled(true);
+                          localStorage.setItem("cannalog_push_enabled", "true");
+                        }
                       }
                     }}
                     className={`p-2 rounded-lg transition-all ${pushEnabled ? "bg-[#2FF801]/10 text-[#2FF801]" : "hover:bg-[var(--muted)] text-[var(--muted-foreground)]"}`}
@@ -186,6 +208,24 @@ export function NotificationsPanel() {
                 </button>
               </div>
             </div>
+
+            {showPushHint && (
+              <div className="mx-4 mt-4 p-3 rounded-xl bg-[#F5A623]/10 border border-[#F5A623]/30 flex items-center gap-3">
+                <Bell size={18} className="text-[#F5A623] flex-shrink-0" />
+                <p className="text-xs text-[var(--foreground)] flex-1">
+                  <span className="font-bold">Push deaktiviert.</span> Aktiviere Benachrichtigungen, um aktuell zu bleiben.
+                </p>
+                <button
+                  onClick={async () => {
+                    const granted = await requestPushPermission();
+                    if (granted) setPushEnabled(true);
+                  }}
+                  className="text-[10px] font-black text-black bg-[#F5A623] px-3 py-1.5 rounded-lg uppercase tracking-wider hover:bg-[#F5A623]/80 transition-colors"
+                >
+                  Aktivieren
+                </button>
+              </div>
+            )}
 
             <div className="max-h-[60vh] overflow-y-auto">
               {/* Notifications */}
