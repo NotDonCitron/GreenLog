@@ -82,7 +82,7 @@ export function NotificationsPanel() {
 
   useEffect(() => {
     void fetchData();
-    const interval = setInterval(() => void fetchData(), 30000);
+    const interval = setInterval(() => void fetchData(), 10000);
     return () => clearInterval(interval);
   }, [fetchData]);
 

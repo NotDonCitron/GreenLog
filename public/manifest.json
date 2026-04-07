@@ -1,11 +1,11 @@
 {
-  "name": "GreenLog",
-  "short_name": "GreenLog",
-  "description": "Strain Tracker & Grow Journal",
+  "name": "CannaLog – Strain Tracker & Collection",
+  "short_name": "CannaLog",
+  "description": "Strain database and collection management for cannabis organizations",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
-  "theme_color": "#22c55e",
+  "theme_color": "#0a0a0a",
   "orientation": "portrait",
   "scope": "/",
   "icons": [
@@ -16,13 +16,26 @@
       "purpose": "any"
     },
     {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "categories": ["lifestyle", "medical"],
   "lang": "de",
-  "dir": "ltr"
+  "dir": "ltr",
+  "handle_links": "preferred"
 }
