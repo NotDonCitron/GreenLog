@@ -71,7 +71,7 @@ export async function PATCH(
         const arrayBuffer = await imageFile.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
-        if (strain.image_url && strain.image_url.includes("/strains-images/")) {
+        if (strain.image_url) {
             try {
                 const oldPathMatch = strain.image_url.match(/\/strains-images\/(.+)$/);
                 if (oldPathMatch) {

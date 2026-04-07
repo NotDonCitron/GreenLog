@@ -12,7 +12,6 @@ function hashToken(token: string): string {
     return createHash("sha256").update(token).digest("hex");
 }
 
-// POST /api/communities/[id]/invite
 export async function POST(request: Request, { params }: RouteParams) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (!auth) return;

@@ -132,7 +132,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     const username = r.user?.display_name || r.user?.username || "Unbekannt";
     const strainName = r.strain?.name || "Unbekannt";
     const review = (r.review as string) || "";
-    const date = new Date(r.created_at).toLocaleDateString("de-DE");
+    const date = r.created_at.slice(0, 10);
     lines.push(`"${sanitizeCsvCell(strainName)}","${sanitizeCsvCell(username)}",${r.rating},"${sanitizeCsvCell(review)}",${date}`);
   }
 

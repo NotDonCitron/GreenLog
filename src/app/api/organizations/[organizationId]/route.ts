@@ -3,8 +3,6 @@ import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response"
 
 type RouteParams = { params: Promise<{ organizationId: string }> };
 
-// GET /api/organizations/[organizationId]
-// Get organization details
 export async function GET(request: Request, { params }: RouteParams) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (!auth) return;
@@ -37,8 +35,6 @@ export async function GET(request: Request, { params }: RouteParams) {
     return jsonSuccess({ organization, user_role: membership.role });
 }
 
-// PATCH /api/organizations/[organizationId]
-// Update organization details (name, slug, etc.)
 export async function PATCH(request: Request, { params }: RouteParams) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (!auth) return;
@@ -96,8 +92,6 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return jsonSuccess({ organization: updated });
 }
 
-// DELETE /api/organizations/[organizationId]
-// Delete (archive) an organization — gründer only
 export async function DELETE(request: Request, { params }: RouteParams) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (!auth) return;
