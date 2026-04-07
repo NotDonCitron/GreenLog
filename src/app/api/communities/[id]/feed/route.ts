@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase/client";
 import { createClient } from "@supabase/supabase-js";
 import { jsonSuccess, jsonError } from "@/lib/api-response";
+import { USER_ROLES } from "@/lib/roles";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -90,7 +91,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         .eq("membership_status", "active")
         .single();
 
-    if (!membership || !["gründer", "admin"].includes(membership.role)) {
+    if (!membership || ![USER_ROLES.GRUENDER, USER_ROLES.ADMIN].includes(membership.role)) {
         return jsonError("Forbidden", 403);
     }
 

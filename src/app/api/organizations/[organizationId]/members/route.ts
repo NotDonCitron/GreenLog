@@ -1,6 +1,7 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { writeOrganizationActivity } from "@/lib/organization-activities";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { USER_ROLES } from "@/lib/roles";
 
 type RouteParams = { params: Promise<{ organizationId: string }> };
 
@@ -24,7 +25,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         return jsonError("Forbidden", 403);
     }
 
-    const canManage = membership.role === "gründer" || membership.role === "admin";
+    const canManage = membership.role === USER_ROLES.GRUENDER || membership.role === USER_ROLES.ADMIN;
 
     const { data: members, error: membersError } = await supabase
         .from("organization_members")
@@ -80,7 +81,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         return jsonError("Forbidden", 403);
     }
 
-    const isOwner = currentMember.role === "gründer";
+    const isOwner = currentMember.role === USER_ROLES.GRUENDER;
     const isAdmin = currentMember.role === "admin";
 
     if (!isOwner && !isAdmin) {
@@ -109,11 +110,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         return jsonError("Cannot modify your own membership", 400);
     }
 
-    if (targetMember.role === "gründer") {
+    if (targetMember.role === USER_ROLES.GRUENDER) {
         return jsonError("Cannot modify the gründer", 400);
     }
 
-    if (role && (role === "admin" || role === "gründer") && !isOwner) {
+    if (role && (role === USER_ROLES.ADMIN || role === USER_ROLES.GRUENDER) && !isOwner) {
         return jsonError("Only gründer can assign admin or gründer role", 403);
     }
 
@@ -183,7 +184,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         return jsonError("Forbidden", 403);
     }
 
-    const isOwner = currentMember.role === "gründer";
+    const isOwner = currentMember.role === USER_ROLES.GRUENDER;
     const isAdmin = currentMember.role === "admin";
 
     if (!isOwner && !isAdmin) {
@@ -205,7 +206,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         return jsonError("Cannot remove yourself. Use leave organization instead.", 400);
     }
 
-    if (targetMember.role === "gründer") {
+    if (targetMember.role === USER_ROLES.GRUENDER) {
         return jsonError("Cannot remove the gründer", 400);
     }
 

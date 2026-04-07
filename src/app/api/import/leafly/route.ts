@@ -187,8 +187,12 @@ export async function POST(req: NextRequest) {
                 ]);
 
                 scrapedData.name = typeof (strainData as LeaflyStrainData).name === "string" ? String((strainData as LeaflyStrainData).name) : "";
-                scrapedData.type = typeof (strainData as LeaflyStrainData).category === "string"
-                    ? String((strainData as LeaflyStrainData).category).toLowerCase() : "hybrid";
+                let type = "hybrid";
+                if (typeof (strainData as LeaflyStrainData).category === "string") {
+                    const raw = String((strainData as LeaflyStrainData).category).toLowerCase();
+                    type = STRAIN_TYPES.includes(raw) ? raw : "hybrid";
+                }
+                scrapedData.type = type;
                 scrapedData.description = typeof (strainData as LeaflyStrainData).description === "string"
                     ? String((strainData as LeaflyStrainData).description) : "";
                 scrapedData.thc = getNumericValue((strainData as LeaflyStrainData).thc);

@@ -12,23 +12,24 @@ export async function GET(request: Request, { params }: RouteParams) {
     const { user, supabase } = auth;
     const { organizationId } = await params;
 
-    const { data: membership, error: membershipError } = await supabase
-        .from("organization_members")
-        .select("role, membership_status")
-        .eq("organization_id", organizationId)
-        .eq("user_id", user.id)
-        .eq("membership_status", "active")
-        .single();
+    const [{ data: membership, error: membershipError }, { data: organization, error: orgError }] = await Promise.all([
+        supabase
+            .from("organization_members")
+            .select("role, membership_status")
+            .eq("organization_id", organizationId)
+            .eq("user_id", user.id)
+            .eq("membership_status", "active")
+            .single(),
+        supabase
+            .from("organizations")
+            .select("*")
+            .eq("id", organizationId)
+            .single(),
+    ]);
 
     if (membershipError || !membership) {
         return jsonError("Forbidden", 403);
     }
-
-    const { data: organization, error: orgError } = await supabase
-        .from("organizations")
-        .select("*")
-        .eq("id", organizationId)
-        .single();
 
     if (orgError || !organization) {
         return jsonError("Organization not found", 404);
@@ -56,7 +57,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         return jsonError("Forbidden", 403);
     }
 
-    if (membership.role !== "gründer" && membership.role !== "admin") {
+    if (membership.role !== USER_ROLES.GRUENDER && membership.role !== USER_ROLES.ADMIN) {
         return jsonError("Forbidden", 403);
     }
 
@@ -66,12 +67,12 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const updates: Record<string, unknown> = {};
     if (name) updates.name = name;
     if (slug) {
-        updates.slug = slug.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+        updates.slug = sanitizeSlug(slug);
     }
     if (license_number !== undefined) updates.license_number = license_number;
 
-    if (status !== undefined && membership.role === "gründer") {
-        if (["active", "inactive", "suspended"].includes(status)) {
+    if (status !== undefined && membership.role === USER_ROLES.GRUENDER) {
+        if (ORG_STATUS_VALUES.includes(status)) {
             updates.status = status;
         }
     }
@@ -113,7 +114,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         return jsonError("Forbidden", 403);
     }
 
-    if (membership.role !== "gründer") {
+    if (membership.role !== USER_ROLES.GRUENDER) {
         return jsonError("Nur der Owner kann die Community löschen", 403);
     }
 

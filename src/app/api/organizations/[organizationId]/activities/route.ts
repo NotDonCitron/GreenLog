@@ -1,6 +1,7 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 import type { OrganizationActivity } from "@/lib/types";
+import { USER_ROLES } from "@/lib/roles";
 
 type RouteParams = { params: Promise<{ organizationId: string }> };
 
@@ -24,7 +25,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         return jsonError("Forbidden", 403);
     }
 
-    if (membership.role !== "gründer" && membership.role !== "admin") {
+    if (membership.role !== USER_ROLES.GRUENDER && membership.role !== USER_ROLES.ADMIN) {
         return jsonError("Forbidden", 403);
     }
 

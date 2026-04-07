@@ -1,16 +1,10 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
-import { createHash, randomBytes } from "crypto";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { generateInviteToken, hashToken } from "@/lib/invites";
+import { USER_ROLES } from "@/lib/roles";
+import { isValidEmail } from "@/lib/validation";
 
 type RouteParams = { params: Promise<{ id: string }> };
-
-function generateInviteToken(): string {
-    return randomBytes(32).toString("hex");
-}
-
-function hashToken(token: string): string {
-    return createHash("sha256").update(token).digest("hex");
-}
 
 export async function POST(request: Request, { params }: RouteParams) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
@@ -31,7 +25,7 @@ export async function POST(request: Request, { params }: RouteParams) {
         return jsonError("Forbidden", 403);
     }
 
-    if (membership.role !== "gründer") {
+    if (membership.role !== USER_ROLES.GRUENDER) {
         return jsonError("Only the Gründer can invite admins", 403);
     }
 
@@ -42,8 +36,7 @@ export async function POST(request: Request, { params }: RouteParams) {
         return jsonError("email is required", 400);
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!isValidEmail(email)) {
         return jsonError("Invalid email format", 400);
     }
 
