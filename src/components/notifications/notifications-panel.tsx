@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Bell, Loader2, UserPlus, X, Check, BellRing, Award, Star } from "lucide-react";
+import { Bell, Loader2, UserPlus, X, Check, BellRing, Award, Star, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { usePushSubscription, requestPushPermission } from "@/hooks/usePushSubscription";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Notification {
   id: string;
@@ -80,11 +81,20 @@ export function NotificationsPanel() {
   }, [fetchData]);
 
   const markAsRead = async (id: string) => {
-    await supabase
+    // Optimistic UI update
+    setNotifications(prev => 
+      prev.map(n => n.id === id ? { ...n, read: true } : n)
+    );
+
+    const { error } = await supabase
       .from("notifications")
       .update({ read: true })
       .eq("id", id);
-    void fetchData();
+    
+    if (error) {
+      // Rollback on error if something went wrong
+      void fetchData();
+    }
   };
 
   const acceptInvite = async (inviteId: string, orgId: string) => {
@@ -185,36 +195,46 @@ export function NotificationsPanel() {
                     Aktivität
                   </h3>
                   <div className="space-y-2">
-                    {notifications.map(n => (
-                      <div
-                        key={n.id}
-                        className={`flex items-center gap-3 p-3 rounded-xl ${n.read ? "bg-[var(--muted)]/30" : "bg-[#00F5FF]/10 border border-[#00F5FF]/30"}`}
-                      >
-                        <div className="w-10 h-10 rounded-full bg-[var(--muted)] flex items-center justify-center flex-shrink-0">
-                          {n.type === "new_follower" || n.type === "follow_request" ? (
-                            <UserPlus size={18} className="text-[#00F5FF]" />
-                          ) : n.type === "badge_unlocked" ? (
-                            <Award size={18} className="text-yellow-500" />
-                          ) : n.type === "strain_review" ? (
-                            <Star size={18} className="text-[#2FF801]" />
-                          ) : (
-                            <Bell size={18} />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-sm">{n.title}</p>
-                          <p className="text-xs text-[var(--muted-foreground)] line-clamp-2">{n.message}</p>
-                        </div>
-                        {!n.read && (
-                          <button
-                            onClick={() => void markAsRead(n.id)}
-                            className="text-[10px] font-bold text-[#00F5FF] uppercase tracking-wider flex-shrink-0"
-                          >
-                            Gelesen
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                    <AnimatePresence initial={false}>
+                      {notifications.map(n => (
+                        <motion.div
+                          key={n.id}
+                          layout
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 20 }}
+                          className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-300 ${n.read ? "bg-[var(--muted)]/20 opacity-60 grayscale-[0.5]" : "bg-[#00F5FF]/5 border border-[#00F5FF]/20 shadow-[0_0_15px_rgba(0,245,255,0.05)]"}`}
+                        >
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${n.read ? "bg-[var(--muted)]" : "bg-[var(--muted)]"}`}>
+                            {n.type === "new_follower" || n.type === "follow_request" ? (
+                              <UserPlus size={18} className={n.read ? "text-[var(--muted-foreground)]" : "text-[#00F5FF]"} />
+                            ) : n.type === "badge_unlocked" ? (
+                              <Award size={18} className={n.read ? "text-[var(--muted-foreground)]" : "text-yellow-500"} />
+                            ) : n.type === "strain_review" ? (
+                              <Star size={18} className={n.read ? "text-[var(--muted-foreground)]" : "text-[#2FF801]"} />
+                            ) : (
+                              <Bell size={18} className={n.read ? "text-[var(--muted-foreground)]" : "text-[var(--foreground)]"} />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-bold text-sm transition-colors ${n.read ? "text-[var(--muted-foreground)]" : "text-[var(--foreground)]"}`}>{n.title}</p>
+                            <p className="text-xs text-[var(--muted-foreground)] line-clamp-2">{n.message}</p>
+                          </div>
+                          <div className="flex-shrink-0 min-w-[60px] flex justify-end">
+                            {n.read ? (
+                              <CheckCircle2 size={16} className="text-[#2FF801]/50" />
+                            ) : (
+                              <button
+                                onClick={() => void markAsRead(n.id)}
+                                className="text-[10px] font-black text-[#00F5FF] uppercase tracking-widest hover:text-[#00F5FF]/80 transition-colors bg-[#00F5FF]/10 px-2 py-1 rounded-md border border-[#00F5FF]/20"
+                              >
+                                Gelesen
+                              </button>
+                            )}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
                   </div>
                 </div>
               )}
