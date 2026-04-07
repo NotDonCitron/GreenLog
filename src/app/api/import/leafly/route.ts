@@ -19,6 +19,18 @@ const PRIVATE_IP_RANGES = [
     /^fd00:/i,
 ];
 
+const STRAIN_TYPES: string[] = ["indica", "sativa", "hybrid", "ruderalis"];
+const DEFAULT_SOURCE = "pharmacy";
+
+const TASTE_KEYWORDS = ["earthy", "sweet", "citrus", "lemon", "pine", "berry", "spicy", "fruity",
+    "diesel", "skunk", "pepper", "grape", "tropical", "vanilla", "cheese", "mint", "coffee", "nutty"];
+const EFFECT_KEYWORDS = ["relaxed", "happy", "euphoric", "uplifted", "creative", "sleepy", "hungry",
+    "focused", "energetic", "calm", "giggly", "talkative", "tingly"];
+
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const allKeywords = [...TASTE_KEYWORDS, ...EFFECT_KEYWORDS].map(escapeRegex);
+const combinedPattern = new RegExp(`(?:${allKeywords.join('|')})`, 'gi');
+
 const isPrivateIp = (ip: string): boolean => {
     return PRIVATE_IP_RANGES.some((pattern) => pattern.test(ip));
 };
@@ -207,20 +219,18 @@ export async function POST(req: NextRequest) {
             if (thcMatch) scrapedData.thc = Number.parseFloat(thcMatch[1]);
         }
 
-        const TASTE_KEYWORDS = ["earthy", "sweet", "citrus", "lemon", "pine", "berry", "spicy", "fruity",
-            "diesel", "skunk", "pepper", "grape", "tropical", "vanilla", "cheese", "mint", "coffee", "nutty"];
+        const allMatched = new Set([...lowerHtml.matchAll(combinedPattern)].map(m => m[0].toLowerCase()));
+
         TASTE_KEYWORDS.forEach((keyword) => {
-            if (lowerHtml.includes(`>${keyword}<`) || lowerHtml.includes(`"${keyword}"`) || lowerHtml.includes(` ${keyword} `)) {
+            if (allMatched.has(keyword)) {
                 if (!scrapedData.flavors.some((v) => v.toLowerCase() === keyword)) {
                     scrapedData.flavors.push(keyword);
                 }
             }
         });
 
-        const EFFECT_KEYWORDS = ["relaxed", "happy", "euphoric", "uplifted", "creative", "sleepy", "hungry",
-            "focused", "energetic", "calm", "giggly", "talkative", "tingly"];
         EFFECT_KEYWORDS.forEach((keyword) => {
-            if (lowerHtml.includes(`>${keyword}<`) || lowerHtml.includes(`"${keyword}"`) || lowerHtml.includes(` ${keyword} `)) {
+            if (allMatched.has(keyword)) {
                 if (!scrapedData.effects.some((v) => v.toLowerCase() === keyword)) {
                     scrapedData.effects.push(keyword);
                 }
