@@ -17,6 +17,9 @@ export interface BadgeContext {
 
 export type BadgeCriteria = (ctx: BadgeContext) => Promise<boolean>;
 
+// SECURITY NOTE: Badge assignment is enforced server-side via the /api/badges/check endpoint.
+// The RLS policy on user_badges blocks direct INSERT (WITH CHECK false).
+// Clients must call the badge check API to earn badges — direct Supabase inserts are blocked.
 export const ALL_BADGES: BadgeDefinition[] = [
   // Collection Badges
   { id: 'first-strain', name: 'Greenie', description: '1 Strain gesammelt', icon: 'trophy', category: 'collection', tier: 1, criteriaKey: 'first-strain' },

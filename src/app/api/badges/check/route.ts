@@ -56,6 +56,11 @@ export async function POST(request: Request) {
                         { onConflict: 'user_id,badge_id', ignoreDuplicates: true }
                     );
 
+// Security: The RLS policy on user_badges blocks direct INSERT from authenticated users.
+// Badges can only be earned through this API endpoint which:
+// 1. Validates criteria server-side via BADGE_CRITERIA functions
+// 2. Uses service role client (bypasses RLS)
+// 3. Only inserts if criteriaFn returns true
                 if (!error) {
                     newlyUnlocked.push(badge.id);
                     unlockedSet.add(badge.id);
