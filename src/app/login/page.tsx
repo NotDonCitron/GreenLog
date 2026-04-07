@@ -125,8 +125,8 @@ function LoginForm() {
   return (
     <div className="w-full max-w-md space-y-8">
       <div className="text-center">
-        <div className="w-32 h-32 relative mx-auto mb-4 drop-shadow-2xl">
-          <Image src="/logo-transparent.png" alt="CannaLog Logo" fill className="object-contain" priority />
+        <div className="mx-auto mb-4 drop-shadow-2xl">
+          <Image src="/logo-transparent.png" alt="CannaLog Logo" width={128} height={128} className="object-contain" priority />
         </div>
         <h1 className="text-3xl font-black uppercase italic tracking-tight mt-2 font-display">{isSignUp ? "Konto erstellen" : "Willkommen"}</h1>
         <p className="text-[var(--muted-foreground)] mt-2">{isSignUp ? "Wähle deinen Benutzernamen und leg los." : "Deine Reise zur perfekten Sammlung beginnt hier."}</p>
@@ -238,7 +238,7 @@ function LoginForm() {
             >
               {loading ? <Loader2 className="animate-spin" size={20} /> : (
                 <div className="flex items-center gap-2">
-                  {isSignUp ? <><UserPlus size={18} /> KONTO ERSTELLEN</> : <><LogIn size={18} /> INITIALIZE LOGIN</>}
+                  {isSignUp ? <><UserPlus size={18} /> KONTO ERSTELLEN</> : <><LogIn size={18} /> LOGIN</>}
                 </div>
               )}
             </Button>
