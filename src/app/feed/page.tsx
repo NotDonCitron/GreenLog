@@ -7,6 +7,7 @@ import { ActivityFeed } from "@/components/social/activity-feed";
 import { SuggestedUsers } from "@/components/social/suggested-users";
 import { FollowButton } from "@/components/social/follow-button";
 import { useAuth } from "@/components/auth-provider";
+import { USER_ROLES } from "@/lib/roles";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { useEffect } from "react";
@@ -99,7 +100,7 @@ export default function FeedPage() {
           if (!org) return null;
           return {
             ...org,
-            role: m.role || "member"
+            role: m.role || USER_ROLES.MEMBER
           } as CommunityOrg;
         }).filter((o): o is CommunityOrg => o !== null);
         setCommunities(myOrgs);
@@ -553,8 +554,8 @@ export default function FeedPage() {
                                       </div>
                                     </div>
                                     <div className="text-right flex-shrink-0 flex flex-col items-center justify-center bg-[var(--muted)] px-4 py-2 rounded-2xl border border-[var(--border)]/50">
-                                      <span className={`text-lg font-black leading-none italic ${comm.role === "gründer" ? "text-[#ffd76a]" : comm.role === "admin" ? "text-[#ff716c]" : "text-[var(--muted-foreground)]"}`}>
-                                        {comm.role === "gründer" ? "Gründer" : comm.role === "admin" ? "Admin" : "Member"}
+                                      <span className={`text-lg font-black leading-none italic ${comm.role === USER_ROLES.GRUENDER ? "text-[#ffd76a]" : comm.role === USER_ROLES.ADMIN ? "text-[#ff716c]" : "text-[var(--muted-foreground)]"}`}>
+                                        {comm.role === USER_ROLES.GRUENDER ? "Gründer" : comm.role === USER_ROLES.ADMIN ? "Admin" : "Member"}
                                       </span>
                                       <p className="text-[7px] text-[var(--muted-foreground)] font-semibold uppercase tracking-tighter mt-1 whitespace-nowrap">rolle</p>
                                     </div>

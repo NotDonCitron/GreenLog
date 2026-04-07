@@ -84,11 +84,11 @@ export async function POST(request: Request, { params }: RouteParams) {
         return jsonError("Invalid email format", 400);
     }
 
-    if (!["admin", "staff", "member"].includes(role)) {
+    if (![USER_ROLES.ADMIN, "staff", USER_ROLES.MEMBER].includes(role)) {
         return jsonError("role must be admin, staff, or member", 400);
     }
 
-    if (role === "admin" && membership.role !== USER_ROLES.GRUENDER) {
+    if (role === USER_ROLES.ADMIN && membership.role !== USER_ROLES.GRUENDER) {
         return jsonError("Only gründer can invite admins", 403);
     }
 

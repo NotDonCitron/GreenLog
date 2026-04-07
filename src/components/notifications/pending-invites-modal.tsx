@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Loader2, Building2, CheckCircle2, Shield, UserPlus, AlertTriangle } from "lucide-react";
+import Image from "next/image";
+import { X, Loader2, Building2, CheckCircle2, Shield } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
+import { USER_ROLES } from "@/lib/roles";
 
 interface PendingInvite {
   id: string;
@@ -31,7 +33,7 @@ interface PendingInvitesModalProps {
 }
 
 export function PendingInvitesModal({ onClose, onInviteAccepted }: PendingInvitesModalProps) {
-  const { session, refreshMemberships } = useAuth();
+  const { refreshMemberships } = useAuth();
   const [invites, setInvites] = useState<PendingInvite[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -78,7 +80,7 @@ export function PendingInvitesModal({ onClose, onInviteAccepted }: PendingInvite
       if (!accessToken) return;
 
       // Get the token by finding the invite (we need to look it up by id)
-      const { data: inviteData } = await supabase
+      await supabase
         .from("organization_invites")
         .select("id, organization_invites_token!inner(token)")
         .eq("id", invite.id)
@@ -169,7 +171,7 @@ export function PendingInvitesModal({ onClose, onInviteAccepted }: PendingInvite
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-full bg-[var(--card)] border border-[var(--border)] flex items-center justify-center shrink-0 overflow-hidden">
                     {invite.organization?.logo_url ? (
-                      <img src={invite.organization.logo_url} alt={invite.organization.name} className="w-full h-full object-cover" />
+                      <Image src={invite.organization.logo_url} alt={invite.organization.name} width={40} height={40} className="w-full h-full object-cover" />
                     ) : (
                       <Building2 size={18} className="text-[#2FF801]" />
                     )}
@@ -177,7 +179,7 @@ export function PendingInvitesModal({ onClose, onInviteAccepted }: PendingInvite
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm text-[var(--foreground)]">{invite.organization?.name || "Organisation"}</p>
                     <p className="text-xs text-[var(--muted-foreground)]">
-                      {invite.role === "admin" ? "Admin" : invite.role === "staff" ? "Staff" : "Mitglied"}
+                      {invite.role === USER_ROLES.ADMIN ? "Admin" : invite.role === "staff" ? "Staff" : "Mitglied"}
                     </p>
                     {invite.inviter && (
                       <p className="text-[10px] text-[var(--muted-foreground)] mt-1">
@@ -188,7 +190,7 @@ export function PendingInvitesModal({ onClose, onInviteAccepted }: PendingInvite
                   <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/30 shrink-0">
                     <Shield size={10} className="text-[#00F5FF]" />
                     <span className="text-[10px] font-bold text-[#00F5FF]">
-                      {invite.role === "admin" ? "Admin" : invite.role === "staff" ? "Staff" : "Member"}
+                      {invite.role === USER_ROLES.ADMIN ? "Admin" : invite.role === "staff" ? "Staff" : "Member"}
                     </span>
                   </div>
                 </div>

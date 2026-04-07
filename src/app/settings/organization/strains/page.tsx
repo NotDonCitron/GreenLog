@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
+import { USER_ROLES } from "@/lib/roles";
 import { BottomNav } from "@/components/bottom-nav";
 import { ChevronLeft, Loader2, Plus, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,7 @@ export default function OrgStrainsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const isAdmin =
-    activeOrganization?.role === "gründer" || activeOrganization?.role === "admin";
+    activeOrganization?.role === USER_ROLES.GRUENDER || activeOrganization?.role === USER_ROLES.ADMIN;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

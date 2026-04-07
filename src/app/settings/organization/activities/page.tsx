@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
+import { USER_ROLES } from "@/lib/roles";
 import { ChevronLeft, Loader2, Leaf, Users, Mail, Shield } from "lucide-react";
 import type { OrganizationActivity } from "@/lib/types";
 
@@ -79,7 +80,7 @@ export default function OrgActivitiesPage() {
     );
   }
 
-  const canView = ["gründer", "admin"].includes(activeOrganization.role);
+  const canView = [USER_ROLES.GRUENDER, USER_ROLES.ADMIN].includes(activeOrganization.role);
   if (!canView) {
     return (
       <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">

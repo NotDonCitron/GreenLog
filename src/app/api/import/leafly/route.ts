@@ -187,10 +187,10 @@ export async function POST(req: NextRequest) {
                 ]);
 
                 scrapedData.name = typeof (strainData as LeaflyStrainData).name === "string" ? String((strainData as LeaflyStrainData).name) : "";
-                let type = "hybrid";
+                let type = DEFAULT_SOURCE;
                 if (typeof (strainData as LeaflyStrainData).category === "string") {
                     const raw = String((strainData as LeaflyStrainData).category).toLowerCase();
-                    type = STRAIN_TYPES.includes(raw) ? raw : "hybrid";
+                    type = STRAIN_TYPES.includes(raw) ? raw : DEFAULT_SOURCE;
                 }
                 scrapedData.type = type;
                 scrapedData.description = typeof (strainData as LeaflyStrainData).description === "string"

@@ -56,7 +56,7 @@ export async function POST(request: Request, { params }: RouteParams) {
         .insert({
             organization_id: organizationId,
             email: email.toLowerCase(),
-            role: "admin",
+            role: USER_ROLES.ADMIN,
             token_hash: tokenHash,
             expires_at: expiresAt,
             invited_by: user.id,

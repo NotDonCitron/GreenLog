@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
+import { USER_ROLES } from "@/lib/roles";
 import {
   Loader2,
   Building2,
@@ -170,7 +171,7 @@ export default function InvitePage() {
           <div className="flex items-center gap-3">
             <Shield size={14} className="text-black/40 shrink-0" />
             <span className="text-sm font-bold text-black/70">
-              {preview?.role === "admin" ? "Admin" : preview?.role === "staff" ? "Staff" : "Mitglied"}
+              {preview?.role === USER_ROLES.ADMIN ? "Admin" : preview?.role === "staff" ? "Staff" : "Mitglied"}
             </span>
           </div>
           <div className="flex items-center gap-3">

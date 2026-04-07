@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
+import { USER_ROLES } from "@/lib/roles";
 import { BottomNav } from "@/components/bottom-nav";
 import {
   ChevronLeft,
@@ -13,19 +14,11 @@ import {
   Copy,
   CheckCircle2,
   AlertTriangle,
-  Clock,
-  UserRound
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface Invite {
   id: string;
@@ -38,16 +31,16 @@ interface Invite {
 
 function formatRoleLabel(role: string) {
   switch (role) {
-    case "admin": return "Admin";
+    case USER_ROLES.ADMIN: return "Admin";
     case "staff": return "Staff";
-    case "member": return "Mitglied";
+    case USER_ROLES.MEMBER: return "Mitglied";
     default: return role;
   }
 }
 
 function RoleBadge({ role }: { role: string }) {
   const color =
-    role === "admin" ? "text-[#ff716c] bg-[#ff716c]/10 border-[#ff716c]/20" :
+    role === USER_ROLES.ADMIN ? "text-[#ff716c] bg-[#ff716c]/10 border-[#ff716c]/20" :
     role === "staff" ? "text-[#00a3ff] bg-[#00a3ff]/10 border-[#00a3ff]/20" :
     "text-[var(--muted-foreground)] bg-[var(--muted)] border-[var(--border)]/50";
   return (
@@ -101,11 +94,11 @@ export default function InvitesPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; msg: string } | null>(null);
-  const [newInvite, setNewInvite] = useState({ email: "", role: "admin" as const });
+  const [newInvite, setNewInvite] = useState({ email: "", role: USER_ROLES.ADMIN as const });
   const [createdInviteToken, setCreatedInviteToken] = useState<string | null>(null);
   const [createdInviteEmail, setCreatedInviteEmail] = useState<string | null>(null);
 
-  const isOwner = activeOrganization?.role === "gründer";
+  const isOwner = activeOrganization?.role === USER_ROLES.GRUENDER;
 
   const fetchInvites = useCallback(async () => {
     if (!activeOrganization || !session?.access_token) return;
@@ -139,7 +132,7 @@ export default function InvitesPage() {
       router.push("/profile");
       return;
     }
-    if (activeOrganization.role !== "gründer") {
+    if (activeOrganization.role !== USER_ROLES.GRUENDER) {
       router.push("/settings/organization/members");
       return;
     }
@@ -171,7 +164,7 @@ export default function InvitesPage() {
       setCreatedInviteToken(json.data?.token);
       setCreatedInviteEmail(json.data?.invite?.email);
       setStatusMessage({ type: "success", msg: "Einladung erstellt! Bitte Link teilen." });
-      setNewInvite({ email: "", role: "admin" });
+      setNewInvite({ email: "", role: USER_ROLES.ADMIN });
       setShowCreateForm(false);
       await fetchInvites();
     } catch (err: unknown) {
@@ -313,7 +306,7 @@ export default function InvitesPage() {
                   <p className="text-xs font-black uppercase tracking-widest text-[var(--muted-foreground)]">Neue Einladung</p>
                   <button
                     type="button"
-                    onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: "admin" }); }}
+                    onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: USER_ROLES.ADMIN }); }}
                     className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                   >
                     <X size={16} />
@@ -348,7 +341,7 @@ export default function InvitesPage() {
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: "admin" }); }}
+                  onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: USER_ROLES.ADMIN }); }}
                   className="w-full h-10 text-[var(--muted-foreground)] hover:text-[var(--foreground)] bg-[var(--muted)] border border-[var(--border)]/50 hover:border-[#00F5FF]/50 font-black uppercase tracking-widest text-xs"
                 >
                   Abbrechen

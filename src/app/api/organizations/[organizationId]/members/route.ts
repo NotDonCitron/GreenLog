@@ -82,7 +82,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     }
 
     const isOwner = currentMember.role === USER_ROLES.GRUENDER;
-    const isAdmin = currentMember.role === "admin";
+    const isAdmin = currentMember.role === USER_ROLES.ADMIN;
 
     if (!isOwner && !isAdmin) {
         return jsonError("Forbidden", 403);
@@ -118,12 +118,12 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         return jsonError("Only gründer can assign admin or gründer role", 403);
     }
 
-    if (targetMember.role === "admin" && !isOwner) {
+    if (targetMember.role === USER_ROLES.ADMIN && !isOwner) {
         return jsonError("Only gründer can modify admin roles", 403);
     }
 
     const updates: Record<string, unknown> = {};
-    if (role && ["admin", "staff", "member"].includes(role)) updates.role = role;
+    if (role && [USER_ROLES.ADMIN, "staff", USER_ROLES.MEMBER].includes(role)) updates.role = role;
     if (membership_status && ["active", "suspended"].includes(membership_status)) updates.membership_status = membership_status;
 
     if (Object.keys(updates).length === 0) {
@@ -185,7 +185,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     }
 
     const isOwner = currentMember.role === USER_ROLES.GRUENDER;
-    const isAdmin = currentMember.role === "admin";
+    const isAdmin = currentMember.role === USER_ROLES.ADMIN;
 
     if (!isOwner && !isAdmin) {
         return jsonError("Forbidden", 403);
@@ -210,7 +210,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         return jsonError("Cannot remove the gründer", 400);
     }
 
-    if (targetMember.role === "admin" && !isOwner) {
+    if (targetMember.role === USER_ROLES.ADMIN && !isOwner) {
         return jsonError("Only gründer can remove admins", 403);
     }
 

@@ -1,5 +1,6 @@
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
+import { USER_ROLES } from "@/lib/roles";
 
 export async function POST(
     request: Request,
@@ -50,7 +51,7 @@ export async function POST(
             .insert({
                 organization_id: organizationId,
                 user_id: user.id,
-                role: "member",
+                role: USER_ROLES.MEMBER,
                 membership_status: "active",
                 joined_at: new Date().toISOString()
             });

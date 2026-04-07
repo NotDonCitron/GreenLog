@@ -116,6 +116,10 @@ if (!STRAIN_TYPES.includes(scrapedData.type)) {
 ## Abgeschlossen (7. April)
 
 - [x] Token-Helper dedupliziert (`generateInviteToken`, `hashToken` → `src/lib/invites.ts`)
+- [x] `isAppAdmin` in `badges.ts` konsolidieren — N/A (badges.ts hatte keine eigene Implementierung)
+- [x] Promise.all für parallele Membership + Org Queries in GET `/api/organizations/[id]`
+- [x] `STRAIN_TYPES` + `DEFAULT_SOURCE` Validierung in Leafly-Import aktiviert
+- [x] Role-Strings in Frontend + API auf `USER_ROLES` umgestellt (17 Dateien, "staff" ausgenommen)
 - [x] `USER_ROLES` + `ORG_STATUS_VALUES` → `src/lib/roles.ts`
 - [x] `sanitizeSlug()` → `src/lib/sanitize.ts`
 - [x] `isValidEmail()` → `src/lib/validation.ts`

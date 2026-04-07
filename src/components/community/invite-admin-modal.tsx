@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Loader2, UserPlus } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
+import { USER_ROLES } from "@/lib/roles";
 
 interface InviteAdminModalProps {
   organizationId: string;
@@ -30,7 +31,7 @@ export function InviteAdminModal({ organizationId, onClose, onSuccess }: InviteA
           "Content-Type": "application/json",
           "Authorization": `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), role: "admin" }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), role: USER_ROLES.ADMIN }),
       });
 
       const data = await response.json();
@@ -41,7 +42,7 @@ export function InviteAdminModal({ organizationId, onClose, onSuccess }: InviteA
       }
 
       onSuccess();
-    } catch (err) {
+    } catch {
       setError("Ein unerwarteter Fehler ist aufgetreten.");
     } finally {
       setLoading(false);

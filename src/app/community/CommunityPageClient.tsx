@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Leaf, Building2, Loader2, Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
+import { USER_ROLES } from "@/lib/roles";
 
 interface Organization {
   id: string;
@@ -49,7 +50,7 @@ function CommunityCard({ org, role }: { org: Organization; role?: string }) {
           </div>
           {role && (
             <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 text-[#00F5FF]">
-              {role === "gründer" ? "Gründer" : role === "admin" ? "Admin" : "Member"}
+              {role === USER_ROLES.GRUENDER ? "Gründer" : role === USER_ROLES.ADMIN ? "Admin" : "Member"}
             </span>
           )}
           <div className="w-8 h-8 rounded-full bg-[var(--muted)] border border-[var(--border)]/50 flex items-center justify-center shrink-0">

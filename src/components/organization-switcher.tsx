@@ -17,17 +17,18 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/lib/supabase/client";
+import { USER_ROLES } from "@/lib/roles";
 
 function formatRoleLabel(role: string) {
     switch (role) {
-        case "owner":
-            return "Owner";
-        case "admin":
+        case USER_ROLES.GRUENDER:
+            return "Gründer";
+        case USER_ROLES.ADMIN:
             return "Admin";
-        case "staff":
-            return "Staff";
-        case "member":
+        case USER_ROLES.MEMBER:
             return "Mitglied";
+        case USER_ROLES.VIEWER:
+            return "Viewer";
         default:
             return role;
     }
@@ -63,7 +64,7 @@ export function OrganizationSwitcher() {
     const [newOrg, setNewOrg] = useState({ name: "", slug: "", type: "club" as "club" | "pharmacy" });
 
     const hasMemberships = memberships.length > 0;
-    const isAlreadyGründer = memberships.some((m) => m.role === "gründer");
+    const isAlreadyGründer = memberships.some((m) => m.role === USER_ROLES.GRUENDER);
 
     const activeMeta = useMemo(() => {
         if (!activeOrganization?.organizations) {

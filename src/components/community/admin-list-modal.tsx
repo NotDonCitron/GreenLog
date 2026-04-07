@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { X, Loader2, Crown, Shield, UserMinus, ArrowDown } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
+import { USER_ROLES } from "@/lib/roles";
 import type { OrganizationMembership, ProfileRow } from "@/lib/types";
 
 interface AdminWithProfile extends OrganizationMembership {
@@ -25,7 +27,7 @@ export function AdminListModal({ organizationId, onClose, onSuccess, onInvite }:
 
   // Check if current user is the gründer (owner) of this organization
   const myMembership = memberships.find(
-    (m) => m.organization_id === organizationId && m.role === "gründer"
+    (m) => m.organization_id === organizationId && m.role === USER_ROLES.GRUENDER
   );
   const isGründer = !!myMembership;
 
@@ -36,7 +38,7 @@ export function AdminListModal({ organizationId, onClose, onSuccess, onInvite }:
         .from("organization_memberships")
         .select("*, profile:profiles(*)")
         .eq("organization_id", organizationId)
-        .in("role", ["admin", "gründer"])
+        .in("role", [USER_ROLES.ADMIN, USER_ROLES.GRUENDER])
         .eq("membership_status", "active")
         .order("role", { ascending: true });
 
@@ -75,7 +77,7 @@ export function AdminListModal({ organizationId, onClose, onSuccess, onInvite }:
     try {
       const { error } = await supabase
         .from("organization_memberships")
-        .update({ role: "member" })
+        .update({ role: USER_ROLES.MEMBER })
         .eq("id", membershipId);
 
       if (error) {
@@ -113,7 +115,7 @@ export function AdminListModal({ organizationId, onClose, onSuccess, onInvite }:
           <div className="space-y-3 max-h-[400px] overflow-y-auto">
             {admins.map((admin) => {
               const isCurrentUser = admin.user_id === user?.id;
-              const isGründerRole = admin.role === "gründer";
+              const isGründerRole = admin.role === USER_ROLES.GRUENDER;
 
               return (
                 <div
@@ -122,9 +124,11 @@ export function AdminListModal({ organizationId, onClose, onSuccess, onInvite }:
                 >
                   <div className="w-10 h-10 rounded-full bg-[var(--card)] border border-[var(--border)] flex items-center justify-center shrink-0 overflow-hidden">
                     {admin.profile?.avatar_url ? (
-                      <img
+                      <Image
                         src={admin.profile.avatar_url}
                         alt={admin.profile.display_name || admin.profile.username || "Admin"}
+                        width={40}
+                        height={40}
                         className="w-full h-full object-cover"
                       />
                     ) : (

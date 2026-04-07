@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
+import { USER_ROLES } from "@/lib/roles";
 import {
   ChevronLeft,
   Loader2,
@@ -35,7 +36,7 @@ export default function SettingsOrganizationPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
-  const isOwner = activeOrganization?.role === "gründer";
+  const isOwner = activeOrganization?.role === USER_ROLES.GRUENDER;
   const orgName = activeOrganization?.organizations?.name || "Organisation";
 
   const handleSaveName = async (e: React.FormEvent) => {
@@ -228,7 +229,7 @@ export default function SettingsOrganizationPage() {
         )}
 
         {/* Aktivitäten — Owner/Admin only */}
-        {(isOwner || activeOrganization.role === "admin") && (
+        {(isOwner || activeOrganization.role === USER_ROLES.ADMIN) && (
           <Link href="/settings/organization/activities">
             <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
               <div className="flex items-center gap-4">

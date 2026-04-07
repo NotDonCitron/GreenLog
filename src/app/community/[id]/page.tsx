@@ -13,6 +13,7 @@ import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { useAuth } from "@/components/auth-provider";
 import { Leaf, Building2, Users, Sprout, Loader2, ArrowLeft, Plus, Settings } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
+import { USER_ROLES } from "@/lib/roles";
 
 interface Organization {
   id: string;
@@ -69,7 +70,7 @@ export default function CommunityDetailPage() {
   const [showAdminList, setShowAdminList] = useState(false);
 
   const isAdminOrGründer = !!memberships.find(
-    (m) => m.organization_id === organizationId && (m.role === "gründer" || m.role === "admin")
+    (m) => m.organization_id === organizationId && (m.role === USER_ROLES.GRUENDER || m.role === USER_ROLES.ADMIN)
   );
 
   useEffect(() => {
