@@ -34,7 +34,8 @@ CREATE TABLE organizations (
   updated_at TIMESTAMPTZ DEFAULT now(),
   avatar_url TEXT,
   description TEXT,
-  logo_url TEXT
+  logo_url TEXT,
+  requires_member_approval BOOLEAN DEFAULT false NOT NULL
 );
 
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
@@ -74,11 +75,12 @@ CREATE TABLE organization_members (
   organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   role TEXT CHECK (role IN ('gründer', 'admin', 'member', 'viewer')) NOT NULL DEFAULT 'member',
-  membership_status TEXT CHECK (membership_status IN ('active', 'invited', 'removed')) DEFAULT 'active',
+  membership_status TEXT CHECK (membership_status IN ('active', 'invited', 'removed', 'pending')) DEFAULT 'active',
   joined_at TIMESTAMPTZ DEFAULT now(),
   invited_by UUID REFERENCES profiles(id),
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now(),
+  rejection_reason TEXT,
   UNIQUE(organization_id, user_id)
 );
 
@@ -93,6 +95,19 @@ CREATE POLICY "Members can view org members"
       SELECT 1 FROM organization_members AS m
       WHERE m.organization_id = organization_members.organization_id
       AND m.user_id = auth.uid()
+      AND m.membership_status = 'active'
+    )
+    AND membership_status != 'pending'
+  );
+
+CREATE POLICY "Admins can view pending members"
+  ON organization_members FOR SELECT USING (
+    membership_status = 'pending'
+    AND EXISTS (
+      SELECT 1 FROM organization_members AS m
+      WHERE m.organization_id = organization_members.organization_id
+      AND m.user_id = auth.uid()
+      AND m.role IN ('admin', 'gründer')
       AND m.membership_status = 'active'
     )
   );
@@ -122,6 +137,7 @@ CREATE POLICY "Members can leave, admins can remove"
 
 CREATE INDEX idx_org_members_org ON organization_members(organization_id);
 CREATE INDEX idx_org_members_user ON organization_members(user_id);
+CREATE INDEX idx_org_members_status ON organization_members(organization_id, membership_status);
 
 
 -- =============================================
