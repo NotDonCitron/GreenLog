@@ -1,16 +1,17 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { getSupabaseAdmin } from "@/lib/push";
 
 type RouteParams = { params: Promise<{ organizationId: string }> };
 
 // POST /api/organizations/[organizationId]/membership-request
 export async function POST(request: Request, { params }: RouteParams) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
-    if (!auth) return;
-    if (auth instanceof Response) return;
+    if (!auth) return jsonError("Unauthorized", 401);
+    if (auth instanceof Response) return auth;
     const { user, supabase } = auth;
     const { organizationId } = await params;
-
+    
     // Fetch organization to check requires_member_approval flag
     const { data: organization, error: orgError } = await supabase
         .from("organizations")
@@ -31,7 +32,6 @@ export async function POST(request: Request, { params }: RouteParams) {
         .single();
 
     if (existingError && existingError.code !== 'PGRST116') {
-        // PGRST116 = no rows found, which is expected
         return jsonError("Failed to check existing membership", 500, existingError.code, existingError.message);
     }
 
@@ -56,8 +56,9 @@ export async function POST(request: Request, { params }: RouteParams) {
     const membershipStatus = requiresApproval ? 'pending' : 'active';
     const joinedAt = requiresApproval ? null : new Date().toISOString();
 
-    // Create membership record
-    const { data: membership, error: insertError } = await supabase
+    // Create membership record using adminClient to bypass RLS
+    const adminClient = getSupabaseAdmin();
+    const { data: membership, error: insertError } = await adminClient
         .from("organization_members")
         .insert({
             organization_id: organizationId,

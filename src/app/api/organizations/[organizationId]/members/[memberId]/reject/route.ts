@@ -8,8 +8,8 @@ type RouteParams = { params: Promise<{ organizationId: string; memberId: string 
 // PATCH /api/organizations/[organizationId]/members/[memberId]/reject
 export async function PATCH(request: Request, { params }: RouteParams) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
-    if (!auth) return;
-    if (auth instanceof Response) return;
+    if (!auth) return jsonError("Unauthorized", 401);
+    if (auth instanceof Response) return auth;
     const { user, supabase } = auth;
     const { organizationId, memberId } = await params;
 

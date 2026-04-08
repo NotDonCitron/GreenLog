@@ -429,11 +429,38 @@ export default function StrainDetailPageClient() {
   const normalizedStrainName = (() => {
     const rawName = strain?.name?.trim() || '';
     if (!rawName || farmerDisplay === 'Unbekannter Farmer') return rawName;
+
+    const farmerLower = farmerDisplay.toLowerCase();
+
+    // Try stripping the full farmer name (e.g., "420 Pharma: " from "420 Pharma: Natural Gorilla Glue")
     const withoutFarmerPrefix = rawName.replace(
       new RegExp(`^${escapeRegExp(farmerDisplay)}[\s:/-]*`, 'i'),
       ''
     ).trim();
-    return withoutFarmerPrefix || rawName;
+
+    // Check if remaining text STILL starts with the farmer name (or its first word)
+    // This means the farmer name was BOTH at the start of the strain name AND embedded in it
+    // e.g., farmer="420 Pharma", name="420 Pharma: 420 Natural Gorilla Glue" -> keep "420 Natural Gorilla Glue"
+    const firstWord = farmerDisplay.split(/\s+/)[0].toLowerCase();
+    const remainingLower = withoutFarmerPrefix.toLowerCase();
+
+    const stillStartsWithFarmer = remainingLower.startsWith(farmerLower) || remainingLower.startsWith(firstWord);
+
+    if (stillStartsWithFarmer && withoutFarmerPrefix.length > firstWord.length) {
+      // Farmer prefix appears BOTH at start and embedded in the remaining strain name.
+      // Strip the embedded farmer name from the already-stripped result.
+      const strippedEmbedded = withoutFarmerPrefix.replace(new RegExp(`^${escapeRegExp(firstWord)}[\s:/-]+`, 'i'), '').trim();
+      if (strippedEmbedded && strippedEmbedded.length > 2) {
+        return strippedEmbedded;
+      }
+    }
+
+    // Prefer the longer result (more of the real strain name preserved)
+    if (withoutFarmerPrefix && withoutFarmerPrefix.length < rawName.length - 2) {
+      return withoutFarmerPrefix;
+    }
+
+    return rawName;
   })();
 
   if (isLoading) return (

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { FollowButton } from "@/components/community/follow-button";
+import { JoinButton } from "@/components/community/join-button";
 import { CommunityFeed } from "@/components/community/feed";
 import { InviteAdminModal } from "@/components/community/invite-admin-modal";
 import { AdminListModal } from "@/components/community/admin-list-modal";
@@ -174,8 +175,9 @@ export default function CommunityDetailPage() {
               {organization.name}
             </h1>
             <OrgTypeLabel type={organization.organization_type} />
-            <div className="mt-2">
+            <div className="flex gap-2 mt-2">
               <FollowButton organizationId={organizationId} />
+              <JoinButton organizationId={organizationId} />
             </div>
           </div>
         </div>

@@ -19,7 +19,8 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
   const tasteDisplay = getTasteDisplay(strain);
 
   // Strip farmer prefix from strain name — handles "420 Pharma: Natural Gorilla Glue" -> "Natural Gorilla Glue"
-  // and "420 Natural Gorilla Glue" (farmer="420 Pharma") -> "Natural Gorilla Glue"
+  // and "420 Natural Gorilla Glue" (farmer="420 Pharma") -> "420 Natural Gorilla Glue" (keep embedded farmer name)
+  // and "420 Pharma: 420 Natural Gorilla Glue" (farmer="420 Pharma") -> "420 Natural Gorilla Glue" (strip only first occurrence)
   const normalizedStrainName = (() => {
     const rawName = strain.name?.trim() || '';
 
@@ -27,23 +28,28 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
       return rawName;
     }
 
+    const farmerLower = farmerDisplay.toLowerCase();
+
     // Try stripping the full farmer name (e.g., "420 Pharma: " from "420 Pharma: Natural Gorilla Glue")
     const withoutFarmerPrefix = rawName.replace(
       new RegExp(`^${escapeRegExp(farmerDisplay)}[\s:/-]*`, 'i'),
       ''
     ).trim();
 
-    // If result is empty/too short, the farmer might be the first word (e.g., farmer="420 Pharma", name="420 Natural Gorilla Glue")
-    if (!withoutFarmerPrefix || withoutFarmerPrefix.length < 3) {
-      const firstWord = farmerDisplay.split(/\s+/)[0];
-      if (firstWord && firstWord.length > 1) {
-        const withoutFirstWord = rawName.replace(new RegExp(`^${escapeRegExp(firstWord)}[\s:/-]+`, 'i'), '').trim();
-        // Only use if it's meaningfully different from rawName and from the first attempt
-        if (withoutFirstWord &&
-            withoutFirstWord.length > withoutFarmerPrefix.length &&
-            withoutFirstWord.length < rawName.length - 2) {
-          return withoutFirstWord;
-        }
+    // Check if remaining text STILL starts with the farmer name (or its first word)
+    // This means the farmer name was BOTH at the start of the strain name AND embedded in it
+    // e.g., farmer="420 Pharma", name="420 Pharma: 420 Natural Gorilla Glue" -> keep "420 Natural Gorilla Glue"
+    const firstWord = farmerDisplay.split(/\s+/)[0].toLowerCase();
+    const remainingLower = withoutFarmerPrefix.toLowerCase();
+
+    const stillStartsWithFarmer = remainingLower.startsWith(farmerLower) || remainingLower.startsWith(firstWord);
+
+    if (stillStartsWithFarmer && withoutFarmerPrefix.length > firstWord.length) {
+      // Farmer prefix appears BOTH at start and embedded in the remaining strain name.
+      // Strip the embedded farmer name from the already-stripped result.
+      const strippedEmbedded = withoutFarmerPrefix.replace(new RegExp(`^${escapeRegExp(firstWord)}[\s:/-]+`, 'i'), '').trim();
+      if (strippedEmbedded && strippedEmbedded.length > 2) {
+        return strippedEmbedded;
       }
     }
 

@@ -95,47 +95,45 @@ export async function POST(request: Request) {
     if (insertError) {
         return jsonError(insertError.message, 500);
     }
+// Send push notification
+let pushResult = { sent: 0, failed: 0 };
+if (body.subscription) {
+    // Direct test with provided subscription
+    const webpush = require("web-push");
+    const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "";
+    const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "";
+    let VAPID_SUBJECT = process.env.NEXT_PUBLIC_SITE_URL || "mailto:admin@greenlog.app";
 
-    // Send push notification
-    let pushResult = { sent: 0, failed: 0 };
-    if (body.subscription) {
-        // Direct test with provided subscription
-        const webpush = require("web-push");
-        const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "";
-        const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "";
-        let VAPID_SUBJECT = process.env.NEXT_PUBLIC_SITE_URL || "mailto:admin@greenlog.app";
-        
-        // VAPID subject must be mailto: or https:
-        if (!VAPID_SUBJECT.startsWith("mailto:") && !VAPID_SUBJECT.startsWith("https:")) {
-            VAPID_SUBJECT = "mailto:admin@greenlog.app";
-        }
-        
-        webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
-        
-        try {
-            await webpush.sendNotification(
-                body.subscription,
-                JSON.stringify({
-                    title: notification.title,
-                    body: notification.message,
-                    tag: notification.type,
-                    data: notification.data,
-                })
-            );
-            pushResult.sent = 1;
-        } catch (err) {
-            console.error("Manual push failed:", err);
-            pushResult.failed = 1;
-        }
-    } else {
-        pushResult = await sendPushToUser(adminClient, targetUserId, {
-            title: notification.title,
-            body: notification.message,
-            tag: notification.type,
-            data: notification.data,
-        });
+    // VAPID subject must be mailto: or https:
+    if (!VAPID_SUBJECT.startsWith("mailto:") && !VAPID_SUBJECT.startsWith("https:")) {
+        VAPID_SUBJECT = "mailto:admin@greenlog.app";
     }
 
+    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+
+    try {
+        await webpush.sendNotification(
+            body.subscription,
+            JSON.stringify({
+                title: notification.title,
+                body: notification.message,
+                tag: notification.type,
+                data: notification.data,
+            })
+        );
+        pushResult.sent = 1;
+    } catch (err) {
+        console.error("Manual push failed:", err);
+        pushResult.failed = 1;
+    }
+} else {
+    pushResult = await sendPushToUser(adminClient, targetUserId, {
+        title: notification.title,
+        body: notification.message,
+        tag: notification.type,
+        data: notification.data,
+    });
+}
     return jsonSuccess({ 
         notification: "Test Benachrichtigung erstellt und Push gesendet",
         type: type,

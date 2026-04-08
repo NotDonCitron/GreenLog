@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+// import { Switch } from "@/components/ui/switch";
 import { OrgLogoUpload } from "@/components/community/org-logo-upload";
 
 export default function SettingsOrganizationPage() {
@@ -273,10 +273,12 @@ export default function SettingsOrganizationPage() {
                 <p className="text-[10px] text-[var(--muted-foreground)]">Neue Mitglieder müssen von einem Admin bestätigt werden</p>
               </div>
             </div>
-            <Switch
+            <input
+              type="checkbox"
               checked={requiresApproval}
-              onCheckedChange={(checked) => void handleToggleApproval(checked)}
+              onChange={(e) => void handleToggleApproval(e.target.checked)}
               disabled={savingApproval || isDemoMode}
+              className="w-10 h-6 cursor-pointer"
             />
           </div>
           {isDemoMode && <p className="text-[10px] text-center text-[#484849] italic mt-2">Im Demo-Modus deaktiviert</p>}

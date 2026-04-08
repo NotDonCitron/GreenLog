@@ -7,8 +7,8 @@ type RouteParams = { params: Promise<{ organizationId: string }> };
 // GET /api/organizations/[organizationId]/pending-members
 export async function GET(request: Request, { params }: RouteParams) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
-    if (!auth) return;
-    if (auth instanceof Response) return;
+    if (!auth) return jsonError("Unauthorized", 401);
+    if (auth instanceof Response) return auth;
     const { user, supabase } = auth;
     const { organizationId } = await params;
 
