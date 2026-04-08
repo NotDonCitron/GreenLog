@@ -15,7 +15,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   Activity,
-  UserCheck
+  UserCheck,
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -297,6 +298,23 @@ export default function SettingsOrganizationPage() {
               </div>
             </button>
           </Card>
+        )}
+
+        {/* Ausstehende Anfragen — Owner/Admin only */}
+        {(isOwner || activeOrganization.role === USER_ROLES.ADMIN) && (
+          <Link href="/settings/organization/pending-members">
+            <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-[#ffd76a]/10 border border-[#ffd76a]/20 flex items-center justify-center shrink-0">
+                  <Users size={20} className="text-[#ffd76a]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-black text-sm text-[var(--foreground)]">Ausstehende Anfragen</p>
+                  <p className="text-[10px] text-[var(--muted-foreground)]">Mitgliedschafts-Anfragen genehmigen oder ablehnen</p>
+                </div>
+              </div>
+            </Card>
+          </Link>
         )}
 
         {/* Aktivitäten — Owner/Admin only */}
