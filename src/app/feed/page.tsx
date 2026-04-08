@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Sparkles, Users, Compass, Loader2, Search, Building2 } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { ActivityFeed } from "@/components/social/activity-feed";
@@ -10,12 +11,11 @@ import { useAuth } from "@/components/auth-provider";
 import { USER_ROLES } from "@/lib/roles";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 type FeedTab = "foryou" | "following" | "discover";
 type FollowingFilter = "users" | "communities";
-type DiscoverView = "friends" | "browse";
-type FriendFilter = "friends" | "communities" | null;
+type DiscoverTab = "users" | "communities";
 
 interface ProfileStub {
   id: string;
@@ -55,19 +55,55 @@ interface FavoriteRelation {
 
 export default function FeedPage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<FeedTab>("foryou");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Initialize main tab from URL, default "foryou"
+  const initialView = searchParams.get("view") as FeedTab;
+  const initialTab = searchParams.get("tab");
+  
+  // If tab=communities is present but no view is set, default to discover
+  const defaultTab = (initialView && ["foryou", "following", "discover"].includes(initialView)) 
+    ? initialView 
+    : (initialTab === "communities" ? "discover" : "foryou");
+
+  const [activeTab, setActiveTabState] = useState<FeedTab>(defaultTab);
+
+  const setActiveTab = useCallback((tab: FeedTab) => {
+    setActiveTabState(tab);
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", tab);
+    // If we switch away from discover, clear the sub-tab param
+    if (tab !== "discover") {
+      url.searchParams.delete("tab");
+    }
+    window.history.replaceState({}, "", url.pathname + url.search);
+  }, []);
+
   const [followingFilter, setFollowingFilter] = useState<FollowingFilter>("users");
   const [communities, setCommunities] = useState<CommunityOrg[]>([]);
   const [otherCommunities, setOtherCommunities] = useState<CommunityOrg[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
 
-  // Discover tab state
-  const [discoverView, setDiscoverView] = useState<DiscoverView>("friends");
-  const [friendFilter, setFriendFilter] = useState<FriendFilter>(null);
+  // Discover tab state – init from URL, default "users"
+  const initialDiscoverTab = searchParams.get("tab") === "communities" ? "communities" : "users";
+  const [discoverTab, setDiscoverTabState] = useState<DiscoverTab>(initialDiscoverTab);
+
+  const setDiscoverTab = useCallback((tab: DiscoverTab) => {
+    setDiscoverTabState(tab);
+    const url = new URL(window.location.href);
+    url.searchParams.set("view", "discover"); // Ensure we're in discover
+    if (tab === "users") {
+      url.searchParams.delete("tab");
+    } else {
+      url.searchParams.set("tab", tab);
+    }
+    window.history.replaceState({}, "", url.pathname + url.search);
+  }, []);
+
   const [friends, setFriends] = useState<FriendProfile[]>([]);
   const [loadingFriends, setLoadingFriends] = useState(false);
   const [browseUsers, setBrowseUsers] = useState<ProfileStub[]>([]);
-  const [loadingBrowseUsers, setLoadingBrowseUsers] = useState(false);
   const [discoverSearch, setDiscoverSearch] = useState("");
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
 
@@ -122,7 +158,6 @@ export default function FeedPage() {
     if (activeTab === "discover" && user) {
       // Fetch friends (followed users) with their strain stats
       setLoadingFriends(true);
-      setLoadingBrowseUsers(true);
 
       (async () => {
         try {
@@ -213,15 +248,10 @@ export default function FeedPage() {
           console.error("Discover data fetch error:", err);
         } finally {
           setLoadingFriends(false);
-          setLoadingBrowseUsers(false);
         }
       })();
     }
   }, [activeTab, user]);
-
-  const handleFriendFilter = (filter: "friends" | "communities") => {
-    setFriendFilter(friendFilter === filter ? null : filter);
-  };
 
   return (
     <>
@@ -421,187 +451,149 @@ export default function FeedPage() {
               />
             </div>
 
-            {/* View toggle: Freunde & Communities / Entdecken */}
-            <div className="flex gap-6 border-b border-[var(--border)]/50 mb-4">
+            {/* Tab toggle: User | Communities */}
+            <div className="flex gap-2 p-1 bg-[var(--muted)] rounded-2xl mb-4">
               <button
-                onClick={() => setDiscoverView("friends")}
-                className={`pb-3 text-xs font-bold uppercase tracking-widest transition-all ${discoverView === "friends" ? "text-[#2FF801] border-b-2 border-[#2FF801]" : "text-[#484849]"}`}
+                onClick={() => setDiscoverTab("users")}
+                className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${discoverTab === "users"
+                  ? "bg-[#2FF801] text-black shadow-lg shadow-[#2FF801]/20"
+                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  }`}
               >
-                Freunde & Communities
+                User
               </button>
               <button
-                onClick={() => setDiscoverView("browse")}
-                className={`pb-3 text-xs font-bold uppercase tracking-widest transition-all ${discoverView === "browse" ? "text-[#00F5FF] border-b-2 border-[#00F5FF]" : "text-[#484849]"}`}
+                onClick={() => setDiscoverTab("communities")}
+                className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${discoverTab === "communities"
+                  ? "bg-[#00F5FF] text-black shadow-lg shadow-[#00F5FF]/20"
+                  : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  }`}
               >
-                Entdecken
+                Communities
               </button>
             </div>
 
-            {/* Friends & Communities View */}
-            {discoverView === "friends" && (
-              <div>
-                {/* Filter Buttons */}
-                <div className="flex gap-3 mb-6">
-                  <button
-                    onClick={() => handleFriendFilter("friends")}
-                    className={`flex-1 h-10 rounded-xl text-xs font-bold uppercase tracking-widest transition-all border ${friendFilter === "friends"
-                      ? "bg-[#2FF801] text-black border-[#2FF801]"
-                      : "bg-[var(--card)] text-[var(--muted-foreground)] border-[var(--border)]/50 hover:border-[#00F5FF]/50"
-                      }`}
-                  >
-                    Freunde
-                  </button>
-                  <button
-                    onClick={() => handleFriendFilter("communities")}
-                    className={`flex-1 h-10 rounded-xl text-xs font-bold uppercase tracking-widest transition-all border ${friendFilter === "communities"
-                      ? "bg-[#00F5FF] text-black border-[#00F5FF]"
-                      : "bg-[var(--card)] text-[var(--muted-foreground)] border-[var(--border)]/50 hover:border-[#00F5FF]/50"
-                      }`}
-                  >
-                    Communities
-                  </button>
-                </div>
-
-                {loadingFriends ? (
-                  <div className="flex flex-col items-center justify-center py-20 gap-4">
-                    <div className="relative">
-                      <Loader2 className="h-10 w-10 animate-spin text-[#00F5FF]" />
-                      <div className="absolute inset-0 blur-xl bg-[#00F5FF]/20" />
-                    </div>
-                    <p className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest">Lade Social Data...</p>
-                  </div>
-                ) : (
+            {/* User Tab */}
+            {discoverTab === "users" && (
+              <div className="space-y-4">
+                {/* Friends List */}
+                {!discoverSearch.trim() && (
                   <>
-                    {/* Friends List */}
-                    {friendFilter !== "communities" && (
-                      <div>
-                        {friends.length > 0 ? (
-                          <div className="space-y-4">
-                            {friends.map((friend) => (
-                              <Link key={friend.id} href={`/user/${friend.username || friend.id}`}>
-                                <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-[2rem] p-5 flex flex-col gap-4 hover:border-[#00F5FF]/50 transition-all">
-                                  <div className="flex items-center justify-between gap-4">
-                                    <div className="flex items-center gap-4 min-w-0">
-                                      <div className="relative w-16 h-16 rounded-full overflow-hidden bg-[var(--muted)] border-2 border-[var(--border)] flex-shrink-0 flex items-center justify-center">
-                                        {friend.avatar_url ? (
-                                          <img src={friend.avatar_url} alt={friend.username || "User"} className="w-full h-full object-cover" />
-                                        ) : (
-                                          <span className="text-xl font-black text-[#00F5FF]">{(friend.username || "U")[0].toUpperCase()}</span>
-                                        )}
-                                      </div>
-                                      <div className="min-w-0">
-                                        <h3 className="font-black text-[var(--foreground)] uppercase tracking-tight truncate text-xl leading-none font-display">
-                                          {friend.display_name || friend.username || "User"}
-                                        </h3>
-                                        <p className="text-[10px] text-[var(--muted-foreground)] font-mono uppercase tracking-wider">@{friend.username}</p>
-                                      </div>
-                                    </div>
-                                    <div className="text-right flex-shrink-0 flex flex-col items-center justify-center bg-[var(--muted)] px-4 py-2 rounded-2xl border border-[var(--border)]/50">
-                                      <span className="text-3xl font-black text-[#2FF801] leading-none italic font-display">{friend.strainCount}</span>
-                                      <p className="text-[7px] text-[var(--muted-foreground)] font-semibold uppercase tracking-tighter mt-1 whitespace-nowrap">strains</p>
-                                    </div>
+                    {loadingFriends ? (
+                      <div className="flex flex-col items-center justify-center py-20 gap-4">
+                        <div className="relative">
+                          <Loader2 className="h-10 w-10 animate-spin text-[#00F5FF]" />
+                          <div className="absolute inset-0 blur-xl bg-[#00F5FF]/20" />
+                        </div>
+                        <p className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest">Lade Social Data...</p>
+                      </div>
+                    ) : friends.length > 0 ? (
+                      <div className="space-y-4">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">Deine Freunde</p>
+                        {friends.map((friend) => (
+                          <Link key={friend.id} href={`/user/${friend.username || friend.id}`}>
+                            <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-[2rem] p-5 flex flex-col gap-4 hover:border-[#00F5FF]/50 transition-all">
+                              <div className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-4 min-w-0">
+                                  <div className="relative w-16 h-16 rounded-full overflow-hidden bg-[var(--muted)] border-2 border-[var(--border)] flex-shrink-0 flex items-center justify-center">
+                                    {friend.avatar_url ? (
+                                      <img src={friend.avatar_url} alt={friend.username || "User"} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <span className="text-xl font-black text-[#00F5FF]">{(friend.username || "U")[0].toUpperCase()}</span>
+                                    )}
                                   </div>
-                                  <div className="bg-[var(--input)] rounded-2xl p-3 flex flex-col gap-2">
-                                    <p className="text-[8px] font-semibold text-[var(--muted-foreground)] uppercase tracking-[0.2em]">Top Strains</p>
-                                    <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-                                      {friend.topStrains.map((s: StrainStub, idx: number) => (
-                                        <div key={idx} className="flex flex-col items-center gap-1.5 w-14 flex-shrink-0">
-                                          <div className="w-10 h-10 rounded-lg overflow-hidden border border-[var(--border)]/50 bg-[var(--card)]">
-                                            <img
-                                              src={s.image_url || "/strains/placeholder-1.svg"}
-                                              alt={s.name || "Strain"}
-                                              className="w-full h-full object-cover opacity-80"
-                                            />
-                                          </div>
-                                          <p className="text-[7px] text-[var(--muted-foreground)] font-semibold uppercase tracking-tighter truncate w-full text-center leading-none">
-                                            {s.name || "Strain"}
-                                          </p>
-                                        </div>
-                                      ))}
-                                      {friend.topStrains.length === 0 && (
-                                        <p className="text-[8px] text-[#484849] italic">Noch keine Sorten</p>
-                                      )}
-                                    </div>
+                                  <div className="min-w-0">
+                                    <h3 className="font-black text-[var(--foreground)] uppercase tracking-tight truncate text-xl leading-none font-display">
+                                      {friend.display_name || friend.username || "User"}
+                                    </h3>
+                                    <p className="text-[10px] text-[var(--muted-foreground)] font-mono uppercase tracking-wider">@{friend.username}</p>
                                   </div>
                                 </div>
-                              </Link>
-                            ))}
-                          </div>
-                        ) : friendFilter === "friends" ? (
-                          <div className="text-center py-20 bg-[var(--card)] rounded-[2.5rem] border border-dashed border-[var(--border)]/50 text-[#484849] text-[10px] font-bold uppercase tracking-widest px-10">
-                            Noch keine Freunde hinzugefügt.
-                          </div>
-                        ) : null}
+                                <div className="text-right flex-shrink-0 flex flex-col items-center justify-center bg-[var(--muted)] px-4 py-2 rounded-2xl border border-[var(--border)]/50">
+                                  <span className="text-3xl font-black text-[#2FF801] leading-none italic font-display">{friend.strainCount}</span>
+                                  <p className="text-[7px] text-[var(--muted-foreground)] font-semibold uppercase tracking-tighter mt-1 whitespace-nowrap">strains</p>
+                                </div>
+                              </div>
+                              <div className="bg-[var(--input)] rounded-2xl p-3 flex flex-col gap-2">
+                                <p className="text-[8px] font-semibold text-[var(--muted-foreground)] uppercase tracking-[0.2em]">Top Strains</p>
+                                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+                                  {friend.topStrains.map((s: StrainStub, idx: number) => (
+                                    <div key={idx} className="flex flex-col items-center gap-1.5 w-14 flex-shrink-0">
+                                      <div className="w-10 h-10 rounded-lg overflow-hidden border border-[var(--border)]/50 bg-[var(--card)]">
+                                        <img
+                                          src={s.image_url || "/strains/placeholder-1.svg"}
+                                          alt={s.name || "Strain"}
+                                          className="w-full h-full object-cover opacity-80"
+                                        />
+                                      </div>
+                                      <p className="text-[7px] text-[var(--muted-foreground)] font-semibold uppercase tracking-tighter truncate w-full text-center leading-none">
+                                        {s.name || "Strain"}
+                                      </p>
+                                    </div>
+                                  ))}
+                                  {friend.topStrains.length === 0 && (
+                                    <p className="text-[8px] text-[#484849] italic">Noch keine Sorten</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 space-y-3">
+                        <p className="text-xs text-[var(--muted-foreground)]">Noch keine Freunde.</p>
                       </div>
                     )}
 
-                    {/* Communities List */}
-                    {friendFilter !== "friends" && (
-                      <div>
-                        {loadingCommunities ? (
-                          <div className="flex items-center justify-center py-12">
-                            <Loader2 size={24} className="animate-spin text-[#00F5FF]" />
+                    {/* Suggested Users - vertical */}
+                    {browseUsers.length > 0 && (
+                      <div className="space-y-4 mt-6">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">Entdecke neue Leute</p>
+                        {browseUsers.slice(0, 5).map((profile) => (
+                          <div key={profile.id} className="bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-4 flex items-center justify-between gap-4 hover:border-[#00F5FF]/50 transition-all">
+                            <Link href={`/user/${profile.username}`} className="flex items-center gap-4 min-w-0">
+                              <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-[var(--border)] bg-[var(--muted)] flex items-center justify-center flex-shrink-0">
+                                {profile.avatar_url ? (
+                                  <img src={profile.avatar_url} alt={profile.username || "User"} className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="text-lg font-black text-[#00F5FF]">{profile.username?.[0]?.toUpperCase()}</span>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-[var(--foreground)] truncate">{profile.display_name || profile.username}</p>
+                                <p className="text-[10px] text-[var(--muted-foreground)]">@{profile.username}</p>
+                              </div>
+                            </Link>
+                            <FollowButton
+                              userId={profile.id}
+                              size="sm"
+                              className="text-xs px-3 py-1 shrink-0"
+                              initialStatus={{
+                                is_following: followingIds.has(profile.id),
+                                is_following_me: false,
+                                has_pending_request: false,
+                              }}
+                              onFollowChange={() => {
+                                setFollowingIds(prev => {
+                                  const next = new Set(prev);
+                                  if (next.has(profile.id)) {
+                                    next.delete(profile.id);
+                                  } else {
+                                    next.add(profile.id);
+                                  }
+                                  return next;
+                                });
+                              }}
+                            />
                           </div>
-                        ) : communities.length > 0 ? (
-                          <div className="space-y-4 mt-4">
-                            {communities.map((comm) => (
-                              <Link key={comm.id} href={`/community/${comm.id}`}>
-                                <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-[2rem] p-5 flex flex-col gap-4 hover:border-[#00F5FF]/50 transition-all">
-                                  <div className="flex items-center justify-between gap-4">
-                                    <div className="flex items-center gap-4 min-w-0">
-                                      <div className="relative w-16 h-16 rounded-full overflow-hidden bg-[var(--muted)] border-2 border-[var(--border)] flex-shrink-0 flex items-center justify-center">
-                                        {comm.logo_url ? (
-                                          <img src={comm.logo_url} alt={comm.name} className="w-full h-full object-cover" />
-                                        ) : (
-                                          <Building2 size={24} className="text-[#00F5FF]" />
-                                        )}
-                                      </div>
-                                      <div className="min-w-0">
-                                        <h3 className="font-black text-[var(--foreground)] uppercase tracking-tight truncate text-xl leading-none font-display">
-                                          {comm.name}
-                                        </h3>
-                                        <p className="text-[10px] text-[var(--muted-foreground)] font-mono uppercase tracking-wider">
-                                          {comm.organization_type === "club" ? "Club" : comm.organization_type === "pharmacy" ? "Apotheke" : comm.organization_type || "Community"}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <div className="text-right flex-shrink-0 flex flex-col items-center justify-center bg-[var(--muted)] px-4 py-2 rounded-2xl border border-[var(--border)]/50">
-                                      <span className={`text-lg font-black leading-none italic ${comm.role === USER_ROLES.GRUENDER ? "text-[#ffd76a]" : comm.role === USER_ROLES.ADMIN ? "text-[#ff716c]" : "text-[var(--muted-foreground)]"}`}>
-                                        {comm.role === USER_ROLES.GRUENDER ? "Gründer" : comm.role === USER_ROLES.ADMIN ? "Admin" : "Member"}
-                                      </span>
-                                      <p className="text-[7px] text-[var(--muted-foreground)] font-semibold uppercase tracking-tighter mt-1 whitespace-nowrap">rolle</p>
-                                    </div>
-                                  </div>
-                                </div>
-                              </Link>
-                            ))}
-                          </div>
-                        ) : friendFilter === "communities" ? (
-                          <div className="text-center py-20 bg-[var(--card)] rounded-[2.5rem] border border-dashed border-[var(--border)]/50 text-[#484849] text-[10px] font-bold uppercase tracking-widest px-10">
-                            Du bist in keiner Community.
-                          </div>
-                        ) : null}
+                        ))}
                       </div>
                     )}
                   </>
                 )}
-              </div>
-            )}
 
-            {/* Browse / Entdecken View */}
-            {discoverView === "browse" && (
-              <div>
-                {/* Suggested Users */}
-                {!discoverSearch.trim() && (
-                  <SuggestedUsers
-                    limit={8}
-                    showViewAll={false}
-                    showCommunities={true}
-                    className="mb-6"
-                  />
-                )}
-
-                {/* Search Results - Users */}
+                {/* User Search Results */}
                 {discoverSearch.trim() && (
                   <div className="space-y-4">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">
@@ -655,51 +647,129 @@ export default function FeedPage() {
                           </div>
                         ))}
                     </div>
-
-                    {/* Search Results - Communities */}
-                    {otherCommunities.filter((org) => {
+                    {browseUsers.filter((profile) => {
                       const q = discoverSearch.toLowerCase();
-                      return (org.name || "").toLowerCase().includes(q);
-                    }).length > 0 && (
-                      <>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] pt-4">
-                          Communities
-                        </p>
-                        <div className="space-y-3">
-                          {otherCommunities
-                            .filter((org) => {
-                              const q = discoverSearch.toLowerCase();
-                              return (org.name || "").toLowerCase().includes(q);
-                            })
-                            .map((org) => (
-                              <Link key={org.id} href={`/community/${org.id}`}>
-                                <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-4 flex items-center gap-4 hover:border-[#00F5FF]/50 transition-all">
-                                  <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">
-                                    {org.logo_url ? (
-                                      <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                      <Building2 size={20} className="text-[#00F5FF]" />
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-bold text-[var(--foreground)] truncate">{org.name}</p>
-                                    <p className="text-xs text-[var(--muted-foreground)] uppercase">
-                                      {org.organization_type === "club" ? "Club" : org.organization_type === "pharmacy" ? "Apotheke" : "Community"}
-                                    </p>
-                                  </div>
-                                </div>
-                              </Link>
-                            ))}
-                        </div>
-                      </>
+                      return (profile.display_name || "").toLowerCase().includes(q) || (profile.username || "").toLowerCase().includes(q);
+                    }).length === 0 && (
+                      <p className="text-xs text-[var(--muted-foreground)] text-center py-8">Keine User gefunden.</p>
                     )}
                   </div>
                 )}
+              </div>
+            )}
 
-                {/* No search - just suggested users */}
-                {!discoverSearch.trim() && loadingBrowseUsers && (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 size={24} className="animate-spin text-[#00F5FF]" />
+            {/* Communities Tab */}
+            {discoverTab === "communities" && (
+              <div className="space-y-4">
+                {!discoverSearch.trim() ? (
+                  <>
+                    {loadingCommunities ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 size={24} className="animate-spin text-[#00F5FF]" />
+                      </div>
+                    ) : communities.length > 0 ? (
+                      <div className="space-y-4">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">Deine Communities</p>
+                        {communities.map((comm) => (
+                          <Link key={comm.id} href={`/community/${comm.id}`}>
+                            <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-[2rem] p-5 flex items-center justify-between gap-4 hover:border-[#00F5FF]/50 transition-all">
+                              <div className="flex items-center gap-4 min-w-0">
+                                <div className="relative w-14 h-14 rounded-full overflow-hidden bg-[var(--muted)] border-2 border-[var(--border)] flex-shrink-0 flex items-center justify-center">
+                                  {comm.logo_url ? (
+                                    <img src={comm.logo_url} alt={comm.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <Building2 size={22} className="text-[#00F5FF]" />
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <h3 className="font-black text-[var(--foreground)] uppercase tracking-tight truncate text-lg leading-none font-display">
+                                    {comm.name}
+                                  </h3>
+                                  <p className="text-[10px] text-[var(--muted-foreground)] font-mono uppercase tracking-wider">
+                                    {comm.organization_type === "club" ? "Club" : comm.organization_type === "pharmacy" ? "Apotheke" : comm.organization_type || "Community"}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex-shrink-0 flex flex-col items-center justify-center bg-[var(--muted)] px-3 py-2 rounded-2xl border border-[var(--border)]/50">
+                                <span className={`text-sm font-black leading-none italic ${comm.role === USER_ROLES.GRUENDER ? "text-[#ffd76a]" : comm.role === USER_ROLES.ADMIN ? "text-[#ff716c]" : "text-[var(--muted-foreground)]"}`}>
+                                  {comm.role === USER_ROLES.GRUENDER ? "Gründer" : comm.role === USER_ROLES.ADMIN ? "Admin" : "Member"}
+                                </span>
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 space-y-3">
+                        <p className="text-xs text-[var(--muted-foreground)]">Du bist in keiner Community.</p>
+                        <p className="text-[10px] text-[var(--muted-foreground)]">Nutze die Suche um neue zu finden.</p>
+                      </div>
+                    )}
+
+                    {/* Other Communities */}
+                    {otherCommunities.length > 0 && (
+                      <div className="space-y-4 mt-6">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">Entdecke andere</p>
+                        <div className="space-y-3">
+                          {otherCommunities.slice(0, 5).map((org) => (
+                            <Link key={org.id} href={`/community/${org.id}`}>
+                              <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-4 flex items-center gap-4 hover:border-[#00F5FF]/50 transition-all">
+                                <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">
+                                  {org.logo_url ? (
+                                    <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <Building2 size={18} className="text-[#00F5FF]" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-bold text-[var(--foreground)] truncate">{org.name}</p>
+                                  <p className="text-xs text-[var(--muted-foreground)] uppercase">
+                                    {org.organization_type === "club" ? "Club" : org.organization_type === "pharmacy" ? "Apotheke" : "Community"}
+                                  </p>
+                                </div>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* Communities Search Results */
+                  <div className="space-y-3">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">
+                      Suchergebnisse
+                    </p>
+                    {otherCommunities
+                      .filter((org) => {
+                        const q = discoverSearch.toLowerCase();
+                        return (org.name || "").toLowerCase().includes(q);
+                      })
+                      .map((org) => (
+                        <Link key={org.id} href={`/community/${org.id}`}>
+                          <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-4 flex items-center gap-4 hover:border-[#00F5FF]/50 transition-all">
+                            <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">
+                              {org.logo_url ? (
+                                <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <Building2 size={18} className="text-[#00F5FF]" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-[var(--foreground)] truncate">{org.name}</p>
+                              <p className="text-xs text-[var(--muted-foreground)] uppercase">
+                                {org.organization_type === "club" ? "Club" : org.organization_type === "pharmacy" ? "Apotheke" : "Community"}
+                              </p>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    {otherCommunities.filter((org) => {
+                      const q = discoverSearch.toLowerCase();
+                      return (org.name || "").toLowerCase().includes(q);
+                    }).length === 0 && (
+                      <p className="text-xs text-[var(--muted-foreground)] text-center py-8">Keine Communities gefunden.</p>
+                    )}
                   </div>
                 )}
               </div>
