@@ -1,12 +1,12 @@
 # Roadmap: GreenLog — React Query Integration
 
-**Phase count:** 2 | **Requirements:** 14 v1 + 4 v2 | **Generated:** 2026-04-04
+**Phase count:** 3 | **Requirements:** 14 v1 + 4 v2 + 4 OMA | **Generated:** 2026-04-04
 
 ## Phase 1: React Query Core Integration
 
 **Goal:** Replace all `useEffect + supabase.from` patterns with `useQuery`, add centralized query keys and consistent invalidation.
 
-**Plans:** 0/6 plans complete
+**Plans:** 5/5 plans complete
 
 ### Plans:
 
@@ -82,6 +82,38 @@
 
 ---
 
+## Phase 3: Organization Member Approval
+
+**Goal:** Implement optional manual member approval for organizations, allowing clubs to verify members or require paid access before granting membership.
+
+**Plans:** 1/4 plans complete
+
+### Plans:
+
+- [x] 03-01-PLAN.md — Database schema migration (requires_member_approval, pending status, RLS updates)
+- [ ] 03-02-PLAN.md — API routes (membership-request POST, approve PATCH, reject PATCH)
+- [ ] 03-03-PLAN.md — Organization settings toggle UI
+- [ ] 03-04-PLAN.md — Admin pending-members page UI with approve/reject actions
+
+### Requirements (OMA-01 — OMA-04)
+
+| ID | Requirement |
+|----|-------------|
+| OMA-01 | `requires_member_approval` flag on organizations table |
+| OMA-02 | Pending membership status (pending, approved, rejected) |
+| OMA-03 | Admin approval UI (pending members list, approve/reject actions) |
+| OMA-04 | API routes for membership approval workflow |
+
+### Phase 3 Success Criteria
+
+1. Organizations can optionally enable `requires_member_approval`
+2. New members requesting to join go to `pending` status when enabled
+3. Admins can view pending requests and approve/reject
+4. Approved members get full access; rejected see reason
+5. Existing members without approval enabled keep current access
+
+---
+
 ## Out of Scope
 
 | Item | Reason |
@@ -103,9 +135,13 @@
 | RQ-11, RQ-12 | Phase 1 | Done (01-05) |
 | RQ-13 | Phase 1 | Done (01-01) |
 | RQ-15 | Phase 2+ | Deferred |
-| RQ-16 | Phase 2 | Planned (02-02) |
+| RQ-16 | Phase 2 | Done (02-02) |
 | RQ-17 | Phase 2+ | Deferred |
-| RQ-18 | Phase 2 | Planned (02-03) |
+| RQ-18 | Phase 2 | Done (02-03) |
+| OMA-01, OMA-02 | Phase 3 | Done (03-01) |
+| OMA-03 | Phase 3 | Planned (03-03, 03-04) |
+| OMA-04 | Phase 3 | Planned (03-02) |
 
-**Overall v1 coverage:** 14/14 requirements mapped ✓
+**Overall v1 coverage:** 14/14 requirements mapped + 4 OMA planned
 **Phase 2 coverage:** 2/4 requirements planned (R-15, R-17 deferred)
+**Phase 3 coverage:** 4/4 OMA requirements planned
