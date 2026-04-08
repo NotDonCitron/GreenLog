@@ -409,6 +409,18 @@ export default function FeedPage() {
         )}
         {activeTab === "discover" && user && (
           <div className="space-y-4">
+            {/* Search Field - ABOVE the toggle, prominent */}
+            <div className="relative mb-4">
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#484849] pointer-events-none" />
+              <input
+                type="text"
+                value={discoverSearch}
+                onChange={(e) => setDiscoverSearch(e.target.value)}
+                placeholder="Nutzer oder Communities suchen..."
+                className="w-full h-12 pl-11 pr-4 bg-[var(--input)] border border-[var(--border)]/50 rounded-xl text-[var(--foreground)] placeholder:text-[#484849] text-sm font-medium focus:outline-none focus:border-[#00F5FF]/50 transition-colors"
+              />
+            </div>
+
             {/* View toggle: Freunde & Communities / Entdecken */}
             <div className="flex gap-6 border-b border-[var(--border)]/50 mb-4">
               <button
@@ -580,79 +592,114 @@ export default function FeedPage() {
             {discoverView === "browse" && (
               <div>
                 {/* Suggested Users */}
-                <SuggestedUsers
-                  limit={8}
-                  showViewAll={false}
-                  showCommunities={true}
-                  className="mb-6"
-                />
-
-                {/* Search Field */}
-                <div className="relative mb-6">
-                  <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#484849] pointer-events-none" />
-                  <input
-                    type="text"
-                    value={discoverSearch}
-                    onChange={(e) => setDiscoverSearch(e.target.value)}
-                    placeholder="Nutzer suchen..."
-                    className="w-full h-12 pl-11 pr-4 bg-[var(--input)] border border-[var(--border)]/50 rounded-xl text-[var(--foreground)] placeholder:text-[#484849] text-sm font-medium focus:outline-none focus:border-[#00F5FF]/50 transition-colors"
+                {!discoverSearch.trim() && (
+                  <SuggestedUsers
+                    limit={8}
+                    showViewAll={false}
+                    showCommunities={true}
+                    className="mb-6"
                   />
-                </div>
+                )}
 
-                {/* Browse Users Grid */}
-                {loadingBrowseUsers ? (
+                {/* Search Results - Users */}
+                {discoverSearch.trim() && (
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">
+                      User
+                    </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      {browseUsers
+                        .filter((profile) => {
+                          const q = discoverSearch.toLowerCase();
+                          return (
+                            (profile.display_name || "").toLowerCase().includes(q) ||
+                            (profile.username || "").toLowerCase().includes(q)
+                          );
+                        })
+                        .map((profile) => (
+                          <div key={profile.id} className="bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-4 flex flex-col items-center text-center gap-3 hover:border-[#00F5FF]/50 transition-all">
+                            <Link href={`/user/${profile.username}`} className="flex flex-col items-center gap-2">
+                              <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--border)] bg-[var(--muted)] flex items-center justify-center">
+                                {profile.avatar_url ? (
+                                  <img src={profile.avatar_url} alt={profile.username || "User"} className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="text-xl font-black text-[#00F5FF]">{profile.username?.[0]?.toUpperCase()}</span>
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-[var(--foreground)] uppercase truncate max-w-[120px] font-display">{profile.display_name || profile.username}</p>
+                                <p className="text-[9px] text-[var(--muted-foreground)]">@{profile.username}</p>
+                              </div>
+                            </Link>
+                            <FollowButton
+                              userId={profile.id}
+                              size="sm"
+                              className="text-xs px-3 py-1"
+                              initialStatus={{
+                                is_following: followingIds.has(profile.id),
+                                is_following_me: false,
+                                has_pending_request: false,
+                              }}
+                              onFollowChange={() => {
+                                setFollowingIds(prev => {
+                                  const next = new Set(prev);
+                                  if (next.has(profile.id)) {
+                                    next.delete(profile.id);
+                                  } else {
+                                    next.add(profile.id);
+                                  }
+                                  return next;
+                                });
+                              }}
+                            />
+                          </div>
+                        ))}
+                    </div>
+
+                    {/* Search Results - Communities */}
+                    {otherCommunities.filter((org) => {
+                      const q = discoverSearch.toLowerCase();
+                      return (org.name || "").toLowerCase().includes(q);
+                    }).length > 0 && (
+                      <>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] pt-4">
+                          Communities
+                        </p>
+                        <div className="space-y-3">
+                          {otherCommunities
+                            .filter((org) => {
+                              const q = discoverSearch.toLowerCase();
+                              return (org.name || "").toLowerCase().includes(q);
+                            })
+                            .map((org) => (
+                              <Link key={org.id} href={`/community/${org.id}`}>
+                                <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-4 flex items-center gap-4 hover:border-[#00F5FF]/50 transition-all">
+                                  <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">
+                                    {org.logo_url ? (
+                                      <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <Building2 size={20} className="text-[#00F5FF]" />
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-[var(--foreground)] truncate">{org.name}</p>
+                                    <p className="text-xs text-[var(--muted-foreground)] uppercase">
+                                      {org.organization_type === "club" ? "Club" : org.organization_type === "pharmacy" ? "Apotheke" : "Community"}
+                                    </p>
+                                  </div>
+                                </div>
+                              </Link>
+                            ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* No search - just suggested users */}
+                {!discoverSearch.trim() && loadingBrowseUsers && (
                   <div className="flex items-center justify-center py-12">
                     <Loader2 size={24} className="animate-spin text-[#00F5FF]" />
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-4">
-                    {browseUsers
-                      .filter((profile) => {
-                        if (!discoverSearch.trim()) return true;
-                        const q = discoverSearch.toLowerCase();
-                        return (
-                          (profile.display_name || "").toLowerCase().includes(q) ||
-                          (profile.username || "").toLowerCase().includes(q)
-                        );
-                      })
-                      .map((profile) => (
-                        <div key={profile.id} className="bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-4 flex flex-col items-center text-center gap-3 hover:border-[#00F5FF]/50 transition-all">
-                          <Link href={`/user/${profile.username}`} className="flex flex-col items-center gap-2">
-                            <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--border)] bg-[var(--muted)] flex items-center justify-center">
-                              {profile.avatar_url ? (
-                                <img src={profile.avatar_url} alt={profile.username || "User"} className="w-full h-full object-cover" />
-                              ) : (
-                                <span className="text-xl font-black text-[#00F5FF]">{profile.username?.[0]?.toUpperCase()}</span>
-                              )}
-                            </div>
-                            <div>
-                              <p className="text-xs font-bold text-[var(--foreground)] uppercase truncate max-w-[120px] font-display">{profile.display_name || profile.username}</p>
-                              <p className="text-[9px] text-[var(--muted-foreground)]">@{profile.username}</p>
-                            </div>
-                          </Link>
-                          <FollowButton
-                            userId={profile.id}
-                            size="sm"
-                            className="text-xs px-3 py-1"
-                            initialStatus={{
-                              is_following: followingIds.has(profile.id),
-                              is_following_me: false,
-                              has_pending_request: false,
-                            }}
-                            onFollowChange={() => {
-                              setFollowingIds(prev => {
-                                const next = new Set(prev);
-                                if (next.has(profile.id)) {
-                                  next.delete(profile.id);
-                                } else {
-                                  next.add(profile.id);
-                                }
-                                return next;
-                              });
-                            }}
-                          />
-                        </div>
-                      ))}
                   </div>
                 )}
               </div>
