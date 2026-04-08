@@ -62,7 +62,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { name, slug, license_number, status } = body;
+    const { name, slug, license_number, status, requires_member_approval } = body;
 
     const updates: Record<string, unknown> = {};
     if (name) updates.name = name;
@@ -70,6 +70,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         updates.slug = sanitizeSlug(slug);
     }
     if (license_number !== undefined) updates.license_number = license_number;
+
+    // Member approval setting - both admin and gründer can toggle
+    if (typeof requires_member_approval === 'boolean') {
+        updates.requires_member_approval = requires_member_approval;
+    }
 
     if (status !== undefined && membership.role === USER_ROLES.GRUENDER) {
         if (ORG_STATUS_VALUES.includes(status)) {
