@@ -86,12 +86,12 @@
 
 **Goal:** Implement optional manual member approval for organizations, allowing clubs to verify members or require paid access before granting membership.
 
-**Plans:** 1/4 plans complete
+**Plans:** 2/4 plans executed
 
 ### Plans:
 
 - [x] 03-01-PLAN.md — Database schema migration (requires_member_approval, pending status, RLS updates)
-- [ ] 03-02-PLAN.md — API routes (membership-request POST, approve PATCH, reject PATCH)
+- [x] 03-02-PLAN.md — API routes (membership-request POST, approve PATCH, reject PATCH)
 - [ ] 03-03-PLAN.md — Organization settings toggle UI
 - [ ] 03-04-PLAN.md — Admin pending-members page UI with approve/reject actions
 
