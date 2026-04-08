@@ -93,7 +93,7 @@
 - [x] 03-01-PLAN.md — Database schema migration (requires_member_approval, pending status, RLS updates)
 - [x] 03-02-PLAN.md — API routes (membership-request POST, approve PATCH, reject PATCH)
 - [x] 03-03-PLAN.md — Organization settings toggle UI
-- [ ] 03-04-PLAN.md — Admin pending-members page UI with approve/reject actions
+- [x] 03-04-PLAN.md — Admin pending-members page UI with approve/reject actions
 
 ### Requirements (OMA-01 — OMA-04)
 
