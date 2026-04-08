@@ -14,6 +14,7 @@ export interface Organization {
   created_at: string;
   updated_at: string;
   logo_url?: string | null;
+  requires_member_approval?: boolean;
 }
 
 export interface OrganizationMembership {
@@ -21,11 +22,12 @@ export interface OrganizationMembership {
   organization_id: string;
   user_id: string;
   role: 'gründer' | 'admin' | 'member' | 'viewer';
-  membership_status: 'active' | 'invited' | 'removed';
+  membership_status: 'active' | 'invited' | 'removed' | 'pending';
   joined_at: string | null;
   invited_by: string | null;
   created_at: string;
   updated_at: string;
+  rejection_reason?: string | null;
   organizations?: Organization | null;
 }
 
