@@ -14,11 +14,13 @@ import {
   Trash2,
   CheckCircle2,
   AlertTriangle,
-  Activity
+  Activity,
+  UserCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { OrgLogoUpload } from "@/components/community/org-logo-upload";
 
 export default function SettingsOrganizationPage() {
@@ -35,6 +37,12 @@ export default function SettingsOrganizationPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+
+  const [requiresApproval, setRequiresApproval] = useState(
+    activeOrganization?.organizations?.requires_member_approval ?? false
+  );
+  const [savingApproval, setSavingApproval] = useState(false);
+  const [approvalMessage, setApprovalMessage] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
   const isOwner = activeOrganization?.role === USER_ROLES.GRUENDER;
   const orgName = activeOrganization?.organizations?.name || "Organisation";
@@ -67,6 +75,35 @@ export default function SettingsOrganizationPage() {
       setNameMessage({ type: "error", msg: message });
     } finally {
       setSavingName(false);
+    }
+  };
+
+  const handleToggleApproval = async (checked: boolean) => {
+    if (!session?.access_token || isDemoMode) return;
+
+    setSavingApproval(true);
+    setApprovalMessage(null);
+    try {
+      const res = await fetch(
+        `/api/organizations/${activeOrganization!.organization_id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ requires_member_approval: checked }),
+        }
+      );
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error?.message || "Fehler beim Speichern");
+      setRequiresApproval(checked);
+      setApprovalMessage({ type: "success", msg: "Einstellung gespeichert" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Fehler beim Speichern";
+      setApprovalMessage({ type: "error", msg: message });
+    } finally {
+      setSavingApproval(false);
     }
   };
 
@@ -210,6 +247,38 @@ export default function SettingsOrganizationPage() {
               {isDemoMode && <p className="text-[10px] text-center text-[#484849] italic">Im Demo-Modus deaktiviert</p>}
             </form>
           )}
+        </Card>
+
+        {/* Mitgliedschafts-Anfrage */}
+        {approvalMessage && (
+          <div className={`p-3 rounded-2xl flex items-start gap-2 text-sm font-bold border ${
+            approvalMessage.type === "success"
+              ? "bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]"
+              : "bg-[#ff716c]/10 border-[#ff716c]/30 text-[#ff716c]"
+          }`}>
+            {approvalMessage.type === "success" ? <CheckCircle2 size={16} className="shrink-0" /> : <AlertTriangle size={16} className="shrink-0" />}
+            <span>{approvalMessage.msg}</span>
+          </div>
+        )}
+
+        <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-[#ffd76a]/10 border border-[#ffd76a]/20 flex items-center justify-center shrink-0">
+                <UserCheck size={20} className="text-[#ffd76a]" />
+              </div>
+              <div>
+                <p className="font-black text-sm text-[var(--foreground)]">Mitgliedschafts-Anfrage erforderlich</p>
+                <p className="text-[10px] text-[var(--muted-foreground)]">Neue Mitglieder müssen von einem Admin bestätigt werden</p>
+              </div>
+            </div>
+            <Switch
+              checked={requiresApproval}
+              onCheckedChange={(checked) => void handleToggleApproval(checked)}
+              disabled={savingApproval || isDemoMode}
+            />
+          </div>
+          {isDemoMode && <p className="text-[10px] text-center text-[#484849] italic mt-2">Im Demo-Modus deaktiviert</p>}
         </Card>
 
         {/* Admins verwalten — Owner only */}
