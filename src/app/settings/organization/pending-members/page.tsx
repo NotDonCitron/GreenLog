@@ -22,7 +22,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase/client";
 
@@ -348,7 +347,7 @@ export default function PendingMembersPage() {
               rows={3}
             />
           </div>
-          <DialogFooter className="gap-2">
+          <div className="flex gap-2">
             <Button
               variant="ghost"
               onClick={() => {
@@ -370,7 +369,7 @@ export default function PendingMembersPage() {
               ) : null}
               Ablehnen
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
