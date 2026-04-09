@@ -1,20 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/router";
+// Clerk middleware handles the OAuth callback at the edge — this page just renders a loading state
+// while Clerk processes the token and redirects to /feed automatically
 
 export default function SSOCallback() {
-  const router = useRouter();
-
-  useEffect(() => {
-    // Clerk middleware handles the OAuth callback automatically
-    // Redirect to feed after a short delay to let Clerk process the callback
-    const timer = setTimeout(() => {
-      router.push("/feed");
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [router]);
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--background)]">
       <div className="text-center">

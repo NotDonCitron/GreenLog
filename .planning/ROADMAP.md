@@ -122,7 +122,7 @@
 
 ### Plans:
 
-- [ ] 04-01-PLAN.md — Clerk SDK install, ClerkProvider setup, middleware, sign-in/sign-up pages, env vars, Google OAuth
+- [x] 04-01-PLAN.md — Clerk SDK install, ClerkProvider setup, middleware, sign-in/sign-up pages, env vars, Google OAuth
 
 ### Requirements (CSL-01 — CSL-08)
 

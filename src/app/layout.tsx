@@ -89,9 +89,6 @@ export default function RootLayout({
             __html: `(function(){try{var t=localStorage.getItem("cannalog_theme");"light"===t&&(document.documentElement.classList.add("light"),document.documentElement.style.colorScheme="light")}catch(e){}})();`,
           }}
         />
-      </head>
-      <body className="h-full bg-[var(--background)] text-[var(--foreground)] overflow-x-hidden font-body">
-        <ClerkProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -117,6 +114,9 @@ export default function RootLayout({
             }),
           }}
         />
+      </head>
+      <body className="h-full bg-[var(--background)] text-[var(--foreground)] overflow-x-hidden font-body">
+        <ClerkProvider>
         <ServiceWorkerRegister />
         <Providers>
           <ErrorBoundary name="app">
