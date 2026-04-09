@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Sparkles, Users, Compass, Loader2, Search, Building2 } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
@@ -54,18 +54,56 @@ interface FavoriteRelation {
 }
 
 export default function FeedPage() {
+  return (
+    <Suspense fallback={<FeedLoading />}>
+      <FeedContent />
+    </Suspense>
+  );
+}
+
+function FeedLoading() {
+  return (
+    <>
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#2FF801]/5 blur-[80px] rounded-full" />
+      </div>
+      <header className="px-6 pt-12 pb-4 relative z-10">
+        <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
+          Social
+        </h1>
+      </header>
+      <div className="flex items-center justify-center py-24">
+        <div className="relative">
+          <Loader2 className="h-10 w-10 animate-spin text-[#00F5FF]" />
+          <div className="absolute inset-0 blur-xl bg-[#00F5FF]/20" />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function FeedContent() {
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Initialize main tab from URL, default "foryou"
-  const initialView = searchParams.get("view") as FeedTab;
-  const initialTab = searchParams.get("tab");
-  
+  // Initialize main tab from URL searchParams (SSR/hydration) or window.location (hard refresh after replaceState)
+  const getInitialView = (): FeedTab => {
+    const param = searchParams.get("view") as FeedTab | null;
+    if (param && ["foryou", "following", "discover"].includes(param)) return param;
+    // After replaceState, useSearchParams won't update — fall back to window.location
+    if (typeof window !== "undefined") {
+      const urlParam = new URLSearchParams(window.location.search).get("view");
+      if (urlParam && ["foryou", "following", "discover"].includes(urlParam)) return urlParam as FeedTab;
+    }
+    return "foryou";
+  };
+  const initialView = getInitialView();
+
   // If tab=communities is present but no view is set, default to discover
-  const defaultTab = (initialView && ["foryou", "following", "discover"].includes(initialView)) 
-    ? initialView 
-    : (initialTab === "communities" ? "discover" : "foryou");
+  const initialTab = searchParams.get("tab");
+  const defaultTab = initialTab === "communities" ? "discover" : initialView;
 
   const [activeTab, setActiveTabState] = useState<FeedTab>(defaultTab);
 
@@ -86,8 +124,16 @@ export default function FeedPage() {
   const [loadingCommunities, setLoadingCommunities] = useState(false);
 
   // Discover tab state – init from URL, default "users"
-  const initialDiscoverTab = searchParams.get("tab") === "communities" ? "communities" : "users";
-  const [discoverTab, setDiscoverTabState] = useState<DiscoverTab>(initialDiscoverTab);
+  const getInitialDiscoverTab = (): DiscoverTab => {
+    const param = searchParams.get("tab");
+    if (param === "communities") return "communities";
+    if (typeof window !== "undefined") {
+      const urlParam = new URLSearchParams(window.location.search).get("tab");
+      if (urlParam === "communities") return "communities";
+    }
+    return "users";
+  };
+  const [discoverTab, setDiscoverTabState] = useState<DiscoverTab>(getInitialDiscoverTab());
 
   const setDiscoverTab = useCallback((tab: DiscoverTab) => {
     setDiscoverTabState(tab);

@@ -82,9 +82,7 @@ function UpdatePasswordForm() {
   return (
     <div className="w-full max-w-md space-y-8">
       <div className="text-center">
-        <div className="w-32 h-32 relative mx-auto mb-4 drop-shadow-2xl">
-          <Image src="/logo-transparent.png" alt="CannaLog Logo" fill className="object-contain" />
-        </div>
+        <img src="/logo-transparent.png" alt="CannaLog Logo" className="w-32 h-32 mx-auto mb-4 object-contain drop-shadow-2xl" />
         <span className="text-[12px] text-[#00F5FF] tracking-[0.5em] font-bold uppercase">CannaLog</span>
         <h1 className="text-3xl font-bold text-black mt-2">Neues Passwort</h1>
         <p className="text-black/40 mt-2">Gib dein neues Passwort ein.</p>

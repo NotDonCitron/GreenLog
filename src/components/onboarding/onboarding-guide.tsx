@@ -30,7 +30,7 @@ const ONBOARDING_STEPS: Step[] = [
     {
         title: "Willkommen bei CannaLog",
         description: "Dein digitaler Begleiter für Cannabis-Sorten. Entdecke unsere Sortenvielfalt, tracke deine Favoriten und teile Erfahrungen.",
-        icon: <Image src="/logo.png" alt="Logo" width={40} height={40} className="object-contain" priority />,
+        icon: <img src="/logo.png" alt="Logo" width={40} height={40} className="object-contain" />,
         color: "#00F5FF",
         path: "/"
     },
