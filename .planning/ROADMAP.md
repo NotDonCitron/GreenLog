@@ -114,10 +114,50 @@
 
 ---
 
+## Phase 4: Clerk Social Login Integration
+
+**Goal:** Replace Supabase-only email/password auth with Clerk social login (Google OAuth) as primary auth provider, while preserving existing Supabase auth for database sessions.
+
+**Plans:** 1/1 plan created
+
+### Plans:
+
+- [ ] 04-01-PLAN.md — Clerk SDK install, ClerkProvider setup, middleware, sign-in/sign-up pages, env vars, Google OAuth
+
+### Requirements (CSL-01 — CSL-08)
+
+| ID | Requirement |
+|----|-------------|
+| CSL-01 | Clerk SDK (@clerk/nextjs v7) installieren |
+| CSL-02 | ClerkProvider in layout.tsx einrichten |
+| CSL-03 | clerkMiddleware() in middleware.ts |
+| CSL-04 | /sign-in Page mit Clerk SignIn Component |
+| CSL-05 | /sign-up Page mit Clerk SignUp Component |
+| CSL-06 | Environment Variables CLERK_SECRET_KEY + NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY |
+| CSL-07 | Google OAuth in Clerk Dashboard aktivieren |
+| CSL-08 | Build verification (npm run build) |
+
+### Phase 4 Success Criteria
+
+1. @clerk/nextjs v7 listed in package.json
+2. ClerkProvider wraps app content in layout.tsx
+3. middleware.ts uses clerkMiddleware() with rate limiting preserved
+4. /sign-in page renders Clerk SignIn with Google OAuth button
+5. /sign-up page renders Clerk SignUp with Google + email/password
+6. .env.example documents both Clerk env vars
+7. Google OAuth enabled in Clerk Dashboard (human-verified)
+8. npm run build exits with code 0
+
+---
+
 ## Out of Scope
 
 | Item | Reason |
 |------|--------|
+| User Migration (existing Supabase users) | No migration — Supabase auth stays for existing users |
+| Clerk Webhooks for Supabase Profile Sync | Deferred post-Phase 04 |
+| Apple/Microsoft/GitHub OAuth | Only Google in scope for Phase 04 |
+| SSO / SAML (Enterprise) | Out of scope for MVP |
 | Grows/Eigenanbau-Tracker | Legal clarification in Germany pending |
 | PWA / App-Store | Not started, deferred post-React-Query |
 | Real-time WebSocket | 30s polling sufficient for MVP |
@@ -141,7 +181,9 @@
 | OMA-01, OMA-02 | Phase 3 | Done (03-01) |
 | OMA-03 | Phase 3 | Planned (03-03, 03-04) |
 | OMA-04 | Phase 3 | Planned (03-02) |
+| CSL-01 — CSL-08 | Phase 4 | Planned (04-01) |
 
 **Overall v1 coverage:** 14/14 requirements mapped + 4 OMA planned
 **Phase 2 coverage:** 2/4 requirements planned (R-15, R-17 deferred)
 **Phase 3 coverage:** 4/4 OMA requirements planned
+**Phase 4 coverage:** 8/8 CSL requirements planned
