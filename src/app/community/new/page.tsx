@@ -32,7 +32,7 @@ export default function NewCommunityPage() {
     refreshMemberships().finally(() => setIsRefreshing(false));
   }, []);
 
-  const isAlreadyGründer = memberships.some((m) => m.role === USER_ROLES.GRUENDER);
+  const isAlreadyGründer = false; // memberships.some((m) => m.role === USER_ROLES.GRUENDER);
 
   const generateSlug = (name: string) => {
     return name

@@ -364,16 +364,20 @@ function StrainsPageContent() {
     if (strainError) throw new Error(strainError.message);
 
     const mergedOverrides = { ...localSourceOverrides };
+    const mergedImageOverrides: Record<string, string | null> = {};
     if (user) {
       const { data: collectionSettings } = await supabase
         .from('user_collection')
-        .select('strain_id, batch_info')
+        .select('strain_id, batch_info, user_image_url')
         .eq('user_id', user.id);
 
       if (collectionSettings) {
-        collectionSettings.forEach((item: { strain_id: string; batch_info: string | null }) => {
+        collectionSettings.forEach((item: { strain_id: string; batch_info: string | null; user_image_url: string | null }) => {
           if (['apotheke', 'street', 'grow', 'pharmacy'].includes(item.batch_info || '')) {
             mergedOverrides[item.strain_id] = item.batch_info as StrainSource;
+          }
+          if (item.user_image_url) {
+            mergedImageOverrides[item.strain_id] = item.user_image_url;
           }
         });
         // Persist merged overrides to localStorage
@@ -388,6 +392,7 @@ function StrainsPageContent() {
     let normalizedStrains = (pageStraings ?? []).map((strain) => ({
       ...strain,
       source: strain.source ?? mergedOverrides[strain.id] ?? 'pharmacy',
+      image_url: mergedImageOverrides[strain.id] ?? strain.image_url,
     }));
 
     // Source filter still needs client-side (custom logic with overrides)

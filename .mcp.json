@@ -6,6 +6,10 @@
       "env": {
         "STITCH_API_KEY": "AQ.Ab8RN6IB2HMmZVRaLs9EMzELAqKkCj6gliwGXtzL37ySrPVKmA"
       }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@executeautomation/playwright-mcp-server"]
     }
   }
 }

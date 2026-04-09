@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Loader2, UserPlus, Clock, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import { USER_ROLES } from "@/lib/roles";
 import { supabase } from "@/lib/supabase/client";
 
 interface JoinButtonProps {
@@ -22,24 +23,19 @@ export function JoinButton({ organizationId, className = "" }: JoinButtonProps) 
     }
 
     const checkMembershipStatus = async () => {
-      // First check auth provider memberships (active only)
-      const isActive = memberships.some(m => m.organization_id === organizationId);
-      if (isActive) {
-        setStatus('active');
-        setIsLoading(false);
-        return;
-      }
-
-      // If not active in auth provider, check DB for pending status
+      // Always query DB to get accurate membership status (handles pending, invited, etc.)
       const { data, error } = await supabase
         .from("organization_members")
         .select("membership_status")
         .eq("organization_id", organizationId)
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (data) {
-        setStatus(data.membership_status as any);
+      if (error) {
+        console.error("Error checking membership status:", error);
+        setStatus('none');
+      } else if (data) {
+        setStatus(data.membership_status);
       } else {
         setStatus('none');
       }
@@ -93,11 +89,14 @@ export function JoinButton({ organizationId, className = "" }: JoinButtonProps) 
     );
   }
 
+  const userMembership = memberships.find(m => m.organization_id === organizationId && m.membership_status === 'active');
+  const isOwner = userMembership?.role === USER_ROLES.GRUENDER;
+
   if (status === 'active') {
     return (
       <div className={`h-10 px-6 rounded-full bg-[#2FF801]/10 border border-[#2FF801]/30 text-[#2FF801] flex items-center gap-2 font-semibold text-sm ${className}`}>
         <CheckCircle2 size={16} />
-        <span>Mitglied</span>
+        <span>{isOwner ? 'Owner' : 'Mitglied'}</span>
       </div>
     );
   }

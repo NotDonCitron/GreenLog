@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
@@ -39,9 +39,13 @@ export default function SettingsOrganizationPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteMessage, setDeleteMessage] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
-  const [requiresApproval, setRequiresApproval] = useState(
-    activeOrganization?.organizations?.requires_member_approval ?? false
-  );
+  const [requiresApproval, setRequiresApproval] = useState(false);
+
+  // Sync with activeOrganization when it loads (avoids stale closure in useState initializer)
+  useEffect(() => {
+    setRequiresApproval(activeOrganization?.organizations?.requires_member_approval ?? false);
+  }, [activeOrganization]);
+
   const [savingApproval, setSavingApproval] = useState(false);
   const [approvalMessage, setApprovalMessage] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 

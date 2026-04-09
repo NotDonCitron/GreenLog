@@ -4,10 +4,27 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
-import { Leaf, Building2, Loader2, Plus } from "lucide-react";
+import { Leaf, Building2, Loader2, Plus, GripVertical } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { USER_ROLES } from "@/lib/roles";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface Organization {
   id: string;
@@ -21,6 +38,11 @@ interface Organization {
 
 interface MemberOrg extends Organization {
   membership_role?: string;
+  position?: number;
+}
+
+interface SortableOrg extends MemberOrg {
+  relationId: string;
 }
 
 function OrgTypeLabel({ type }: { type: string }) {
@@ -32,33 +54,58 @@ function OrgTypeLabel({ type }: { type: string }) {
   );
 }
 
-function CommunityCard({ org, role }: { org: Organization; role?: string }) {
+function SortableCommunityCard({ org, role }: { org: SortableOrg; role?: string }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: org.relationId });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : "auto",
+  };
+
   return (
-    <Link href={`/community/${org.id}`}>
-      <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl hover:border-[#00F5FF]/50 transition-all cursor-pointer">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-[var(--muted)] border border-[var(--border)]/50 flex items-center justify-center shrink-0 overflow-hidden">
-            {org.logo_url ? (
-              <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
-            ) : (
-              <Leaf size={20} className="text-[#2FF801]" />
+    <div ref={setNodeRef} style={style} data-relation-id={org.relationId}>
+      <Link href={`/community/${org.id}`}>
+        <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl hover:border-[#00F5FF]/50 transition-all cursor-pointer">
+          <div className="flex items-center gap-4">
+            <div
+              className="w-8 h-8 rounded-full bg-[var(--muted)] border border-[var(--border)]/50 flex items-center justify-center shrink-0 cursor-grab active:cursor-grabbing"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical size={14} className="text-[var(--muted-foreground)]" />
+            </div>
+            <div className="w-12 h-12 rounded-full bg-[var(--muted)] border border-[var(--border)]/50 flex items-center justify-center shrink-0 overflow-hidden">
+              {org.logo_url ? (
+                <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
+              ) : (
+                <Leaf size={20} className="text-[#2FF801]" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-black text-sm truncate text-[var(--foreground)]">{org.name}</p>
+              <OrgTypeLabel type={org.organization_type} />
+            </div>
+            {role && (
+              <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 text-[#00F5FF]">
+                {role === USER_ROLES.GRUENDER ? "Gründer" : role === USER_ROLES.ADMIN ? "Admin" : "Member"}
+              </span>
             )}
+            <div className="w-8 h-8 rounded-full bg-[var(--muted)] border border-[var(--border)]/50 flex items-center justify-center shrink-0">
+              <Building2 size={14} className="text-[var(--muted-foreground)]" />
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-black text-sm truncate text-[var(--foreground)]">{org.name}</p>
-            <OrgTypeLabel type={org.organization_type} />
-          </div>
-          {role && (
-            <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 text-[#00F5FF]">
-              {role === USER_ROLES.GRUENDER ? "Gründer" : role === USER_ROLES.ADMIN ? "Admin" : "Member"}
-            </span>
-          )}
-          <div className="w-8 h-8 rounded-full bg-[var(--muted)] border border-[var(--border)]/50 flex items-center justify-center shrink-0">
-            <Building2 size={14} className="text-[var(--muted-foreground)]" />
-          </div>
-        </div>
-      </Card>
-    </Link>
+        </Card>
+      </Link>
+    </div>
   );
 }
 
@@ -66,9 +113,20 @@ export default function CommunityPageClient() {
   const { user, memberships } = useAuth();
   const [myOrgs, setMyOrgs] = useState<MemberOrg[]>([]);
   const [otherOrgs, setOtherOrgs] = useState<Organization[]>([]);
+  const [sortableOtherOrgs, setSortableOtherOrgs] = useState<SortableOrg[]>([]);
+  const [myOrgsInitialized, setMyOrgsInitialized] = useState(false);
   const [loading, setLoading] = useState(true);
   const [hydrated, setHydrated] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const [savingMyOrder, setSavingMyOrder] = useState(false);
   const mountedRef = useRef(true);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Wait for client hydration
   useEffect(() => {
@@ -76,6 +134,19 @@ export default function CommunityPageClient() {
     setTimeout(() => setHydrated(true), 0);
     return () => { mountedRef.current = false; };
   }, []);
+
+  // Sync sortable other orgs when otherOrgs or user changes
+  useEffect(() => {
+    if (otherOrgs.length > 0) {
+      setSortableOtherOrgs(
+        otherOrgs.map((org) => ({
+          ...org,
+          relationId: `other-${org.id}`,
+          position: 0,
+        }))
+      );
+    }
+  }, [otherOrgs]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -104,7 +175,15 @@ export default function CommunityPageClient() {
           .order("name", { ascending: true })
           .limit(50);
 
+        // Fetch user's custom ordering (my orgs: position -1 to -999, others: position 0+)
+        const { data: savedOrder } = await supabase
+          .from("user_community_order")
+          .select("organization_id, position")
+          .eq("user_id", user.id);
+
         if (cancelled || !mountedRef.current) return;
+
+        const orderMap = new Map((savedOrder || []).map((o) => [o.organization_id, o.position]));
 
         const myOrgIds = new Set(memberships.map((m) => m.organization_id));
         const mine: MemberOrg[] = [];
@@ -113,15 +192,28 @@ export default function CommunityPageClient() {
         for (const org of allOrgs || []) {
           if (myOrgIds.has(org.id)) {
             const membership = memberships.find((m) => m.organization_id === org.id);
-            mine.push({ ...org, membership_role: membership?.role });
+            mine.push({ ...org, membership_role: membership?.role, position: orderMap.get(org.id) ?? -1000 - mine.length });
           } else {
-            others.push(org);
+            others.push({ ...org, position: orderMap.get(org.id) ?? 0 });
           }
         }
+
+        // Sort my orgs by saved position (default: by name as fallback)
+        mine.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+        // Sort others by saved position
+        others.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
 
         if (!cancelled && mountedRef.current) {
           setMyOrgs(mine);
           setOtherOrgs(others);
+          setSortableOtherOrgs(
+            others.map((org) => ({
+              ...org,
+              membership_role: undefined,
+              relationId: `other-${org.id}`,
+            }))
+          );
+          setMyOrgsInitialized(true);
           setLoading(false);
         }
       } catch {
@@ -134,6 +226,45 @@ export default function CommunityPageClient() {
     void fetchOrganizations();
     return () => { cancelled = true; };
   }, [user, memberships, hydrated]);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // Determine which list this belongs to based on prefix
+    if (activeId.startsWith("my-")) {
+      setMyOrgs((items) => {
+        const oldIndex = items.findIndex((item) => `my-${item.id}` === activeId);
+        const newIndex = items.findIndex((item) => `my-${item.id}` === overId);
+        if (oldIndex === -1 || newIndex === -1) return items;
+        const reordered = arrayMove(items, oldIndex, newIndex);
+        setSavingMyOrder(true);
+        fetch("/api/community/reorder", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "my", orderedOrgIds: reordered.map((o) => o.id) }),
+        }).finally(() => setSavingMyOrder(false));
+        return reordered;
+      });
+    } else {
+      setSortableOtherOrgs((items) => {
+        const oldIndex = items.findIndex((item) => item.relationId === activeId);
+        const newIndex = items.findIndex((item) => item.relationId === overId);
+        if (oldIndex === -1 || newIndex === -1) return items;
+        const reordered = arrayMove(items, oldIndex, newIndex);
+        setSavingOrder(true);
+        fetch("/api/community/reorder", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "other", orderedOrgIds: reordered.map((o) => o.id) }),
+        }).finally(() => setSavingOrder(false));
+        return reordered;
+      });
+    }
+  };
 
   return (
     <>
@@ -156,17 +287,35 @@ export default function CommunityPageClient() {
           </div>
         ) : (
           <>
-            {/* My Communities */}
+            {/* My Communities — always first, drag-and-drop sortable */}
             {myOrgs.length > 0 && (
               <section>
                 <h2 className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
                   Meine Communities
                 </h2>
-                <div className="space-y-3">
-                  {myOrgs.map((org) => (
-                    <CommunityCard key={org.id} org={org} role={org.membership_role} />
-                  ))}
-                </div>
+                {savingMyOrder && (
+                  <p className="text-[10px] text-[var(--muted-foreground)] mb-2">Speichere Reihenfolge…</p>
+                )}
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={myOrgs.map((o) => `my-${o.id}`)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-3">
+                      {myOrgs.map((org) => (
+                        <SortableCommunityCard
+                          key={org.id}
+                          org={{ ...org, relationId: `my-${org.id}` }}
+                          role={org.membership_role}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
               </section>
             )}
 
@@ -184,21 +333,35 @@ export default function CommunityPageClient() {
               </Link>
             )}
 
-            {/* Other Communities */}
-            {otherOrgs.length > 0 && (
+            {/* Other Communities — drag-and-drop sortable */}
+            {sortableOtherOrgs.length > 0 && (
               <section>
                 <h2 className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)] mb-3">
                   {myOrgs.length > 0 ? "Andere Communities" : "Communities"}
                 </h2>
-                <div className="space-y-3">
-                  {otherOrgs.map((org) => (
-                    <CommunityCard key={org.id} org={org} />
-                  ))}
-                </div>
+                {savingOrder && (
+                  <p className="text-[10px] text-[var(--muted-foreground)] mb-2">Speichere Reihenfolge…</p>
+                )}
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={sortableOtherOrgs.map((o) => o.relationId)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-3">
+                      {sortableOtherOrgs.map((org) => (
+                        <SortableCommunityCard key={org.relationId} org={org} role={org.membership_role} />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
               </section>
             )}
 
-            {myOrgs.length === 0 && otherOrgs.length === 0 && (
+            {myOrgs.length === 0 && sortableOtherOrgs.length === 0 && (
               <div className="text-center py-12 space-y-3">
                 <div className="w-16 h-16 rounded-full bg-[var(--card)] border border-[var(--border)]/50 flex items-center justify-center mx-auto">
                   <Building2 size={24} className="text-[#484849]" />

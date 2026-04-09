@@ -75,7 +75,8 @@ async function fetchMembershipsForUser(userId: string): Promise<OrganizationMemb
           status,
           created_by,
           created_at,
-          updated_at
+          updated_at,
+          requires_member_approval
         )
       `)
       .eq("user_id", userId)

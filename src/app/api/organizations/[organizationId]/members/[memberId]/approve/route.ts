@@ -65,6 +65,15 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         return jsonError("Failed to approve member", 500, updateError.code, updateError.message);
     }
 
+    // Fetch the user's profile to get display name for activity
+    const { data: joinedUserProfile } = await supabase
+        .from("profiles")
+        .select("display_name, username")
+        .eq("id", targetMember.user_id)
+        .single();
+
+    const joinedUserName = joinedUserProfile?.display_name || joinedUserProfile?.username || targetMember.user_id;
+
     // Write activity
     await writeOrganizationActivity({
         supabase,
@@ -72,8 +81,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         userId: user.id,
         eventType: 'member_joined',
         targetType: 'member',
-        target: { id: memberId, name: targetMember.user_id },
-        metadata: { approvedRole: targetMember.role },
+        target: { id: memberId, name: joinedUserName },
+        metadata: { approvedRole: targetMember.role, joinedUserId: targetMember.user_id },
     }).catch(err => console.error('Activity write failed:', err));
 
     return jsonSuccess({ member: updated });

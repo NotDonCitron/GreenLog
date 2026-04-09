@@ -38,6 +38,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         .select("id, email, role, status, expires_at, accepted_at, invited_by, created_at")
         .eq("organization_id", organizationId)
         .eq("status", "pending")
+        .gt("expires_at", new Date().toISOString())
         .order("created_at", { ascending: false });
 
     if (invitesError) {

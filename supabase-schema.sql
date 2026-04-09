@@ -301,7 +301,7 @@ CREATE TABLE profiles (
   display_name TEXT,
   avatar_url TEXT,
   bio TEXT,
-  profile_visibility TEXT DEFAULT 'private' CHECK (profile_visibility IN ('public', 'private')),
+  profile_visibility TEXT DEFAULT 'public' CHECK (profile_visibility IN ('public', 'private')),
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
