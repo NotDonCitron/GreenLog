@@ -1,3 +1,4 @@
+import { clerkMiddleware } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { Ratelimit } from '@upstash/ratelimit'
@@ -67,7 +68,7 @@ function addCorsHeaders(response: NextResponse, request: NextRequest) {
   }
 }
 
-export async function middleware(request: NextRequest) {
+export default clerkMiddleware(async (auth, request: NextRequest) => {
   const { pathname } = request.nextUrl
   const ip = request.headers.get('x-forwarded-for') || 'anonymous'
 
@@ -85,6 +86,7 @@ export async function middleware(request: NextRequest) {
         },
       })
     }
+    return new NextResponse({}, { status: 405 })
   }
 
   // --- Rate Limiting ---
@@ -100,10 +102,9 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  const response = NextResponse.next()
-  addCorsHeaders(response, request)
-  return response
-}
+  // Allow Clerk auth to proceed
+  return NextResponse.next()
+})
 
 export const config = {
   matcher: [
