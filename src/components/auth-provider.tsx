@@ -11,7 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth as useClerkAuth } from "@clerk/nextjs";
 import type { OrganizationMembership } from "@/lib/types";
 
 interface AuthContextType {
@@ -105,7 +105,7 @@ async function fetchMembershipsForUser(userId: string): Promise<OrganizationMemb
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
-  const { userId, isLoaded: clerkLoaded } = useAuth();
+  const { userId, isLoaded: clerkLoaded } = useClerkAuth();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
