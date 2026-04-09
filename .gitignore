@@ -76,3 +76,6 @@ scripts/retry-*.mjs
 scripts/upload-missing-strain-images.mjs
 scripts/test-upload-check.mjs
 .env*.local
+
+# clerk configuration (can include secrets)
+/.clerk/
