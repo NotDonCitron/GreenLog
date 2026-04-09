@@ -11,6 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
+import { useUser } from "@clerk/nextjs";
 import type { OrganizationMembership } from "@/lib/types";
 
 interface AuthContextType {
@@ -104,6 +105,7 @@ async function fetchMembershipsForUser(userId: string): Promise<OrganizationMemb
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
+  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,6 +118,67 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
     return false;
   });
+
+  // Bridge Clerk auth to Supabase: exchange Clerk session for Supabase session
+  useEffect(() => {
+    if (!clerkLoaded) return;
+
+    const syncClerkToSupabase = async () => {
+      if (clerkUser) {
+        // Clerk user is signed in — get Clerk's session token and set it in Supabase
+        try {
+          const clerkToken = await clerkUser.getToken();
+          if (clerkToken) {
+            const { data: supabaseData, error } = await supabase.auth.setSession({
+              access_token: clerkToken,
+              refresh_token: clerkToken, // Clerk tokens are long-lived JWTs
+            });
+            if (!error && supabaseData.session) {
+              setSession(supabaseData.session);
+              setUser(supabaseData.session.user);
+            }
+          }
+        } catch (err) {
+          console.error("[Auth] Failed to sync Clerk session to Supabase:", err);
+          // Fall back to demo mode
+          setSession(null);
+          setUser(null);
+        }
+      } else {
+        // Clerk user is signed out
+        setSession(null);
+        setUser(null);
+      }
+      setLoading(false);
+    };
+
+    syncClerkToSupabase();
+
+    // Listen for Clerk auth changes
+    const handleClerkChange = () => {
+      syncClerkToSupabase();
+    };
+    window.addEventListener('clerk用户变化', handleClerkChange);
+    return () => window.removeEventListener('clerk用户变化', handleClerkChange);
+  }, [clerkLoaded, clerkUser]);
+
+  // Also listen to Supabase auth changes (for demo mode fallback)
+  useEffect(() => {
+    if (!clerkLoaded) return;
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
+      // Only handle Supabase-native events (not ones we triggered)
+      if (nextSession && !clerkUser) {
+        setSession(nextSession);
+        setUser(nextSession.user ?? null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [clerkLoaded, clerkUser]);
 
   const syncActiveOrganization = useCallback((nextMemberships: OrganizationMembership[]) => {
     const storedId = readStoredActiveOrganizationId();
@@ -163,49 +226,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [syncActiveOrganization, user]);
 
   useEffect(() => {
-    // Timeout fallback: if getSession() hangs, unblock the UI after 10s
-    const timeoutId = setTimeout(() => {
-      console.warn("[Auth] getSession() timed out — unblocking UI");
-      setLoading(false);
-    }, 10000);
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      clearTimeout(timeoutId);
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    }).catch((err) => {
-      clearTimeout(timeoutId);
-      console.error("[Auth] getSession() failed:", err);
-      setSession(null);
-      setUser(null);
-      setLoading(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
-      setSession(nextSession);
-      setUser(nextSession?.user ?? null);
-      setLoading(false);
-
-      // Check badges on SIGNED_IN event
-      if (event === 'SIGNED_IN' && nextSession?.user) {
-        try {
-          await fetch('/api/badges/check', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${nextSession.access_token}` },
-          });
-        } catch (err) {
-          console.warn('[Auth] Badge check failed:', err);
-        }
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
+    if (!clerkLoaded) return;
     if (!user) {
       setMemberships([]);
       setActiveOrganizationIdState(null);
@@ -216,7 +237,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     void refreshMemberships();
-  }, [refreshMemberships, user]);
+  }, [clerkLoaded, user, refreshMemberships]);
 
   const setDemoMode = (val: boolean) => {
     setIsDemoMode(val);
@@ -236,14 +257,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    // Sign out of Clerk (Supabase session was derived from Clerk)
+    try {
+      const { clerk } = await import('@clerk/nextjs');
+      await clerk.signOut();
+    } catch {
+      // If Clerk sign-out fails, try Supabase
+      await supabase.auth.signOut();
+    }
     setMemberships([]);
     setActiveOrganizationIdState(null);
     setDemoMode(false);
     if (typeof window !== "undefined") {
       localStorage.removeItem(ACTIVE_ORG_STORAGE_KEY);
     }
-    router.push("/login");
+    router.push("/sign-in");
   };
 
   const activeOrganization = useMemo(
@@ -256,7 +284,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         user,
         session,
-        loading,
+        loading: loading || !clerkLoaded,
         isDemoMode,
         setDemoMode,
         signOut,
