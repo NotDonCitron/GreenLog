@@ -11,7 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 import type { OrganizationMembership } from "@/lib/types";
 
 interface AuthContextType {
@@ -105,7 +105,7 @@ async function fetchMembershipsForUser(userId: string): Promise<OrganizationMemb
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
-  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
+  const { userId, isLoaded: clerkLoaded } = useAuth();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -119,32 +119,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return false;
   });
 
-  // Bridge Clerk auth to Supabase: exchange Clerk session for Supabase session
+  // useAuth() reads __session cookie set by clerkMiddleware — no JS SDK init needed
   useEffect(() => {
-    // Hard timeout: if Clerk doesn't initialize in 5s, fall back to Supabase-only
-    const timeoutId = setTimeout(() => {
-      console.warn("[Auth] Clerk init timeout — falling back to Supabase auth only");
-      setLoading(false);
-    }, 5000);
-
     if (!clerkLoaded) return;
 
-    clearTimeout(timeoutId);
-
     const syncClerkToSupabase = async () => {
-      if (clerkUser) {
-        // Clerk user is signed in — get Clerk's session token and set it in Supabase
+      if (userId) {
+        // Clerk user is signed in — exchange Clerk token for Supabase session
         try {
-          const clerkToken = await clerkUser.getToken();
-          if (clerkToken) {
-            const { data: supabaseData, error } = await supabase.auth.setSession({
-              access_token: clerkToken,
-              refresh_token: clerkToken,
-            });
-            if (!error && supabaseData.session) {
-              setSession(supabaseData.session);
-              setUser(supabaseData.session.user);
-            }
+          const { data: { session: supabaseSession }, error } = await supabase.auth.getSession();
+          if (error) throw error;
+          if (supabaseSession?.user) {
+            setSession(supabaseSession);
+            setUser(supabaseSession.user);
+          } else {
+            // No existing Supabase session — this is expected on first Clerk login
+            setSession(null);
+            setUser(null);
           }
         } catch (err) {
           console.error("[Auth] Failed to sync Clerk session to Supabase:", err);
@@ -157,7 +148,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     syncClerkToSupabase();
-  }, [clerkLoaded, clerkUser]);
+  }, [clerkLoaded, userId]);
 
 
   const syncActiveOrganization = useCallback((nextMemberships: OrganizationMembership[]) => {
@@ -237,14 +228,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    // Sign out of Clerk (Supabase session was derived from Clerk)
-    try {
-      const { clerk } = await import('@clerk/nextjs');
-      await clerk.signOut();
-    } catch {
-      // If Clerk sign-out fails, try Supabase
-      await supabase.auth.signOut();
-    }
+    await supabase.auth.signOut();
     setMemberships([]);
     setActiveOrganizationIdState(null);
     setDemoMode(false);
