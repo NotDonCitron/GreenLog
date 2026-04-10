@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
+// WARNING: Sentry instrumentation causes NFT manifest errors with Vercel builds.
+// Disabling all instrumentation until upstream conflict is resolved.
 const nextConfig: NextConfig = {
-  // Disable Turbopack — causes NFT manifest issues with Sentry middleware instrumentation
-  bundler: "webpack",
   allowedDevOrigins: ['127.0.0.1'],
   typescript: {
     ignoreBuildErrors: true,
@@ -55,7 +55,8 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
+// Minimal Sentry config — no instrumentation to avoid NFT manifest conflicts
+const sentryOptions = {
   silent: true,
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
@@ -63,10 +64,16 @@ export default withSentryConfig(nextConfig, {
   sourcemaps: {
     disable: true,
   },
-  webpack: {
-    // Disable all Sentry auto-instrumentation for webpack — Turbopack is used
-    autoInstrumentMiddleware: false,
-    autoInstrumentServerFunctions: false,
-    autoInstrumentAppDirectory: false,
+  webpack: (config: any) => {
+    // Remove all Sentry webpack plugins to prevent NFT manifest generation errors
+    config.plugins = config.plugins.filter(
+      (plugin: any) =>
+        !plugin ||
+        (plugin.constructor && plugin.constructor.name !== 'SentryPlugin' &&
+         plugin.constructor.name !== 'DefaultWebpackSentryPlugin')
+    );
+    return config;
   },
-});
+};
+
+export default withSentryConfig(nextConfig, sentryOptions);
