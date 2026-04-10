@@ -63,8 +63,10 @@ export default withSentryConfig(nextConfig, {
   sourcemaps: {
     disable: true,
   },
-  // Disable Sentry middleware auto-instrumentation — not supported with Turbopack
   webpack: {
+    // Disable all Sentry auto-instrumentation for webpack — Turbopack is used
     autoInstrumentMiddleware: false,
+    autoInstrumentServerFunctions: false,
+    autoInstrumentAppDirectory: false,
   },
 });
