@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  webpack: (config) => {
+    return config;
+  },
   allowedDevOrigins: ['127.0.0.1'],
   typescript: {
     ignoreBuildErrors: true,
@@ -63,4 +66,5 @@ export default withSentryConfig(nextConfig, {
   },
   widenClientFileUpload: true,
   tunnelRoute: "/monitoring",
+  autoInstrumentMiddleware: false,
 });
