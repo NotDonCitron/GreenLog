@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  // Disable Turbopack — causes NFT manifest issues with Sentry middleware instrumentation
+  bundler: "webpack",
   allowedDevOrigins: ['127.0.0.1'],
   typescript: {
     ignoreBuildErrors: true,
