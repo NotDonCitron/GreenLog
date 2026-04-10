@@ -33,8 +33,8 @@ function createSupabaseClientOptions() {
     return {
         auth: {
             detectSessionInUrl: false,
-            autoRefreshToken: isBrowser,
-            persistSession: isBrowser,
+            autoRefreshToken: false,
+            persistSession: false,
         },
         global: {
             fetch: async (url: string | URL | Request, init?: RequestInit) => {
