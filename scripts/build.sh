@@ -1,9 +1,17 @@
 #!/bin/bash
-# Workaround for Next.js 16 Turbopack bug:
-# Turbopack doesn't generate standalone middleware.js / middleware.js.nft.json
-# for edge middleware, but Vercel's build system expects both files.
+# Workaround for Next.js 16 Turbopack + Vercel middleware bug:
+#
+# Turbopack compiles edge middleware into chunked files at
+#   .next/server/edge/chunks/turbopack-*edge-wrapper*.js
+# But Vercel's post-build adapter expects:
+#   .next/server/middleware.js        (lstat check)
+#   .next/server/middleware.js.nft.json (NFT trace during build)
+#
+# This script:
+# 1. Creates middleware.js.nft.json during build (watcher)
+# 2. After build, copies the real edge-wrapper entrypoint to middleware.js
 
-# Background watcher: continuously ensure the NFT file exists during build
+# Background watcher: ensure NFT file exists during "Finalizing page optimization"
 (while true; do
   if [ -d ".next/server" ]; then
     if [ ! -f ".next/server/middleware.js.nft.json" ]; then
@@ -22,25 +30,26 @@ BUILD_EXIT=$?
 kill $WATCHER_PID 2>/dev/null
 wait $WATCHER_PID 2>/dev/null
 
-# Debug: show middleware manifest and function output
-echo "=== DEBUG: middleware-manifest.json ==="
-cat .next/server/middleware-manifest.json 2>/dev/null
-echo ""
-echo "=== DEBUG: middleware/ directory ==="
-ls -laR .next/server/middleware/ 2>/dev/null
-echo "=== DEBUG: _middleware.func ==="
-find .next/output/functions/_middleware.func -type f 2>/dev/null | head -20
-echo "=== DEBUG: _middleware.func index.js (first 5 lines) ==="
-head -5 .next/output/functions/_middleware.func/index.js 2>/dev/null
-echo "=== DEBUG: middleware-build-manifest.js ==="
-cat .next/server/middleware-build-manifest.js 2>/dev/null
-echo ""
-echo "=== END DEBUG ==="
+# Post-build: copy real middleware entrypoint to where Vercel expects it
+if [ -f ".next/server/middleware-manifest.json" ]; then
+  # Extract the middleware entrypoint path from the manifest
+  ENTRYPOINT=$(node -e "
+    const m = require('./.next/server/middleware-manifest.json');
+    const mw = m.middleware && m.middleware['/'];
+    if (mw && mw.entrypoint) console.log(mw.entrypoint);
+  " 2>/dev/null)
 
-# Ensure NFT file exists for Vercel's post-build (but DON'T create dummy middleware.js)
-if [ -d ".next/server" ]; then
-  [ ! -f ".next/server/middleware.js.nft.json" ] && \
-    echo '{"version":1,"files":[]}' > .next/server/middleware.js.nft.json
+  if [ -n "$ENTRYPOINT" ] && [ -f ".next/$ENTRYPOINT" ]; then
+    echo "[build.sh] Copying middleware entrypoint: $ENTRYPOINT -> middleware.js"
+    cp ".next/$ENTRYPOINT" .next/server/middleware.js
+  else
+    echo "[build.sh] WARNING: Could not find middleware entrypoint, creating empty shim"
+    echo '"use strict";module.exports={};' > .next/server/middleware.js
+  fi
 fi
+
+# Ensure NFT file exists
+[ -d ".next/server" ] && [ ! -f ".next/server/middleware.js.nft.json" ] && \
+  echo '{"version":1,"files":[]}' > .next/server/middleware.js.nft.json
 
 exit $BUILD_EXIT
