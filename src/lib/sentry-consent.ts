@@ -1,36 +1,24 @@
 /**
- * Sentry Consent Management
+ * Sentry Consent Management — DISABLED
  *
- * Handles enabling/disabling Sentry based on user consent.
- * Sentry is pre-initialized as disabled via sentry.client.config.ts.
- * These functions activate/deactivate it after user consent.
+ * Sentry has been temporarily disabled due to a build conflict
+ * with Vercel Turbopack (ENOENT middleware.js.nft.json).
+ *
+ * These are no-op stubs so existing imports don't break.
+ * Re-enable once @sentry/nextjs supports Turbopack middleware.
  */
 
 export async function enableSentryAfterConsent(): Promise<void> {
-  if (process.env.NODE_ENV !== 'production') return;
-
-  try {
-    const { isEnabled, enable } = await import('@sentry/browser');
-    if (!isEnabled()) {
-      enable();
-    }
-  } catch (err) {
-    console.warn('[Sentry] Failed to enable after consent:', err);
-  }
+  // no-op: Sentry disabled
 }
 
 export async function disableSentryAfterRevoke(): Promise<void> {
-  try {
-    const { disable } = await import('@sentry/browser');
-    disable();
-  } catch (err) {
-    console.warn('[Sentry] Failed to disable after revoke:', err);
-  }
+  // no-op: Sentry disabled
 }
 
 /**
  * Sync analytics consent to Supabase (for logged-in users).
- * Silent – fails silently to avoid disrupting UX.
+ * This function is independent of Sentry and remains functional.
  */
 export async function syncAnalyticsConsentToSupabase(_userId: string): Promise<void> {
   try {
