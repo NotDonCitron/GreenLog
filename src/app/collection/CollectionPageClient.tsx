@@ -1,26 +1,19 @@
 "use client";
 
-import { useState, useEffect, Suspense, lazy, useMemo } from "react";
+import { useState, useEffect, Suspense, lazy, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useCollection } from "@/hooks/useCollection";
 import { BottomNav } from "@/components/bottom-nav";
 import { Search, Loader2, AlertCircle, X, Filter, Plus, SlidersHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-provider";
 import { Strain, StrainSource } from "@/lib/types";
 import { StrainCard } from "@/components/strains/strain-card";
-import { Calendar } from "@/components/ui/calendar";
+import { CalendarPanel } from "@/components/collection/calendar-panel"
 import { normalizeCollectionSource } from "@/lib/strain-display";
 const FilterPanel = lazy(() => import("@/components/strains/filter-panel").then(m => ({ default: m.FilterPanel })));
 import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";
 import { useRouter, useSearchParams } from "next/navigation";
 import { THC_RANGE, CBD_RANGE } from "@/lib/constants";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { format, isSameDay } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -99,6 +92,31 @@ export default function CollectionPageClient() {
   const [filterThcMax, setFilterThcMax] = useState(THC_RANGE.max);
   const [filterCbdMin, setFilterCbdMin] = useState(CBD_RANGE.min);
   const [filterCbdMax, setFilterCbdMax] = useState(CBD_RANGE.max);
+
+  // Scroll ref for calendar date "scroll to first entry" feature
+  const strainListRef = useRef<HTMLDivElement>(null);
+  const lastSelectedDateRef = useRef<string | null>(null);
+
+  // Handle date selection with scroll-to-first behavior
+  const handleDateSelect = useCallback((date: Date | null) => {
+    setSelectedDate(date ?? undefined);
+
+    if (date) {
+      const dateStr = format(date, "yyyy-MM-dd");
+
+      // Second click on same date = scroll to first entry
+      if (lastSelectedDateRef.current === dateStr && strainListRef.current) {
+        const firstCard = strainListRef.current.querySelector('[data-date="' + dateStr + '"]');
+        if (firstCard) {
+          firstCard.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+
+      lastSelectedDateRef.current = dateStr;
+    } else {
+      lastSelectedDateRef.current = null;
+    }
+  }, []);
 
   const filteredStrains = useMemo(() => collection.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
@@ -223,6 +241,17 @@ export default function CollectionPageClient() {
         )}
       </header>
 
+      {/* Calendar Panel */}
+      <div className="px-6 pt-4">
+        <CalendarPanel
+          collection={collection as CollectionStrain[]}
+          selectedDate={selectedDate || null}
+          onDateSelect={handleDateSelect}
+          isOpen={isCalendarOpen}
+          onToggle={() => setIsCalendarOpen(v => !v)}
+        />
+      </div>
+
       <div className="px-6 py-6">
         <Suspense fallback={null}>
           <ActiveFilterBadges
@@ -247,9 +276,15 @@ export default function CollectionPageClient() {
             <p className="text-sm font-bold uppercase tracking-widest">{(error as Error).message || "Fehler beim Laden"}</p>
           </div>
         ) : filteredStrains.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4" ref={strainListRef}>
             {filteredStrains.map((strain, i) => (
-              <StrainCard key={strain.id} strain={strain} index={i} isCollected={true} />
+              <StrainCard
+                key={strain.id}
+                strain={strain}
+                index={i}
+                isCollected={true}
+                data-date={strain.collected_at ? format(new Date(strain.collected_at), "yyyy-MM-dd") : undefined}
+              />
             ))}
           </div>
         ) : (
@@ -267,43 +302,6 @@ export default function CollectionPageClient() {
       <Link href="/strains" className="fixed bottom-28 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-[#00F5FF] to-[#00e5ee] flex items-center justify-center shadow-lg shadow-[#00F5FF]/30 hover:scale-110 transition-transform z-40" aria-label="Neue Sorte hinzufügen">
         <Plus size={24} className="text-black font-bold" />
       </Link>
-
-      {/* Calendar Dialog */}
-      <Dialog open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-        <DialogContent className="max-w-[360px] w-[95vw] bg-[var(--card)] border border-[var(--border)]/50 text-[var(--foreground)] rounded-3xl p-6 flex flex-col items-center">
-          <DialogHeader className="w-full mb-4">
-            <DialogTitle className="text-2xl font-black italic uppercase tracking-tighter text-[#2FF801] text-center font-display">
-              Archiv Datum
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="w-full bg-[var(--input)] rounded-2xl p-2 border border-[var(--border)]/50">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => {
-                setSelectedDate(date);
-                setIsCalendarOpen(false);
-              }}
-              initialFocus
-              className="text-[var(--foreground)]"
-            />
-          </div>
-
-          {selectedDate && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setSelectedDate(undefined);
-                setIsCalendarOpen(false);
-              }}
-              className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-[#00F5FF] hover:bg-[#00F5FF]/10 h-10 w-full rounded-xl border border-[var(--border)]/50"
-            >
-              Filter zurücksetzen
-            </Button>
-          )}
-        </DialogContent>
-      </Dialog>
 
       <Suspense fallback={null}>
         <FilterPanel open={filterPanelOpen} onOpenChange={setFilterPanelOpen} />
