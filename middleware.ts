@@ -25,7 +25,7 @@ export default clerkMiddleware(async (auth, request: NextRequest) => {
         },
       })
     }
-    return new NextResponse({}, { status: 405 })
+    return new NextResponse(null, { status: 405 })
   }
 
   // Allow Clerk auth to proceed
