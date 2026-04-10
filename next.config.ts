@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['127.0.0.1'],
@@ -53,28 +52,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Strip ALL Sentry plugins from webpack — they cause NFT manifest generation
-// errors for middleware.js which doesn't exist as a standalone file in Turbopack builds
-function removeSentryPlugins(config: any) {
-  config.plugins = config.plugins.filter(
-    (plugin: any) =>
-      !plugin ||
-      (plugin.constructor &&
-       plugin.constructor.name !== 'SentryPlugin' &&
-       plugin.constructor.name !== 'DefaultWebpackSentryPlugin' &&
-       plugin.constructor.name !== 'UploadSourceMapsPlugin')
-  );
-  return config;
-}
-
-export default withSentryConfig(nextConfig, {
-  silent: true,
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  sourcemaps: {
-    disable: true,
-  },
-  // Disable all Sentry features that interact with webpack bundling
-  webpack: removeSentryPlugins,
-});
+export default nextConfig;
