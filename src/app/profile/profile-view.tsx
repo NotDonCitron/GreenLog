@@ -446,6 +446,10 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
+    if (!loading && !user && !isDemoMode) {
+      router.replace("/sign-in");
+      return;
+    }
     if (!loading) fetchProfile();
   }, [user, loading, isDemoMode]);
 
