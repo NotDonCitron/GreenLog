@@ -11,7 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
-import { useAuth as useClerkAuth } from "@clerk/nextjs";
+import { useAuth as useClerkAuth, useUser as useClerkUser } from "@clerk/nextjs";
 import type { OrganizationMembership } from "@/lib/types";
 
 interface AuthContextType {
@@ -105,7 +105,8 @@ async function fetchMembershipsForUser(userId: string): Promise<OrganizationMemb
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
-  const { userId, isLoaded: clerkLoaded } = useClerkAuth();
+  const { userId, isLoaded: clerkLoaded, getToken, signOut: clerkSignOut } = useClerkAuth();
+  const { user: clerkUser } = useClerkUser();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -124,23 +125,65 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!clerkLoaded) return;
 
     const syncClerkToSupabase = async () => {
-      if (userId) {
-        // Clerk user is signed in — exchange Clerk token for Supabase session
+      if (userId && clerkUser) {
+        console.log("[Auth] Clerk userId found, creating synthetic Supabase session...", userId);
         try {
-          const { data: { session: supabaseSession }, error } = await supabase.auth.getSession();
-          if (error) throw error;
-          if (supabaseSession?.user) {
-            setSession(supabaseSession);
-            setUser(supabaseSession.user);
+          const token = await getToken({ template: 'supabase' });
+
+          if (token) {
+            console.log("[Auth] Clerk token received, setting synthetic session...");
+
+            let supabaseUserId = userId;
+            try {
+              const base64Url = token.split('.')[1];
+              const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+              const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+              }).join(''));
+              const payload = JSON.parse(jsonPayload);
+              if (payload.sub) {
+                supabaseUserId = payload.sub;
+              }
+            } catch (e) {
+              console.warn("[Auth] Failed to parse JWT payload", e);
+            }
+
+            const mappedUser = {
+              id: supabaseUserId,
+              app_metadata: { provider: 'clerk' },
+              user_metadata: {
+                avatar_url: clerkUser.imageUrl,
+                full_name: clerkUser.fullName,
+                username: clerkUser.username || clerkUser.primaryEmailAddress?.emailAddress?.split('@')[0] || ''
+              },
+              email: clerkUser.primaryEmailAddress?.emailAddress,
+              created_at: clerkUser.createdAt ? new Date(clerkUser.createdAt).toISOString() : new Date().toISOString(),
+              aud: 'authenticated',
+            } as User;
+
+            const mappedSession = {
+              access_token: token,
+              refresh_token: '',
+              expires_in: 3600,
+              expires_at: Math.floor(Date.now() / 1000) + 3600,
+              token_type: 'bearer',
+              user: mappedUser,
+            } as Session;
+
+            setSession(mappedSession);
+            setUser(mappedUser);
           } else {
-            // No existing Supabase session — this is expected on first Clerk login
+            console.error("[Auth] No token found from Clerk");
             setSession(null);
             setUser(null);
           }
         } catch (err) {
-          console.error("[Auth] Failed to sync Clerk session to Supabase:", err);
+          console.error("[Auth] Failed to sync Clerk session:", err);
+          setSession(null);
+          setUser(null);
         }
       } else {
+        console.log("[Auth] No Clerk userId or user, clearing session");
         setSession(null);
         setUser(null);
       }
@@ -148,7 +191,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     syncClerkToSupabase();
-  }, [clerkLoaded, userId]);
+  }, [clerkLoaded, userId, clerkUser, getToken]);
 
 
   const syncActiveOrganization = useCallback((nextMemberships: OrganizationMembership[]) => {
@@ -228,7 +271,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    if (clerkSignOut) {
+      await clerkSignOut();
+    }
     setMemberships([]);
     setActiveOrganizationIdState(null);
     setDemoMode(false);

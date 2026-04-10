@@ -348,14 +348,32 @@ export default function ProfilePage() {
   const fetchProfile = async () => {
     if (!user && !isDemoMode) { setPageState("ready"); return; }
     try {
-      const [profileRes, collCount, followersRes, followingRes, favsRes, badgesRes] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", user?.id).single(),
+      const [profileDbRes, collCount, followersRes, followingRes, favsRes, badgesRes] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", user?.id).maybeSingle(),
         supabase.from("user_collection").select("*", { count: "exact", head: true }).eq("user_id", user?.id),
         supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", user?.id),
         supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", user?.id),
         supabase.from("user_strain_relations").select("*, strains:strain_id (*)").eq("user_id", user?.id).eq("is_favorite", true).order("position", { ascending: true }).limit(5),
         supabase.from("user_badges").select("*").eq("user_id", user?.id)
       ]);
+
+      let profileData = profileDbRes.data;
+
+      // Auto-create profile for new Clerk users if it doesn't exist in Supabase
+      if (!profileData && user?.id) {
+        const fallbackUsername = user.email ? user.email.split('@')[0] + '_' + Math.floor(Math.random() * 1000) : `user_${user.id.slice(-6)}`;
+        const { data: newProfile, error: insertError } = await supabase.from("profiles").insert({
+          id: user.id,
+          username: fallbackUsername,
+          display_name: user.user_metadata?.full_name || "CannaLog User"
+        }).select().maybeSingle();
+
+        if (newProfile) {
+          profileData = newProfile;
+        } else {
+          console.error("Failed to automatically create missing profile:", insertError);
+        }
+      }
 
       const favoriteIds = (favsRes.data || []).map((f: UserStrainRelation) => f.strains?.id).filter(Boolean);
       const { data: collectionData } = await supabase
@@ -407,17 +425,17 @@ export default function ProfilePage() {
         };
       }).filter((b): b is ProfileBadge => b !== null);
 
-      const featuredBadges: string[] = profileRes.data?.featured_badges || [];
+      const featuredBadges: string[] = profileData?.featured_badges || [];
 
       const identity: ProfileIdentity = {
         email: user?.email ?? null,
-        username: `@${profileRes.data?.username || "user"}`,
-        displayName: profileRes.data?.display_name || "CannaLog User",
-        initials: getInitials(profileRes.data?.display_name || "CU"),
-        avatarUrl: profileRes.data?.avatar_url || null,
-        profileVisibility: profileRes.data?.profile_visibility || "private",
+        username: `@${profileData?.username || "user"}`,
+        displayName: profileData?.display_name || user?.user_metadata?.full_name || "CannaLog User",
+        initials: getInitials(profileData?.display_name || user?.user_metadata?.full_name || "CU"),
+        avatarUrl: profileData?.avatar_url || user?.user_metadata?.avatar_url || null,
+        profileVisibility: profileData?.profile_visibility || "private",
         tagline: "",
-        bio: profileRes.data?.bio || null
+        bio: profileData?.bio || null
       };
 
       setViewModel({ identity, stats, favorites, badges, activity: [], preview: { title: "", description: "", chips: [] } });
@@ -604,7 +622,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Owner Badge */}
-        {(identity.username === '@fabian.gebert' || identity.username === '@lars' || identity.username === '@lars.fieber' || identity.username === '@test' || identity.username === '@pascal' || identity.username === '@hintermaier.pascal') && (
+        {(identity.username === '@fabian.gebert' || identity.username === '@lars' || identity.username === '@lars.fieber' || identity.username === '@test' || identity.username === '@pascal' || identity.username === '@hintermaier.pascal' || identity.username === '@pascal.hintermaier_205') && (
           <div className="flex justify-center mb-4">
             <span className="inline-flex items-center gap-1 rounded-full border border-[#F39C12]/30 bg-[#F39C12]/10 px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#F39C12]">
               <Shield size={12} /> CannaLog Owner
@@ -830,11 +848,10 @@ export default function ProfilePage() {
             <button
               onClick={handleToggleVisibility}
               disabled={isTogglingVisibility}
-              className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${
-                isPublic
-                  ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]'
-                  : 'bg-[var(--muted)] border-[var(--border)]/50 text-[var(--muted-foreground)]'
-              } ${isTogglingVisibility ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80'}`}
+              className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${isPublic
+                ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]'
+                : 'bg-[var(--muted)] border-[var(--border)]/50 text-[var(--muted-foreground)]'
+                } ${isTogglingVisibility ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80'}`}
             >
               {isTogglingVisibility ? (
                 <Loader2 size={20} className="animate-spin" />

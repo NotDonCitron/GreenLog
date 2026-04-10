@@ -8,13 +8,23 @@ declare global {
 }
 
 // Lazy initialization - client is only created when first accessed
-// This prevents issues during SSR / Vercel build when env vars aren't yet inlined
-let lazyClient: SupabaseClient | null = null;
-
 function getClient(): SupabaseClient {
-    if (lazyClient) return lazyClient;
-    lazyClient = createClient(supabaseUrl, supabaseAnonKey);
-    return lazyClient;
+    if (typeof window !== "undefined") {
+        if (!globalThis.__greenlogSupabase__) {
+            globalThis.__greenlogSupabase__ = createClient(supabaseUrl, supabaseAnonKey);
+        }
+        return globalThis.__greenlogSupabase__;
+    }
+    
+    if (typeof global !== "undefined") {
+        const g = global as any;
+        if (!g.__greenlogSupabase__) {
+            g.__greenlogSupabase__ = createClient(supabaseUrl, supabaseAnonKey);
+        }
+        return g.__greenlogSupabase__;
+    }
+
+    return createClient(supabaseUrl, supabaseAnonKey);
 }
 
 // Proxy-based lazy client - all property accesses forward to the real client

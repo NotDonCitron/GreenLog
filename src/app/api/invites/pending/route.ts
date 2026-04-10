@@ -4,8 +4,8 @@ import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response"
 // GET /api/invites/pending
 export async function GET(request: Request) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
-    if (!auth) return;
-    if (auth instanceof Response) return;
+    if (!auth) return new Response("Unauthorized", { status: 401 });
+    if (auth instanceof Response) return auth;
     const { user, supabase } = auth;
 
     const userEmail = user.email?.toLowerCase();

@@ -51,6 +51,9 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
   if (!url.protocol.startsWith('http')) return;
 
+  // Bypass Clerk completely to avoid issues with 307 redirects and clerk-js
+  if (url.hostname.includes('clerk')) return;
+
   // API routes → network first, fall back to cache
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(

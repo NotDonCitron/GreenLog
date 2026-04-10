@@ -1,0 +1,6 @@
+1: uid=12_0 RootWebArea "GreenLog Comic Radial Smoke" url="file:///home/phhttps/Dokumente/Greenlog/GreenLog/smoke-preview.html"
+2:   uid=12_1 banner
+3:     uid=12_2 heading "CANNALOG!" level="1"
+4:   uid=12_3 button "Comic Weiß"
+5:   uid=12_4 button "Comic Grün"
+6:   uid=12_5 StaticText "RADIAL COMIC FX V5.0"

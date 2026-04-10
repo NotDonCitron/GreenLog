@@ -37,21 +37,46 @@ function createSupabaseClientOptions() {
             persistSession: isBrowser,
         },
         global: {
-            fetch: (url: string | URL | Request, init?: RequestInit) => fetch(url, init),
+            fetch: async (url: string | URL | Request, init?: RequestInit) => {
+                const headers = new Headers(init?.headers);
+                if (typeof window !== "undefined") {
+                    try {
+                        const Clerk = (window as any).Clerk;
+                        if (Clerk && Clerk.session) {
+                            const token = await Clerk.session.getToken({ template: 'supabase' });
+                            if (token) {
+                                headers.set('Authorization', `Bearer ${token}`);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("[Supabase Client] Failed to get Clerk token:", e);
+                    }
+                }
+                return fetch(url, { ...init, headers });
+            },
         },
         realtime: isBrowser ? undefined : { timeout: 0 },
     };
 }
 
 // Lazy initialization - client is only created when first accessed
-// This prevents "window is not defined" during Next.js static generation
-let lazyClient: SupabaseClient | null = null;
-
 function getClient(): SupabaseClient {
-    if (lazyClient) return lazyClient;
+    if (typeof window !== "undefined") {
+        if (!globalThis.__greenlogSupabase__) {
+            globalThis.__greenlogSupabase__ = createClient(supabaseUrl, supabaseAnonKey, createSupabaseClientOptions());
+        }
+        return globalThis.__greenlogSupabase__;
+    }
 
-    lazyClient = createClient(supabaseUrl, supabaseAnonKey, createSupabaseClientOptions());
-    return lazyClient;
+    if (typeof global !== "undefined") {
+        const g = global as any;
+        if (!g.__greenlogSupabase__) {
+            g.__greenlogSupabase__ = createClient(supabaseUrl, supabaseAnonKey, createSupabaseClientOptions());
+        }
+        return g.__greenlogSupabase__;
+    }
+
+    return createClient(supabaseUrl, supabaseAnonKey, createSupabaseClientOptions());
 }
 
 // Proxy-based lazy client - all property accesses forward to the real client
@@ -86,13 +111,9 @@ export async function getAuthenticatedClient(accessToken: string): Promise<Supab
         realtime: typeof window === "undefined" ? { timeout: 0 } : undefined,
     });
 
-    // Supabase's getUser() uses internal session storage, not Authorization header.
-    // We must call setSession() to properly set the session so getUser() works.
-    // The refresh_token is optional for getUser() to work.
-    await client.auth.setSession({
-        access_token: accessToken,
-        refresh_token: "",
-    } as { access_token: string; refresh_token: string });
+    // With Clerk, we don't need (and cannot use) setSession because it attempts
+    // to verify the token with GoTrue API which doesn't have the user.
+    // The Authorization header above is sufficient for all RLS database queries.
 
     return client;
 }

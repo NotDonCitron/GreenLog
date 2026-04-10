@@ -7,14 +7,14 @@ DROP POLICY IF EXISTS "Users can delete own activities" ON user_activities;
 CREATE POLICY "Users can update own strains"
 ON strains FOR UPDATE
 TO authenticated
-USING (auth.uid() = created_by)
-WITH CHECK (auth.uid() = created_by);
+USING (requesting_user_id() = created_by)
+WITH CHECK (requesting_user_id() = created_by);
 
 CREATE POLICY "Users can delete own strains"
 ON strains FOR DELETE
 TO authenticated
-USING (auth.uid() = created_by);
+USING (requesting_user_id() = created_by);
 
 CREATE POLICY "Users can delete own activities"
 ON user_activities FOR DELETE
-USING (auth.uid() = user_id);
+USING (requesting_user_id() = user_id);
