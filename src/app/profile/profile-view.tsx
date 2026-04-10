@@ -3,13 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
   ArrowRight,
   ArrowLeft,
-  Camera,
   Eye,
   EyeOff,
   Globe2,
@@ -55,6 +54,7 @@ import { BottomNav } from "@/components/bottom-nav";
 import { useToast } from "@/components/toast-provider";
 
 import { FollowersListModal } from "@/components/social/followers-list-modal";
+import { AvatarUpload } from "@/components/social/avatar-upload";
 import { lazy, Suspense } from "react";
 const BadgeShowcase = lazy(() => import("@/components/profile/badge-showcase").then(m => ({ default: m.BadgeShowcase })));
 import { OrganizationSwitcher } from "@/components/organization-switcher";
@@ -174,7 +174,6 @@ function SectionHeader({ eyebrow, title, icon: Icon, iconColor }: { eyebrow?: st
 export default function ProfilePage() {
   const { user, signOut, loading, isDemoMode } = useAuth();
   const router = useRouter();
-  const avatarInputRef = useRef<HTMLInputElement>(null);
   const { success: toastSuccess, error: toastError } = useToast();
 
   const [viewModel, setViewModel] = useState<ProfileViewModel>(() => createFallbackViewModel(false));
@@ -636,18 +635,12 @@ export default function ProfilePage() {
 
           <div className="flex items-start gap-5 relative z-10">
             {/* Avatar */}
-            <div className="relative">
-              <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#00F5FF]/50 bg-[var(--muted)] flex items-center justify-center">
-                {identity.avatarUrl ? (
-                  <img src={identity.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-2xl font-black text-[#00F5FF]">{identity.initials}</span>
-                )}
-              </div>
-              <button className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#2FF801] text-black flex items-center justify-center border-2 border-[#1a191b]">
-                <Camera size={14} />
-              </button>
-            </div>
+            <AvatarUpload
+              currentAvatarUrl={identity.avatarUrl}
+              username={identity.username.replace("@", "")}
+              displayName={identity.displayName}
+              size="lg"
+            />
 
             {/* Info */}
             <div className="flex-1 pt-1">
