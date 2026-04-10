@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, lazy, useMemo, useCallback, useRef } fro
 import Link from "next/link";
 import { useCollection } from "@/hooks/useCollection";
 import { BottomNav } from "@/components/bottom-nav";
-import { Search, Loader2, AlertCircle, X, Filter, Plus, SlidersHorizontal } from "lucide-react";
+import { Search, Loader2, AlertCircle, X, Filter, Plus, SlidersHorizontal, Calendar } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { Strain, StrainSource } from "@/lib/types";
 import { StrainCard } from "@/components/strains/strain-card";
@@ -99,24 +99,35 @@ export default function CollectionPageClient() {
 
   // Handle date selection with scroll-to-first behavior
   const handleDateSelect = useCallback((date: Date | null) => {
-    setSelectedDate(date ?? undefined);
-
-    if (date) {
-      const dateStr = format(date, "yyyy-MM-dd");
-
-      // Second click on same date = scroll to first entry
-      if (lastSelectedDateRef.current === dateStr && strainListRef.current) {
-        const firstCard = strainListRef.current.querySelector('[data-date="' + dateStr + '"]');
-        if (firstCard) {
-          firstCard.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }
-
-      lastSelectedDateRef.current = dateStr;
-    } else {
+    if (!date) {
+      setSelectedDate(undefined);
       lastSelectedDateRef.current = null;
+      return;
     }
-  }, []);
+
+    const dateStr = format(date, "yyyy-MM-dd");
+    const isAlreadySelected = selectedDate && format(selectedDate, "yyyy-MM-dd") === dateStr;
+
+    if (isAlreadySelected) {
+      // Second or third click logic
+      const firstCard = strainListRef.current?.querySelector('[data-date="' + dateStr + '"]');
+      
+      // If we haven't scrolled yet for this date selection session, scroll.
+      // We use lastSelectedDateRef (the "last scrolled date") to track if we already scrolled for this date.
+      if (lastSelectedDateRef.current !== dateStr && firstCard) {
+        firstCard.scrollIntoView({ behavior: "smooth", block: "center" });
+        lastSelectedDateRef.current = dateStr; // Track that we've scrolled.
+      } else {
+        // Third click OR no card to scroll to: Deselect.
+        setSelectedDate(undefined);
+        lastSelectedDateRef.current = null;
+      }
+    } else {
+      // First click on new date
+      setSelectedDate(date);
+      lastSelectedDateRef.current = null; // Reset scroll tracker for new date.
+    }
+  }, [selectedDate]);
 
   const filteredStrains = useMemo(() => collection.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
@@ -203,6 +214,17 @@ export default function CollectionPageClient() {
 
         {/* Filter chips */}
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 no-scrollbar">
+          <button
+            onClick={() => setIsCalendarOpen(v => !v)}
+            className={`px-4 py-2 rounded-xl text-[10px] font-bold whitespace-nowrap transition-all duration-300 flex items-center gap-1.5 ${
+              isCalendarOpen
+                ? "bg-[#00F5FF] text-black shadow-[0_0_20px_#00F5FF66]"
+                : "bg-[#00F5FF]/10 text-[#00F5FF] border border-[#00F5FF]/30 hover:bg-[#00F5FF]/20"
+            }`}
+          >
+            <Calendar size={12} />
+            Kalender
+          </button>
           {SOURCE_FILTERS.map((f) => (
             <button
               key={f.id}
@@ -225,6 +247,15 @@ export default function CollectionPageClient() {
           </button>
         </div>
 
+        {/* Calendar Panel (Inline in Header) */}
+        <CalendarPanel
+          collection={collection as CollectionStrain[]}
+          selectedDate={selectedDate || null}
+          onDateSelect={handleDateSelect}
+          isOpen={isCalendarOpen}
+          onToggle={() => setIsCalendarOpen(v => !v)}
+        />
+
         {/* Date filter indicator */}
         {selectedDate && (
           <div className="flex items-center justify-between bg-[#00F5FF]/10 border border-[#00F5FF]/30 rounded-xl px-4 py-2 mt-3 animate-in fade-in slide-in-from-top-2">
@@ -240,17 +271,6 @@ export default function CollectionPageClient() {
           </div>
         )}
       </header>
-
-      {/* Calendar Panel */}
-      <div className="px-6 pt-4">
-        <CalendarPanel
-          collection={collection as CollectionStrain[]}
-          selectedDate={selectedDate || null}
-          onDateSelect={handleDateSelect}
-          isOpen={isCalendarOpen}
-          onToggle={() => setIsCalendarOpen(v => !v)}
-        />
-      </div>
 
       <div className="px-6 py-6">
         <Suspense fallback={null}>

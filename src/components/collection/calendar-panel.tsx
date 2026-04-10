@@ -70,103 +70,80 @@ export function CalendarPanel({
   const toggleMode = () => setMode(m => m === "month" ? "week" : "month")
 
   const handleDayClick = (day: Date) => {
-    const dateStr = format(day, "yyyy-MM-dd")
-    const isSelected = selectedDate && format(selectedDate, "yyyy-MM-dd") === dateStr
-    if (isSelected) {
-      onDateSelect(null)
-    } else {
-      onDateSelect(day)
-    }
+    onDateSelect(day)
   }
 
+  if (!isOpen) return null
+
   return (
-    <div className="w-full">
-      {/* Toggle button */}
-      <button
-        onClick={onToggle}
-        className={cn(
-          "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all",
-          isOpen
-            ? "bg-[#2FF801] text-black"
-            : "bg-[var(--card)] text-[var(--muted-foreground)] border border-[var(--border)]/50 hover:border-[#2FF801]/50"
-        )}
-      >
-        <Calendar size={14} />
-        {isOpen ? "Kalender ausblenden" : "Kalender anzeigen"}
-      </button>
-
-      {/* Calendar content */}
-      {isOpen && (
-        <div className="mt-3 p-4 bg-[var(--card)] rounded-2xl border border-[var(--border)]/50 animate-in fade-in slide-in-from-top-2 duration-200">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <button onClick={goPrev} className="w-8 h-8 rounded-lg bg-[var(--input)] border border-[var(--border)]/50 flex items-center justify-center hover:border-[#2FF801]/50 transition-colors">
-                <ChevronLeft size={16} />
-              </button>
-              <span className="text-sm font-black text-[#2FF801] min-w-[120px] text-center">
-                {mode === "month"
-                  ? format(viewDate, "MMMM yyyy", { locale: de })
-                  : `${format(displayDays[0], "dd.", { locale: de })} - ${format(displayDays[6], "dd. MMM", { locale: de })}`}
-              </span>
-              <button onClick={goNext} className="w-8 h-8 rounded-lg bg-[var(--input)] border border-[var(--border)]/50 flex items-center justify-center hover:border-[#2FF801]/50 transition-colors">
-                <ChevronRight size={16} />
-              </button>
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={goToday} className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] hover:text-[#2FF801] transition-colors">
-                Heute
-              </button>
-              <button onClick={toggleMode} className="px-3 py-1.5 rounded-lg bg-[var(--input)] border border-[var(--border)]/50 text-[10px] font-bold uppercase tracking-wider hover:border-[#2FF801]/50 transition-colors">
-                {mode === "month" ? "Woche" : "Monat"}
-              </button>
-            </div>
-          </div>
-
-          {/* Weekday headers */}
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {WEEKDAYS_DE.map(d => (
-              <div key={d} className="text-[10px] font-black uppercase text-[var(--muted-foreground)] text-center py-1">
-                {d}
-              </div>
-            ))}
-          </div>
-
-          {/* Days grid */}
-          <div className="grid grid-cols-7 gap-1">
-            {displayDays.map((day, i) => {
-              const dateStr = format(day, "yyyy-MM-dd")
-              const activityCount = activityMap[dateStr] || 0
-              const isSelected = selectedDate && format(selectedDate, "yyyy-MM-dd") === dateStr
-              const isCurrentMonth = isSameMonth(day, viewDate)
-              const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd")
-
-              return (
-                <button
-                  key={i}
-                  onClick={() => handleDayClick(day)}
-                  className={cn(
-                    "relative flex flex-col items-center justify-center py-2 rounded-xl text-sm transition-all",
-                    !isCurrentMonth && mode === "month" ? "opacity-20" : "",
-                    isSelected ? "bg-[#2FF801] text-black shadow-[0_0_20px_#2FF80166]" : "hover:bg-[var(--input)]",
-                    isToday && !isSelected && "border border-[#2FF801]/40"
-                  )}
-                >
-                  <span className="font-bold">{format(day, "d")}</span>
-                  {activityCount > 0 && (
-                    <div className="flex gap-[2px] mt-[2px]">
-                      {Array.from({ length: Math.min(activityCount, 3) }).map((_, idx) => (
-                        <div key={idx} className="w-1 h-1 rounded-full bg-[#FF6B35]" />
-                      ))}
-                      {activityCount > 3 && <span className="text-[8px] text-[#FF6B35]">+</span>}
-                    </div>
-                  )}
-                </button>
-              )
-            })}
-          </div>
+    <div className="w-full mt-3 p-4 bg-[var(--card)] rounded-2xl border border-[var(--border)]/50 animate-in fade-in slide-in-from-top-2 duration-200">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <button onClick={goPrev} className="w-8 h-8 rounded-lg bg-[var(--input)] border border-[var(--border)]/50 flex items-center justify-center hover:border-[#2FF801]/50 transition-colors">
+            <ChevronLeft size={16} />
+          </button>
+          <span className="text-sm font-black text-[#2FF801] min-w-[120px] text-center">
+            {mode === "month"
+              ? format(viewDate, "MMMM yyyy", { locale: de })
+              : `${format(displayDays[0], "dd.", { locale: de })} - ${format(displayDays[6], "dd. MMM", { locale: de })}`}
+          </span>
+          <button onClick={goNext} className="w-8 h-8 rounded-lg bg-[var(--input)] border border-[var(--border)]/50 flex items-center justify-center hover:border-[#2FF801]/50 transition-colors">
+            <ChevronRight size={16} />
+          </button>
         </div>
-      )}
+        <div className="flex items-center gap-2">
+          <button onClick={goToday} className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] hover:text-[#2FF801] transition-colors">
+            Heute
+          </button>
+          <button onClick={toggleMode} className="px-3 py-1.5 rounded-lg bg-[var(--input)] border border-[var(--border)]/50 text-[10px] font-bold uppercase tracking-wider hover:border-[#2FF801]/50 transition-colors">
+            {mode === "month" ? "Woche" : "Monat"}
+          </button>
+        </div>
+      </div>
+
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {WEEKDAYS_DE.map(d => (
+          <div key={d} className="text-[10px] font-black uppercase text-[var(--muted-foreground)] text-center py-1">
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Days grid */}
+      <div className="grid grid-cols-7 gap-1">
+        {displayDays.map((day, i) => {
+          const dateStr = format(day, "yyyy-MM-dd")
+          const activityCount = activityMap[dateStr] || 0
+          const isSelected = selectedDate && format(selectedDate, "yyyy-MM-dd") === dateStr
+          const isCurrentMonth = isSameMonth(day, viewDate)
+          const isToday = format(day, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd")
+
+          return (
+            <button
+              key={i}
+              onClick={() => handleDayClick(day)}
+              className={cn(
+                "relative flex flex-col items-center justify-center py-2 rounded-xl text-sm transition-all",
+                !isCurrentMonth && mode === "month" ? "opacity-20" : "",
+                isSelected ? "bg-[#2FF801] text-black shadow-[0_0_20px_#2FF80166]" : "hover:bg-[var(--input)]",
+                isToday && !isSelected && "border border-[#2FF801]/40"
+              )}
+            >
+              <span className="font-bold">{format(day, "d")}</span>
+              {activityCount > 0 && (
+                <div className="flex gap-[2px] mt-[2px]">
+                  {Array.from({ length: Math.min(activityCount, 3) }).map((_, idx) => (
+                    <div key={idx} className="w-1 h-1 rounded-full bg-[#FF6B35]" />
+                  ))}
+                  {activityCount > 3 && <span className="text-[8px] text-[#FF6B35]">+</span>}
+                </div>
+              )}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
