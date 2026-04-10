@@ -7,14 +7,29 @@ import { DayPicker } from "react-day-picker"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>
+export type CalendarMode = "month" | "week"
+
+export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
+  mode?: CalendarMode
+  onDateClick?: (date: Date) => void
+}
 
 function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  mode,
+  onDateClick,
+  modifiers,
+  modifiersClassNames,
   ...props
 }: CalendarProps) {
+  const handleDayClick = (date: Date, modifiers: { selected?: boolean; disabled?: boolean }) => {
+    if (onDateClick && !modifiers.disabled) {
+      onDateClick(date)
+    }
+  }
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -57,6 +72,9 @@ function Calendar({
           return <ChevronRight className="h-5 w-5" />
         }
       }}
+      modifiers={modifiers}
+      modifiersClassNames={modifiersClassNames}
+      onDayClick={handleDayClick}
       {...props}
     />
   )
