@@ -9,8 +9,8 @@ export default function SignUpPage() {
                 routing="path"
                 path="/sign-up"
                 signInUrl="/sign-in"
-                fallbackRedirectUrl="/feed"
-                forceRedirectUrl="/feed"
+                fallbackRedirectUrl="/home"
+                forceRedirectUrl="/home"
             />
         </div>
     );
