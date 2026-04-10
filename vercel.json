@@ -1,9 +1,5 @@
 {
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "nextjs",
-  "builds": [
-    { "src": "package.json", "use": "@vercel/webpack" }
-  ]
+  "installCommand": "npm install"
 }

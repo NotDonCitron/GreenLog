@@ -1,8 +1,6 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
-// WARNING: Sentry instrumentation causes NFT manifest errors with Vercel builds.
-// Disabling all instrumentation until upstream conflict is resolved.
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['127.0.0.1'],
   typescript: {
@@ -55,8 +53,21 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Minimal Sentry config — no instrumentation to avoid NFT manifest conflicts
-const sentryOptions = {
+// Strip ALL Sentry plugins from webpack — they cause NFT manifest generation
+// errors for middleware.js which doesn't exist as a standalone file in Turbopack builds
+function removeSentryPlugins(config: any) {
+  config.plugins = config.plugins.filter(
+    (plugin: any) =>
+      !plugin ||
+      (plugin.constructor &&
+       plugin.constructor.name !== 'SentryPlugin' &&
+       plugin.constructor.name !== 'DefaultWebpackSentryPlugin' &&
+       plugin.constructor.name !== 'UploadSourceMapsPlugin')
+  );
+  return config;
+}
+
+export default withSentryConfig(nextConfig, {
   silent: true,
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
@@ -64,16 +75,6 @@ const sentryOptions = {
   sourcemaps: {
     disable: true,
   },
-  webpack: (config: any) => {
-    // Remove all Sentry webpack plugins to prevent NFT manifest generation errors
-    config.plugins = config.plugins.filter(
-      (plugin: any) =>
-        !plugin ||
-        (plugin.constructor && plugin.constructor.name !== 'SentryPlugin' &&
-         plugin.constructor.name !== 'DefaultWebpackSentryPlugin')
-    );
-    return config;
-  },
-};
-
-export default withSentryConfig(nextConfig, sentryOptions);
+  // Disable all Sentry features that interact with webpack bundling
+  webpack: removeSentryPlugins,
+});
