@@ -3,6 +3,16 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   webpack: (config) => {
+    // Disable Sentry middleware auto-instrumentation to prevent NFT manifest errors with Turbopack
+    config.plugins.forEach((plugin) => {
+      if (
+        plugin.constructor &&
+        plugin.constructor.name === "SentryPlugin" &&
+        "autoInstrumentMiddleware" in plugin
+      ) {
+        plugin.autoInstrumentMiddleware = false;
+      }
+    });
     return config;
   },
   allowedDevOrigins: ['127.0.0.1'],
