@@ -64,7 +64,5 @@ export default withSentryConfig(nextConfig, {
   sourcemaps: {
     disable: true,
   },
-  widenClientFileUpload: true,
-  tunnelRoute: "/monitoring",
   autoInstrumentMiddleware: false,
 });
