@@ -9,7 +9,7 @@ interface MatchScoreBadgeProps {
 }
 
 export function MatchScoreBadge({ strainId, strainName }: MatchScoreBadgeProps) {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [score, setScore] = useState<number | null>(null);
   const [basedOn, setBasedOn] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -22,7 +22,12 @@ export function MatchScoreBadge({ strainId, strainName }: MatchScoreBadgeProps) 
 
     async function fetchMatch() {
       try {
-        const res = await fetch(`/api/recommendations/match?strain_id=${strainId}`);
+        const accessToken = session?.access_token;
+        const res = await fetch(`/api/recommendations/match?strain_id=${strainId}`, {
+          headers: {
+            ...(accessToken && { "Authorization": `Bearer ${accessToken}` })
+          }
+        });
         const json = await res.json();
         if (json.data?.score !== null) {
           setScore(json.data.score);
@@ -36,7 +41,7 @@ export function MatchScoreBadge({ strainId, strainName }: MatchScoreBadgeProps) 
     }
 
     fetchMatch();
-  }, [strainId, user]);
+  }, [strainId, user, session]);
 
   if (loading || score === null) {
     return null;

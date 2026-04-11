@@ -6,7 +6,7 @@ import type { MatchResult } from "@/lib/types";
 import Link from "next/link";
 
 export function TopMatchesSection() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [matches, setMatches] = useState<MatchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [ratingCount, setRatingCount] = useState(0);
@@ -19,7 +19,12 @@ export function TopMatchesSection() {
 
     async function fetchTopMatches() {
       try {
-        const res = await fetch("/api/recommendations/top?limit=5");
+        const accessToken = session?.access_token;
+        const res = await fetch("/api/recommendations/top?limit=5", {
+          headers: {
+            ...(accessToken && { "Authorization": `Bearer ${accessToken}` })
+          }
+        });
         const json = await res.json();
         if (json.data?.matches?.length > 0) {
           setMatches(json.data.matches);
@@ -33,7 +38,7 @@ export function TopMatchesSection() {
     }
 
     fetchTopMatches();
-  }, [user]);
+  }, [user, session]);
 
   if (loading || matches.length === 0) {
     return null;
