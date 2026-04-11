@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { FollowButton } from "@/components/community/follow-button";
 import { JoinButton } from "@/components/community/join-button";
 import { CommunityFeed } from "@/components/community/feed";
@@ -12,7 +13,7 @@ import { InviteAdminModal } from "@/components/community/invite-admin-modal";
 import { AdminListModal } from "@/components/community/admin-list-modal";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { useAuth } from "@/components/auth-provider";
-import { Leaf, Building2, Users, Sprout, Loader2, ArrowLeft, Plus, Settings } from "lucide-react";
+import { Leaf, Building2, Users, Sprout, ArrowLeft, Plus, Settings } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { USER_ROLES } from "@/lib/roles";
 
@@ -119,8 +120,12 @@ export default function CommunityDetailPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32 flex items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-[#00F5FF]" />
+      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
+        <div className="space-y-4 p-6">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
       </main>
     );
   }
