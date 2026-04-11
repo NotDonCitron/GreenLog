@@ -2,6 +2,7 @@
 
 import { Strain } from "@/lib/types";
 import { formatPercent, getEffectDisplay, getStrainTheme, normalizeTerpeneList } from "@/lib/strain-display";
+import { TerpeneRadarChart } from "@/components/strains/terpene-radar-chart";
 
 interface StrainCompareCardProps {
   strain: Strain;
@@ -115,21 +116,29 @@ export function StrainCompareCard({ strain }: StrainCompareCardProps) {
         {normalizedTerpenes.length > 0 && (
           <div>
             <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-2">Terpene</p>
-            <div className="flex flex-wrap gap-1.5">
-              {normalizedTerpenes.slice(0, 5).map((t, i) => (
-                <span
-                  key={i}
-                  className="text-[8px] font-bold px-2 py-1 rounded-md"
-                  style={{
-                    backgroundColor: `${themeColor}15`,
-                    border: `1px solid ${themeColor}40`,
-                    color: themeColor,
-                  }}
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
+            {strain.terpenes && strain.terpenes.length >= 3 ? (
+              <TerpeneRadarChart
+                terpenes={strain.terpenes}
+                themeColor={themeColor}
+                size={140}
+              />
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {normalizedTerpenes.slice(0, 5).map((t, i) => (
+                  <span
+                    key={i}
+                    className="text-[8px] font-bold px-2 py-1 rounded-md"
+                    style={{
+                      backgroundColor: `${themeColor}15`,
+                      border: `1px solid ${themeColor}40`,
+                      color: themeColor,
+                    }}
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
