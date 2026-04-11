@@ -1,11 +1,13 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { calculateUserPreferenceVector, extractStrainVector, cosineSimilarity } from "@/lib/algorithms/terpene-matching";
 
 /**
  * GET /api/recommendations/top?limit=5
  *
- * Gibt Top-Match Strains für den aktuellen User zurück basierend auf
- * kollaborativer Filterung.
+ * Gibt Top-Match Strains fuer den aktuellen User zurueck basierend auf
+ * Kosinus-Aehnlichkeit (9-D Vektor aus Terpenen und Cannabinoiden).
+ * KCanG-konform: keine kollaborative Filterung.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -17,111 +19,52 @@ export async function GET(request: Request) {
 
   const { user, supabase } = auth;
 
-  // Hole alle Ratings des aktuellen Users
-  const { data: myRatings, error: myRatingsError } = await supabase
-    .from("ratings")
-    .select("strain_id, overall_rating")
-    .eq("user_id", user.id);
-
-  if (myRatingsError) {
-    console.error("Error fetching my ratings:", myRatingsError);
-    return jsonError("Failed to fetch ratings", 500);
-  }
-
-  if (!myRatings || myRatings.length === 0) {
+  const userProfile = await calculateUserPreferenceVector(supabase, user.id);
+  if (!userProfile) {
     return jsonSuccess({ matches: [], ratingCount: 0 });
   }
 
-  const myStrainIds = new Set(myRatings.map((r) => r.strain_id));
-  const myRatingsMap = new Map(myRatings.map((r) => [r.strain_id, r.overall_rating]));
-
-  const { data: otherRatings, error: otherRatingsError } = await supabase
+  // Get already-rated strain IDs to exclude
+  const { data: userRatings } = await supabase
     .from("ratings")
-    .select("user_id, strain_id, overall_rating")
-    .neq("user_id", user.id)
-    .in("strain_id", Array.from(myStrainIds));
+    .select("strain_id")
+    .eq("user_id", user.id);
 
-  if (otherRatingsError) {
-    console.error("Error fetching other ratings:", otherRatingsError);
-    return jsonError("Failed to fetch ratings", 500);
-  }
+  const excludeIds = new Set(userRatings?.map(r => r.strain_id) || []);
 
-  if (!otherRatings || otherRatings.length === 0) {
-    return jsonSuccess({ matches: [], ratingCount: myRatings.length });
-  }
-
-  // Gruppiere Ratings nach User
-  const otherUsersRatings = new Map<string, Map<string, number>>();
-  for (const rating of otherRatings) {
-    if (!otherUsersRatings.has(rating.user_id)) {
-      otherUsersRatings.set(rating.user_id, new Map());
-    }
-    otherUsersRatings.get(rating.user_id)!.set(rating.strain_id, rating.overall_rating);
-  }
-
-  // Berechne predicted score für alle Strains
-  const strainScores = new Map<string, { weightedSum: number; similaritySum: number }>();
-
-  for (const [, otherUserRatingsMap] of otherUsersRatings) {
-    for (const [strainId, otherRating] of otherUserRatingsMap) {
-      if (myStrainIds.has(strainId)) continue;
-
-      let similarity = 0;
-      for (const [myStrainId, myRating] of myRatingsMap) {
-        const otherRating2 = otherUserRatingsMap.get(myStrainId);
-        if (otherRating2 !== undefined) {
-          const diff = Math.abs(myRating - otherRating2);
-          similarity += 1 - diff / 4;
-        }
-      }
-
-      if (similarity > 0) {
-        if (!strainScores.has(strainId)) {
-          strainScores.set(strainId, { weightedSum: 0, similaritySum: 0 });
-        }
-        const entry = strainScores.get(strainId)!;
-        entry.weightedSum += similarity * otherRating;
-        entry.similaritySum += similarity;
-      }
-    }
-  }
-
-  // Konvertiere zu Scores und sortiere
-  const scoredStrains: { strainId: string; score: number }[] = [];
-  for (const [strainId, { weightedSum, similaritySum }] of strainScores) {
-    if (similaritySum > 0) {
-      const score = Math.round((weightedSum / similaritySum / 5) * 100);
-      scoredStrains.push({ strainId, score: Math.min(100, Math.max(0, score)) });
-    }
-  }
-
-  scoredStrains.sort((a, b) => b.score - a.score);
-  const topStrainIds = scoredStrains.slice(0, limit).map((s) => s.strainId);
-
-  if (topStrainIds.length === 0) {
-    return jsonSuccess({ matches: [], ratingCount: myRatings.length });
-  }
-
-  const { data: strains, error: strainsError } = await supabase
+  const { data: allStrains, error: allStrainsError } = await supabase
     .from("strains")
-    .select("id, name, slug")
-    .in("id", topStrainIds);
+    .select("id, name, slug, terpenes, thc_min, thc_max, cbd_min, cbd_max, cbg, cbn, thcv");
 
-  if (strainsError) {
-    console.error("Error fetching strains:", strainsError);
+  if (allStrainsError) {
+    console.error("[TopMatches] Error fetching strains:", allStrainsError);
     return jsonError("Failed to fetch strains", 500);
   }
 
-  const scoreMap = new Map(scoredStrains.map((s) => [s.strainId, s.score]));
-  const matches = (strains || [])
-    .map((strain) => ({
-      strainId: strain.id,
-      strainName: strain.name,
-      strainSlug: strain.slug,
-      score: scoreMap.get(strain.id) || 0,
-      basedOnRatings: myRatings.length,
-    }))
-    .sort((a, b) => b.score - a.score);
+  const userVec = [
+    userProfile.myrcen, userProfile.limonen, userProfile.caryophyllen, userProfile.pinen,
+    userProfile.thc, userProfile.cbd, userProfile.cbg, userProfile.cbn, userProfile.thcv,
+  ];
 
-  return jsonSuccess({ matches, ratingCount: myRatings.length });
+  const scoredStrains = (allStrains || [])
+    .filter(s => !excludeIds.has(s.id))
+    .map(strain => {
+      const strainVector = extractStrainVector(strain);
+      const strainVec = [
+        strainVector.myrcen, strainVector.limonen, strainVector.caryophyllen, strainVector.pinen,
+        strainVector.thc, strainVector.cbd, strainVector.cbg, strainVector.cbn, strainVector.thcv,
+      ];
+      const score = cosineSimilarity(userVec, strainVec);
+      return {
+        strainId: strain.id,
+        strainName: strain.name,
+        strainSlug: strain.slug,
+        score: Math.round(score * 100),
+      };
+    })
+    .filter(s => s.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+
+  return jsonSuccess({ matches: scoredStrains, ratingCount: userProfile.ratingCount });
 }

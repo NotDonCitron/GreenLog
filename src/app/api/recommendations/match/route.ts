@@ -1,11 +1,13 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { calculateUserPreferenceVector, extractStrainVector, cosineSimilarity } from "@/lib/algorithms/terpene-matching";
 
 /**
  * GET /api/recommendations/match?strain_id=XXX
  *
- * Berechnet Match-Score für eine bestimmte Strain basierend auf
- * kollaborativer Filterung.
+ * Berechnet Match-Score fuer eine bestimmte Strain basierend auf
+ * Kosinus-Aehnlichkeit (9-D Vektor aus Terpenen und Cannabinoiden).
+ * KCanG-konform: keine kollaborative Filterung.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -21,25 +23,14 @@ export async function GET(request: Request) {
 
   const { user, supabase } = auth;
 
-  // Hole alle Ratings des aktuellen Users
-  const { data: myRatings, error: myRatingsError } = await supabase
-    .from("ratings")
-    .select("strain_id, overall_rating")
-    .eq("user_id", user.id);
-
-  if (myRatingsError) {
-    console.error("Error fetching my ratings:", myRatingsError);
-    return jsonError("Failed to fetch ratings", 500);
-  }
-
-  if (!myRatings || myRatings.length === 0) {
+  const userProfile = await calculateUserPreferenceVector(supabase, user.id);
+  if (!userProfile) {
     return jsonSuccess({ score: null, basedOnRatings: 0 });
   }
 
-  // Finde die Strain-ID des angefragten Strains
   const { data: strain, error: strainError } = await supabase
     .from("strains")
-    .select("id")
+    .select("id, name, slug, terpenes, thc_min, thc_max, cbd_min, cbd_max, cbg, cbn, thcv")
     .eq("id", strain_id)
     .single();
 
@@ -47,70 +38,16 @@ export async function GET(request: Request) {
     return jsonError("Strain not found", 404);
   }
 
-  const targetStrainId = strain.id;
+  const strainVector = extractStrainVector(strain);
+  const userVec = [
+    userProfile.myrcen, userProfile.limonen, userProfile.caryophyllen, userProfile.pinen,
+    userProfile.thc, userProfile.cbd, userProfile.cbg, userProfile.cbn, userProfile.thcv,
+  ];
+  const strainVec = [
+    strainVector.myrcen, strainVector.limonen, strainVector.caryophyllen, strainVector.pinen,
+    strainVector.thc, strainVector.cbd, strainVector.cbg, strainVector.cbn, strainVector.thcv,
+  ];
+  const score = cosineSimilarity(userVec, strainVec);
 
-  // Prüfe ob User diese Strain bereits bewertet hat
-  const alreadyRated = myRatings.some((r) => r.strain_id === targetStrainId);
-  if (alreadyRated) {
-    return jsonSuccess({ score: null, basedOnRatings: myRatings.length });
-  }
-
-  // Kollaborative Filterung
-  const myStrainIds = new Set(myRatings.map((r) => r.strain_id));
-  const myRatingsMap = new Map(myRatings.map((r) => [r.strain_id, r.overall_rating]));
-
-  const { data: otherRatings, error: otherRatingsError } = await supabase
-    .from("ratings")
-    .select("user_id, strain_id, overall_rating")
-    .neq("user_id", user.id)
-    .in("strain_id", Array.from(myStrainIds));
-
-  if (otherRatingsError) {
-    console.error("Error fetching other ratings:", otherRatingsError);
-    return jsonError("Failed to fetch ratings", 500);
-  }
-
-  if (!otherRatings || otherRatings.length === 0) {
-    return jsonSuccess({ score: null, basedOnRatings: myRatings.length });
-  }
-
-  // Gruppiere Ratings nach User
-  const otherUsersRatings = new Map<string, Map<string, number>>();
-  for (const rating of otherRatings) {
-    if (!otherUsersRatings.has(rating.user_id)) {
-      otherUsersRatings.set(rating.user_id, new Map());
-    }
-    otherUsersRatings.get(rating.user_id)!.set(rating.strain_id, rating.overall_rating);
-  }
-
-  // Berechne Ähnlichkeit und Vorhersage
-  let weightedSum = 0;
-  let similaritySum = 0;
-
-  for (const [, otherUserRatingsMap] of otherUsersRatings) {
-    const targetRating = otherUserRatingsMap.get(targetStrainId);
-    if (targetRating === undefined) continue;
-
-    let similarity = 0;
-    for (const [strainId, myRating] of myRatingsMap) {
-      const otherRating = otherUserRatingsMap.get(strainId);
-      if (otherRating !== undefined) {
-        const diff = Math.abs(myRating - otherRating);
-        similarity += 1 - diff / 4;
-      }
-    }
-
-    if (similarity > 0) {
-      weightedSum += similarity * targetRating;
-      similaritySum += similarity;
-    }
-  }
-
-  let score: number | null = null;
-  if (similaritySum > 0) {
-    score = Math.round((weightedSum / similaritySum / 5) * 100);
-    score = Math.min(100, Math.max(0, score));
-  }
-
-  return jsonSuccess({ score, basedOnRatings: myRatings.length });
+  return jsonSuccess({ score: Math.round(score * 100), basedOnRatings: userProfile.ratingCount });
 }
