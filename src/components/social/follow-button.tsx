@@ -3,11 +3,12 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/components/toast-provider";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { followingKeys, followersKeys, followRequestsKeys } from "@/lib/query-keys";
+import { useFollowStatus } from "@/hooks/useFollowStatus";
 import type { FollowStatus } from "@/lib/types";
 
 interface FollowButtonProps {
@@ -32,61 +33,11 @@ export function FollowButton({
     const queryClient = useQueryClient();
     const { error: toastError } = useToast();
     const [isLoading, setIsLoading] = useState(false);
-    const [localIsPrivate, setLocalIsPrivate] = useState(profileVisibility === "private");
     const [optimisticStatus, setOptimisticStatus] = useState<FollowStatus | null>(null);
     const previousStatusRef = useRef<FollowStatus | null>(null);
 
-    // Fetch follow status if not provided via initialStatus
-    const { data: fetchedStatus } = useQuery({
-        queryKey: ['follow-status', userId] as const,
-        queryFn: async (): Promise<FollowStatus & { isPrivate: boolean }> => {
-            // Fetch profile visibility if not provided
-            let currentIsPrivate = profileVisibility === "private";
-            if (profileVisibility === undefined) {
-                const { data: profile } = await supabase
-                    .from("profiles")
-                    .select("profile_visibility")
-                    .eq("id", userId)
-                    .single();
-
-                if (profile) {
-                    currentIsPrivate = profile.profile_visibility === "private";
-                    setLocalIsPrivate(currentIsPrivate);
-                }
-            }
-
-            // Fetch follow status
-            const { data: followData } = await supabase
-                .from("follows")
-                .select("id")
-                .eq("follower_id", user!.id)
-                .eq("following_id", userId)
-                .single();
-
-            // Fetch pending request if profile is private
-            let hasPending = false;
-            if (currentIsPrivate || profileVisibility === "private") {
-                const { data: requestData } = await supabase
-                    .from("follow_requests")
-                    .select("id, status")
-                    .eq("requester_id", user!.id)
-                    .eq("target_id", userId)
-                    .eq("status", "pending")
-                    .single();
-
-                hasPending = !!requestData;
-            }
-
-            return {
-                is_following: !!followData,
-                is_following_me: false,
-                has_pending_request: hasPending,
-                isPrivate: currentIsPrivate,
-            };
-        },
-        enabled: !!user && !initialStatus && !isDemoMode,
-        staleTime: 30 * 1000, // 30 seconds
-    });
+    // Use the useFollowStatus hook (handles profile visibility + follow + pending request in one query)
+    const { data: fetchedStatus } = useFollowStatus(userId, profileVisibility);
 
     // Use fetched status when available, otherwise use initialStatus
     // Optimistic status overrides when available (immediate UI update)
