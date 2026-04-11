@@ -19,6 +19,7 @@ import { useCollection } from "@/hooks/useCollection";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { TerpeneRadarChart } from "@/components/strains/terpene-radar-chart";
 import { MatchScoreBadge } from "@/components/strains/match-score-badge";
+import { SimilarStrainsSection } from "@/components/strains/SimilarStrainsSection";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message) {
@@ -36,7 +37,7 @@ function isAppAdmin(userId: string): boolean {
 
 export default function StrainDetailPageClient() {
   const { slug } = useParams();
-  const { user, isDemoMode, activeOrganization } = useAuth();
+  const { user, session, isDemoMode, activeOrganization } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { collectedIds, toggleCollect, collectAction } = useCollection();
@@ -313,11 +314,11 @@ export default function StrainDetailPageClient() {
       const formData = new FormData();
       formData.append("image", file);
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData?.session?.access_token;
+      const accessToken = session?.access_token;
 
       if (!accessToken) {
         toastError("Du musst eingeloggt sein.");
+        setIsAdminUploading(false);
         return;
       }
 
@@ -765,6 +766,9 @@ export default function StrainDetailPageClient() {
             </button>
           </Card>
         </div>
+      )}
+      {!isDemoMode && user && (
+        <SimilarStrainsSection strainId={strain.id} strainName={strain.name} />
       )}
       {!showRatingModal && <BottomNav />}
     </main>
