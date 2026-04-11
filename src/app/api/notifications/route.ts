@@ -35,12 +35,16 @@ export async function GET(request: Request) {
         // Send one push per notification (oldest first)
         const toPush = unpushed.reverse().slice(-3); // max 3 at a time
         for (const notif of toPush) {
-            await sendPushToUser(supabaseAdmin, user.id, {
-                title: notif.title,
-                body: notif.message || "Neue Benachrichtigung",
-                tag: notif.type,
-                data: notif.data || {},
-            });
+            try {
+                await sendPushToUser(supabaseAdmin, user.id, {
+                    title: notif.title,
+                    body: notif.message || "Neue Benachrichtigung",
+                    tag: notif.type,
+                    data: notif.data || {},
+                });
+            } catch (pushErr) {
+                console.error(`[Push] Failed to send notification ${notif.id}:`, pushErr);
+            }
         }
         // Mark as pushed (bulk update)
         const ids = toPush.map(n => n.id);
