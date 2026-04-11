@@ -204,12 +204,6 @@ export default function ProfilePage() {
     }
   }, [profileData]);
 
-  useEffect(() => {
-    if (profileData) {
-      setCarouselFavorites(profileData.favorites);
-    }
-  }, [profileData?.favorites]);
-
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })

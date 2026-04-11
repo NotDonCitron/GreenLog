@@ -3,13 +3,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
+import { followersKeys } from "@/lib/query-keys";
 import type { FollowStatus } from "@/lib/types";
 
 export function useFollowStatus(userId: string, profileVisibility?: "public" | "private" | null) {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['follow-status', userId] as const,
+    queryKey: followersKeys.list(userId),
     queryFn: async (): Promise<FollowStatus & { isPrivate: boolean }> => {
       let currentIsPrivate = profileVisibility === "private";
       if (profileVisibility === undefined) {

@@ -13,7 +13,7 @@ import { InviteAdminModal } from "@/components/community/invite-admin-modal";
 import { AdminListModal } from "@/components/community/admin-list-modal";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { useAuth } from "@/components/auth-provider";
-import { Leaf, Building2, Users, Sprout, ArrowLeft, Plus, Settings } from "lucide-react";
+import { Leaf, Building2, Users, Sprout, ArrowLeft, Plus, Settings, type LucideIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { USER_ROLES } from "@/lib/roles";
 
@@ -42,7 +42,7 @@ function OrgTypeLabel({ type }: { type: string }) {
   );
 }
 
-function StatCard({ icon: Icon, value, label, color, onClick }: { icon: typeof Leaf; value: number | string; label: string; color: string; onClick?: () => void }) {
+function StatCard({ icon: Icon, value, label, color, onClick }: { icon: LucideIcon; value: number | string; label: string; color: string; onClick?: () => void }) {
   return (
     <div
       onClick={onClick}
