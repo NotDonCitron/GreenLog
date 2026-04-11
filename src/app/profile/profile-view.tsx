@@ -173,7 +173,7 @@ function SectionHeader({ eyebrow, title, icon: Icon, iconColor }: { eyebrow?: st
 }
 
 export default function ProfilePage() {
-  const { user, signOut, loading, isDemoMode } = useAuth();
+  const { user, session, signOut, loading, isDemoMode } = useAuth();
   const router = useRouter();
   const { success: toastSuccess, error: toastError } = useToast();
 
@@ -225,7 +225,7 @@ export default function ProfilePage() {
       return reordered;
     });
 
-    if (!user || isDemoMode) return;
+    if (!user || !session?.access_token || isDemoMode) return;
     setSavingOrder(true);
     const newOrder = Array.from(document.querySelectorAll("[data-relation-id]")).map(
       (el) => el.getAttribute("data-relation-id")!
@@ -233,7 +233,10 @@ export default function ProfilePage() {
     if (newOrder.length > 0) {
       fetch("/api/profile/reorder-favorites", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session!.access_token}`
+        },
         body: JSON.stringify({ relationIds: newOrder }),
       }).finally(() => setSavingOrder(false));
     } else {
@@ -252,7 +255,7 @@ export default function ProfilePage() {
       return reordered;
     });
 
-    if (!user || isDemoMode) return;
+    if (!user || !session?.access_token || isDemoMode) return;
     setSavingOrder(true);
     const reorderedItems = [...carouselFavorites];
     const [moved] = reorderedItems.splice(fromIndex, 1);
@@ -261,7 +264,10 @@ export default function ProfilePage() {
     if (newOrder.length > 0) {
       fetch("/api/profile/reorder-favorites", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session!.access_token}`
+        },
         body: JSON.stringify({ relationIds: newOrder }),
       }).finally(() => setSavingOrder(false));
     } else {

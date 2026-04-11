@@ -17,18 +17,23 @@ interface TopMatch {
 }
 
 export function TopMatches() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [matches, setMatches] = useState<TopMatch[]>([]);
   const [strains, setStrains] = useState<Record<string, Strain>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    // session.access_token muss auch vorhanden sein (wird asynchron gesetzt)
+    if (!user || !session?.access_token) return;
 
     async function fetchTopMatches() {
       try {
-        const res = await fetch("/api/recommendations/top?limit=4");
+        const res = await fetch("/api/recommendations/top?limit=4", {
+          headers: {
+            Authorization: `Bearer ${session!.access_token}`
+          }
+        });
         const json = await res.json();
 
         if (json.data?.matches && json.data.matches.length > 0) {
@@ -58,7 +63,7 @@ export function TopMatches() {
     }
 
     fetchTopMatches();
-  }, [user]);
+  }, [user, session]);
 
   if (!user || (loading && matches.length === 0)) {
     return (
