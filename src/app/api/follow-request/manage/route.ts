@@ -3,7 +3,8 @@ import { getAuthenticatedClient } from "@/lib/supabase/client";
 
 export async function GET(request: Request) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
-    if (!auth || auth instanceof Response) return auth || jsonError("Unauthorized", 401);
+    if (!auth) return jsonError("Unauthorized", 401);
+    if (auth instanceof Response) return auth;
     const { user, supabase } = auth;
 
     const { data: requests, error: requestsError } = await supabase
@@ -25,7 +26,8 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
-    if (!auth || auth instanceof Response) return auth || jsonError("Unauthorized", 401);
+    if (!auth) return jsonError("Unauthorized", 401);
+    if (auth instanceof Response) return auth;
     const { user, supabase } = auth;
 
     const body = await request.json();
