@@ -1,90 +1,130 @@
-import { getAuthenticatedClient } from "@/lib/supabase/client";
-import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
-import {
-  calculateUserPreferenceVector,
-  extractStrainVector,
-  calculateMatchScore,
-  sortMatchResults,
-  MIN_RATINGS_FOR_PROFILE,
-} from "@/lib/algorithms/terpene-matching";
-import type { MatchResult } from "@/lib/types";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { jsonSuccess, jsonError } from "@/lib/api-response";
 
+/**
+ * GET /api/recommendations/top?limit=5
+ *
+ * Gibt Top-Match Strains für den aktuellen User zurück basierend auf
+ * kollaborativer Filterung.
+ */
 export async function GET(request: Request) {
-  const auth = await authenticateRequest(request, getAuthenticatedClient);
-  if (auth instanceof Response) return auth;
+  const { searchParams } = new URL(request.url);
+  const limit = Math.min(parseInt(searchParams.get("limit") || "5") || 5, 20);
 
-  const userId = auth.user.id;
-  const supabase = auth.supabase;
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  // Limit aus URL params (default 5, max 20)
-  const url = new URL(request.url);
-  const limit = Math.min(parseInt(url.searchParams.get("limit") || "5", 10), 20);
+  if (!user) {
+    return jsonError("Authentication required", 401);
+  }
 
-  // Hole alle bewerteten Strain-IDs um sie auszuschließen
-  const { data: ratings } = await supabase
+  // Hole alle Ratings des aktuellen Users
+  const { data: myRatings, error: myRatingsError } = await supabase
     .from("ratings")
-    .select("strain_id")
-    .eq("user_id", userId);
+    .select("strain_id, overall_rating")
+    .eq("user_id", user.id);
 
-  const ratedStrainIds = new Set(ratings?.map(r => r.strain_id) || []);
+  if (myRatingsError) {
+    console.error("Error fetching my ratings:", myRatingsError);
+    return jsonError("Failed to fetch ratings", 500);
+  }
 
-  // Hole alle öffentlichen Strains (ohne die bereits bewerteten)
-  const { data: allStrains, error: strainsError } = await supabase
+  if (!myRatings || myRatings.length === 0) {
+    return jsonSuccess({ matches: [], ratingCount: 0 });
+  }
+
+  const myStrainIds = new Set(myRatings.map((r) => r.strain_id));
+  const myRatingsMap = new Map(myRatings.map((r) => [r.strain_id, r.overall_rating]));
+
+  const { data: otherRatings, error: otherRatingsError } = await supabase
+    .from("ratings")
+    .select("user_id, strain_id, overall_rating")
+    .neq("user_id", user.id)
+    .in("strain_id", Array.from(myStrainIds));
+
+  if (otherRatingsError) {
+    console.error("Error fetching other ratings:", otherRatingsError);
+    return jsonError("Failed to fetch ratings", 500);
+  }
+
+  if (!otherRatings || otherRatings.length === 0) {
+    return jsonSuccess({ matches: [], ratingCount: myRatings.length });
+  }
+
+  // Gruppiere Ratings nach User
+  const otherUsersRatings = new Map<string, Map<string, number>>();
+  for (const rating of otherRatings) {
+    if (!otherUsersRatings.has(rating.user_id)) {
+      otherUsersRatings.set(rating.user_id, new Map());
+    }
+    otherUsersRatings.get(rating.user_id)!.set(rating.strain_id, rating.overall_rating);
+  }
+
+  // Berechne predicted score für alle Strains
+  const strainScores = new Map<string, { weightedSum: number; similaritySum: number }>();
+
+  for (const [, otherUserRatingsMap] of otherUsersRatings) {
+    for (const [strainId, otherRating] of otherUserRatingsMap) {
+      if (myStrainIds.has(strainId)) continue;
+
+      let similarity = 0;
+      for (const [myStrainId, myRating] of myRatingsMap) {
+        const otherRating2 = otherUserRatingsMap.get(myStrainId);
+        if (otherRating2 !== undefined) {
+          const diff = Math.abs(myRating - otherRating2);
+          similarity += 1 - diff / 4;
+        }
+      }
+
+      if (similarity > 0) {
+        if (!strainScores.has(strainId)) {
+          strainScores.set(strainId, { weightedSum: 0, similaritySum: 0 });
+        }
+        const entry = strainScores.get(strainId)!;
+        entry.weightedSum += similarity * otherRating;
+        entry.similaritySum += similarity;
+      }
+    }
+  }
+
+  // Konvertiere zu Scores und sortiere
+  const scoredStrains: { strainId: string; score: number }[] = [];
+  for (const [strainId, { weightedSum, similaritySum }] of strainScores) {
+    if (similaritySum > 0) {
+      const score = Math.round((weightedSum / similaritySum / 5) * 100);
+      scoredStrains.push({ strainId, score: Math.min(100, Math.max(0, score)) });
+    }
+  }
+
+  scoredStrains.sort((a, b) => b.score - a.score);
+  const topStrainIds = scoredStrains.slice(0, limit).map((s) => s.strainId);
+
+  if (topStrainIds.length === 0) {
+    return jsonSuccess({ matches: [], ratingCount: myRatings.length });
+  }
+
+  const { data: strains, error: strainsError } = await supabase
     .from("strains")
-    .select(`
-      id,
-      name,
-      slug,
-      terpenes,
-      thc_min,
-      thc_max,
-      cbd_min,
-      cbd_max,
-      cbg,
-      cbn,
-      thcv
-    `)
-    .limit(200); // Performance-Limit
+    .select("id, name, slug")
+    .in("id", topStrainIds);
 
-  if (strainsError || !allStrains) {
-    return jsonError("Failed to fetch strains", 500, "STRAINS_FETCH_ERROR");
+  if (strainsError) {
+    console.error("Error fetching strains:", strainsError);
+    return jsonError("Failed to fetch strains", 500);
   }
 
-  // Hole User-Präferenz-Vektor
-  const userProfile = await calculateUserPreferenceVector(supabase, userId);
-
-  if (!userProfile || userProfile.ratingCount < MIN_RATINGS_FOR_PROFILE) {
-    return jsonSuccess({
-      matches: [],
-      message: `Mindestens ${MIN_RATINGS_FOR_PROFILE} Bewertungen nötig für Profil-Übereinstimmung`,
-      ratingCount: userProfile?.ratingCount || 0,
-    });
-  }
-
-  // Berechne Match-Score für alle Strains
-  const matchResults: MatchResult[] = [];
-
-  for (const strain of allStrains) {
-    // Überspringe bereits bewertete Sorten
-    if (ratedStrainIds.has(strain.id)) continue;
-
-    const strainVector = extractStrainVector(strain);
-    const score = calculateMatchScore(userProfile, strainVector);
-
-    matchResults.push({
+  const scoreMap = new Map(scoredStrains.map((s) => [s.strainId, s.score]));
+  const matches = (strains || [])
+    .map((strain) => ({
       strainId: strain.id,
       strainName: strain.name,
       strainSlug: strain.slug,
-      score,
-      basedOnRatings: userProfile.ratingCount,
-    });
-  }
+      score: scoreMap.get(strain.id) || 0,
+      basedOnRatings: myRatings.length,
+    }))
+    .sort((a, b) => b.score - a.score);
 
-  // Sortiere und limitiere
-  const topMatches = sortMatchResults(matchResults, limit);
-
-  return jsonSuccess({
-    matches: topMatches,
-    ratingCount: userProfile.ratingCount,
-  });
+  return jsonSuccess({ matches, ratingCount: myRatings.length });
 }

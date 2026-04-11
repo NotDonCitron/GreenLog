@@ -1,68 +1,120 @@
-import { getAuthenticatedClient } from "@/lib/supabase/client";
-import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
-import {
-  calculateUserPreferenceVector,
-  extractStrainVector,
-  calculateMatchScore,
-  MIN_RATINGS_FOR_PROFILE,
-} from "@/lib/algorithms/terpene-matching";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { jsonSuccess, jsonError } from "@/lib/api-response";
 
+/**
+ * GET /api/recommendations/match?strain_id=XXX
+ *
+ * Berechnet Match-Score für eine bestimmte Strain basierend auf
+ * kollaborativer Filterung: findet Benutzer mit ähnlichen Ratings
+ * und berechnet Wahrscheinlichkeit, dass der aktuelle User die Strain gut findet.
+ */
 export async function GET(request: Request) {
-  const auth = await authenticateRequest(request, getAuthenticatedClient);
-  if (auth instanceof Response) return auth;
+  const { searchParams } = new URL(request.url);
+  const strain_id = searchParams.get("strain_id");
 
-  const userId = auth.user.id;
-  const supabase = auth.supabase;
-
-  // Strain-ID aus URL params
-  const url = new URL(request.url);
-  const strainId = url.searchParams.get("strain_id");
-
-  if (!strainId) {
-    return jsonError("strain_id is required", 400, "MISSING_PARAM");
+  if (!strain_id) {
+    return jsonError("strain_id query parameter is required", 400);
   }
 
-  // Hole Strain-Daten
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return jsonError("Authentication required", 401);
+  }
+
+  // Hole alle Ratings des aktuellen Users
+  const { data: myRatings, error: myRatingsError } = await supabase
+    .from("ratings")
+    .select("strain_id, overall_rating")
+    .eq("user_id", user.id);
+
+  if (myRatingsError) {
+    console.error("Error fetching my ratings:", myRatingsError);
+    return jsonError("Failed to fetch ratings", 500);
+  }
+
+  if (!myRatings || myRatings.length === 0) {
+    return jsonSuccess({ score: null, basedOnRatings: 0 });
+  }
+
+  // Finde die Strain-ID des angefragten Strains
   const { data: strain, error: strainError } = await supabase
     .from("strains")
-    .select(`
-      id,
-      name,
-      slug,
-      terpenes,
-      thc_min,
-      thc_max,
-      cbd_min,
-      cbd_max,
-      cbg,
-      cbn,
-      thcv
-    `)
-    .eq("id", strainId)
+    .select("id")
+    .eq("id", strain_id)
     .single();
 
   if (strainError || !strain) {
-    return jsonError("Strain not found", 404, "STRAIN_NOT_FOUND");
+    return jsonError("Strain not found", 404);
   }
 
-  // Hole User-Präferenz-Vektor
-  const userProfile = await calculateUserPreferenceVector(supabase, userId);
+  const targetStrainId = strain.id;
 
-  if (!userProfile || userProfile.ratingCount < MIN_RATINGS_FOR_PROFILE) {
-    return jsonSuccess({
-      score: null,
-      message: `Mindestens ${MIN_RATINGS_FOR_PROFILE} Bewertungen nötig`,
-      basedOnRatings: userProfile?.ratingCount || 0,
-    });
+  // Prüfe ob User diese Strain bereits bewertet hat
+  const alreadyRated = myRatings.some((r) => r.strain_id === targetStrainId);
+  if (alreadyRated) {
+    return jsonSuccess({ score: null, basedOnRatings: myRatings.length });
   }
 
-  const strainVector = extractStrainVector(strain);
-  const score = calculateMatchScore(userProfile, strainVector);
+  // Kollaborative Filterung
+  const myStrainIds = new Set(myRatings.map((r) => r.strain_id));
+  const myRatingsMap = new Map(myRatings.map((r) => [r.strain_id, r.overall_rating]));
 
-  return jsonSuccess({
-    score,
-    basedOnRatings: userProfile.ratingCount,
-    strainId: strain.id,
-    strainName: strain.name,
-  });
+  const { data: otherRatings, error: otherRatingsError } = await supabase
+    .from("ratings")
+    .select("user_id, strain_id, overall_rating")
+    .neq("user_id", user.id)
+    .in("strain_id", Array.from(myStrainIds));
+
+  if (otherRatingsError) {
+    console.error("Error fetching other ratings:", otherRatingsError);
+    return jsonError("Failed to fetch ratings", 500);
+  }
+
+  if (!otherRatings || otherRatings.length === 0) {
+    return jsonSuccess({ score: null, basedOnRatings: myRatings.length });
+  }
+
+  // Gruppiere Ratings nach User
+  const otherUsersRatings = new Map<string, Map<string, number>>();
+  for (const rating of otherRatings) {
+    if (!otherUsersRatings.has(rating.user_id)) {
+      otherUsersRatings.set(rating.user_id, new Map());
+    }
+    otherUsersRatings.get(rating.user_id)!.set(rating.strain_id, rating.overall_rating);
+  }
+
+  // Berechne Ähnlichkeit und Vorhersage
+  let weightedSum = 0;
+  let similaritySum = 0;
+
+  for (const [otherUserId, otherUserRatingsMap] of otherUsersRatings) {
+    const targetRating = otherUserRatingsMap.get(targetStrainId);
+    if (targetRating === undefined) continue;
+
+    let similarity = 0;
+    for (const [strainId, myRating] of myRatingsMap) {
+      const otherRating = otherUserRatingsMap.get(strainId);
+      if (otherRating !== undefined) {
+        const diff = Math.abs(myRating - otherRating);
+        similarity += 1 - diff / 4;
+      }
+    }
+
+    if (similarity > 0) {
+      weightedSum += similarity * targetRating;
+      similaritySum += similarity;
+    }
+  }
+
+  let score: number | null = null;
+  if (similaritySum > 0) {
+    score = Math.round((weightedSum / similaritySum / 5) * 100);
+    score = Math.min(100, Math.max(0, score));
+  }
+
+  return jsonSuccess({ score, basedOnRatings: myRatings.length });
 }
