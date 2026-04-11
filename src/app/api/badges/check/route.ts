@@ -1,20 +1,9 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { jsonSuccess, jsonError } from "@/lib/api-response";
 import { ALL_BADGES, BADGE_CRITERIA } from "@/lib/badges";
 import type { BadgeContext } from "@/lib/badges";
-
-// Get admin client (bypasses RLS) for badge inserts
-function getSupabaseAdmin() {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !serviceKey) {
-        throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing!");
-    }
-    return import("@supabase/supabase-js").then(m =>
-        m.createClient(url, serviceKey, { auth: { persistSession: false } })
-    );
-}
 
 export async function POST(request: Request) {
     const authHeader = request.headers.get("Authorization");
@@ -48,7 +37,7 @@ export async function POST(request: Request) {
             const qualifies = await criteriaFn({ supabase: supabase as BadgeContext['supabase'], userId: user.id });
             if (qualifies) {
                 // Use admin client to bypass RLS for badge insert
-                const adminClient = await getSupabaseAdmin();
+                const adminClient = getSupabaseAdmin();
                 const { error } = await adminClient
                     .from('user_badges')
                     .upsert(
