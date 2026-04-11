@@ -76,6 +76,11 @@ export default function CommunityDetailPage() {
   );
 
   useEffect(() => {
+    // Reset state on organization change to prevent stale data flash
+    setOrganization(null);
+    setLoading(true);
+    setNotFound(false);
+
     const fetchData = async () => {
       try {
         const { data: orgData, error: orgError } = await supabase
