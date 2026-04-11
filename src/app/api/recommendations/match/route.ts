@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError, getBearerToken } from "@/lib/api-response";
 import {
   calculateUserPreferenceVector,
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     return jsonError("Invalid token", 401);
   }
 
-  const supabase = await createServerSupabaseClient();
+  const supabase = await getAuthenticatedClient(token);
 
   // Strain-ID aus URL params
   const url = new URL(request.url);
