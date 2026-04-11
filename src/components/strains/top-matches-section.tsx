@@ -1,23 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth-provider";
 import type { MatchResult } from "@/lib/types";
 import Link from "next/link";
 
 export function TopMatchesSection() {
+  const { user } = useAuth();
   const [matches, setMatches] = useState<MatchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [ratingCount, setRatingCount] = useState(0);
 
   useEffect(() => {
-    async function fetchTopMatches() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
+    async function fetchTopMatches() {
       try {
         const res = await fetch("/api/recommendations/top?limit=5");
         const json = await res.json();
@@ -33,7 +33,7 @@ export function TopMatchesSection() {
     }
 
     fetchTopMatches();
-  }, []);
+  }, [user]);
 
   if (loading || matches.length === 0) {
     return null;

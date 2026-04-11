@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth-provider";
 
 interface MatchScoreBadgeProps {
   strainId: string;
@@ -9,18 +9,18 @@ interface MatchScoreBadgeProps {
 }
 
 export function MatchScoreBadge({ strainId, strainName }: MatchScoreBadgeProps) {
+  const { user } = useAuth();
   const [score, setScore] = useState<number | null>(null);
   const [basedOn, setBasedOn] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchMatch() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
+    async function fetchMatch() {
       try {
         const res = await fetch(`/api/recommendations/match?strain_id=${strainId}`);
         const json = await res.json();
@@ -36,7 +36,7 @@ export function MatchScoreBadge({ strainId, strainName }: MatchScoreBadgeProps) 
     }
 
     fetchMatch();
-  }, [strainId]);
+  }, [strainId, user]);
 
   if (loading || score === null) {
     return null;
