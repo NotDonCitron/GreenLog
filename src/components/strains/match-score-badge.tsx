@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createBrowserClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 
 interface MatchScoreBadgeProps {
   strainId: string;
@@ -15,7 +15,6 @@ export function MatchScoreBadge({ strainId, strainName }: MatchScoreBadgeProps) 
 
   useEffect(() => {
     async function fetchMatch() {
-      const supabase = createBrowserClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setLoading(false);

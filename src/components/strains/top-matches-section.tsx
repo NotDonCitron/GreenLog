@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createBrowserClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import type { MatchResult } from "@/lib/types";
 import Link from "next/link";
 
@@ -12,7 +12,6 @@ export function TopMatchesSection() {
 
   useEffect(() => {
     async function fetchTopMatches() {
-      const supabase = createBrowserClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setLoading(false);
