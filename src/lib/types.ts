@@ -362,3 +362,37 @@ export interface OrganizationActivityResponse {
   total: number;
   has_more: boolean;
 }
+
+/**
+ * 9-dimensionaler Vektor für Terpen-Matching (KCanG-konform)
+ * 4 Leit-Terpene + 5 Cannabinoide
+ */
+export interface StrainVector {
+  myrcen: number;       // 0.0 - 1.0 normalisiert
+  limonen: number;
+  caryophyllen: number;
+  pinen: number;
+  thc: number;
+  cbd: number;
+  cbg: number;
+  cbn: number;
+  thcv: number;
+}
+
+/**
+ * User-Präferenz-Vektor, berechnet aus Bewertungen
+ */
+export interface UserPreferenceVector extends StrainVector {
+  ratingCount: number;  // Anzahl der Bewertungen für dieses Profil
+}
+
+/**
+ * Match-Ergebnis für eine Sorte
+ */
+export interface MatchResult {
+  strainId: string;
+  strainName: string;
+  strainSlug: string;
+  score: number;        // 0-100 (Prozent)
+  basedOnRatings: number;
+}
