@@ -5,8 +5,8 @@ import Link from "next/link";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { Leaf, Building2, Loader2, Plus, GripVertical } from "lucide-react";
-import { supabase } from "@/lib/supabase/client";
-import { useAuth } from "@/components/auth-provider";
+import { useCommunity } from "@/hooks/useCommunity";
+import type { MemberOrg } from "@/hooks/useCommunity";
 import { USER_ROLES } from "@/lib/roles";
 import {
   DndContext,
@@ -25,21 +25,6 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-
-interface Organization {
-  id: string;
-  name: string;
-  slug: string | null;
-  organization_type: string;
-  license_number: string | null;
-  status: string;
-  logo_url?: string | null;
-}
-
-interface MemberOrg extends Organization {
-  membership_role?: string;
-  position?: number;
-}
 
 interface SortableOrg extends MemberOrg {
   relationId: string;
@@ -110,12 +95,9 @@ function SortableCommunityCard({ org, role }: { org: SortableOrg; role?: string 
 }
 
 export default function CommunityPageClient() {
-  const { user, memberships } = useAuth();
+  const { data, isLoading } = useCommunity();
   const [myOrgs, setMyOrgs] = useState<MemberOrg[]>([]);
-  const [otherOrgs, setOtherOrgs] = useState<Organization[]>([]);
   const [sortableOtherOrgs, setSortableOtherOrgs] = useState<SortableOrg[]>([]);
-  const [myOrgsInitialized, setMyOrgsInitialized] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [hydrated, setHydrated] = useState(false);
   const [savingOrder, setSavingOrder] = useState(false);
   const [savingMyOrder, setSavingMyOrder] = useState(false);
@@ -135,97 +117,25 @@ export default function CommunityPageClient() {
     return () => { mountedRef.current = false; };
   }, []);
 
-  // Sync sortable other orgs when otherOrgs or user changes
+  // Sync myOrgs when data?.myOrgs changes
   useEffect(() => {
-    if (otherOrgs.length > 0) {
+    if (data?.myOrgs) {
+      setMyOrgs(data.myOrgs);
+    }
+  }, [data?.myOrgs]);
+
+  // Sync sortable other orgs when data?.otherOrgs changes
+  useEffect(() => {
+    if (data?.otherOrgs && data.otherOrgs.length > 0) {
       setSortableOtherOrgs(
-        otherOrgs.map((org) => ({
+        data.otherOrgs.map((org) => ({
           ...org,
           relationId: `other-${org.id}`,
-          position: 0,
+          position: org.position,
         }))
       );
     }
-  }, [otherOrgs]);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    let cancelled = false;
-
-    async function fetchOrganizations() {
-      try {
-        if (!user) {
-          const { data } = await supabase
-            .from("organizations")
-            .select("id, name, slug, organization_type, license_number, status, logo_url")
-            .eq("status", "active")
-            .order("name", { ascending: true })
-            .limit(50);
-
-          if (cancelled || !mountedRef.current) return;
-          setOtherOrgs(data || []);
-          setLoading(false);
-          return;
-        }
-
-        const { data: allOrgs } = await supabase
-          .from("organizations")
-          .select("id, name, slug, organization_type, license_number, status, logo_url")
-          .eq("status", "active")
-          .order("name", { ascending: true })
-          .limit(50);
-
-        // Fetch user's custom ordering (my orgs: position -1 to -999, others: position 0+)
-        const { data: savedOrder } = await supabase
-          .from("user_community_order")
-          .select("organization_id, position")
-          .eq("user_id", user.id);
-
-        if (cancelled || !mountedRef.current) return;
-
-        const orderMap = new Map((savedOrder || []).map((o) => [o.organization_id, o.position]));
-
-        const myOrgIds = new Set(memberships.map((m) => m.organization_id));
-        const mine: MemberOrg[] = [];
-        const others: Organization[] = [];
-
-        for (const org of allOrgs || []) {
-          if (myOrgIds.has(org.id)) {
-            const membership = memberships.find((m) => m.organization_id === org.id);
-            mine.push({ ...org, membership_role: membership?.role, position: orderMap.get(org.id) ?? -1000 - mine.length });
-          } else {
-            others.push({ ...org, position: orderMap.get(org.id) ?? 0 });
-          }
-        }
-
-        // Sort my orgs by saved position (default: by name as fallback)
-        mine.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-        // Sort others by saved position
-        others.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-
-        if (!cancelled && mountedRef.current) {
-          setMyOrgs(mine);
-          setOtherOrgs(others);
-          setSortableOtherOrgs(
-            others.map((org) => ({
-              ...org,
-              membership_role: undefined,
-              relationId: `other-${org.id}`,
-            }))
-          );
-          setMyOrgsInitialized(true);
-          setLoading(false);
-        }
-      } catch {
-        if (mountedRef.current) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void fetchOrganizations();
-    return () => { cancelled = true; };
-  }, [user, memberships, hydrated]);
+  }, [data?.otherOrgs]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -281,7 +191,7 @@ export default function CommunityPageClient() {
       </header>
 
       <div className="px-6 space-y-6 mt-4 relative z-10 pb-32">
-        {loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 size={24} className="animate-spin text-[#00F5FF]" />
           </div>

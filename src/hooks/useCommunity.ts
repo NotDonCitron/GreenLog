@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 
-interface Organization {
+export interface Organization {
   id: string;
   name: string;
   slug: string | null;
@@ -12,11 +12,11 @@ interface Organization {
   license_number: string | null;
   status: string;
   logo_url?: string | null;
+  position: number;
 }
 
-interface MemberOrg extends Organization {
+export interface MemberOrg extends Organization {
   membership_role?: string;
-  position: number;
 }
 
 interface CommunityOrder {
@@ -33,30 +33,36 @@ async function fetchCommunityData(userId: string | undefined, memberships: { org
     .limit(50);
 
   if (error) throw error;
-  if (!allOrgs) return { myOrgs: [], otherOrgs: [] };
+  if (!allOrgs) return { myOrgs: [] as MemberOrg[], otherOrgs: [] as Organization[] };
 
-  const { data: savedOrder } = await supabase
-    .from("user_community_order")
-    .select("organization_id, position")
-    .eq("user_id", userId);
+  let mine: MemberOrg[] = [];
+  let others: Organization[] = [];
 
-  const orderMap = new Map<string, number>((savedOrder || []).map((o: CommunityOrder) => [o.organization_id, o.position]));
+  if (userId) {
+    const { data: savedOrder } = await supabase
+      .from("user_community_order")
+      .select("organization_id, position")
+      .eq("user_id", userId);
 
-  const myOrgIds = new Set(memberships.map((m) => m.organization_id));
-  const mine: MemberOrg[] = [];
-  const others: Organization[] = [];
+    const orderMap = new Map<string, number>((savedOrder || []).map((o: CommunityOrder) => [o.organization_id, o.position]));
 
-  for (const org of allOrgs) {
-    if (myOrgIds.has(org.id)) {
-      const membership = memberships.find((m) => m.organization_id === org.id);
-      mine.push({ ...org, membership_role: membership?.role, position: orderMap.get(org.id) ?? -1000 - mine.length });
-    } else {
-      others.push({ ...org, position: orderMap.get(org.id) ?? 0 });
+    const myOrgIds = new Set(memberships.map((m) => m.organization_id));
+
+    for (const org of allOrgs) {
+      if (myOrgIds.has(org.id)) {
+        const membership = memberships.find((m) => m.organization_id === org.id);
+        mine.push({ ...org, membership_role: membership?.role, position: orderMap.get(org.id) ?? -1000 - mine.length });
+      } else {
+        others.push({ ...org, position: orderMap.get(org.id) ?? 0 });
+      }
     }
-  }
 
-  mine.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-  others.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+    mine.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+    others.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+  } else {
+    // Logged out — show all as "other"
+    others = allOrgs.map(org => ({ ...org, position: 0 }));
+  }
 
   return { myOrgs: mine, otherOrgs: others };
 }
@@ -65,7 +71,7 @@ export function useCommunity() {
   const { user, memberships } = useAuth();
 
   return useQuery({
-    queryKey: ['community-list', user?.id],
+    queryKey: ['community-list', user?.id, memberships.length],
     queryFn: () => fetchCommunityData(user?.id, memberships),
     enabled: true,
     staleTime: 60 * 1000,
