@@ -1,5 +1,5 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
-import { jsonSuccess, jsonError, getBearerToken } from "@/lib/api-response";
+import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 import {
   calculateUserPreferenceVector,
   extractStrainVector,
@@ -7,39 +7,12 @@ import {
   MIN_RATINGS_FOR_PROFILE,
 } from "@/lib/algorithms/terpene-matching";
 
-/**
- * Extract user ID from Clerk JWT token (Bearer token)
- * Clerk's getToken({ template: 'supabase' }) returns a JWT where 'sub' is the user ID
- */
-function getClerkUserIdFromToken(token: string): string | null {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    const payload = JSON.parse(jsonPayload);
-    return payload.sub || null;
-  } catch {
-    return null;
-  }
-}
-
 export async function GET(request: Request) {
-  const token = getBearerToken(request);
-  if (!token) {
-    return jsonError("Unauthorized", 401);
-  }
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (auth instanceof Response) return auth;
 
-  const userId = getClerkUserIdFromToken(token);
-  if (!userId) {
-    return jsonError("Invalid token", 401);
-  }
-
-  const supabase = await getAuthenticatedClient(token);
+  const userId = auth.user.id;
+  const supabase = auth.supabase;
 
   // Strain-ID aus URL params
   const url = new URL(request.url);
