@@ -1,5 +1,5 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { jsonSuccess, jsonError } from "@/lib/api-response";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
+import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 
 /**
  * GET /api/recommendations/top?limit=5
@@ -11,14 +11,11 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const limit = Math.min(parseInt(searchParams.get("limit") || "5") || 5, 20);
 
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (!auth) return;
+  if (auth instanceof Response) return auth;
 
-  if (!user) {
-    return jsonError("Authentication required", 401);
-  }
+  const { user, supabase } = auth;
 
   // Hole alle Ratings des aktuellen Users
   const { data: myRatings, error: myRatingsError } = await supabase

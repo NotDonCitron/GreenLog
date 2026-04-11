@@ -1,12 +1,11 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { jsonSuccess, jsonError } from "@/lib/api-response";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
+import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 
 /**
  * GET /api/recommendations/match?strain_id=XXX
  *
  * Berechnet Match-Score für eine bestimmte Strain basierend auf
- * kollaborativer Filterung: findet Benutzer mit ähnlichen Ratings
- * und berechnet Wahrscheinlichkeit, dass der aktuelle User die Strain gut findet.
+ * kollaborativer Filterung.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -16,14 +15,11 @@ export async function GET(request: Request) {
     return jsonError("strain_id query parameter is required", 400);
   }
 
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (!auth) return;
+  if (auth instanceof Response) return auth;
 
-  if (!user) {
-    return jsonError("Authentication required", 401);
-  }
+  const { user, supabase } = auth;
 
   // Hole alle Ratings des aktuellen Users
   const { data: myRatings, error: myRatingsError } = await supabase
@@ -91,7 +87,7 @@ export async function GET(request: Request) {
   let weightedSum = 0;
   let similaritySum = 0;
 
-  for (const [otherUserId, otherUserRatingsMap] of otherUsersRatings) {
+  for (const [, otherUserRatingsMap] of otherUsersRatings) {
     const targetRating = otherUserRatingsMap.get(targetStrainId);
     if (targetRating === undefined) continue;
 
