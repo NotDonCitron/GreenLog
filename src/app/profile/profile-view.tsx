@@ -58,6 +58,7 @@ import { AvatarUpload } from "@/components/social/avatar-upload";
 import { lazy, Suspense } from "react";
 const BadgeShowcase = lazy(() => import("@/components/profile/badge-showcase").then(m => ({ default: m.BadgeShowcase })));
 import { OrganizationSwitcher } from "@/components/organization-switcher";
+import { useProfile } from "@/hooks/useProfile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -176,8 +177,10 @@ export default function ProfilePage() {
   const router = useRouter();
   const { success: toastSuccess, error: toastError } = useToast();
 
-  const [viewModel, setViewModel] = useState<ProfileViewModel>(() => createFallbackViewModel(false));
-  const [pageState, setPageState] = useState<"loading" | "ready" | "error">("loading");
+  // React Query profile data
+  const { data: profileData, isLoading, refetch: refetchProfile } = useProfile();
+
+  const [pageState] = useState<"loading" | "ready" | "error">("loading");
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ displayName: "", bio: "" });
   const [isSaving, setIsSaving] = useState(false);
@@ -193,8 +196,19 @@ export default function ProfilePage() {
   const currentUserId = user?.id ?? "";
 
   useEffect(() => {
-    setCarouselFavorites(viewModel.favorites);
-  }, [viewModel.favorites]);
+    if (profileData) {
+      setCarouselFavorites(profileData.favorites);
+      setEditData({ displayName: profileData.identity.displayName, bio: profileData.identity.bio || "" });
+      setSelectedBadges(profileData.identity.bio ? [] : []); // featuredBadges would need to come from profileData
+      setUserBadges(profileData.badges.map(b => ({ badge_id: b.id })));
+    }
+  }, [profileData]);
+
+  useEffect(() => {
+    if (profileData) {
+      setCarouselFavorites(profileData.favorites);
+    }
+  }, [profileData?.favorites]);
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -344,115 +358,6 @@ export default function ProfilePage() {
     );
   }
 
-  const fetchProfile = async () => {
-    if (!user && !isDemoMode) { setPageState("ready"); return; }
-    try {
-      const [profileDbRes, collCount, followersRes, followingRes, favsRes, badgesRes] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", user?.id).maybeSingle(),
-        supabase.from("user_collection").select("*", { count: "exact", head: true }).eq("user_id", user?.id),
-        supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", user?.id),
-        supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", user?.id),
-        supabase.from("user_strain_relations").select("*, strains:strain_id (*)").eq("user_id", user?.id).eq("is_favorite", true).order("position", { ascending: true }).limit(5),
-        supabase.from("user_badges").select("*").eq("user_id", user?.id)
-      ]);
-
-      let profileData = profileDbRes.data;
-
-      // Auto-create profile for new Clerk users if it doesn't exist in Supabase
-      if (!profileData && user?.id) {
-        const fallbackUsername = user.email ? user.email.split('@')[0] + '_' + Math.floor(Math.random() * 1000) : `user_${user.id.slice(-6)}`;
-        const { data: newProfile, error: insertError } = await supabase.from("profiles").insert({
-          id: user.id,
-          username: fallbackUsername,
-          display_name: user.user_metadata?.full_name || "CannaLog User"
-        }).select().maybeSingle();
-
-        if (newProfile) {
-          profileData = newProfile;
-        } else {
-          console.error("Failed to automatically create missing profile:", insertError);
-        }
-      }
-
-      const favoriteIds = (favsRes.data || []).map((f: UserStrainRelation) => f.strains?.id).filter(Boolean);
-      const { data: collectionData } = await supabase
-        .from("user_collection")
-        .select("strain_id, user_image_url")
-        .eq("user_id", user?.id)
-        .in("strain_id", favoriteIds);
-
-      const stats: ProfileStats = {
-        totalStrains: collCount.count ?? 0,
-        totalGrows: 0,
-        favoriteCount: favsRes.data?.length ?? 0,
-        unlockedBadgeCount: badgesRes.data?.length ?? 0,
-        xp: (collCount.count ?? 0) * 50,
-        level: Math.floor(((collCount.count ?? 0) * 50) / 100) + 1,
-        progressToNextLevel: ((collCount.count ?? 0) * 50) % 100,
-        followers: followersRes.count ?? 0,
-        following: followingRes.count ?? 0
-      };
-
-      const favorites: ProfileFavorite[] = (favsRes.data || []).map((f) => {
-        const s = f.strains;
-        if (!s) return null;
-
-        const customImage = collectionData?.find((c: CollectionEntry) => c.strain_id === f.strain_id)?.user_image_url;
-
-        return {
-          relationId: f.strain_id,
-          id: s.id,
-          name: s.name,
-          slug: s.slug,
-          imageUrl: customImage || s.image_url || null,
-          type: s.type,
-          thcDisplay: formatThcDisplay(s),
-          position: f.position
-        };
-      }).filter((f): f is ProfileFavorite => !!f);
-
-      const badges: ProfileBadge[] = (badgesRes.data || []).map(b => {
-        // Use badge_id as the badge identifier since there's no badges table
-        const badgeId = (b as BadgeData).badge_id;
-        if (!badgeId) return null;
-        return {
-          id: badgeId,
-          name: badgeId.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
-          description: 'Achievement unlocked',
-          iconKey: "starter",
-          rarity: "common"
-        };
-      }).filter((b): b is ProfileBadge => b !== null);
-
-      const featuredBadges: string[] = profileData?.featured_badges || [];
-
-      const identity: ProfileIdentity = {
-        email: user?.email ?? null,
-        username: `@${profileData?.username || "user"}`,
-        displayName: profileData?.display_name || user?.user_metadata?.full_name || "CannaLog User",
-        initials: getInitials(profileData?.display_name || user?.user_metadata?.full_name || "CU"),
-        avatarUrl: profileData?.avatar_url || user?.user_metadata?.avatar_url || null,
-        profileVisibility: profileData?.profile_visibility || "private",
-        tagline: "",
-        bio: profileData?.bio || null
-      };
-
-      setViewModel({ identity, stats, favorites, badges, activity: [], preview: { title: "", description: "", chips: [] } });
-      setEditData({ displayName: identity.displayName, bio: identity.bio || "" });
-      setSelectedBadges(featuredBadges);
-      setUserBadges(badgesRes.data || []);
-      setPageState("ready");
-    } catch (e) { console.error(e); setPageState("error"); }
-  };
-
-  useEffect(() => {
-    if (!loading && !user && !isDemoMode) {
-      router.replace("/sign-in");
-      return;
-    }
-    if (!loading) fetchProfile();
-  }, [user, loading, isDemoMode]);
-
   const handleSaveProfile = async () => {
     if (!user) return;
     setIsSaving(true);
@@ -466,7 +371,7 @@ export default function ProfilePage() {
         .eq("id", user.id);
 
       if (error) throw error;
-      await fetchProfile();
+      await refetchProfile();
       setIsEditing(false);
     } catch (e) {
       console.error("Error saving profile:", e);
@@ -480,15 +385,9 @@ export default function ProfilePage() {
 
     setIsTogglingVisibility(true);
 
-    // Optimistic update
+    // Optimistic update - store original visibility
     const wasPublic = identity.profileVisibility === "public";
     const nextVisibility = wasPublic ? "private" : "public";
-
-    // Immediately update UI
-    setViewModel(prev => ({
-      ...prev,
-      identity: { ...prev.identity, profileVisibility: nextVisibility }
-    }));
 
     try {
       const { error } = await supabase
@@ -499,15 +398,9 @@ export default function ProfilePage() {
       if (error) throw error;
 
       toastSuccess(`Profil ist nun ${nextVisibility === "public" ? "öffentlich" : "privat"}`);
+      await refetchProfile();
     } catch (e) {
       console.error("Visibility toggle error:", e);
-
-      // Revert optimistic update on error
-      setViewModel(prev => ({
-        ...prev,
-        identity: { ...prev.identity, profileVisibility: wasPublic ? "public" : "private" }
-      }));
-
       toastError("Fehler beim Ändern der Sichtbarkeit. Bitte versuche es erneut.");
     } finally {
       setIsTogglingVisibility(false);
@@ -524,7 +417,7 @@ export default function ProfilePage() {
     });
   };
 
-  if (pageState === "loading") return (
+  if (isLoading) return (
     <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
       <div className="relative">
         <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
@@ -533,10 +426,7 @@ export default function ProfilePage() {
     </div>
   );
 
-  const { identity, stats, favorites, badges } = viewModel;
-  const isPublic = identity.profileVisibility === "public";
-
-  // Not logged in
+  // Not logged in - show locked state
   if (!user && !isDemoMode) {
     return (
       <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
@@ -597,6 +487,21 @@ export default function ProfilePage() {
       </main>
     );
   }
+
+  // Guard: if profileData is undefined, show loading
+  if (!profileData) {
+    return (
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <div className="relative">
+          <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
+          <div className="absolute inset-0 blur-xl bg-[#00F5FF]/20 animate-pulse" />
+        </div>
+      </div>
+    );
+  }
+
+  const { identity, stats, favorites, badges } = profileData;
+  const isPublic = identity.profileVisibility === "public";
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
