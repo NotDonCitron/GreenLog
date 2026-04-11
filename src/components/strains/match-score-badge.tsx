@@ -15,17 +15,18 @@ export function MatchScoreBadge({ strainId, strainName }: MatchScoreBadgeProps) 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
+    // session.access_token muss auch vorhanden sein (wird asynchron gesetzt)
+    if (!user || !session?.access_token) {
       setLoading(false);
       return;
     }
 
     async function fetchMatch() {
       try {
-        const accessToken = session?.access_token;
+        const accessToken = session.access_token;
         const res = await fetch(`/api/recommendations/match?strain_id=${strainId}`, {
           headers: {
-            ...(accessToken && { "Authorization": `Bearer ${accessToken}` })
+            Authorization: `Bearer ${accessToken}`
           }
         });
         const json = await res.json();
