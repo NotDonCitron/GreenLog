@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { profileKeys } from "@/hooks/useProfile";
 import { X } from "lucide-react";
 import { ALL_BADGES, BadgeDefinition } from "@/lib/badges";
 import { BadgeCard } from "@/components/ui/badge-card";
@@ -19,6 +21,7 @@ export function BadgeShowcase({ isOpen, userBadges, featuredBadges, onSelect, on
   const unlockedIds = new Set(userBadges.map(ub => ub.badge_id));
   const [selected, setSelected] = useState<string[]>(featuredBadges);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   if (!isOpen) return null;
 
@@ -36,9 +39,12 @@ export function BadgeShowcase({ isOpen, userBadges, featuredBadges, onSelect, on
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ featuredBadges: selected })
     });
+    
+    // Invalidate profile query to show updated featured badges
+    await queryClient.invalidateQueries({ queryKey: profileKeys.all });
+    
     selected.forEach(id => onSelect(id));
     onClose();
-    router.refresh();
   };
 
   return (

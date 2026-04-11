@@ -3,4 +3,5 @@
 - [reliability-architecture](./tracks/reliability-architecture.md) (Completed)
 - [layout-v2-base](./tracks/layout-v2-base.md) (Completed)
 - [layout-v2-ui](./tracks/layout-v2-ui.md) (Completed)
-- [layout-v2-features](./tracks/layout-v2-features.md) (Active)
+- [x] [layout-v2-features](./tracks/layout-v2-features.md) (Completed)
+

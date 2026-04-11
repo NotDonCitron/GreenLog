@@ -19,6 +19,12 @@ test.describe('GreenLog E2E - Full User Flow', () => {
     if (await ageBtn.isVisible()) {
       await ageBtn.click();
     }
+
+    // 3. Cookie Consent (falls vorhanden)
+    const cookieBtn = page.getByRole('button', { name: /Alle akzeptieren/i });
+    if (await cookieBtn.isVisible()) {
+      await cookieBtn.click();
+    }
   });
 
   test('should login and navigate through all main pages', async ({ page }) => {
@@ -26,7 +32,7 @@ test.describe('GreenLog E2E - Full User Flow', () => {
     await test.step('Perform Login', async () => {
       await page.getByPlaceholder(/email/i).or(page.locator('input[type="email"]')).fill(USER_EMAIL);
       await page.getByPlaceholder(/passwort/i).or(page.locator('input[type="password"]')).fill(USER_PASSWORD);
-      await page.getByRole('button', { name: /login|anmelden/i }).click();
+      await page.getByRole('button', { name: /continue|weiter|login|anmelden/i }).click();
       
       // Verifiziere Login-Erfolg (URL sollte sich ändern)
       await expect(page).not.toHaveURL(/\/login/);

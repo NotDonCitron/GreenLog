@@ -96,7 +96,7 @@ interface CollectionRow {
 export default function UserProfilePage() {
     const params = useParams();
     const username = params.username as string;
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
 
     const [profile, setProfile] = useState<ProfileRow | null>(null);
     const [stats, setStats] = useState<ProfileStats | null>(null);
@@ -235,7 +235,7 @@ export default function UserProfilePage() {
         fetchProfileData();
     };
 
-    if (isLoading) {
+    if (authLoading || isLoading) {
         return (
             <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-[#00F5FF]" />
@@ -289,104 +289,96 @@ export default function UserProfilePage() {
             <div className="mx-auto w-full max-w-lg px-4 py-6">
                 {/* Owner Badge Above Avatar */}
                 {(profile.username === 'fabian.gebert' || profile.username === 'lars' || profile.username === 'lars.fieber' || profile.username === 'test' || profile.username === 'pascal' || profile.username === 'hintermaier.pascal') && (
-                    <div className="flex justify-center mb-4">
+                    <div className="flex justify-center mb-6">
                         <span className="inline-flex items-center gap-1 rounded-full border border-[#F39C12]/30 bg-[#F39C12]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#F39C12]">
                             <Shield size={10} /> CannaLog Owner
                         </span>
                     </div>
                 )}
                 
-                <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4 min-w-0">
-                        {/* Avatar */}
-                        <div className="flex-shrink-0">
-                            <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-[#00F5FF]/50 bg-[var(--muted)] shadow-xl">
-                                {profile.avatar_url ? (
-                                    <img
-                                        src={profile.avatar_url}
-                                        alt={profile.display_name ?? profile.username ?? ""}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <span className="text-2xl font-bold text-[#00F5FF]">
-                                        {profile.username?.[0]?.toUpperCase() || "?"}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Name Info */}
-                        <div className="min-w-0 flex-1">
-                            <h2 className="truncate text-xl font-black tracking-tight text-[var(--foreground)]">
-                                {profile.display_name || profile.username}
-                            </h2>
-                            <p className="truncate text-sm font-medium text-[var(--muted-foreground)]">@{profile.username}</p>
+                <div className="flex items-start gap-6">
+                    {/* Avatar */}
+                    <div className="flex-shrink-0">
+                        <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-[#00F5FF]/50 bg-[var(--card)] shadow-2xl backdrop-blur-md">
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#00F5FF]/10 via-transparent to-[#2FF801]/10" />
+                            {profile.avatar_url ? (
+                                <img
+                                    src={profile.avatar_url}
+                                    alt={profile.display_name ?? profile.username ?? ""}
+                                    className="relative z-10 w-full h-full object-cover"
+                                />
+                            ) : (
+                                <span className="relative z-10 text-3xl font-black text-[#00F5FF] font-display">
+                                    {profile.username?.[0]?.toUpperCase() || "?"}
+                                </span>
+                            )}
                         </div>
                     </div>
 
-                    {/* Follow Button (Desktop/Side) */}
-                    {!isOwnProfile && (
-                        <div className="hidden sm:block flex-shrink-0">
+                    {/* Stats & Actions */}
+                    <div className="flex-1 pt-2">
+                        <div className="grid grid-cols-3 gap-2 mb-4">
+                            <div className="flex flex-col items-center justify-center bg-[var(--card)]/50 border border-[var(--border)]/30 rounded-2xl py-2 px-1 backdrop-blur-sm">
+                                <p className="text-lg font-black text-[#00F5FF] tracking-tighter font-display leading-tight">{followersCount}</p>
+                                <p className="text-[7px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">Follower</p>
+                            </div>
+                            <div className="flex flex-col items-center justify-center bg-[var(--card)]/50 border border-[var(--border)]/30 rounded-2xl py-2 px-1 backdrop-blur-sm">
+                                <p className="text-lg font-black text-[var(--foreground)] tracking-tighter font-display leading-tight">{followingCount}</p>
+                                <p className="text-[7px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">Gefolgt</p>
+                            </div>
+                            <div className="flex flex-col items-center justify-center bg-[var(--card)]/50 border border-[var(--border)]/30 rounded-2xl py-2 px-1 backdrop-blur-sm">
+                                <p className="text-lg font-black text-[#2FF801] tracking-tighter font-display leading-tight">{stats?.totalStrains ?? 0}</p>
+                                <p className="text-[7px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">Ratings</p>
+                            </div>
+                        </div>
+
+                        {!isOwnProfile && (
                             <FollowButton
                                 userId={profile.id}
                                 initialStatus={followStatus}
                                 onFollowChange={handleFollowChange}
+                                className="w-full justify-center py-2.5"
                             />
-                        </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Name & Bio */}
+                <div className="mt-6 space-y-2">
+                    <h2 className="text-2xl font-black tracking-tight text-[var(--foreground)] font-display uppercase italic">
+                        {profile.display_name || profile.username}
+                    </h2>
+                    <p className="text-sm font-black text-[#2FF801] tracking-[0.2em]">@{profile.username}</p>
+                    
+                    {profile.bio && (
+                        <p className="mt-4 w-full break-words text-sm leading-relaxed text-[var(--muted-foreground)] [overflow-wrap:anywhere] bg-[var(--card)]/30 border border-[var(--border)]/20 rounded-2xl p-4 italic">
+                            &ldquo;{profile.bio}&rdquo;
+                        </p>
                     )}
                 </div>
 
-                {/* Follow Button (Mobile/Full Width) */}
-                {!isOwnProfile && (
-                    <div className="mt-4 block sm:hidden">
-                        <FollowButton
-                            userId={profile.id}
-                            initialStatus={followStatus}
-                            onFollowChange={handleFollowChange}
-                            className="w-full justify-center py-3"
-                        />
-                    </div>
-                )}
-
-                {/* Stats Bar */}
-                <div className="mt-6 grid grid-cols-3 divide-x divide-[#484849]/30 rounded-[2rem] border border-[var(--border)]/50 bg-[var(--card)] py-5 shadow-2xl backdrop-blur-md">
-                    <div className="flex flex-col items-center justify-center">
-                        <p className="text-xl font-black text-[#00F5FF] tracking-tighter">{followersCount}</p>
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Follower</p>
-                    </div>
-                    <div className="flex flex-col items-center justify-center">
-                        <p className="text-xl font-black text-[var(--muted-foreground)] tracking-tighter">{followingCount}</p>
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Gefolgt</p>
-                    </div>
-                    <div className="flex flex-col items-center justify-center">
-                        <p className="text-xl font-black text-[#2FF801] tracking-tighter">{stats?.totalStrains ?? 0}</p>
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Ratings</p>
-                    </div>
-                </div>
-
-                {/* Bio and Meta */}
-                {profile.bio && (
-                    <p className="mt-6 w-full break-words text-sm leading-relaxed text-[var(--muted-foreground)] [overflow-wrap:anywhere]">{profile.bio}</p>
-                )}
-
-                <div className="mt-4 flex w-full min-w-0 flex-wrap gap-4 text-[11px] font-medium text-[var(--muted-foreground)]">
+                <div className="mt-6 flex w-full min-w-0 flex-wrap gap-4 text-[10px] font-black uppercase tracking-widest text-[var(--muted-foreground)]/60">
                     {profile.location && (
-                        <span className="flex min-w-0 items-center gap-1 break-words [overflow-wrap:anywhere]">
-                            <MapPin className="h-3 w-3 flex-shrink-0" />
+                        <span className="flex min-w-0 items-center gap-1.5 break-words [overflow-wrap:anywhere]">
+                            <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-[#00F5FF]" />
                             {profile.location}
                         </span>
                     )}
-                    <span className="flex min-w-0 items-center gap-1 break-words [overflow-wrap:anywhere]">
-                        <Calendar className="h-3 w-3 flex-shrink-0" />
+                    <span className="flex min-w-0 items-center gap-1.5 break-words [overflow-wrap:anywhere]">
+                        <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-[#2FF801]" />
                         Joined {formatDate(profile.created_at)}
                     </span>
                 </div>
 
-                {/* Badges Display - Show featured badges only */}
+                {/* Badges Section - Redesigned to 2x2 Grid */}
                 {!isPrivateAndNotFollowing && userBadges.length > 0 && (
-                    <div className="mt-6 w-full max-w-full overflow-hidden">
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#2FF801] mb-3 px-1">Achievements</p>
-                        <div className="flex w-full max-w-full gap-3 overflow-x-auto no-scrollbar pb-2">
+                    <section className="mt-10">
+                        <div className="flex items-center justify-between mb-4 px-1">
+                            <p className="text-[11px] font-black uppercase tracking-[0.3em] text-[#00F5FF]">Abzeichen</p>
+                            <span className="text-[9px] font-black text-[var(--muted-foreground)] uppercase">{userBadges.length} Unlocked</span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
                             {(featuredBadges.length > 0 ? featuredBadges : userBadges.slice(0, 4).map(ub => ub.badge_id)).map(badgeId => {
                                 const ub = userBadges.find(u => u.badge_id === badgeId);
                                 if (!ub) return null;
@@ -394,22 +386,22 @@ export default function UserProfilePage() {
                                 const badgeName = badge?.name || badgeId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Badge';
                                 const iconKey = badge?.icon_url || "starter";
                                 const Icon = resolveBadgeIcon(iconKey);
+                                
                                 return (
-                                    <div
-                                        key={badgeId}
-                                        className="flex flex-col items-center gap-1.5 min-w-[70px] bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-2.5 shadow-lg"
+                                    <div 
+                                        key={badgeId} 
+                                        className="rounded-2xl p-4 flex flex-col items-center text-center gap-2 transition-all border border-[#2FF801]/30 bg-[var(--card)]/50 backdrop-blur-sm"
                                     >
-                                        <div className="w-10 h-10 rounded-xl bg-[#2FF801]/10 flex items-center justify-center text-[#ffd700]">
-                                            <Icon size={24} />
+                                        <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-1 bg-[#2FF801]/10 text-[#ffd76a]">
+                                            <Icon size={28} />
                                         </div>
-                                        <p className="text-[8px] font-black uppercase tracking-tighter text-[var(--foreground)] truncate w-full text-center">
-                                            {badgeName}
-                                        </p>
+                                        <p className="text-[11px] font-black uppercase tracking-tight leading-none text-[var(--foreground)]">{badgeName}</p>
+                                        <p className="text-[8px] font-semibold uppercase tracking-tighter text-[#2FF801]">Unlocked</p>
                                     </div>
                                 );
                             })}
                         </div>
-                    </div>
+                    </section>
                 )}
             </div>
 

@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     let type = body.type || "test";
     let title = "Test Benachrichtigung";
     let message = "Das ist ein Test für alle Benachrichtigungsfunktionen. Sie sollten diese Push-Benachrichtigung erhalten haben.";
-    let data = { test: true };
+    let data: Record<string, any> = { test: true };
 
     switch (type) {
         case "new_follower":

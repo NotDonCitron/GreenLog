@@ -43,6 +43,11 @@ function formatThcDisplay(strain: { avg_thc?: number | null; thc_max?: number | 
 }
 
 function createFallbackViewModel(): ProfileViewModel {
+  const isBrowser = typeof window !== "undefined";
+  const storedDisplayName = isBrowser ? localStorage.getItem("cannalog_demo_display_name") : null;
+  const storedUsername = isBrowser ? localStorage.getItem("cannalog_demo_username") : null;
+  const storedBio = isBrowser ? localStorage.getItem("cannalog_demo_bio") : null;
+
   const stats: ProfileStats = {
     totalStrains: 0,
     totalGrows: 0,
@@ -57,12 +62,12 @@ function createFallbackViewModel(): ProfileViewModel {
   return {
     identity: {
       email: null,
-      username: "@guest",
-      displayName: "Guest",
-      initials: "GU",
+      username: storedUsername ? `@${storedUsername}` : "@guest",
+      displayName: storedDisplayName || "Guest",
+      initials: getInitials(storedDisplayName || "Guest"),
       profileVisibility: "private",
       tagline: "",
-      bio: null,
+      bio: storedBio || null,
     },
     stats,
     favorites: [],
@@ -118,11 +123,16 @@ async function fetchProfileData(userId: string, userEmail: string | null, userMe
   }
 
   const favoriteIds = (favsRes.data || []).map((f: UserStrainRelation) => f.strains?.id).filter(Boolean);
-  const { data: collectionData } = await supabase
-    .from("user_collection")
-    .select("strain_id, user_image_url")
-    .eq("user_id", userId)
-    .in("strain_id", favoriteIds);
+  
+  let collectionData: CollectionEntry[] | null = null;
+  if (favoriteIds.length > 0) {
+    const { data } = await supabase
+      .from("user_collection")
+      .select("strain_id, user_image_url")
+      .eq("user_id", userId)
+      .in("strain_id", favoriteIds);
+    collectionData = data as CollectionEntry[] | null;
+  }
 
   const stats: ProfileStats = {
     totalStrains: collCount.count ?? 0,

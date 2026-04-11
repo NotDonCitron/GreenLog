@@ -1,0 +1,528 @@
+   ▲ Next.js 15.5.7
+   - Local:        http://localhost:3000
+   - Network:      http://10.104.88.135:3000
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ✓ Starting...
+ ✓ Ready in 1474ms
+ ○ Compiling /sign-in/[[...sign-in]] ...
+ ✓ Compiled /sign-in/[[...sign-in]] in 1919ms (2168 modules)
+ GET /sign-in 200 in 3129ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775882606481 200 in 99ms
+ ○ Compiling /strains ...
+ ✓ Compiled /strains in 1902ms (2559 modules)
+ HEAD /strains 200 in 2446ms
+ GET /sign-in/factor-one 200 in 107ms
+ GET /sign-in/factor-one/SignIn_clerk_catchall_check_1775882652525 200 in 122ms
+ ○ Compiling / ...
+ ✓ Compiled / in 699ms (2594 modules)
+ GET / 200 in 1060ms
+ GET / 200 in 52ms
+ GET / 200 in 36ms
+ ○ Compiling /profile ...
+ ✓ Compiled /profile in 785ms (2925 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /profile 200 in 976ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 507ms (2932 modules)
+ GET /login?signup=true 200 in 590ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775882686876 200 in 156ms
+ ✓ Compiled /sign-in/sso-callback in 481ms (2857 modules)
+ GET /sign-in/sso-callback?sign_in_force_redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 822ms
+ GET /sign-in 200 in 91ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775882722648 200 in 82ms
+ ✓ Compiled in 1440ms (1301 modules)
+ GET /sign-in 200 in 59ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/phhttps/Dokumente/Greenlog/GreenLog/.next/cache/webpack/client-development/6.pack.gz_' -> '/home/phhttps/Dokumente/Greenlog/GreenLog/.next/cache/webpack/client-development/6.pack.gz'
+ ✓ Compiled in 364ms (1301 modules)
+ ✓ Compiled in 228ms (1301 modules)
+ GET / 200 in 273ms
+ ✓ Compiled in 385ms (1301 modules)
+ GET / 200 in 165ms
+ ✓ Compiled in 264ms (1287 modules)
+ ○ Compiling /strains/compare ...
+ ✓ Compiled /strains/compare in 1543ms (2831 modules)
+ GET /strains/compare?slugs=gorilla-glue,sour-diesel 200 in 1798ms
+ ○ Compiling /offline ...
+ GET /strains/sour-diesel 200 in 3512ms
+ GET /strains/gorilla-glue 200 in 3537ms
+ GET /strains/blue-dream 200 in 3545ms
+ GET /strains/gorilla-glue 200 in 3554ms
+ ✓ Compiled /offline in 4s (2854 modules)
+ GET /offline 200 in 5582ms
+ GET /offline 200 in 4133ms
+ GET /offline 200 in 4392ms
+ GET /offline 200 in 4134ms
+ GET /strains/gorilla-glue 200 in 2777ms
+ GET /strains/sour-diesel 200 in 2784ms
+ GET /strains/blue-dream 200 in 2836ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/phhttps/Dokumente/Greenlog/GreenLog/.next/cache/webpack/client-development/0.pack.gz_' -> '/home/phhttps/Dokumente/Greenlog/GreenLog/.next/cache/webpack/client-development/0.pack.gz'
+ ✓ Compiled in 2.1s (1320 modules)
+ GET /strains/sour-diesel 200 in 361ms
+ GET /strains/gorilla-glue 200 in 369ms
+ GET /strains/blue-dream 200 in 352ms
+ ✓ Compiled in 412ms (1320 modules)
+ ✓ Compiled in 230ms (1320 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/phhttps/Dokumente/Greenlog/GreenLog/.next/cache/webpack/client-development/0.pack.gz_' -> '/home/phhttps/Dokumente/Greenlog/GreenLog/.next/cache/webpack/client-development/0.pack.gz'
+ GET /sign-in/factor-one 200 in 74ms
+ GET /sign-in/sso-callback?sign_in_force_redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 76ms
+ GET / 200 in 117ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 941ms (1533 modules)
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 1069ms
+ ○ Compiling /api/gdpr/consent ...
+ ✓ Compiled /api/gdpr/consent in 946ms (2909 modules)
+ GET /api/push/vapid-public-key 200 in 1013ms
+ POST /api/gdpr/consent 401 in 1037ms
+ GET /sign-in/sso-callback?sign_in_force_redirect_url=http%3A%2F%2Flocalhost%3A3000%2F 200 in 282ms
+ GET / 200 in 281ms
+ GET /api/notifications 401 in 1490ms
+ ○ Compiling /api/invites/pending ...
+ ✓ Compiled /api/invites/pending in 654ms (1769 modules)
+ ✓ Compiled in 322ms (1307 modules)
+ GET /profile 200 in 1328ms
+ GET /api/invites/pending 401 in 891ms
+ GET /api/push/vapid-public-key 200 in 15ms
+ GET /api/notifications 401 in 201ms
+ GET /api/notifications 401 in 306ms
+ GET /api/invites/pending 401 in 135ms
+ GET /api/invites/pending 401 in 96ms
+ ○ Compiling /feed ...
+ ✓ Compiled /feed in 876ms (3102 modules)
+ GET /feed 200 in 962ms
+ GET /api/notifications 401 in 284ms
+ GET /api/invites/pending 401 in 161ms
+ ○ Compiling /collection ...
+ ✓ Compiled /collection in 2.1s (4271 modules)
+ GET /collection 200 in 2302ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 28ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 20ms
+ GET /strains/recannis-recannis-221 200 in 334ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 24ms
+ GET / 200 in 300ms
+ POST /api/gdpr/consent 401 in 29ms
+ GET / 200 in 88ms
+ GET /sign-in 200 in 91ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775883034678 200 in 87ms
+ POST /api/gdpr/consent 401 in 14ms
+ GET /sign-in 200 in 96ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775883142123 200 in 110ms
+ GET /sign-in 200 in 88ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775883148657 200 in 86ms
+ POST /api/gdpr/consent 401 in 11ms
+ GET / 200 in 71ms
+ ✓ Compiled in 1760ms (4182 modules)
+ GET /strains/recannis-recannis-221 200 in 745ms
+ ✓ Compiled in 263ms (1909 modules)
+ ✓ Compiled in 274ms (1909 modules)
+ ✓ Compiled /api/gdpr/consent in 229ms (2282 modules)
+ POST /api/gdpr/consent 401 in 367ms
+ ✓ Compiled in 232ms (1909 modules)
+ ✓ Compiled in 260ms (1909 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/phhttps/Dokumente/Greenlog/GreenLog/.next/cache/webpack/client-development/1.pack.gz_' -> '/home/phhttps/Dokumente/Greenlog/GreenLog/.next/cache/webpack/client-development/1.pack.gz'
+ GET /profile 200 in 389ms
+ ○ Compiling /user/[username] ...
+ ✓ Compiled /user/[username] in 1253ms (4189 modules)
+ GET /user/fabian.gebert 200 in 2149ms
+ ✓ Compiled in 1765ms (4203 modules)
+ GET /user/fabian.gebert 200 in 120ms
+ GET /user/fabian.gebert 200 in 223ms
+ ✓ Compiled in 290ms (1916 modules)
+ ✓ Compiled in 261ms (1916 modules)
+ ○ Compiling /profile/settings ...
+ ✓ Compiled /profile/settings in 1110ms (4045 modules)
+ GET /profile/settings 200 in 1304ms
+ GET /strains/gorilla-glue 200 in 503ms
+ ✓ Compiled /favicon.ico in 405ms (2142 modules)
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 537ms
+ ○ Compiling /api/gdpr/consent ...
+ ✓ Compiled /api/gdpr/consent in 581ms (2143 modules)
+ POST /api/gdpr/consent 401 in 653ms
+ ✓ Compiled in 702ms (1922 modules)
+ GET /collection 200 in 94ms
+ ○ Compiling /strains ...
+ ✓ Compiled /strains in 1093ms (2151 modules)
+ GET /strains 200 in 1266ms
+ GET /strains 200 in 48ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 16ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 13ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 22ms
+ GET /strains/sour-diesel 200 in 364ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 23ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 13ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 14ms
+ GET /strains/recannis-recannis-221 200 in 429ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 13ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 21ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 13ms
+ GET /strains/pedanios-sour-diesel 200 in 379ms
+ POST /api/gdpr/consent 401 in 27ms
+ ○ Compiling /profile ...
+ ✓ Compiled /profile in 920ms (2303 modules)
+ GET /profile 200 in 1204ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 603ms (2295 modules)
+ GET /login 200 in 863ms
+ ✓ Compiled /sign-in/[[...sign-in]] in 318ms (2300 modules)
+ GET /sign-in/SignIn_clerk_catchall_check_1775883699108 200 in 535ms
+ POST /api/gdpr/consent 401 in 28ms
+ ✓ Compiled in 1503ms (4211 modules)
+ GET /strains/pedanios-sour-diesel 200 in 890ms
+ ✓ Compiled in 864ms (4211 modules)
+ GET /sign-in/factor-one/SignIn_clerk_catchall_check_1775883751810 200 in 270ms
+ GET /strains/pedanios-sour-diesel 200 in 807ms
+ ✓ Compiled in 618ms (4211 modules)
+ GET /sign-in/factor-one 200 in 98ms
+ ✓ Compiled in 1368ms (4196 modules)
+ ✓ Compiled in 707ms (1922 modules)
+ ✓ Compiled in 493ms (1922 modules)
+ ✓ Compiled in 691ms (1922 modules)
+ GET /strains/pedanios-sour-diesel 200 in 913ms
+ GET /strains/pedanios-sour-diesel 200 in 331ms
+ ✓ Compiled /favicon.ico in 356ms (2279 modules)
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 490ms
+ ✓ Compiled /api/gdpr/consent in 341ms (2285 modules)
+ POST /api/gdpr/consent 401 in 410ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 29ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 28ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 15ms
+ GET /strains/pedanios-sour-diesel 200 in 656ms
+ GET /favicon.ico 200 in 19ms
+ POST /api/gdpr/consent 401 in 15ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 18ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 27ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 23ms
+ GET /strains/gorilla-glue 200 in 292ms
+ POST /api/gdpr/consent 401 in 23ms
+ ✓ Compiled in 413ms (1922 modules)
+ GET /strains/gorilla-glue 200 in 379ms
+ POST /api/gdpr/consent 401 in 15ms
+ ✓ Compiled in 1594ms (4207 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 729ms (2289 modules)
+ GET /login 200 in 1035ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775883889296 200 in 115ms
+ POST /api/gdpr/consent 401 in 42ms
+ GET /profile 200 in 82ms
+ GET /login 200 in 63ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775883914037 200 in 108ms
+ ✓ Compiled /favicon.ico in 361ms (2291 modules)
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 426ms
+ GET /strains/gorilla-glue 200 in 618ms
+ GET /favicon.ico?favicon.0x3dzn~oxb6tn.ico 200 in 25ms
+ GET /favicon.ico 200 in 12ms
+ POST /api/gdpr/consent 401 in 40ms
+ GET /favicon.ico 200 in 16ms
+ GET /favicon.ico 200 in 11ms
+ GET /favicon.ico 200 in 19ms
+ GET /strains/blue-magoo 200 in 594ms
+ POST /api/gdpr/consent 401 in 27ms
+ ✓ Compiled in 1104ms (4213 modules)
+ GET /strains/blue-magoo 200 in 239ms
+ GET /profile 200 in 150ms
+ ✓ Compiled in 759ms (4213 modules)
+ GET /profile 200 in 242ms
+ GET /profile 200 in 165ms
+ ✓ Compiled in 775ms (4213 modules)
+ ✓ Compiled in 612ms (4213 modules)
+ POST /api/gdpr/consent 401 in 37ms
+ ○ Compiling /profile/settings ...
+ ✓ Compiled /profile/settings in 2.2s (2292 modules)
+ GET /profile/settings 200 in 2478ms
+ ✓ Compiled in 2.2s (4214 modules)
+ GET /profile/settings 200 in 106ms
+ ✓ Compiled /login in 262ms (1707 modules)
+ GET /login 200 in 672ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775884052199 200 in 110ms
+ ✓ Compiled /favicon.ico in 298ms (1712 modules)
+ GET /favicon.ico 200 in 435ms
+ GET /favicon.ico 200 in 16ms
+ GET /favicon.ico 200 in 39ms
+ GET /strains/blue-magoo 200 in 1118ms
+ GET /favicon.ico 200 in 24ms
+ ✓ Compiled /api/gdpr/consent in 459ms (1718 modules)
+ POST /api/gdpr/consent 401 in 517ms
+ GET /favicon.ico 200 in 14ms
+ ✓ Compiled in 1000ms (3640 modules)
+ GET /strains/blue-magoo 200 in 485ms
+ POST /api/gdpr/consent 401 in 29ms
+ ✓ Compiled in 1187ms (3640 modules)
+ GET /strains/blue-magoo 200 in 863ms
+ GET /favicon.ico 200 in 34ms
+ GET /favicon.ico 200 in 27ms
+ GET /strains/blue-magoo 200 in 636ms
+ GET /favicon.ico 200 in 13ms
+ POST /api/gdpr/consent 401 in 27ms
+ GET /favicon.ico 200 in 31ms
+ GET /strains/blue-magoo 200 in 330ms
+ POST /api/gdpr/consent 401 in 12ms
+ GET /favicon.ico 200 in 17ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1269ms (3640 modules)
+ GET / 200 in 1528ms
+ GET / 200 in 136ms
+ GET /strains/blue-magoo 200 in 635ms
+ ✓ Compiled in 414ms (1908 modules)
+ GET /favicon.ico 200 in 39ms
+ GET /favicon.ico 200 in 40ms
+ ✓ Compiled /login in 288ms (1723 modules)
+ GET /login 200 in 581ms
+ GET /sign-in 200 in 135ms
+ ○ Compiling /offline ...
+ ✓ Compiled /offline in 510ms (1729 modules)
+ ✓ Compiled in 1ms (1729 modules)
+ ✓ Compiled in 1ms (1729 modules)
+ ✓ Compiled in 1ms (1729 modules)
+ GET /sign-in/SignIn_clerk_catchall_check_1775884154510 200 in 1064ms
+ GET /login 200 in 1491ms
+ GET /offline 200 in 1771ms
+ GET /sign-in 200 in 63ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775884156733 200 in 88ms
+ ✓ Compiled in 455ms (1922 modules)
+ ✓ Compiled in 459ms (1922 modules)
+ GET /strains/blue-magoo 200 in 676ms
+ GET /strains/blue-magoo 200 in 163ms
+ GET /favicon.ico 200 in 22ms
+ GET /strains/blue-magoo 200 in 366ms
+ GET /favicon.ico 200 in 484ms
+ POST /api/gdpr/consent 401 in 21ms
+ ✓ Compiled in 1265ms (3651 modules)
+ GET /strains/blue-magoo 200 in 332ms
+ GET /favicon.ico 200 in 36ms
+ GET /favicon.ico 200 in 20ms
+ GET /strains/blue-magoo 200 in 532ms
+ POST /api/gdpr/consent 401 in 21ms
+ GET /favicon.ico 200 in 12ms
+ GET /favicon.ico 200 in 55ms
+ GET /favicon.ico 200 in 36ms
+ GET /strains/blue-magoo 200 in 522ms
+ GET /favicon.ico 200 in 21ms
+ POST /api/gdpr/consent 401 in 16ms
+ ✓ Compiled in 2s (1922 modules)
+ GET /strains/blue-magoo 200 in 289ms
+ GET / 200 in 359ms
+ ✓ Compiled in 534ms (1922 modules)
+ GET / 200 in 205ms
+ GET /strains/blue-magoo 200 in 270ms
+ ✓ Compiled in 338ms (1908 modules)
+ GET /login 200 in 74ms
+ GET /sign-in 200 in 174ms
+ GET /offline 200 in 303ms
+ GET /login 200 in 94ms
+ GET /sign-in 200 in 85ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775884276496 200 in 85ms
+ GET /strains 200 in 128ms
+ ✓ Compiled in 412ms (1922 modules)
+ ✓ Compiled in 257ms (1922 modules)
+ GET /strains/blue-magoo 200 in 534ms
+ GET /strains/blue-magoo 200 in 182ms
+ ✓ Compiled in 302ms (1922 modules)
+ GET /strains/blue-magoo 200 in 260ms
+ GET / 200 in 303ms
+ ✓ Compiled in 465ms (1922 modules)
+ GET / 200 in 189ms
+ GET /strains/blue-magoo 200 in 346ms
+ ✓ Compiled in 265ms (1908 modules)
+ GET /login 200 in 48ms
+ GET /sign-in 200 in 198ms
+ GET /offline 200 in 256ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775884292413 200 in 70ms
+ ✓ Compiled in 345ms (1922 modules)
+ ✓ Compiled in 379ms (1922 modules)
+ GET /strains/blue-magoo 200 in 926ms
+ GET /strains/blue-magoo 200 in 197ms
+ POST /api/gdpr/consent 401 in 23ms
+ ✓ Compiled in 2.5s (3651 modules)
+ GET /strains/blue-magoo 200 in 467ms
+ ✓ Compiled in 1124ms (3649 modules)
+ GET /strains/blue-magoo 200 in 475ms
+ ✓ Compiled in 1626ms (3649 modules)
+ GET /strains/blue-magoo 200 in 281ms
+ ✓ Compiled in 734ms (3649 modules)
+ GET /strains/blue-magoo 200 in 227ms
+ ✓ Compiled in 550ms (3632 modules)
+ GET /strains/blue-magoo 200 in 449ms
+ ✓ Compiled in 771ms (3632 modules)
+ GET /strains/blue-magoo 200 in 583ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 871ms (3623 modules)
+ GET /profile/settings 404 in 1130ms
+ GET /profile 200 in 83ms
+ ✓ Compiled in 1841ms (3628 modules)
+ GET /strains/blue-magoo 200 in 1215ms
+ ✓ Compiled in 563ms (3623 modules)
+ GET /strains/blue-magoo 200 in 748ms
+ GET /profile 200 in 260ms
+ ✓ Compiled in 249ms (1922 modules)
+ GET /strains/blue-magoo 200 in 462ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1518ms (1706 modules)
+ GET /favicon.ico 200 in 2185ms
+ GET /favicon.ico 200 in 23ms
+ GET /favicon.ico 200 in 22ms
+ GET /strains/blue-magoo 200 in 2606ms
+ GET /favicon.ico 200 in 12ms
+ ○ Compiling /api/gdpr/consent ...
+ ✓ Compiled /api/gdpr/consent in 825ms (1712 modules)
+ POST /api/gdpr/consent 401 in 886ms
+ POST /api/gdpr/consent 401 in 56ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 2.7s (1716 modules)
+ GET /login 200 in 3157ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775884598960 200 in 153ms
+ GET /profile 200 in 95ms
+ ○ Compiling /settings/organization ...
+ ✓ Compiled /settings/organization in 3.3s (3630 modules)
+ GET /settings/organization 200 in 3761ms
+ ○ Compiling /discover ...
+ ✓ Compiled /discover in 1481ms (3613 modules)
+ GET /discover 200 in 1899ms
+ ○ Compiling /feed ...
+ ✓ Compiled /feed in 1522ms (1711 modules)
+ GET /feed 200 in 1648ms
+ ✓ Compiled in 385ms (1930 modules)
+ GET /feed 200 in 167ms
+ GET /strains/blue-magoo 200 in 790ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 799ms (1548 modules)
+ GET /favicon.ico 200 in 907ms
+ ✓ Compiled in 358ms (1930 modules)
+ GET /strains/blue-magoo 200 in 383ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1163ms (3494 modules)
+ GET / 200 in 1470ms
+ GET / 200 in 136ms
+ ✓ Compiled in 253ms (1916 modules)
+ GET /strains/blue-magoo 200 in 852ms
+ ○ Compiling /settings/organization/pending-members ...
+ ✓ Compiled /settings/organization/pending-members in 1837ms (3489 modules)
+ GET /settings/organization/pending-members 200 in 2093ms
+ ○ Compiling /offline ...
+ ✓ Compiled /offline in 956ms (1729 modules)
+ ✓ Compiled (1735 modules)
+ GET /profile 200 in 2314ms
+ GET /offline 200 in 2308ms
+ ✓ Compiled in 360ms (1933 modules)
+ ✓ Compiled in 469ms (1933 modules)
+ GET /strains/blue-magoo 200 in 868ms
+ GET /strains/blue-magoo 200 in 275ms
+ ✓ Compiled in 2.5s (3663 modules)
+ GET /strains/blue-magoo 200 in 2649ms
+ ○ Compiling /test-reflection ...
+ ✓ Compiled /test-reflection in 1715ms (3658 modules)
+ GET /test-reflection 200 in 2016ms
+ GET /strains/blue-magoo 200 in 2080ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.7s (3641 modules)
+ GET /test-reflection 404 in 2447ms
+ GET /test-reflection 404 in 117ms
+ GET /test-reflection 404 in 119ms
+ GET /strains/blue-magoo 200 in 2856ms
+ GET /strains/blue-magoo 200 in 245ms
+ ✓ Compiled in 999ms (1933 modules)
+ GET /strains/blue-magoo 200 in 875ms
+ ✓ Compiled in 1010ms (1933 modules)
+ ✓ Compiled in 320ms (1933 modules)
+ GET /strains/blue-magoo 200 in 1139ms
+ GET /strains/blue-magoo 200 in 427ms
+ ✓ Compiled in 2.9s (3626 modules)
+ GET /strains/blue-magoo 200 in 949ms
+ ✓ Compiled in 1551ms (3626 modules)
+ GET /strains/blue-magoo 200 in 603ms
+ ✓ Compiled in 467ms (3626 modules)
+ GET /strains/blue-magoo 200 in 311ms
+ ✓ Compiled in 1150ms (3626 modules)
+ GET /strains/blue-magoo 200 in 550ms
+ ✓ Compiled in 1078ms (3626 modules)
+ GET /strains/blue-magoo 200 in 442ms
+ ✓ Compiled in 876ms (1933 modules)
+ GET /strains/blue-magoo 200 in 435ms
+ ✓ Compiled in 321ms (1933 modules)
+ GET /strains/blue-magoo 200 in 472ms
+ ✓ Compiled in 1092ms (3626 modules)
+ GET /strains/blue-magoo 200 in 573ms
+ ✓ Compiled in 426ms (3626 modules)
+ GET /strains/blue-magoo 200 in 591ms
+ ✓ Compiled in 433ms (1933 modules)
+ GET /strains/blue-magoo 200 in 388ms
+ ✓ Compiled in 518ms (3626 modules)
+ GET /strains/blue-magoo 200 in 358ms
+ ✓ Compiled in 677ms (1933 modules)
+ GET /strains/blue-magoo 200 in 858ms
+ ✓ Compiled in 354ms (1933 modules)
+ GET /strains/blue-magoo 200 in 526ms
+ ✓ Compiled in 241ms (1933 modules)
+ GET /strains/blue-magoo 200 in 649ms
+ ✓ Compiled in 229ms (1933 modules)
+ GET /strains/blue-magoo 200 in 323ms
+ ✓ Compiled in 226ms (1933 modules)
+ GET /strains/blue-magoo 200 in 396ms
+ ○ Compiling /community/[id] ...
+ ✓ Compiled /community/[id] in 5.3s (3677 modules)
+ GET /community/a1b2c3d4-e5f6-7890-abcd-ef1234567890 200 in 6135ms
+ ○ Compiling /community ...
+ ✓ Compiled /community in 1186ms (3679 modules)
+ GET /community 200 in 1549ms
+ GET /community/de268eaf-b53e-4317-ba7a-446188218d38 200 in 139ms
+ ○ Compiling /api/communities/[id]/feed ...
+ ✓ Compiled /api/communities/[id]/feed in 1078ms (3689 modules)
+ GET /api/communities/de268eaf-b53e-4317-ba7a-446188218d38/feed 200 in 2121ms
+ GET /api/communities/de268eaf-b53e-4317-ba7a-446188218d38/feed 200 in 367ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1066ms (1728 modules)
+ ⨯ [Error [InvariantError]: Invariant: Expected clientReferenceManifest to be defined. This is a bug in Next.js.]
+ ⨯ [Error [InvariantError]: Invariant: Expected clientReferenceManifest to be defined. This is a bug in Next.js.] {
+  page: '/'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 2.4s (4022 modules)
+ GET / 500 in 4751ms
+ ⨯ Failed to generate static paths for /strains/[slug]:
+[Error: Cannot find module './vendor-chunks/@clerk.js'
+Require stack:
+- /home/phhttps/Dokumente/Greenlog/GreenLog/.next/server/webpack-runtime.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/.next/server/app/strains/[slug]/page.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/require.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/load-components.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/build/utils.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/dev/static-paths-worker.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/compiled/jest-worker/processChild.js] {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /strains/blue-magoo 200 in 2228ms
+ ⨯ [Error: Cannot find module './vendor-chunks/@clerk.js'
+Require stack:
+- /home/phhttps/Dokumente/Greenlog/GreenLog/.next/server/webpack-runtime.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/.next/server/app/strains/[slug]/page.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/require.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/load-components.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/build/utils.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/dev/static-paths-worker.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/compiled/jest-worker/processChild.js] {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/strains/blue-magoo'
+}
+ GET /strains/blue-magoo 500 in 502ms
+ ⨯ [Error: Cannot find module './vendor-chunks/@clerk.js'
+Require stack:
+- /home/phhttps/Dokumente/Greenlog/GreenLog/.next/server/webpack-runtime.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/.next/server/app/strains/[slug]/page.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/require.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/load-components.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/build/utils.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/dev/static-paths-worker.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/compiled/jest-worker/processChild.js] {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/strains/blue-magoo'
+}
+ GET /strains/blue-magoo 500 in 535ms
+ GET / 200 in 220ms
+[?25h

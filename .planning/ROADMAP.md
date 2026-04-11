@@ -1,6 +1,6 @@
 # Roadmap: GreenLog — React Query Integration
 
-**Phase count:** 3 | **Requirements:** 14 v1 + 4 v2 + 4 OMA | **Generated:** 2026-04-04
+**Phase count:** 5 | **Requirements:** 14 v1 + 4 v2 + 4 OMA + 6 TRC | **Generated:** 2026-04-04
 
 ## Phase 1: React Query Core Integration
 
@@ -181,9 +181,45 @@
 | OMA-01, OMA-02 | Phase 3 | Done (03-01) |
 | OMA-03 | Phase 3 | Planned (03-03, 03-04) |
 | OMA-04 | Phase 3 | Planned (03-02) |
-| CSL-01 — CSL-08 | Phase 4 | Planned (04-01) |
+| TRC-01 — TRC-06 | Phase 5 | Planned (05-01) |
 
 **Overall v1 coverage:** 14/14 requirements mapped + 4 OMA planned
 **Phase 2 coverage:** 2/4 requirements planned (R-15, R-17 deferred)
 **Phase 3 coverage:** 4/4 OMA requirements planned
 **Phase 4 coverage:** 8/8 CSL requirements planned
+
+---
+
+## Phase 5: Terpene Radar Chart
+
+**Goal:** Interactive SVG radar/spider chart for terpene profiles, embedded in the strain detail page (flip card back side) and optionally on the strain compare page.
+
+### Requirements (TRC-01 — TRC-06)
+
+| ID | Requirement |
+|----|-------------|
+| TRC-01 | New `TerpeneRadarChart` component — pure SVG, no chart library |
+| TRC-02 | Parse terpene names + optional percent values from `terpenes?: (string \| Terpene)[]` |
+| TRC-03 | Max 6 terpenes displayed (slice + alphabetical sort) |
+| TRC-04 | Missing percent values → equal distribution (all axes at 70%) |
+| TRC-05 | Integration in StrainDetailPageClient back side (flip card) |
+| TRC-06 | Optional: Integration in strain-compare-card (size={140}) |
+
+### Success Criteria
+
+1. `TerpeneRadarChart` component renders in `src/components/strains/`
+2. Radar chart shows on strain detail back side when `≥3` terpenes present
+3. Fallback to text chips when `<3` terpenes
+4. No terpenes → Terpene section hidden entirely
+5. Theme color correctly applied (Indica/Sativa/Hybrid)
+6. Mobile view: chart scales correctly within card at 375px width
+7. Compare page: chart renders at smaller size (140px)
+
+### Technical Approach
+
+- **Pure SVG** — no Recharts/Chart.js dependency (~80 lines)
+- **Algorithm:** N-point polygon, angle per axis = 360°/N, axes labeled with terpene names
+- **Grid:** 3 concentric polygons at 33%, 66%, 100%
+- **Fill:** themeColor at 20% opacity, stroke at 100%
+- **Animation:** CSS scale transform from 0 on mount
+- **Fallback:** Text chips when < 3 terpenes

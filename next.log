@@ -1,0 +1,121 @@
+   ▲ Next.js 15.5.7
+   - Local:        http://localhost:3000
+   - Network:      http://10.104.88.135:3000
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ✓ Starting...
+ ✓ Ready in 1425ms
+ ○ Compiling /sign-in/[[...sign-in]] ...
+ ✓ Compiled /sign-in/[[...sign-in]] in 4.7s (2200 modules)
+ GET /sign-in 200 in 5752ms
+ ○ Compiling /offline ...
+ ✓ Compiled / in 535ms (1264 modules)
+ ○ Compiling /api/gdpr/consent ...
+ ✓ Compiled /api/gdpr/consent in 1493ms (2379 modules)
+ POST /api/gdpr/consent 401 in 1515ms
+ GET /favicon.ico 200 in 2291ms
+ GET / 200 in 2154ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775881786460 200 in 2275ms
+ GET /offline 200 in 2632ms
+ GET / 200 in 26ms
+ ○ Compiling /api/push/vapid-public-key ...
+ ✓ Compiled /api/push/vapid-public-key in 629ms (2443 modules)
+ GET /api/push/vapid-public-key 200 in 658ms
+ GET /api/notifications 401 in 1179ms
+ GET /api/notifications 401 in 122ms
+ ✓ Compiled /api/invites/pending in 246ms (2445 modules)
+ GET /api/invites/pending 401 in 381ms
+ GET /api/invites/pending 401 in 98ms
+ GET /api/notifications 401 in 275ms
+ GET /api/invites/pending 401 in 106ms
+ GET /api/notifications 401 in 206ms
+ GET /api/invites/pending 401 in 121ms
+ GET /api/notifications 401 in 263ms
+ GET /api/invites/pending 401 in 173ms
+ ○ Compiling /profile ...
+ ✓ Compiled /profile in 2.5s (2892 modules)
+ GET /profile 200 in 2632ms
+ GET /api/push/vapid-public-key 200 in 13ms
+ GET /api/notifications 401 in 269ms
+ GET /api/notifications 401 in 179ms
+ GET /api/invites/pending 401 in 243ms
+ GET /api/invites/pending 401 in 90ms
+ GET /sign-in 200 in 252ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775881831742 200 in 83ms
+ POST /api/gdpr/consent 401 in 22ms
+ GET /api/push/vapid-public-key 200 in 22ms
+ GET /api/notifications 401 in 263ms
+ GET /api/notifications 401 in 160ms
+ GET /api/invites/pending 401 in 179ms
+ GET /api/invites/pending 401 in 102ms
+ GET /api/notifications 401 in 275ms
+ GET /api/invites/pending 401 in 95ms
+ GET /api/notifications 401 in 221ms
+ GET /api/invites/pending 401 in 93ms
+ GET /api/notifications 401 in 215ms
+ GET /api/invites/pending 401 in 112ms
+ GET /api/notifications 401 in 222ms
+ GET /api/invites/pending 401 in 159ms
+ GET /api/push/vapid-public-key 200 in 290ms
+ GET /api/notifications 401 in 450ms
+ GET /api/notifications 401 in 120ms
+ GET /api/invites/pending 401 in 177ms
+ GET /api/invites/pending 401 in 94ms
+ GET /api/notifications 401 in 260ms
+ GET /api/invites/pending 401 in 108ms
+ GET /api/notifications 401 in 246ms
+ GET /api/invites/pending 401 in 102ms
+ GET /api/notifications 401 in 272ms
+ GET /api/invites/pending 401 in 98ms
+ GET /sign-in 200 in 84ms
+ GET /sign-in/SignIn_clerk_catchall_check_1775881919323 200 in 77ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 972ms (2773 modules)
+ GET /sign-in 404 in 1362ms
+ ✓ Compiled /login in 304ms (2780 modules)
+ GET /login 200 in 590ms
+ GET /sign-in 200 in 104ms
+ ⨯ Failed to generate static paths for /sign-in/[[...sign-in]]:
+[Error: Cannot find module './vendor-chunks/@clerk.js'
+Require stack:
+- /home/phhttps/Dokumente/Greenlog/GreenLog/.next/server/webpack-runtime.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/.next/server/app/sign-in/[[...sign-in]]/page.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/require.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/load-components.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/build/utils.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/dev/static-paths-worker.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/compiled/jest-worker/processChild.js] {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+ GET /login 200 in 57ms
+ ✓ Compiled in 755ms (1224 modules)
+ ✓ Compiled in 206ms (1224 modules)
+ ✓ Compiled in 162ms (1224 modules)
+ ✓ Compiled in 249ms (1224 modules)
+ ✓ Compiled in 203ms (1224 modules)
+ ✓ Compiled in 186ms (1224 modules)
+ ✓ Compiled in 141ms (1224 modules)
+ ✓ Compiled in 192ms (1224 modules)
+ ✓ Compiled in 149ms (1224 modules)
+ GET /profile 200 in 65ms
+ ⨯ [Error: Cannot find module './vendor-chunks/@clerk.js'
+Require stack:
+- /home/phhttps/Dokumente/Greenlog/GreenLog/.next/server/webpack-runtime.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/.next/server/app/sign-in/[[...sign-in]]/page.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/require.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/load-components.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/build/utils.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/server/dev/static-paths-worker.js
+- /home/phhttps/Dokumente/Greenlog/GreenLog/node_modules/next/dist/compiled/jest-worker/processChild.js] {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/sign-in'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 1603ms (3110 modules)
+ GET /sign-in 500 in 2205ms

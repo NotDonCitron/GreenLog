@@ -15,6 +15,7 @@ interface AvatarUploadProps {
     displayName?: string | null;
     size?: "sm" | "md" | "lg" | "xl";
     className?: string;
+    onUploadComplete?: () => void;
 }
 
 const sizeClasses = {
@@ -42,6 +43,7 @@ export function AvatarUpload({
     displayName,
     size = "lg",
     className = "",
+    onUploadComplete,
 }: AvatarUploadProps) {
     const { user } = useAuth();
     const router = useRouter();
@@ -104,7 +106,11 @@ export function AvatarUpload({
             if (updateError) throw updateError;
 
             setPreviewUrl(null);
-            router.refresh();
+            if (onUploadComplete) {
+                onUploadComplete();
+            } else {
+                router.refresh();
+            }
         } catch (err) {
             console.error("Error uploading avatar:", err);
             toastError("Failed to upload avatar");

@@ -60,6 +60,9 @@ export interface Strain {
   thc_max?: number;
   cbd_min?: number;
   cbd_max?: number;
+  cbg?: number;
+  cbn?: number;
+  thcv?: number;
   image_url?: string;
   image_attribution?: {
     source: 'seedbank' | 'wikimedia' | 'linhacanabica' | 'none';

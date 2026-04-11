@@ -4,6 +4,7 @@ import { useState, useEffect, memo } from "react";
 import Link from "next/link";
 import { Leaf, Sprout, Star, Loader2, Trash2, Building2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/lib/supabase/client";
 import { Strain } from "@/lib/types";
 import { formatPercent, getEffectDisplay, getTasteDisplay, getStrainTheme } from "@/lib/strain-display";
@@ -376,8 +377,18 @@ export function CommunityFeed({ organizationId, refreshKey = 0, isAdminOrGründe
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 size={24} className="animate-spin text-[var(--foreground)]/40" />
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <Card key={i} className="bg-[var(--card)] border border-[var(--border)]/50 p-4 rounded-3xl">
+            <div className="flex items-start gap-3">
+              <Skeleton className="w-10 h-10 rounded-full shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-3 w-1/4" />
+              </div>
+            </div>
+          </Card>
+        ))}
       </div>
     );
   }

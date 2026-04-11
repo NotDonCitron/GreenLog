@@ -4,6 +4,7 @@
  * KCanG-konform: rein mathematischer Algorithmus, keine Werbesprache
  */
 
+import { SupabaseClient } from "@supabase/supabase-js";
 import type { StrainVector, UserPreferenceVector, MatchResult } from "@/lib/types";
 
 // Leit-Terpene und Cannabinoide für den 9-D Vektor
@@ -24,8 +25,8 @@ const RATING_WEIGHTS = {
 
 const FAVORITE_BONUS = 0.03;
 const WISHLIST_BONUS = 0.01;
-const MIN_RATINGS_FOR_PROFILE = 3;
-const MIN_RATINGS_FOR_MATCH = 3;
+export const MIN_RATINGS_FOR_PROFILE = 3;
+export const MIN_RATINGS_FOR_MATCH = 3;
 
 /**
  * Kosinus-Ähnlichkeit zwischen zwei Vektoren
@@ -124,7 +125,7 @@ export function extractStrainVector(strain: {
  * Berechnet User-Präferenz-Vektor aus Bewertungen und Favoriten
  */
 export async function calculateUserPreferenceVector(
-  supabase: SupabaseClientType,
+  supabase: SupabaseClient,
   userId: string
 ): Promise<UserPreferenceVector | null> {
   // Hole alle bewerteten Sorten mit Rating und Favorit-Status
@@ -267,13 +268,3 @@ export function sortMatchResults(
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 }
-
-// Type für Supabase Client
-type SupabaseClientType = {
-  from: (table: string) => {
-    select: (columns?: string) => Promise<{
-      data: unknown[] | null;
-      error: unknown | null;
-    }>;
-  };
-};

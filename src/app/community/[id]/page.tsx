@@ -126,10 +126,58 @@ export default function CommunityDetailPage() {
   if (loading) {
     return (
       <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
-        <div className="space-y-4 p-6">
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-24 w-full" />
+        {/* Ambient glow */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#00F5FF]/5 blur-[80px] rounded-full" />
+        </div>
+
+        <header className="px-6 pt-12 pb-4 relative z-10">
+          <div className="flex items-center gap-2 mb-4">
+            <Skeleton className="h-4 w-16" />
+          </div>
+          <div className="flex items-center gap-4">
+            <Skeleton className="w-14 h-14 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-3 w-16" />
+              <div className="flex gap-2 mt-2">
+                <Skeleton className="h-8 w-24 rounded-full" />
+                <Skeleton className="h-8 w-24 rounded-full" />
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="px-6 mt-4 relative z-10">
+          <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-4 rounded-3xl">
+            <div className="flex items-center justify-around">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex flex-col items-center gap-2 p-2">
+                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <Skeleton className="h-4 w-8" />
+                  <Skeleton className="h-2 w-12" />
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+
+        <div className="px-6 mt-8 relative z-10">
+          <Skeleton className="h-4 w-24 mb-4" />
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="bg-[var(--card)] border border-[var(--border)]/50 p-4 rounded-3xl">
+                <div className="flex items-start gap-3">
+                  <Skeleton className="w-10 h-10 rounded-full shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-3 w-1/4" />
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
       </main>
     );

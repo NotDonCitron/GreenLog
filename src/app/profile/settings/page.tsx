@@ -24,19 +24,35 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { profileKeys } from "@/hooks/useProfile";
 
 export default function SettingsPage() {
-  const { user, signOut, isDemoMode } = useAuth();
+  const { user, signOut, loading, isDemoMode } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [profileStatus, setProfileStatus] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
 
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
   useEffect(() => {
     async function getProfile() {
-      if (!user) return;
+      if (!user) {
+        if (isDemoMode) {
+          const storedDisplayName = localStorage.getItem("cannalog_demo_display_name");
+          const storedUsername = localStorage.getItem("cannalog_demo_username");
+          if (storedDisplayName) setDisplayName(storedDisplayName);
+          if (storedUsername) setUsername(storedUsername);
+        }
+        if (!loading) setIsPageLoading(false);
+        return;
+      }
+      
+      setIsPageLoading(true);
       const { data } = await supabase
         .from('profiles')
         .select('display_name, username')
@@ -47,6 +63,7 @@ export default function SettingsPage() {
         setDisplayName(data.display_name || "");
         setUsername(data.username || "");
       }
+      setIsPageLoading(false);
     }
     async function getConsents() {
       if (!user) return;
@@ -72,13 +89,20 @@ export default function SettingsPage() {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || isDemoMode) return;
+    if (!user) return;
 
     setIsUpdatingProfile(true);
     setProfileStatus(null);
 
     try {
       const cleanUsername = username.trim().toLowerCase().replace(/\s+/g, "_");
+
+      if (isDemoMode) {
+        localStorage.setItem("cannalog_demo_display_name", displayName.trim());
+        localStorage.setItem("cannalog_demo_username", cleanUsername);
+        setProfileStatus({ type: 'success', msg: "Profil erfolgreich im Demo-Modus gespeichert." });
+        return;
+      }
 
       const { error } = await supabase
         .from('profiles')
@@ -93,9 +117,14 @@ export default function SettingsPage() {
         throw error;
       }
 
+      // Invalidate React Query cache so Profile page is fresh
+      if (user) {
+        await queryClient.invalidateQueries({ queryKey: profileKeys.detail(user.id) });
+      }
+
       setProfileStatus({ type: 'success', msg: "Profil erfolgreich aktualisiert." });
     } catch (err: unknown) {
-      setProfileStatus({ type: 'error', msg: err instanceof Error ? err instanceof Error ? err.message : String(err) : String(err) });
+      setProfileStatus({ type: 'error', msg: err instanceof Error ? err.message : String(err) });
     } finally {
       setIsUpdatingProfile(false);
     }
@@ -311,6 +340,14 @@ export default function SettingsPage() {
     }
   };
 
+  if (loading || isPageLoading) {
+    return (
+      <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#00F5FF]" size={40} />
+      </main>
+    );
+  }
+
   if (!user && !isDemoMode) {
     return (
       <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32 flex items-center justify-center">
@@ -376,7 +413,7 @@ export default function SettingsPage() {
 
               <Button
                 type="submit"
-                disabled={isUpdatingProfile || isDemoMode}
+                disabled={isUpdatingProfile}
                 className="w-full h-12 bg-[#2FF801] text-black font-black uppercase tracking-widest rounded-xl"
               >
                 {isUpdatingProfile ? <Loader2 className="animate-spin" size={18} /> : "Profil speichern"}

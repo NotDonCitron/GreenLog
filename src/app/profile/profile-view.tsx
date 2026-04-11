@@ -196,13 +196,15 @@ export default function ProfilePage() {
   const currentUserId = user?.id ?? "";
 
   useEffect(() => {
-    if (profileData) {
+    if (profileData && !isEditing) {
       setCarouselFavorites(profileData.favorites);
-      setEditData({ displayName: profileData.identity.displayName, bio: profileData.identity.bio || "" });
-      setSelectedBadges(profileData.identity.bio ? [] : []); // featuredBadges would need to come from profileData
+      setEditData({
+        displayName: profileData.identity.displayName,
+        bio: profileData.identity.bio || ""
+      });
       setUserBadges(profileData.badges.map(b => ({ badge_id: b.id })));
     }
-  }, [profileData]);
+  }, [profileData, isEditing]);
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -356,6 +358,14 @@ export default function ProfilePage() {
     if (!user) return;
     setIsSaving(true);
     try {
+      if (isDemoMode) {
+        localStorage.setItem("cannalog_demo_display_name", editData.displayName);
+        localStorage.setItem("cannalog_demo_bio", editData.bio);
+        await refetchProfile();
+        setIsEditing(false);
+        return;
+      }
+
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -411,7 +421,7 @@ export default function ProfilePage() {
     });
   };
 
-  if (isLoading) return (
+  if (loading || isLoading) return (
     <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
       <div className="relative">
         <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
@@ -543,6 +553,7 @@ export default function ProfilePage() {
               username={identity.username.replace("@", "")}
               displayName={identity.displayName}
               size="lg"
+              onUploadComplete={() => refetchProfile()}
             />
 
             {/* Info */}

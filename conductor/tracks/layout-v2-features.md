@@ -9,8 +9,9 @@ Implement the remaining feature requirements from the mockups (Strain of the Day
 ### Tasks
 - [x] **Home**: Implement "Strain of the Day" logic and UI at the top of `src/app/page.tsx`.
 - [x] **Create Modal**: Add selection fields for "Geschmäcker" (Tastes/Terpenes) and "Wirkungen" (Effects).
-- [ ] **Profile**: Redesign the foreign user profile view to match the mockup (circular avatar top left, stats top right, badges section).
+- [x] **Profile**: Redesign the foreign user profile view to match the mockup (circular avatar top left, stats top right, badges section).
 
 ### Progress
 - 2026-03-24: Track created.
 - 2026-03-24: Strain of the Day and Taste/Effect inputs implemented. Starting Profile redesign.
+- 2026-04-11: Profile redesign completed (avatar top left, stats top right, grid layout for badges).

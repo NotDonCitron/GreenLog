@@ -125,8 +125,8 @@ export default function NewCommunityPage() {
             <Button
               onClick={() => {
                 const myMembership = memberships.find((m) => m.role === USER_ROLES.GRUENDER);
-                if (myMembership?.organization?.id) {
-                  router.push(`/community/${myMembership.organization.id}`);
+                if (myMembership?.organizations?.id) {
+                  router.push(`/community/${myMembership.organizations.id}`);
                 } else {
                   router.push("/community");
                 }
