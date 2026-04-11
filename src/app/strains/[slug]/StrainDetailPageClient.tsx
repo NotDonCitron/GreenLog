@@ -17,6 +17,8 @@ import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, norma
 import { checkAndUnlockBadges } from "@/lib/badges";
 import { useCollection } from "@/hooks/useCollection";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
+import { TerpeneRadarChart } from "@/components/strains/terpene-radar-chart";
+import { MatchScoreBadge } from "@/components/strains/match-score-badge";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message) {
@@ -612,9 +614,12 @@ export default function StrainDetailPageClient() {
                 <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[var(--muted-foreground)] truncate">
                   {farmerDisplay}
                 </p>
-                <p className="mt-1 title-font italic text-sm font-black leading-tight uppercase text-[var(--foreground)] break-words line-clamp-2 min-h-[2.5rem]">
-                  {normalizedStrainName}
-                </p>
+                <div className="flex items-start justify-between gap-2 mt-1">
+                  <p className="title-font italic text-sm font-black leading-tight uppercase text-[var(--foreground)] break-words line-clamp-2 min-h-[2.5rem] flex-1">
+                    {normalizedStrainName}
+                  </p>
+                  <MatchScoreBadge strainId={strain.id} strainName={strain.name} />
+                </div>
               </div>
               <div className="px-5 w-full">
                 <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-[var(--border)]/50">
@@ -685,11 +690,19 @@ export default function StrainDetailPageClient() {
                   {normalizedTerpenes.length > 0 && (
                     <div className="pt-4 border-t border-[var(--border)]/50">
                       <p className="text-[9px] font-black uppercase text-[var(--muted-foreground)] mb-2">Terpene</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {normalizedTerpenes.slice(0, 6).map((t, i) => (
-                          <span key={i} className="text-[8px] font-bold px-2 py-1 bg-[var(--card)] rounded-md text-[var(--muted-foreground)] border border-[var(--border)]/50">{t}</span>
-                        ))}
-                      </div>
+                      {strain.terpenes && strain.terpenes.length >= 3 ? (
+                        <TerpeneRadarChart
+                          terpenes={strain.terpenes}
+                          themeColor={themeColor}
+                          size={180}
+                        />
+                      ) : (
+                        <div className="flex flex-wrap gap-1.5">
+                          {normalizedTerpenes.slice(0, 6).map((t, i) => (
+                            <span key={i} className="text-[8px] font-bold px-2 py-1 bg-[var(--card)] rounded-md text-[var(--muted-foreground)] border border-[var(--border)]/50">{t}</span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
