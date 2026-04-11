@@ -1,5 +1,5 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { jsonSuccess, jsonError } from "@/lib/api-response";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
+import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 import {
   calculateUserPreferenceVector,
   extractStrainVector,
@@ -8,12 +8,9 @@ import {
 } from "@/lib/algorithms/terpene-matching";
 
 export async function GET(request: Request) {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return jsonError("Unauthorized", 401);
-  }
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (!auth || auth instanceof Response) return auth || jsonError("Unauthorized", 401);
+  const { user, supabase } = auth;
 
   // Strain-ID aus URL params
   const url = new URL(request.url);
