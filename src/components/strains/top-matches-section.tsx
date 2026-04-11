@@ -12,17 +12,17 @@ export function TopMatchesSection() {
   const [ratingCount, setRatingCount] = useState(0);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !session?.access_token) {
       setLoading(false);
       return;
     }
 
     async function fetchTopMatches() {
       try {
-        const accessToken = session?.access_token;
+        const accessToken = session.access_token;
         const res = await fetch("/api/recommendations/top?limit=5", {
           headers: {
-            ...(accessToken && { "Authorization": `Bearer ${accessToken}` })
+            Authorization: `Bearer ${accessToken}`
           }
         });
         const json = await res.json();
