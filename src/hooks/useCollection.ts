@@ -114,13 +114,13 @@ export function useCollection() {
       });
       if (error) throw error;
 
-      // Log to user_activities for streak tracking
-      await supabase.from("user_activities").insert({
+      // Log to user_activities for streak tracking (non-critical, fire-and-forget)
+      supabase.from("user_activities").insert({
         user_id: user!.id,
         activity_type: "strain_collected",
         target_id: strainId,
         is_public: true,
-      });
+      }).then(() => {}, () => {});
     },
     onError: sharedCallbacks.onError,
     onSettled: sharedCallbacks.onSettled,
