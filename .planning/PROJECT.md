@@ -25,6 +25,7 @@ Reliable strain data management with fast, consistent UI — mutations (collect,
 - ✓ React Query Provider + useCollection hooks — Phase 1+2 complete April 2026
 - ✓ React Query core integration (strains page, strain detail, FollowButton, centralized query-keys) — Phase 1 complete April 2026
 - ✓ React Query advanced (infinite scroll, optimistic follow updates, collection verification) — Phase 2 complete April 2026
+- ✓ Grow-Diary Module A-B-C (Plant CRUD, DLI Calculator, Grow Pages, Harvest Certificate OG, grow_comments, grow_follows) — Phase 6 complete April 2026
 
 ### Active
 
