@@ -113,6 +113,14 @@ export function useCollection() {
         onConflict: "user_id,strain_id",
       });
       if (error) throw error;
+
+      // Log to user_activities for streak tracking
+      await supabase.from("user_activities").insert({
+        user_id: user!.id,
+        activity_type: "strain_collected",
+        target_id: strainId,
+        is_public: true,
+      });
     },
     onError: sharedCallbacks.onError,
     onSettled: sharedCallbacks.onSettled,
