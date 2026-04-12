@@ -414,7 +414,7 @@ export default function StrainDetailPageClient() {
       });
 
       setHasCollected(true);
-      toastSuccess("Eintrag gespeichert: Teilen", {
+      toastSuccess("Eintrag gespeichert", {
         label: "Teilen",
         onClick: () => setShowShareModal(true),
       });
