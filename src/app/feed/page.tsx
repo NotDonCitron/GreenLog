@@ -10,6 +10,7 @@ import { TopMatches } from "@/components/strains/top-matches";
 import { TopMatchesSection } from "@/components/strains/top-matches-section";
 import { FollowButton } from "@/components/social/follow-button";
 import { useAuth } from "@/components/auth-provider";
+import { StatsBar } from "@/components/layout/stats-bar";
 import { USER_ROLES } from "@/lib/roles";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
@@ -336,6 +337,7 @@ function FeedContent() {
 
       {/* Feed Content */}
       <div className="pull-refresh px-4 mt-6 relative z-10 pb-24">
+        <StatsBar />
         {/* Für dich - All public activities */}
         {activeTab === "foryou" && !user && (
           <div className="text-center py-12 space-y-4">
