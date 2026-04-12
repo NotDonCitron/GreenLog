@@ -1,1 +1,2 @@
-export { createGrow, addPlantToGrow, updatePlantStatus, addGrowLogEntry, calculateDLI } from './actions';
+export { createGrow, addPlantToGrow, updatePlantStatus, addGrowLogEntry } from './actions';
+export { calculateDLI, validateEntryContent } from './utils';
