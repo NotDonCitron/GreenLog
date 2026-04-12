@@ -43,7 +43,8 @@ function createSupabaseClientOptions() {
                     try {
                         const Clerk = (window as any).Clerk;
                         if (Clerk && Clerk.session) {
-                            const token = await Clerk.session.getToken({ template: 'supabase' });
+                            // Clerk Supabase native integration - no template needed
+                            const token = await Clerk.session.getToken();
                             if (token) {
                                 headers.set('Authorization', `Bearer ${token}`);
                             }

@@ -8,8 +8,8 @@ import { calculateDLI, validateEntryContent } from './utils';
 async function getServerUser() {
   const { userId, getToken } = await auth();
   if (!userId) return null;
-  // Get Clerk's Supabase JWT token for RLS
-  const supabaseToken = await getToken({ template: 'supabase' });
+  // Get Clerk token for Supabase (native integration - no template needed)
+  const supabaseToken = await getToken();
   const supabase = await getAuthenticatedClient(supabaseToken || '');
   return { userId, supabase };
 }

@@ -128,7 +128,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (userId && clerkUser) {
         console.log("[Auth] Clerk userId found, creating synthetic Supabase session...", userId);
         try {
-          const token = await getToken({ template: 'supabase' });
+          // Clerk Supabase native integration - no template needed
+          const token = await getToken();
 
           if (token) {
             console.log("[Auth] Clerk token received, setting synthetic session...");
