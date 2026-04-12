@@ -1,6 +1,6 @@
 # Roadmap: GreenLog — React Query Integration
 
-**Phase count:** 5 | **Requirements:** 14 v1 + 4 v2 + 4 OMA + 6 TRC | **Generated:** 2026-04-04
+**Phase count:** 6 | **Requirements:** 14 v1 + 4 OMA + 6 TRC + 15 GROW | **Generated:** 2026-04-12
 
 ## Phase 1: React Query Core Integration
 
@@ -150,6 +150,41 @@
 
 ---
 
+## Phase 6: Grow-Diary & Community (Module A/B/C)
+
+**Goal:** Private Grow-Diary (Module A), Public Grow-Community (Module B), and Harvest Certificate Export (Module C). KCanG § 9 compliant — max 3 active plants per user enforced via DB trigger.
+
+### Requirements (GROW-01 — GROW-15)
+
+| ID | Requirement |
+|----|-------------|
+| GROW-01 | `plants` table with plant_status enum + 3-plant LIMIT trigger (seedling/veg/flower/flushing count) |
+| GROW-02 | `grow_milestones` table for phase tracking (germination → vegetation → flower → flush → harvest) |
+| GROW-03 | `grow_presets` table with autoflower/photoperiod presets, PPFD values, light cycles |
+| GROW-04 | `grow_entries` extended with `plant_id`, `entry_type`, `content JSONB` |
+| GROW-05 | DLI Calculator: `DLI = PPFD × LightHours × 0.0036`, manual PPFD input + preset dropdown |
+| GROW-06 | LogEntryModal with dynamic forms per entry_type (watering/feeding/note/photo/ph_ec/dli) |
+| GROW-07 | Server Actions: `createGrow`, `addPlantToGrow` (trigger fires on >3), `updatePlantStatus`, `addGrowLogEntry` |
+| GROW-08 | `grow_comments` flat table (no nesting), all authenticated users can read/write |
+| GROW-09 | `grow_follows` table (user follows grow, not plant) |
+| GROW-10 | `/grows/explore` public feed page with timeline UI (separate from Strain Discover) |
+| GROW-11 | `/grows/explore/[id]` public grow detail with flat comments |
+| GROW-12 | Compliance disclaimer visible on all public grow feeds |
+| GROW-13 | KCanG § 9 warning UI when user attempts 4th plant |
+| GROW-14 | next/og Harvest Certificate route `/api/grows/[id]/harvest-report` |
+| GROW-15 | Grow privacy toggle (is_public) in grow detail UI |
+
+### Success Criteria
+
+1. DB trigger rejects 4th active plant with "KCanG Compliance Error: Max 3 active plants"
+2. DLI Calculator shows correct DLI value for any PPFD × hours input
+3. `/grows/explore` shows public grows with timeline + comments
+4. All public feeds display: "Wissensaustausch für den legalen Eigenanbau nach KCanG..."
+5. Harvest Certificate renders sober botanical report image (no emojis, no promotional text)
+6. Server Actions use `requesting_user_id()` for Clerk JWT RLS compatibility
+
+---
+
 ## Out of Scope
 
 | Item | Reason |
@@ -158,7 +193,7 @@
 | Clerk Webhooks for Supabase Profile Sync | Deferred post-Phase 04 |
 | Apple/Microsoft/GitHub OAuth | Only Google in scope for Phase 04 |
 | SSO / SAML (Enterprise) | Out of scope for MVP |
-| Grows/Eigenanbau-Tracker | Legal clarification in Germany pending |
+| ~~Grows/Eigenanbau-Tracker~~ | ✅ **Legal clarified — Phase 6 implements** |
 | PWA / App-Store | Not started, deferred post-React-Query |
 | Real-time WebSocket | 30s polling sufficient for MVP |
 
@@ -179,14 +214,12 @@
 | RQ-17 | Phase 2+ | Deferred |
 | RQ-18 | Phase 2 | Done (02-03) |
 | OMA-01, OMA-02 | Phase 3 | Done (03-01) |
-| OMA-03 | Phase 3 | Planned (03-03, 03-04) |
-| OMA-04 | Phase 3 | Planned (03-02) |
-| TRC-01 — TRC-06 | Phase 5 | Planned (05-01) |
+| OMA-03, OMA-04 | Phase 3 | Done (03-03, 03-04) |
+| TRC-01 — TRC-06 | Phase 5 | Done (05-01) |
+| GROW-01 — GROW-15 | Phase 6 | Planned |
 
-**Overall v1 coverage:** 14/14 requirements mapped + 4 OMA planned
-**Phase 2 coverage:** 2/4 requirements planned (R-15, R-17 deferred)
-**Phase 3 coverage:** 4/4 OMA requirements planned
-**Phase 4 coverage:** 8/8 CSL requirements planned
+**Overall v1 coverage:** 14/14 requirements mapped + 4 OMA + 15 GROW
+**Phase 6 coverage:** 15/15 GROW requirements planned
 
 ---
 
