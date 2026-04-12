@@ -99,17 +99,102 @@ export type StrainSource = 'pharmacy' | 'street' | 'grow' | 'csc' | 'other';
 export interface Grow {
   id: string;
   user_id: string;
-  organization_id: string;
-  strain_id: string | null;
+  organization_id?: string;
+  strain_id?: string | null;
   title: string;
   grow_type: 'indoor' | 'outdoor' | 'greenhouse';
   status: 'active' | 'completed' | 'archived';
   start_date: string;
-  harvest_date?: string;
+  harvest_date?: string | null;
   is_public: boolean;
   strains?: {
     name: string;
-  };
+  } | null;
+  plants?: Plant[];
+}
+
+export type PlantStatus = 'seedling' | 'vegetative' | 'flowering' | 'flushing' | 'harvested' | 'destroyed';
+
+export interface Plant {
+  id: string;
+  grow_id: string;
+  user_id: string;
+  strain_id: string | null;
+  plant_name: string;
+  status: PlantStatus;
+  planted_at: string;
+  harvested_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type GrowEntryType = 'watering' | 'feeding' | 'note' | 'photo' | 'ph_ec' | 'dli' | 'milestone';
+
+// JSONB content per entry_type
+export interface WateringContent { amount_liters: number; }
+export interface FeedingContent { nutrient: string; amount: string; ec?: number; }
+export interface NoteContent { note_text: string; }
+export interface PhotoContent { photo_url: string; caption?: string; }
+export interface PhEcContent { ph: number; ec: number; }
+export interface DliContent { ppfd: number; light_hours: number; dli: number; }
+export interface MilestoneContent { milestone_phase: string; notes?: string; }
+
+export interface GrowEntry {
+  id: string;
+  grow_id: string;
+  user_id: string;
+  plant_id?: string | null;
+  entry_type?: GrowEntryType | null;
+  content?: Record<string, unknown>;
+  entry_date?: string;
+  day_number?: number;
+  title?: string;
+  notes?: string;
+  image_url?: string;
+  height_cm?: number;
+  temperature?: number;
+  humidity?: number;
+  ph_value?: number;
+  created_at: string;
+}
+
+export interface GrowMilestone {
+  id: string;
+  grow_id: string;
+  phase: 'germination' | 'vegetation' | 'flower' | 'flush' | 'harvest';
+  started_at: string;
+  ended_at?: string | null;
+  notes?: string | null;
+  created_at: string;
+}
+
+export interface GrowPreset {
+  id: string;
+  name: string;
+  grow_mode: 'autoflower' | 'photoperiod';
+  light_cycle: string;
+  estimated_veg_days: number;
+  estimated_flower_days: number;
+  ppfd_value?: number | null;
+  is_public: boolean;
+  created_by?: string | null;
+  created_at: string;
+}
+
+export interface GrowComment {
+  id: string;
+  grow_entry_id: string;
+  user_id: string;
+  comment: string;
+  created_at: string;
+  profiles?: ProfileRow;
+}
+
+export interface GrowFollow {
+  id: string;
+  user_id: string;
+  grow_id: string;
+  created_at: string;
 }
 
 export interface ProfileStats {
