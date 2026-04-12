@@ -10,7 +10,7 @@ import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/components/toast-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Database, Trash2, Pencil, Lock, AlertCircle } from "lucide-react";
+import { ChevronLeft, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Database, Trash2, Pencil, Lock, AlertCircle, Share2 } from "lucide-react";
 import { Strain } from "@/lib/types";
 import { escapeRegExp } from '@/lib/string-utils';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeCollectionSource, normalizeTerpeneList } from "@/lib/strain-display";
@@ -18,6 +18,7 @@ import { checkAndUnlockBadges } from "@/lib/badges";
 import { useCollection } from "@/hooks/useCollection";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { TerpeneRadarChart } from "@/components/strains/terpene-radar-chart";
+import { ShareModal } from "@/components/social/share-modal";
 import { MatchScoreBadge } from "@/components/strains/match-score-badge";
 import { SimilarStrainsSection } from "@/components/strains/SimilarStrainsSection";
 
@@ -58,6 +59,7 @@ export default function StrainDetailPageClient() {
   const isCollected = hasCollected || collectedIds.includes(strain?.id || "");
   const [isDeletable, setIsDeletable] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [batchInfo, setBatchInfo] = useState("");
   const [userNotes, setUserNotes] = useState("");
 
@@ -412,6 +414,7 @@ export default function StrainDetailPageClient() {
       });
 
       setHasCollected(true);
+      toastSuccess("Eintrag gespeichert. Labor-Datenblatt weiterleiten");
 
     } catch (error: unknown) {
       console.error("Save rating error:", error);
@@ -690,7 +693,17 @@ export default function StrainDetailPageClient() {
                   </div>
                   {normalizedTerpenes.length > 0 && (
                     <div className="pt-4 border-t border-[var(--border)]/50">
-                      <p className="text-[9px] font-black uppercase text-[var(--muted-foreground)] mb-2">Terpene</p>
+                      <div className="flex items-center justify-between mb-2">
+                      <p className="text-[9px] font-black uppercase text-[var(--muted-foreground)]">Terpene</p>
+                      <button
+                        onClick={() => setShowShareModal(true)}
+                        className="flex items-center gap-1 text-[9px] text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors"
+                        title="Chemische Analyse teilen"
+                      >
+                        <Share2 className="w-3 h-3" />
+                        <span>Teilen</span>
+                      </button>
+                    </div>
                       {strain.terpenes && strain.terpenes.length >= 3 ? (
                         <TerpeneRadarChart
                           terpenes={strain.terpenes}
@@ -771,6 +784,12 @@ export default function StrainDetailPageClient() {
         <SimilarStrainsSection strainId={strain.id} strainName={strain.name} />
       )}
       {!showRatingModal && <BottomNav />}
+      <ShareModal
+        open={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        strainName={strain.name}
+        strainUrl={`/strain/${strain.slug || strain.id}`}
+      />
     </main>
   );
 }
