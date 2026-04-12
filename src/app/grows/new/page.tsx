@@ -8,6 +8,7 @@ import { BottomNav } from "@/components/bottom-nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -22,11 +23,14 @@ import {
   ChevronLeft,
   Save,
   Layout,
-  Tag
+  Tag,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import Link from "next/link";
 import { Strain } from "@/lib/types";
 import { checkAndUnlockBadges } from "@/lib/badges";
+import { createGrow } from "@/lib/grows/actions";
 
 export default function NewGrowPage() {
   const { user, loading: authLoading } = useAuth();
@@ -43,6 +47,7 @@ export default function NewGrowPage() {
   const [strainId, setStrainId] = useState<string>("");
   const [growType, setGrowType] = useState<string>("indoor");
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isPublic, setIsPublic] = useState(true);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -87,21 +92,25 @@ export default function NewGrowPage() {
     setError(null);
 
     try {
-      const { error: insertError } = await supabase
-        .from("grows")
-        .insert([
-          {
-            user_id: user.id,
-            strain_id: strainId || null,
+      // Use server action instead of direct Supabase insert
+      const response = await createGrow(
+        new Request('http://localhost', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
             title,
+            strain_id: strainId || null,
             grow_type: growType,
             start_date: startDate,
-            status: "active",
-            is_public: true
-          }
-        ]);
+            is_public: isPublic
+          }),
+        })
+      );
 
-      if (insertError) throw insertError;
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error?.message || 'Failed to create grow');
+      }
 
       await checkAndUnlockBadges(user.id, supabase);
       setSuccess(true);
@@ -225,6 +234,17 @@ export default function NewGrowPage() {
                 onChange={(e) => setStartDate(e.target.value)}
                 className="bg-[var(--input)] border border-[var(--border)]/50 text-[var(--foreground)] h-12 rounded-xl focus:border-[#00F5FF] transition-all [color-scheme:dark]"
               />
+            </div>
+
+            <div className="flex items-center justify-between p-3 bg-[var(--muted)] border border-[var(--border)]/50 rounded-xl">
+              <div className="flex items-center gap-2">
+                {isPublic ? <Eye size={14} className="text-[#2FF801]" /> : <EyeOff size={14} className="text-[var(--muted-foreground)]" />}
+                <div>
+                  <p className="text-xs font-bold text-[var(--foreground)]">Öffentlich sichtbar</p>
+                  <p className="text-[10px] text-[var(--muted-foreground)]">Andere können dieses Grow sehen</p>
+                </div>
+              </div>
+              <Switch checked={isPublic} onCheckedChange={(checked) => setIsPublic(checked)} />
             </div>
 
             <div className="pt-4">
