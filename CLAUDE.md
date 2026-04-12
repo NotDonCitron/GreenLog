@@ -5,8 +5,8 @@
 **GreenLog** ist eine B2B-mandantenfähige Plattform für Clubs und Apotheken zur Verwaltung von Cannabis-Sorten (Strains), Sammlungen und Organizationen (Communities).
 
 - **Primäre Nutzer:** Clubs (CSCs), Apotheken, medizinische Cannabis-Patienten
-- **Phase:** MVP abgeschlossen, Phase 2 (Social/Community) teilweise aktiv
-- **Rechtsstatus:** Grows (Eigenanbau) vorerst auf Eis – bis rechtliche Klärung in Deutschland
+- **Phase:** MVP abgeschlossen, Phase 2 (Social/Community) aktiv, Grow-Diary (Module A-C) in Implementierung
+- **Rechtsstatus:** KCanG (§ 9) — Max 3 aktive Pflanzen pro User. Grow-Diary Feature vollständig legal.
 
 ---
 
@@ -14,11 +14,16 @@
 
 | Bereich | Technologie |
 |---------|-------------|
-| Frontend | Next.js 16 (Pages Router), TypeScript, Tailwind CSS |
-| Backend | Supabase (PostgreSQL, Auth, Storage, Realtime) |
-| Styling | Custom CSS + shadcn/ui Komponenten, CSS Variables |
+| Frontend | Next.js 15.5 (App Router), React 19, TypeScript |
+| Styling | Tailwind CSS v4, shadcn/ui, CSS Variables |
+| Backend | Next.js Route Handlers (API), React Server Actions |
+| Datenbank | Supabase PostgreSQL (mit RLS) |
+| Auth | Clerk (JWT/RLS über `requesting_user_id()`) |
+| State | TanStack Query (React Query) v5 |
 | Deployment | Vercel |
-| OCR | Tesseract.js (lazy-loaded) |
+| Mobile | Capacitor (Android) |
+| Testing | Vitest (Unit), Playwright (E2E) |
+| OCR | Tesseract.js (lazy-loaded) | |
 
 ---
 
@@ -26,21 +31,22 @@
 
 ```
 /src
-├── /app                    # Next.js Pages Router
+├── /app                    # Next.js App Router
 │   ├── /api                # API Routes (Route Handlers)
 │   │   ├── /badges         # Badge Check & Select
 │   │   ├── /communities    # Community Management
 │   │   ├── /follow-request # Follow Request Handling
 │   │   ├── /notifications  # Polling-based Notifications
-│   │   └── /organizations  # Organization CRUD + Members + Invites
-│   ├── /(pages)            # Route Pages
-│   └── /layout.tsx         # Root Layout
+│   │   ├── /organizations  # Organization CRUD + Members + Invites
+│   │   └── /grows          # Grow-Diary API Routes
+│   └── /(pages)            # Route Pages
 ├── /components
 │   ├── /ui                 # shadcn/ui Komponenten
 │   ├── /social             # Social Features (FollowButton, ActivityFeed, etc.)
 │   ├── /community          # Organization/Community Components
 │   ├── /strains            # StrainCard, FilterPanel, etc.
-│   └── /notifications      # NotificationBell, NotificationsPanel
+│   ├── /notifications      # NotificationBell, NotificationsPanel
+│   └── /grows              # Grow-Diary Components (NEW)
 └── /lib
     ├── /supabase           # Client (browser), Server, Admin clients
     ├── badges.ts            # Badge Definitions & Criteria
@@ -70,7 +76,7 @@
 - **ratings** – 1-5 Sternen Bewertungen mit Reviews
 - **user_strain_relations** – Favorites & Wishlist
 - **user_collection** – Private Notes, Batch-Info, persönliche THC/CBD
-- **grows / grow_entries** – Grow-Journal (AKTUELL PAUSIERT)
+- **grows / grow_entries** – Grow-Journal (AKTUELL IN IMPLEMENTIERUNG — Module A/B/C)
 
 ### Organization-Tabellen
 
@@ -201,13 +207,14 @@ gründer, admin, member, viewer
 
 ---
 
-## Grows Feature – PAUSIERT
+## Grows Feature – AKTIV (KCanG § 9)
 
-**Grows und Grow-Tracker sind vorerst raus** – rechtliche Klärung in Deutschland steht aus. Bis dahin:
+**Grow-Diary Module A/B/C in Implementierung** (April 2026):
+- **Module A:** Private Grow-Diary (Plants, Milestones, Daily Logs, DLI-Rechner)
+- **Module B:** Public Grow-Community (/grows/explore, Flat Comments)
+- **Module C:** Harvest Certificate (next/og server-side)
 
-- Keine neuen Grow-Features implementieren
-- Bestehenden Grow-Code nicht erweitern
-- Fokus auf Social/Community und Analytics
+**KCanG Compliance:** Max 3 aktive Pflanzen pro User (über alle Grows). Hard-Limit per DB-Trigger.
 
 ---
 
