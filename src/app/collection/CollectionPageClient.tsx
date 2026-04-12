@@ -8,6 +8,7 @@ import { Search, Loader2, AlertCircle, X, Filter, Plus, SlidersHorizontal, Calen
 import { useAuth } from "@/components/auth-provider";
 import { Strain, StrainSource } from "@/lib/types";
 import { StrainCard } from "@/components/strains/strain-card";
+import { TopMatches } from "@/components/strains/top-matches";
 import { CalendarPanel } from "@/components/collection/calendar-panel"
 import { normalizeCollectionSource } from "@/lib/strain-display";
 const FilterPanel = lazy(() => import("@/components/strains/filter-panel").then(m => ({ default: m.FilterPanel })));
@@ -273,6 +274,18 @@ export default function CollectionPageClient() {
       </header>
 
       <div className="px-6 py-6">
+        {/* Top Matches - Personalised Recommendations */}
+        <Suspense fallback={null}>
+          <TopMatches />
+        </Suspense>
+
+        {/* Section Divider */}
+        <div className="mt-8 mb-4">
+          <h2 className="text-lg font-black italic tracking-tighter uppercase leading-none font-display text-[var(--muted-foreground)] text-center">
+            Deine Sammlung
+          </h2>
+        </div>
+
         <Suspense fallback={null}>
           <ActiveFilterBadges
             effects={filterEffects}

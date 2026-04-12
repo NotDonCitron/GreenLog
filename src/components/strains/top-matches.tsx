@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles, Loader2, ChevronRight } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { StrainCard } from "./strain-card";
 import { useAuth } from "@/components/auth-provider";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { Strain } from "@/lib/types";
 
@@ -65,6 +64,8 @@ export function TopMatches() {
     fetchTopMatches();
   }, [user, session]);
 
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   if (!user || (loading && matches.length === 0)) {
     return (
       <div className="mb-8 p-6 bg-[var(--card)] rounded-3xl border border-[var(--border)]/50 animate-pulse">
@@ -82,49 +83,56 @@ export function TopMatches() {
   }
 
   return (
-    <section className="mb-10 relative">
-      <div className="flex items-center justify-between mb-4 px-2">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-[#00F5FF]/10 text-[#00F5FF]">
-            <Sparkles size={16} />
-          </div>
-          <div>
-            <h2 className="text-sm font-black uppercase tracking-wider text-[var(--foreground)]">
-              Deine Top-Matches
-            </h2>
-            <p className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-tight opacity-70">
-              Algorithmus-basiert
-            </p>
-          </div>
+    <section className="mb-6 relative">
+      <div className="flex items-center justify-between mb-3 px-2">
+        <div>
+          <h2 className="text-sm font-black uppercase tracking-wider text-[var(--foreground)]">
+            Für dich empfohlen
+          </h2>
+          <p className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-tight opacity-70">
+            Basierend auf deinen Bewertungen
+          </p>
         </div>
-        <Link 
-          href="/strains?filter=matches" 
-          className="text-[10px] font-black uppercase tracking-widest text-[#00F5FF] flex items-center gap-1 hover:opacity-80 transition-opacity"
+        <button
+          onClick={() => setIsCollapsed(v => !v)}
+          className="p-1.5 rounded-lg hover:bg-[var(--muted)] transition-colors text-[var(--muted-foreground)]"
+          aria-label={isCollapsed ? "Ausklappen" : "Einklappen"}
         >
-          Alle ansehen <ChevronRight size={12} />
-        </Link>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            className={`transition-transform duration-200 ${isCollapsed ? '' : 'rotate-180'}`}
+          >
+            <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        {matches.map((match, idx) => {
-          const strain = strains[match.strainId];
-          if (!strain) return null;
-          
-          return (
-            <div key={match.strainId} className="relative group">
-              <StrainCard strain={strain} index={idx} isCollected={false} />
-              <div className="absolute bottom-2 left-2 z-30 px-2 py-1 rounded-lg bg-black/60 backdrop-blur-md border border-[#00F5FF]/30 text-[9px] font-black text-[#00F5FF]">
-                {match.score}%
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      
-      {/* Compliance info */}
-      <p className="mt-3 px-2 text-[9px] text-[var(--muted-foreground)] italic leading-tight opacity-50">
-        Die Übereinstimmung basiert rein auf der mathematischen Ähnlichkeit der Terpen- und Cannabinoid-Profile zu deinen bisherigen Bewertungen.
-      </p>
+      {isCollapsed ? null : (
+        <>
+          <div className="grid grid-cols-2 gap-4">
+            {matches.map((match, idx) => {
+              const strain = strains[match.strainId];
+              if (!strain) return null;
+              return (
+                <div key={match.strainId} className="relative group">
+                  <StrainCard strain={strain} index={idx} isCollected={false} />
+                  <div className="absolute top-2 right-2 z-20 flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-md border border-[#2FF801]/40"
+                    style={{ backgroundColor: '#2FF80120' }}>
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#2FF801]" />
+                    <span className="text-[10px] font-black tracking-wide text-[#2FF801]">{match.score}%</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-2 px-2 text-[9px] text-[var(--muted-foreground)] leading-tight opacity-60">
+            Passend zu deinem Geschmacksprofil — basierend auf deinen bisherigen Bewertungen.
+          </p>
+        </>
+      )}
     </section>
   );
 }

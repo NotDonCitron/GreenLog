@@ -6,8 +6,6 @@ import { Sparkles, Users, Compass, Loader2, Search, Building2 } from "lucide-rea
 import { BottomNav } from "@/components/bottom-nav";
 import { ActivityFeed } from "@/components/social/activity-feed";
 import { SuggestedUsers } from "@/components/social/suggested-users";
-import { TopMatches } from "@/components/strains/top-matches";
-import { TopMatchesSection } from "@/components/strains/top-matches-section";
 import { FollowButton } from "@/components/social/follow-button";
 import { useAuth } from "@/components/auth-provider";
 import { StatsBar } from "@/components/layout/stats-bar";
@@ -355,7 +353,6 @@ function FeedContent() {
         )}
         {activeTab === "foryou" && user && (
           <>
-            <TopMatchesSection />
             <ActivityFeed showDiscover={true} />
           </>
         )}
