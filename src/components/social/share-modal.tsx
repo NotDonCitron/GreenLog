@@ -16,7 +16,7 @@ export function ShareModal({ open, onClose, strainName, strainUrl }: ShareModalP
   const [copied, setCopied] = useState(false)
 
   const shareUrl = strainUrl.startsWith("http") ? strainUrl : `${BASE_URL}${strainUrl}`
-  const caption = `Labor-Datenblatt für ${strainName}. Quelle: GreenLog Datenbank.`
+  const caption = `Analytisches Profil für ${strainName}. Quelle: GreenLog Datenbank.`
 
   const handleWhatsApp = () => {
     const url = `https://wa.me/?text=${encodeURIComponent(caption + " " + shareUrl)}`
@@ -52,7 +52,7 @@ export function ShareModal({ open, onClose, strainName, strainUrl }: ShareModalP
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <Share2 className="w-5 h-5 text-green-600" />
-            <h2 className="text-lg font-semibold text-zinc-900">Labor-Datenblatt teilen</h2>
+            <h2 className="text-lg font-semibold text-zinc-900">Analysedaten teilen</h2>
           </div>
 
           <p className="text-sm text-zinc-500">

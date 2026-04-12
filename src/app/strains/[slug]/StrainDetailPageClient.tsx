@@ -414,7 +414,7 @@ export default function StrainDetailPageClient() {
       });
 
       setHasCollected(true);
-      toastSuccess("Eintrag gespeichert. 📤 Labor-Datenblatt weiterleiten", {
+      toastSuccess("Eintrag gespeichert. 📤 Analysedaten teilen", {
         label: "Teilen",
         onClick: () => setShowShareModal(true),
       });
@@ -621,12 +621,9 @@ export default function StrainDetailPageClient() {
                 <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-[var(--muted-foreground)] truncate">
                   {farmerDisplay}
                 </p>
-                <div className="flex items-start justify-between gap-2 mt-1">
-                  <p className="title-font italic text-sm font-black leading-tight uppercase text-[var(--foreground)] break-words line-clamp-2 min-h-[2.5rem] flex-1">
-                    {normalizedStrainName}
-                  </p>
-                  <MatchScoreBadge strainId={strain.id} strainName={strain.name} />
-                </div>
+                <p className="title-font italic text-sm font-black leading-tight uppercase text-[var(--foreground)] break-words line-clamp-2 min-h-[2.5rem] flex-1">
+                  {normalizedStrainName}
+                </p>
               </div>
               <div className="px-5 w-full">
                 <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-[var(--border)]/50">
@@ -637,6 +634,9 @@ export default function StrainDetailPageClient() {
                   />
                   <div className="absolute bottom-2 left-2 border bg-black/70 backdrop-blur-md uppercase text-[9px] px-2 py-1 rounded-sm font-bold" style={{ borderColor: themeColor, color: themeColor }}>{strain.type || 'HYBRID'}</div>
                 </div>
+              </div>
+              <div className="px-5 mt-2">
+                <MatchScoreBadge strainId={strain.id} strainName={strain.name} />
               </div>
               {strain.image_attribution && strain.image_attribution.source !== 'none' && (
                 <p className="text-xs text-gray-500 mt-1">
