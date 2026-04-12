@@ -6,7 +6,7 @@ import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Sprout, Calendar, ArrowRight } from "lucide-react";
+import { Loader2, Plus, Sprout, Calendar, ArrowRight, Leaf, Compass } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -20,6 +20,7 @@ interface Grow {
   strains?: {
     name: string;
   };
+  plant_count?: number;
 }
 
 export default function GrowsPage() {
@@ -44,7 +45,8 @@ export default function GrowsPage() {
               grow_type: "outdoor",
               status: "active",
               start_date: "2024-03-01",
-              strains: { name: "Purple Haze" }
+              strains: { name: "Purple Haze" },
+              plant_count: 2
             },
             {
               id: "demo-2",
@@ -53,17 +55,40 @@ export default function GrowsPage() {
               status: "completed",
               start_date: "2024-01-15",
               harvest_date: "2024-03-20",
-              strains: { name: "Gorilla Glue #4" }
+              strains: { name: "Gorilla Glue #4" },
+              plant_count: 1
             }
           ]);
         } else if (user) {
+          // Fetch grows with plant counts
           const { data, error } = await supabase
             .from("grows")
             .select(`*, strains (name)`)
             .eq("user_id", user.id)
             .order("created_at", { ascending: false });
 
-          if (data) setGrows(data);
+          if (data) {
+            // Fetch plant counts for each grow
+            const growIds = data.map((g: Grow) => g.id);
+            const { data: plantCounts } = await supabase
+              .from("plants")
+              .select("grow_id")
+              .in("grow_id", growIds)
+              .in("status", ["seedling", "vegetative", "flowering", "flushing"]);
+
+            // Count plants per grow
+            const countMap: Record<string, number> = {};
+            plantCounts?.forEach((p: { grow_id: string }) => {
+              countMap[p.grow_id] = (countMap[p.grow_id] || 0) + 1;
+            });
+
+            // Attach plant_count to each grow
+            const growsWithCounts = data.map((g: Grow) => ({
+              ...g,
+              plant_count: countMap[g.id] || 0
+            }));
+            setGrows(growsWithCounts);
+          }
           if (error) console.error("Error fetching grows:", error);
         }
       } catch (err) {
@@ -101,6 +126,12 @@ export default function GrowsPage() {
       </header>
 
       <div className="p-6 relative z-10">
+        {/* Explore public grows link */}
+        <Link href="/grows/explore" className="flex items-center justify-center gap-2 mb-6 p-3 bg-[var(--card)] border border-[var(--border)]/50 rounded-xl hover:border-[#00F5FF]/50 transition-all">
+          <Compass size={16} className="text-[#00F5FF]" />
+          <span className="text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-wider">Öffentliche Grows entdecken</span>
+        </Link>
+
         {loading || authLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="animate-spin text-[#00F5FF]" size={48} />
@@ -123,9 +154,17 @@ export default function GrowsPage() {
                         </p>
                       </div>
                     </div>
-                    <Badge className={grow.status === 'active' ? 'bg-[#2FF801] text-black border-none font-bold' : 'bg-[var(--muted)] text-[var(--muted-foreground)] border-none font-bold'}>
-                      {grow.status.toUpperCase()}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-1">
+                      <Badge className={grow.status === 'active' ? 'bg-[#2FF801] text-black border-none font-bold' : 'bg-[var(--muted)] text-[var(--muted-foreground)] border-none font-bold'}>
+                        {grow.status.toUpperCase()}
+                      </Badge>
+                      {grow.plant_count !== undefined && grow.plant_count > 0 && (
+                        <div className="flex items-center gap-1 text-[10px] text-[var(--muted-foreground)]">
+                          <Leaf size={10} className="text-[#2FF801]" />
+                          <span>{grow.plant_count} Pflanze{grow.plant_count !== 1 ? 'n' : ''}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex justify-between items-center pt-2 border-t border-[var(--border)]/50">
