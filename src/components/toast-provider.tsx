@@ -2,15 +2,21 @@
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 
+interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 interface Toast {
   id: string;
   message: string;
   type: "success" | "error" | "info";
+  action?: ToastAction;
 }
 
 interface ToastContextType {
-  toast: (message: string, type?: "success" | "error" | "info") => void;
-  success: (message: string) => void;
+  toast: (message: string, type?: "success" | "error" | "info", action?: ToastAction) => void;
+  success: (message: string, action?: ToastAction) => void;
   error: (message: string) => void;
   info: (message: string) => void;
 }
@@ -26,12 +32,12 @@ export function useToast() {
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const addToast = useCallback((message: string, type: "success" | "error" | "info" = "info") => {
+  const addToast = useCallback((message: string, type: "success" | "error" | "info" = "info", action?: ToastAction) => {
     const id = Math.random().toString(36).slice(2);
-    setToasts(prev => [...prev, { id, message, type }]);
+    setToasts(prev => [...prev, { id, message, type, action }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
-    }, 4000);
+    }, 5000);
   }, []);
 
   const dismiss = useCallback((id: string) => {
@@ -42,7 +48,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider
       value={{
         toast: addToast,
-        success: (m) => addToast(m, "success"),
+        success: (m, action) => addToast(m, "success", action),
         error: (m) => addToast(m, "error"),
         info: (m) => addToast(m, "info"),
       }}
@@ -62,7 +68,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             role="alert"
           >
             <div className="flex items-center justify-between gap-2">
-              <span>{t.message}</span>
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <span className="truncate">{t.message}</span>
+                {t.action && (
+                  <button
+                    onClick={() => { t.action?.onClick(); dismiss(t.id); }}
+                    className="text-white/90 hover:text-white font-semibold whitespace-nowrap flex-shrink-0 underline underline-offset-2"
+                  >
+                    {t.action.label}
+                  </button>
+                )}
+              </div>
               <button
                 onClick={() => dismiss(t.id)}
                 className="ml-2 opacity-60 hover:opacity-100 flex-shrink-0"

@@ -414,7 +414,10 @@ export default function StrainDetailPageClient() {
       });
 
       setHasCollected(true);
-      toastSuccess("Eintrag gespeichert. 📤 Labor-Datenblatt weiterleiten");
+      toastSuccess("Eintrag gespeichert. 📤 Labor-Datenblatt weiterleiten", {
+        label: "Teilen",
+        onClick: () => setShowShareModal(true),
+      });
 
     } catch (error: unknown) {
       console.error("Save rating error:", error);

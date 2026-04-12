@@ -113,7 +113,7 @@ export function TopMatches() {
           return (
             <div key={match.strainId} className="relative group">
               <StrainCard strain={strain} index={idx} isCollected={false} />
-              <div className="absolute top-2 right-2 z-30 px-2 py-1 rounded-lg bg-black/60 backdrop-blur-md border border-[#00F5FF]/30 text-[9px] font-black text-[#00F5FF]">
+              <div className="absolute bottom-2 left-2 z-30 px-2 py-1 rounded-lg bg-black/60 backdrop-blur-md border border-[#00F5FF]/30 text-[9px] font-black text-[#00F5FF]">
                 {match.score}%
               </div>
             </div>
