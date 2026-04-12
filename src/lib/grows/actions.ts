@@ -1,51 +1,78 @@
 'use server';
 
+import { auth } from '@clerk/nextjs/server';
 import { getAuthenticatedClient } from '@/lib/supabase/client';
-import { jsonSuccess, jsonError, authenticateRequest } from '@/lib/api-response';
+import { jsonSuccess, jsonError } from '@/lib/api-response';
 import { calculateDLI, validateEntryContent } from './utils';
 
-export async function createGrow(request: Request): Promise<Response> {
-  const auth = await authenticateRequest(request, getAuthenticatedClient);
-  if (!auth) return jsonError('Unauthorized', 401) as unknown as Response;
-  if (auth instanceof Response) return auth;
-  const { user, supabase } = auth;
+async function getServerUser() {
+  const { userId, getToken } = await auth();
+  if (!userId) return null;
+  // Get Clerk's Supabase JWT token for RLS
+  const supabaseToken = await getToken({ template: 'supabase' });
+  const supabase = await getAuthenticatedClient(supabaseToken || '');
+  return { userId, supabase };
+}
+
+type CreateGrowInput = {
+  title: string;
+  strain_id: string | null;
+  grow_type: string;
+  start_date: string;
+  is_public: boolean;
+};
+
+type ServerActionResult = {
+  success: boolean;
+  data?: { grow: unknown };
+  error?: { message: string; code?: string; details?: unknown };
+};
+
+export async function createGrow(input: CreateGrowInput): Promise<ServerActionResult> {
+  const server = await getServerUser();
+  if (!server) return { success: false, error: { message: 'Unauthorized' } };
+  const { userId, supabase } = server;
 
   try {
-    const body = await request.json();
-    const { title, strain_id, grow_type, start_date, is_public = true } = body;
+    const { title, strain_id, grow_type, start_date, is_public = true } = input;
 
-    if (!title?.trim()) return jsonError('Title is required', 400) as Response;
+    if (!title?.trim()) return { success: false, error: { message: 'Title is required' } };
     if (!grow_type || !['indoor', 'outdoor', 'greenhouse'].includes(grow_type)) {
-      return jsonError('Valid grow_type is required', 400) as Response;
+      return { success: false, error: { message: 'Valid grow_type is required' } };
     }
+
+    console.log('[createGrow] Attempting insert:', { userId, title: title.trim(), strain_id, grow_type, start_date, is_public });
 
     const { data: grow, error } = await supabase
       .from('grows')
       .insert({
-        user_id: user.id,
+        user_id: userId,
         title: title.trim(),
         strain_id: strain_id || null,
         grow_type,
         start_date: start_date || new Date().toISOString().split('T')[0],
         is_public,
         status: 'active',
+        organization_id: null,
       })
       .select()
       .single();
 
-    if (error) return jsonError('Failed to create grow', 500, error.code, error.message) as Response;
-    return jsonSuccess({ grow }) as Response;
+    if (error) {
+      console.error('[createGrow] Supabase error:', JSON.stringify(error, null, 2));
+      return { success: false, error: { message: 'Failed to create grow', code: error.code, details: error.message } };
+    }
+    return { success: true, data: { grow } };
   } catch (e) {
     console.error('createGrow error:', e);
-    return jsonError('Invalid request body', 400) as Response;
+    return { success: false, error: { message: 'Invalid request body' } };
   }
 }
 
 export async function addPlantToGrow(request: Request): Promise<Response> {
-  const auth = await authenticateRequest(request, getAuthenticatedClient);
-  if (!auth) return jsonError('Unauthorized', 401) as unknown as Response;
-  if (auth instanceof Response) return auth;
-  const { user, supabase } = auth;
+  const server = await getServerUser();
+  if (!server) return jsonError('Unauthorized', 401) as unknown as Response;
+  const { userId, supabase } = server;
 
   try {
     const body = await request.json();
@@ -58,7 +85,7 @@ export async function addPlantToGrow(request: Request): Promise<Response> {
     const { count: activeCount } = await supabase
       .from('plants')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .in('status', ['seedling', 'vegetative', 'flowering', 'flushing']);
 
     if (activeCount !== null && activeCount >= 3) {
@@ -74,7 +101,7 @@ export async function addPlantToGrow(request: Request): Promise<Response> {
       .from('plants')
       .insert({
         grow_id,
-        user_id: user.id,
+        user_id: userId,
         plant_name: plant_name.trim(),
         strain_id: strain_id || null,
         status: 'seedling',
@@ -92,10 +119,9 @@ export async function addPlantToGrow(request: Request): Promise<Response> {
 }
 
 export async function updatePlantStatus(request: Request): Promise<Response> {
-  const auth = await authenticateRequest(request, getAuthenticatedClient);
-  if (!auth) return jsonError('Unauthorized', 401) as unknown as Response;
-  if (auth instanceof Response) return auth;
-  const { user, supabase } = auth;
+  const server = await getServerUser();
+  if (!server) return jsonError('Unauthorized', 401) as unknown as Response;
+  const { userId, supabase } = server;
 
   try {
     const body = await request.json();
@@ -115,7 +141,7 @@ export async function updatePlantStatus(request: Request): Promise<Response> {
       .single();
 
     if (!existing) return jsonError('Plant not found', 404) as Response;
-    if (existing.user_id !== user.id) return jsonError('Forbidden', 403) as Response;
+    if (existing.user_id !== userId) return jsonError('Forbidden', 403) as Response;
 
     // KCanG § 9: Check limit when moving TO active status
     if (['seedling', 'vegetative', 'flowering', 'flushing'].includes(status) &&
@@ -123,7 +149,7 @@ export async function updatePlantStatus(request: Request): Promise<Response> {
       const { count: activeCount } = await supabase
         .from('plants')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .in('status', ['seedling', 'vegetative', 'flowering', 'flushing']);
 
       if (activeCount !== null && activeCount >= 3) {
@@ -155,10 +181,9 @@ export async function updatePlantStatus(request: Request): Promise<Response> {
 }
 
 export async function addGrowLogEntry(request: Request): Promise<Response> {
-  const auth = await authenticateRequest(request, getAuthenticatedClient);
-  if (!auth) return jsonError('Unauthorized', 401) as unknown as Response;
-  if (auth instanceof Response) return auth;
-  const { user, supabase } = auth;
+  const server = await getServerUser();
+  if (!server) return jsonError('Unauthorized', 401) as unknown as Response;
+  const { userId, supabase } = server;
 
   try {
     const body = await request.json();
@@ -167,7 +192,7 @@ export async function addGrowLogEntry(request: Request): Promise<Response> {
     if (!grow_id) return jsonError('grow_id is required', 400) as Response;
     if (!entry_type) return jsonError('entry_type is required', 400) as Response;
 
-    const validTypes: GrowEntryType[] = ['watering', 'feeding', 'note', 'photo', 'ph_ec', 'dli', 'milestone'];
+    const validTypes = ['watering', 'feeding', 'note', 'photo', 'ph_ec', 'dli', 'milestone'];
     if (!validTypes.includes(entry_type)) {
       return jsonError(`entry_type must be one of: ${validTypes.join(', ')}`, 400) as Response;
     }
@@ -184,7 +209,7 @@ export async function addGrowLogEntry(request: Request): Promise<Response> {
       .single();
 
     if (!grow) return jsonError('Grow not found', 404) as Response;
-    if (grow.user_id !== user.id) return jsonError('Forbidden', 403) as Response;
+    if (grow.user_id !== userId) return jsonError('Forbidden', 403) as Response;
 
     // Calculate DLI if entry_type is dli
     let finalContent = content || {};
@@ -196,7 +221,7 @@ export async function addGrowLogEntry(request: Request): Promise<Response> {
       .from('grow_entries')
       .insert({
         grow_id,
-        user_id: user.id,
+        user_id: userId,
         plant_id: plant_id || null,
         entry_type,
         content: finalContent,
