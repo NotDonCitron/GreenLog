@@ -53,7 +53,6 @@ export async function createGrow(input: CreateGrowInput): Promise<ServerActionRe
         start_date: start_date || new Date().toISOString().split('T')[0],
         is_public,
         status: 'active',
-        organization_id: null,
       })
       .select()
       .single();
