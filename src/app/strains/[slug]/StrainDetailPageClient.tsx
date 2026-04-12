@@ -414,7 +414,7 @@ export default function StrainDetailPageClient() {
       });
 
       setHasCollected(true);
-      toastSuccess("Eintrag gespeichert. 📤 Analysedaten teilen", {
+      toastSuccess("Eintrag gespeichert: Teilen", {
         label: "Teilen",
         onClick: () => setShowShareModal(true),
       });
@@ -635,9 +635,6 @@ export default function StrainDetailPageClient() {
                   <div className="absolute bottom-2 left-2 border bg-black/70 backdrop-blur-md uppercase text-[9px] px-2 py-1 rounded-sm font-bold" style={{ borderColor: themeColor, color: themeColor }}>{strain.type || 'HYBRID'}</div>
                 </div>
               </div>
-              <div className="px-5 mt-2">
-                <MatchScoreBadge strainId={strain.id} strainName={strain.name} />
-              </div>
               {strain.image_attribution && strain.image_attribution.source !== 'none' && (
                 <p className="text-xs text-gray-500 mt-1">
                   Foto: {strain.image_attribution?.author} · {strain.image_attribution?.license}
@@ -736,6 +733,10 @@ export default function StrainDetailPageClient() {
               </div>
             </Card>
           </div>
+        </div>
+
+        <div className="w-full max-w-[340px] mt-4">
+          <MatchScoreBadge strainId={strain.id} strainName={strain.name} />
         </div>
 
         <div className="w-full max-w-[340px] mt-10">
