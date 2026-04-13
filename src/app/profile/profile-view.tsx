@@ -427,6 +427,7 @@ export default function ProfilePage() {
     });
   };
 
+  // Show loading while auth is hydrating
   if (loading || isLoading) return (
     <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
       <div className="relative">
