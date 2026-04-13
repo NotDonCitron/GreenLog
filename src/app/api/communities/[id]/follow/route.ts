@@ -7,7 +7,7 @@ type RouteParams = { params: Promise<{ id: string }> };
 export async function GET(request: Request, { params }: RouteParams) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (!auth) return;
-    if (auth instanceof Response) return;
+    if (auth instanceof Response) return auth;
     const { user, supabase } = auth;
     const { id: organizationId } = await params;
 
@@ -29,7 +29,7 @@ export async function GET(request: Request, { params }: RouteParams) {
 export async function POST(request: Request, { params }: RouteParams) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (!auth) return;
-    if (auth instanceof Response) return;
+    if (auth instanceof Response) return auth;
     const { user, supabase } = auth;
     const { id: organizationId } = await params;
 

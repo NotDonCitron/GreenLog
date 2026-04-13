@@ -6,7 +6,7 @@ import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response"
 export async function PATCH(request: Request) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (!auth) return;
-    if (auth instanceof Response) return;
+    if (auth instanceof Response) return auth;
     const { user, supabase } = auth;
 
     const body = await request.json();
