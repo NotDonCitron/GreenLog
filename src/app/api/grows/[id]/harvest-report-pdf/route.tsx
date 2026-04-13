@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient as createClient } from '@/lib/supabase/server';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { jsPDF } from 'jspdf';
