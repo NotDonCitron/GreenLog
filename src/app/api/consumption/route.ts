@@ -67,9 +67,14 @@ export async function GET(request: NextRequest) {
 
 // POST /api/consumption - Log a consumption
 export async function POST(request: NextRequest) {
-  // Auth check
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get('sb-access-token')?.value;
+  // Auth check — cookies() MUST be in try/catch for Edge Runtime
+  let accessToken: string | undefined;
+  try {
+    const cookieStore = await cookies();
+    accessToken = cookieStore.get('sb-access-token')?.value;
+  } catch (err) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   if (!accessToken) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
