@@ -4,7 +4,7 @@ import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response"
 export async function POST(request: Request) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (!auth) return;
-    if (auth instanceof Response) return;
+    if (auth instanceof Response) return auth;
     const { user, supabase } = auth;
 
     const body = await request.json();
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (!auth) return;
-    if (auth instanceof Response) return;
+    if (auth instanceof Response) return auth;
     const { user, supabase } = auth;
 
     const { data: memberships, error } = await supabase
