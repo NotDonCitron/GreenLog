@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient as createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +11,24 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get('limit') || '30');
   const offset = parseInt(searchParams.get('offset') || '0');
 
-  const supabase = createClient();
+  // Auth check
+  let accessToken: string | undefined;
+  try {
+    const cookieStore = await cookies();
+    accessToken = cookieStore.get('sb-access-token')?.value;
+  } catch (err) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!accessToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  let supabase;
+  try {
+    supabase = createClient();
+  } catch (err) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   let query = supabase
     .from('consumption_logs')
@@ -49,7 +67,19 @@ export async function GET(request: NextRequest) {
 
 // POST /api/consumption - Log a consumption
 export async function POST(request: NextRequest) {
-  const supabase = createClient();
+  // Auth check
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('sb-access-token')?.value;
+  if (!accessToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  let supabase;
+  try {
+    supabase = createClient();
+  } catch (err) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   const {
     strain_id,

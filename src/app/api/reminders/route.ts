@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient as createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,9 +9,26 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const growId = searchParams.get('grow_id');
   const status = searchParams.get('status'); // 'pending' | 'completed' | 'all'
-  
-  const supabase = createClient();
-  
+
+  // Auth check — cookies() MUST be in try/catch for Edge Runtime
+  let accessToken: string | undefined;
+  try {
+    const cookieStore = await cookies();
+    accessToken = cookieStore.get('sb-access-token')?.value;
+  } catch (err) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!accessToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  let supabase;
+  try {
+    supabase = createClient();
+  } catch (err) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   let query = supabase
     .from('grow_reminders')
     .select('*, grows(title, strain_id)')
@@ -38,8 +56,25 @@ export async function GET(request: NextRequest) {
 
 // POST /api/reminders - Create a reminder
 export async function POST(request: NextRequest) {
-  const supabase = createClient();
-  
+  // Auth check — cookies() MUST be in try/catch for Edge Runtime
+  let accessToken: string | undefined;
+  try {
+    const cookieStore = await cookies();
+    accessToken = cookieStore.get('sb-access-token')?.value;
+  } catch (err) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!accessToken) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  let supabase;
+  try {
+    supabase = createClient();
+  } catch (err) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const {
     grow_id,
     reminder_type,
