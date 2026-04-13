@@ -85,7 +85,7 @@ function FeedLoading() {
 }
 
 function FeedContent() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -337,7 +337,12 @@ function FeedContent() {
       <div className="pull-refresh px-4 mt-6 relative z-10 pb-24">
         <StatsBar />
         {/* Für dich - All public activities */}
-        {activeTab === "foryou" && !user && (
+        {activeTab === "foryou" && loading && (
+          <div className="text-center py-12 space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-[#00F5FF] mx-auto" />
+          </div>
+        )}
+        {activeTab === "foryou" && !loading && !user && (
           <div className="text-center py-12 space-y-4">
             <div className="w-16 h-16 rounded-full bg-[var(--muted)] flex items-center justify-center mx-auto">
               <Users size={24} className="text-[var(--muted-foreground)]" />
@@ -358,7 +363,12 @@ function FeedContent() {
         )}
 
         {/* Following - Only followed users */}
-        {activeTab === "following" && !user && (
+        {activeTab === "following" && loading && (
+          <div className="text-center py-12 space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-[#00F5FF] mx-auto" />
+          </div>
+        )}
+        {activeTab === "following" && !loading && !user && (
           <div className="text-center py-12 space-y-4">
             <div className="w-16 h-16 rounded-full bg-[var(--muted)] flex items-center justify-center mx-auto">
               <Users size={24} className="text-[var(--muted-foreground)]" />
@@ -473,7 +483,12 @@ function FeedContent() {
         )}
 
         {/* Discover - Enhanced with friends view from /discover */}
-        {activeTab === "discover" && !user && (
+        {activeTab === "discover" && loading && (
+          <div className="text-center py-12 space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-[#00F5FF] mx-auto" />
+          </div>
+        )}
+        {activeTab === "discover" && !loading && !user && (
           <div className="text-center py-12 space-y-4">
             <div className="w-16 h-16 rounded-full bg-[var(--muted)] flex items-center justify-center mx-auto">
               <Compass size={24} className="text-[var(--muted-foreground)]" />
