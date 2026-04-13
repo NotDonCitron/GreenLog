@@ -73,6 +73,29 @@ export async function GET(
           </div>
         </div>
 
+        {/* PROMINENT DISCLAIMER - Legal Warning at Top */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          padding: '16px 20px',
+          background: 'linear-gradient(135deg, #FF6B0008 0%, #FF000008 100%)',
+          border: '1px solid #FF6B0030',
+          borderRadius: '12px',
+          marginBottom: '24px',
+        }}>
+          <span style={{ fontSize: '28px', lineHeight: 1 }}>⚠️</span>
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: '#FF6B00', letterSpacing: '0.15em', marginBottom: '4px' }}>
+              ERNTE-DOKUMENTATION — PRIVAT
+            </div>
+            <div style={{ fontSize: '12px', color: '#aaaaaa', lineHeight: 1.5 }}>
+              Ausschliesslich zur persönlichen Dokumentation. Kein Handel, keine Weitergabe an Dritte. 
+              <span style={{ color: '#FF6B00', fontWeight: '700' }}> (§ 9 Abs. 2 KCanG)</span>
+            </div>
+          </div>
+        </div>
+
         {/* Title */}
         <div style={{ fontSize: '48px', fontWeight: '900', letterSpacing: '-0.03em', marginBottom: '20px' }}>
           {grow.title}
@@ -140,10 +163,10 @@ export async function GET(
           </div>
         )}
 
-        {/* Footer / Disclaimer */}
-        <div style={{ marginTop: 'auto', paddingTop: '30px', borderTop: '1px solid #333333' }}>
-          <div style={{ fontSize: '12px', color: '#666666', lineHeight: '1.6' }}>
-            Dient ausschliesslich dem Wissensaustausch und der Dokumentation. Kein Handel oder Gewinnabsicht. Der Handel oder die Weitergabe von privat angebautem Cannabis an Dritte ist gesetzlich verboten (§ 9 Abs. 2 KCanG).
+        {/* Footer / Disclaimer - smaller since top disclaimer exists */}
+        <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid #222222' }}>
+          <div style={{ fontSize: '10px', color: '#555555', lineHeight: 1.5 }}>
+            Dokumentationszweck. Keine Rechts- oder Handelsaussage. Rangfolge: deutsches Recht.
           </div>
         </div>
       </div>

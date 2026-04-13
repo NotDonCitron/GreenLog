@@ -10,7 +10,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
     Loader2, ChevronLeft, Sprout, Calendar, Leaf, Eye,
-    Users, MessageSquare, Clock, Droplet, Leaf2, Camera
+    Users, MessageSquare, Clock, Droplet, Leaf2, Camera,
+    Droplets, Sun
 } from "lucide-react";
 import Link from "next/link";
 import { PhaseBadge } from "@/components/grows";
