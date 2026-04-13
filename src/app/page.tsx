@@ -134,8 +134,9 @@ function AgeGateWrapper({ children }: { children: React.ReactNode }) {
   const [ageVerified, setAgeVerified] = useState<boolean | null>(null);
 
   useEffect(() => {
+    // Synchronous read from localStorage - no setTimeout needed
     const stored = localStorage.getItem(AGE_VERIFIED_KEY);
-    setTimeout(() => setAgeVerified(stored === "true"), 0);
+    setAgeVerified(stored === "true");
   }, []);
 
   if (ageVerified === null) {
