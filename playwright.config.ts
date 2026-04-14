@@ -17,12 +17,8 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: process.env.CI
-    ? undefined
-    : {
-        command: "npm run dev",
-        url: "http://localhost:3000",
-        reuseExistingServer: !process.env.CI,
-        timeout: 120 * 1000,
-      },
+  webServer: undefined, // Dev server already running on port 3000
+  // Point to global setup which calls clerkSetup() from @clerk/testing
+  // to bypass Cloudflare Turnstile during localhost E2E tests
+  globalSetup: require.resolve("./tests/global.setup.ts"),
 });
