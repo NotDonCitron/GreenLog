@@ -8,7 +8,7 @@
 
 DO $$
 DECLARE
-  test_user_id TEXT := 'user_3CIDpuez504b2VngAliYVSbWpB4'; -- clerk test user
+  test_user_id TEXT := 'user_3CHzbsV9PpWGJYNfMifUxR5mlox'; -- clerk test user (playwright-test-final@example.com)
   test_strain_id UUID;
   test_grow_id UUID := '11111111-1111-1111-1111-111111111111';
   plant1_id UUID := '22222222-2222-2222-2222-222222222222';
