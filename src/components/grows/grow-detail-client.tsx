@@ -25,7 +25,6 @@ interface Props {
   initialReminders: unknown[];
   initialComments: unknown[];
   initialFollowerCount: number;
-  growId: string;
 }
 
 export function GrowDetailClient({
@@ -36,8 +35,8 @@ export function GrowDetailClient({
   initialReminders,
   initialComments,
   initialFollowerCount,
-  growId,
 }: Props) {
+  const growId = initialGrow.id;
   const { user } = useAuth();
   const { error: toastError, success: toastSuccess } = useToast();
 
