@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calculator, Sun } from 'lucide-react';
 import type { GrowPreset } from '@/lib/types';
 
@@ -25,6 +24,8 @@ export function DLICalculator({ onCalculate, initialPPFD, initialLightHours }: D
   const [ppfd, setPpfd] = useState(initialPPFD?.toString() || '700');
   const [lightHours, setLightHours] = useState(initialLightHours?.toString() || '18');
   const [dli, setDli] = useState<number | null>(null);
+  const onCalculateRef = useRef(onCalculate);
+  onCalculateRef.current = onCalculate;
 
   useEffect(() => {
     async function loadPresets() {
@@ -43,8 +44,8 @@ export function DLICalculator({ onCalculate, initialPPFD, initialLightHours }: D
     const hoursNum = parseFloat(lightHours) || 0;
     const result = calculateDLI(ppfdNum, hoursNum);
     setDli(result);
-    if (onCalculate) onCalculate(result, ppfdNum, hoursNum);
-  }, [ppfd, lightHours, onCalculate]);
+    if (onCalculateRef.current) onCalculateRef.current(result, ppfdNum, hoursNum);
+  }, [ppfd, lightHours]);
 
   function handlePresetChange(presetId: string | null) {
     if (!presetId) return;
@@ -83,18 +84,18 @@ export function DLICalculator({ onCalculate, initialPPFD, initialLightHours }: D
           <Label className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-1 block">
             Preset laden
           </Label>
-          <Select value={selectedPreset} onValueChange={handlePresetChange}>
-            <SelectTrigger className="bg-[var(--background)] border border-[var(--border)]/50">
-              <SelectValue placeholder="Preset wählen..." />
-            </SelectTrigger>
-            <SelectContent>
-              {presets.map(preset => (
-                <SelectItem key={preset.id} value={preset.id}>
-                  {preset.name} ({preset.light_cycle})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            value={selectedPreset}
+            onChange={(e) => handlePresetChange(e.target.value)}
+            className="w-full h-10 px-3 bg-[var(--background)] border border-[var(--border)]/50 rounded-xl text-sm text-[var(--foreground)] focus:outline-none focus:border-[#2FF801]/50"
+          >
+            <option value="">Preset wählen...</option>
+            {presets.map(preset => (
+              <option key={preset.id} value={preset.id}>
+                {preset.name} ({preset.light_cycle})
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="grid grid-cols-2 gap-4">

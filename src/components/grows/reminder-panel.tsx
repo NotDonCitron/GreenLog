@@ -9,15 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase';
-import { Bell, Droplets, Leaf2, Repot, AlertTriangle, CheckCircle2, Clock, Plus, X } from 'lucide-react';
+import { Bell, Droplets, Leaf, Sprout, AlertTriangle, CheckCircle2, Clock, Plus, X } from 'lucide-react';
 
 const REMINDER_TYPE_CONFIG: Record<string, { icon: typeof Droplets; color: string; label: string }> = {
   water: { icon: Droplets, color: 'text-blue-400', label: 'Gießen' },
-  nutrient: { icon: Leaf2, color: 'text-green-400', label: 'Düngen' },
-  repot: { icon: Repot, color: 'text-orange-400', label: 'Umtopfen' },
+  nutrient: { icon: Leaf, color: 'text-green-400', label: 'Düngen' },
+  repot: { icon: Sprout, color: 'text-orange-400', label: 'Umtopfen' },
   ph_check: { icon: AlertTriangle, color: 'text-yellow-400', label: 'pH-Prüfung' },
   temp_check: { icon: AlertTriangle, color: 'text-red-400', label: 'Temperatur' },
-  defoliation: { icon: Leaf2, color: 'text-emerald-400', label: 'Entlaubung' },
+  defoliation: { icon: Leaf, color: 'text-emerald-400', label: 'Entlaubung' },
   harvest: { icon: Clock, color: 'text-purple-400', label: 'Ernte' },
   general: { icon: Bell, color: 'text-gray-400', label: 'Allgemein' },
 };

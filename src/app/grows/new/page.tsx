@@ -92,24 +92,17 @@ export default function NewGrowPage() {
     setError(null);
 
     try {
-      // Use server action instead of direct Supabase insert
-      const response = await createGrow(
-        new Request('http://localhost', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title,
-            strain_id: strainId || null,
-            grow_type: growType,
-            start_date: startDate,
-            is_public: isPublic
-          }),
-        })
-      );
+      // Use server action to create grow
+      const result = await createGrow({
+        title,
+        strain_id: strainId || null,
+        grow_type: growType,
+        start_date: startDate,
+        is_public: isPublic
+      });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error?.message || 'Failed to create grow');
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Failed to create grow');
       }
 
       await checkAndUnlockBadges(user.id, supabase);

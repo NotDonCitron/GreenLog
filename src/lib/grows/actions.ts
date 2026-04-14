@@ -6,12 +6,16 @@ import { jsonSuccess, jsonError } from '@/lib/api-response';
 import { calculateDLI, validateEntryContent } from './utils';
 
 async function getServerUser() {
-  const { userId, getToken } = await auth();
-  if (!userId) return null;
-  // Get Clerk token for Supabase (native integration - no template needed)
-  const supabaseToken = await getToken();
-  const supabase = await getAuthenticatedClient(supabaseToken || '');
-  return { userId, supabase };
+  try {
+    const { userId, getToken } = await auth();
+    if (!userId) return null;
+    const supabaseToken = await getToken();
+    const supabase = await getAuthenticatedClient(supabaseToken || '');
+    return { userId, supabase };
+  } catch (e: any) {
+    console.error('[getServerUser] error:', e?.message);
+    return null;
+  }
 }
 
 type CreateGrowInput = {
@@ -180,7 +184,13 @@ export async function updatePlantStatus(request: Request): Promise<Response> {
 }
 
 export async function addGrowLogEntry(request: Request): Promise<Response> {
-  const server = await getServerUser();
+  let server;
+  try {
+    server = await getServerUser();
+  } catch (e: any) {
+    console.error('[addGrowLogEntry] getServerUser threw:', e?.message);
+    return jsonError('Auth error: ' + e?.message, 401) as unknown as Response;
+  }
   if (!server) return jsonError('Unauthorized', 401) as unknown as Response;
   const { userId, supabase } = server;
 
@@ -203,7 +213,7 @@ export async function addGrowLogEntry(request: Request): Promise<Response> {
     // Verify user owns this grow
     const { data: grow } = await supabase
       .from('grows')
-      .select('user_id')
+      .select('user_id, organization_id')
       .eq('id', grow_id)
       .single();
 
@@ -220,6 +230,7 @@ export async function addGrowLogEntry(request: Request): Promise<Response> {
       .from('grow_entries')
       .insert({
         grow_id,
+        organization_id: grow.organization_id,
         user_id: userId,
         plant_id: plant_id || null,
         entry_type,
@@ -229,10 +240,13 @@ export async function addGrowLogEntry(request: Request): Promise<Response> {
       .select()
       .single();
 
-    if (error) return jsonError('Failed to add log entry', 500, error.code, error.message) as Response;
+    if (error) {
+      console.error('[addGrowLogEntry] Supabase error:', JSON.stringify(error));
+      return jsonError('Failed to add log entry', 500, error.code, error.message) as Response;
+    }
     return jsonSuccess({ entry }) as Response;
-  } catch (e) {
-    console.error('addGrowLogEntry error:', e);
+  } catch (e: any) {
+    console.error('[addGrowLogEntry] CATCH error:', e?.message);
     return jsonError('Invalid request body', 400) as Response;
   }
 }

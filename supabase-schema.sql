@@ -6,12 +6,20 @@
 
 -- =============================================
 -- 0. HELPER FUNCTIONS
--- Function to extract Clerk user ID from Supabase custom JWT
+-- Function to extract Clerk user ID from Supabase JWT
+-- Supports both: native Clerk->Supabase integration AND custom JWT templates
 CREATE OR REPLACE FUNCTION requesting_user_id()
-RETURNS TEXT AS $
-  SELECT NULLIF(current_setting('request.jwt.claims', true)::jsonb->>'sub', '')::TEXT;
-$ LANGUAGE SQL STABLE;
- (must be defined before tables that use them)
+RETURNS TEXT AS $$
+BEGIN
+  -- Try auth.jwt() first (works with Clerk native integration)
+  RETURN (auth.jwt() ->> 'sub')::TEXT;
+EXCEPTION WHEN OTHERS THEN
+  -- Fallback: try current_setting for custom JWT templates
+  RETURN NULLIF(current_setting('request.jwt.claims', true)::jsonb->>'sub', '')::TEXT;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- (must be defined before tables that use them)
 -- =============================================
 
 -- Helper function to check org membership without RLS recursion
@@ -424,12 +432,52 @@ CREATE POLICY "Users can delete own grows"
 
 
 -- =============================================
+-- 9b. PLANTS (Einzelne Pflanzen in einem Grow)
+-- =============================================
+CREATE TABLE plants (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  grow_id UUID REFERENCES grows(id) ON DELETE CASCADE NOT NULL,
+  user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  plant_name TEXT NOT NULL,
+  strain_id UUID REFERENCES strains(id) ON DELETE SET NULL,
+  status TEXT CHECK (status IN ('seedling', 'vegetative', 'flowering', 'flushing', 'harvested', 'destroyed')) DEFAULT 'seedling',
+  planted_at TIMESTAMPTZ DEFAULT now(),
+  harvested_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE plants ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own plants"
+  ON plants FOR SELECT USING (requesting_user_id() = user_id);
+
+CREATE POLICY "Users can create own plants"
+  ON plants FOR INSERT WITH CHECK (requesting_user_id() = user_id);
+
+CREATE POLICY "Users can update own plants"
+  ON plants FOR UPDATE USING (requesting_user_id() = user_id);
+
+CREATE POLICY "Users can delete own plants"
+  ON plants FOR DELETE USING (requesting_user_id() = user_id);
+
+CREATE INDEX idx_plants_grow ON plants(grow_id);
+CREATE INDEX idx_plants_user ON plants(user_id);
+CREATE INDEX idx_plants_status ON plants(status);
+
+
+-- =============================================
 -- 10. GROW ENTRIES (Tagebuch-Einträge)
 -- =============================================
 CREATE TABLE grow_entries (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   grow_id UUID REFERENCES grows(id) ON DELETE CASCADE NOT NULL,
+  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
   user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  plant_id UUID REFERENCES plants(id) ON DELETE SET NULL,
+  entry_type TEXT CHECK (entry_type IN ('watering', 'feeding', 'note', 'photo', 'ph_ec', 'dli', 'milestone')),
+  content JSONB DEFAULT '{}',
+  entry_date DATE DEFAULT CURRENT_DATE,
   day_number INT,
   title TEXT,
   notes TEXT,

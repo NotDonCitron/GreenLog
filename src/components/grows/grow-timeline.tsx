@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Droplets, Leaf2, Camera, Sun, Activity, Droplet, Thermometer, Clock } from 'lucide-react';
+import { Droplets, Leaf, Camera, Sun, Activity, Droplet, Thermometer, Clock } from 'lucide-react';
 import type { GrowEntry } from '@/lib/types';
 
 interface TimelineEntry {
@@ -101,7 +101,7 @@ export function GrowTimeline({ entries, onPhotoClick }: GrowTimelineProps) {
                   : 'bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)]'
               }`}>
                 {isFirst ? (
-                  <Leaf2 size={12} />
+                  <Leaf size={12} />
                 ) : (
                   <span className="text-[10px] font-bold">{day.day_number}</span>
                 )}
@@ -141,7 +141,7 @@ export function GrowTimeline({ entries, onPhotoClick }: GrowTimelineProps) {
                   )}
                   {day.hasFeed && (
                     <div className="flex items-center gap-1 text-green-400" title="Gedüngt">
-                      <Leaf2 size={12} />
+                      <Leaf size={12} />
                       <span className="text-[10px]">🌿</span>
                     </div>
                   )}

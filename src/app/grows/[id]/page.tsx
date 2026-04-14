@@ -14,7 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import {
     Loader2, ChevronLeft, Sprout, Calendar, Edit2, Trash2,
     CheckCircle2, XCircle, Plus, Leaf, Droplets, Sun, Wind, Upload,
-    Eye, EyeOff, Users, MessageSquare, Clock, Droplet, Leaf2, Camera
+    Eye, EyeOff, Users, MessageSquare, Clock, Droplet, Camera
 } from "lucide-react";
 import Link from "next/link";
 import { checkAndUnlockBadges } from "@/lib/badges";
@@ -43,7 +43,7 @@ const NEXT_STATUS: Partial<Record<PlantStatus, PlantStatus>> = {
 // Entry type icons
 const ENTRY_ICONS: Record<string, typeof Droplet> = {
     watering: Droplet,
-    feeding: Leaf2,
+    feeding: Leaf,
     note: MessageSquare,
     photo: Camera,
     ph_ec: Droplets,

@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
     Loader2, ChevronLeft, Sprout, Calendar, Leaf, Eye,
-    Users, MessageSquare, Clock, Droplet, Leaf2, Camera,
+    Users, MessageSquare, Clock, Droplet, Camera,
     Droplets, Sun
 } from "lucide-react";
 import Link from "next/link";
@@ -22,7 +22,7 @@ const ACTIVE_STATUSES: PlantStatus[] = ['seedling', 'vegetative', 'flowering', '
 
 const ENTRY_ICONS: Record<string, typeof Droplet> = {
     watering: Droplet,
-    feeding: Leaf2,
+    feeding: Leaf,
     note: MessageSquare,
     photo: Camera,
     ph_ec: Droplets,
