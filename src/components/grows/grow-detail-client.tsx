@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import type { GrowComment } from '@/lib/types';
 import { useAuth } from '@/components/auth-provider';
 import { useToast } from '@/components/toast-provider';
 import { supabase } from '@/lib/supabase/client';
@@ -53,6 +54,7 @@ export function GrowDetailClient({
   const [isAddingPlant, setIsAddingPlant] = useState(false);
   const [newPlantName, setNewPlantName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   // Modal state
   const [logModalOpen, setLogModalOpen] = useState(false);
@@ -134,6 +136,30 @@ export function GrowDetailClient({
     }
   };
 
+  // Photo lightbox
+  const handlePhotoClick = useCallback((url: string) => {
+    setLightboxUrl(url);
+  }, []);
+
+  // Add comment to an entry
+  const handleAddComment = useCallback(async (entryId: string, text: string) => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('grow_comments')
+        .insert({ grow_entry_id: entryId, user_id: user.id, comment: text })
+        .select('*, profiles(id, username, display_name, avatar_url)')
+        .single();
+      if (error) throw error;
+      if (data) {
+        setLocalComments(prev => [...prev, data]);
+      }
+      toastSuccess('Kommentar hinzugefügt');
+    } catch (e) {
+      toastError('Fehler beim Hinzufügen des Kommentars');
+    }
+  }, [user, toastSuccess]);
+
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
       {/* Ambient glow */}
@@ -199,7 +225,8 @@ export function GrowDetailClient({
         <TimelineSection
           entries={entries}
           comments={localComments as any}
-          onPhotoClick={() => {}}
+          onPhotoClick={handlePhotoClick}
+          onAddComment={handleAddComment}
         />
 
         <ReminderPanelCompact
@@ -210,6 +237,27 @@ export function GrowDetailClient({
       </div>
 
       <BottomNav />
+
+      {/* Photo lightbox */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white/70 hover:text-white text-2xl font-bold"
+            onClick={() => setLightboxUrl(null)}
+          >
+            ×
+          </button>
+          <img
+            src={lightboxUrl}
+            alt=""
+            className="max-w-full max-h-full object-contain rounded-lg"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       {logModalOpen && (
         <LogEntryModal
