@@ -5,18 +5,14 @@ import { supabase } from '@/lib/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calculator, Sun } from 'lucide-react';
 import type { GrowPreset } from '@/lib/types';
+import { calculateDLI } from '@/lib/grows/dli-utils';
 
 interface DLICalculatorProps {
   onCalculate?: (dli: number, ppfd: number, lightHours: number) => void;
   initialPPFD?: number;
   initialLightHours?: number;
-}
-
-function calculateDLI(ppfd: number, lightHours: number): number {
-  return Math.round(ppfd * lightHours * 0.0036 * 100) / 100;
 }
 
 export function DLICalculator({ onCalculate, initialPPFD, initialLightHours }: DLICalculatorProps) {
@@ -43,8 +39,18 @@ export function DLICalculator({ onCalculate, initialPPFD, initialLightHours }: D
     const hoursNum = parseFloat(lightHours) || 0;
     const result = calculateDLI(ppfdNum, hoursNum);
     setDli(result);
-    if (onCalculate) onCalculate(result, ppfdNum, hoursNum);
-  }, [ppfd, lightHours, onCalculate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ppfd, lightHours]); // intentionally exclude onCalculate to prevent infinite loop
+
+  // Separate effect to call onCalculate only when values actually change
+  useEffect(() => {
+    if (onCalculate && dli !== null) {
+      const ppfdNum = parseInt(ppfd) || 0;
+      const hoursNum = parseFloat(lightHours) || 0;
+      onCalculate(dli, ppfdNum, hoursNum);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dli]);
 
   function handlePresetChange(presetId: string | null) {
     if (!presetId) return;
@@ -83,18 +89,18 @@ export function DLICalculator({ onCalculate, initialPPFD, initialLightHours }: D
           <Label className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-1 block">
             Preset laden
           </Label>
-          <Select value={selectedPreset} onValueChange={handlePresetChange}>
-            <SelectTrigger className="bg-[var(--background)] border border-[var(--border)]/50">
-              <SelectValue placeholder="Preset wählen..." />
-            </SelectTrigger>
-            <SelectContent>
-              {presets.map(preset => (
-                <SelectItem key={preset.id} value={preset.id}>
-                  {preset.name} ({preset.light_cycle})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            value={selectedPreset}
+            onChange={(e) => handlePresetChange(e.target.value || null)}
+            className="w-full h-10 px-3 bg-[var(--background)] border border-[var(--border)]/50 rounded-xl text-sm text-[var(--foreground)] focus:outline-none focus:border-[#2FF801]/50"
+          >
+            <option value="">Preset wählen...</option>
+            {presets.map(preset => (
+              <option key={preset.id} value={preset.id}>
+                {preset.name} ({preset.light_cycle})
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="grid grid-cols-2 gap-4">

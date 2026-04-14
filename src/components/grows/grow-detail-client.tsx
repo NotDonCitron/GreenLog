@@ -37,7 +37,7 @@ export function GrowDetailClient({
   initialFollowerCount,
 }: Props) {
   const growId = initialGrow.id;
-  const { user } = useAuth();
+  const { user, isDemoMode } = useAuth();
   const { error: toastError, success: toastSuccess } = useToast();
 
   // Local state for optimistic updates
@@ -69,17 +69,31 @@ export function GrowDetailClient({
     setLogModalOpen(true);
   }, []);
 
-  const onEntryAdded = useCallback(async () => {
+  const onEntryAdded = useCallback(async (entryType: GrowEntryType, content: Record<string, unknown>) => {
     setLogModalOpen(false);
-    // Refetch entries
-    const { data } = await supabase
-      .from('grow_entries')
-      .select('*')
-      .eq('grow_id', growId)
-      .order('created_at', { ascending: false });
-    if (data) setEntries(data);
-    toastSuccess('Eintrag hinzugefügt');
-  }, [growId, toastSuccess]);
+    if (isDemoMode) {
+      // In demo mode, add a local entry to entries state
+      const newEntry: GrowEntry = {
+        id: `demo-${Date.now()}`,
+        grow_id: growId,
+        entry_type: entryType,
+        content,
+        created_at: new Date().toISOString(),
+        day_number: 1,
+      };
+      setEntries(prev => [newEntry, ...prev]);
+      toastSuccess('Eintrag hinzugefügt');
+    } else {
+      // Refetch entries from Supabase
+      const { data } = await supabase
+        .from('grow_entries')
+        .select('*')
+        .eq('grow_id', growId)
+        .order('created_at', { ascending: false });
+      if (data) setEntries(data);
+      toastSuccess('Eintrag hinzugefügt');
+    }
+  }, [growId, isDemoMode, toastSuccess]);
 
   const handleAddPlant = async () => {
     if (!newPlantName.trim()) return;
@@ -142,6 +156,20 @@ export function GrowDetailClient({
 
   // Add comment to an entry
   const handleAddComment = useCallback(async (entryId: string, text: string) => {
+    // In demo mode, add a local comment
+    if (isDemoMode) {
+      const newComment = {
+        id: `demo-comment-${Date.now()}`,
+        grow_entry_id: entryId,
+        user_id: 'demo-user',
+        comment: text,
+        created_at: new Date().toISOString(),
+        profiles: { display_name: 'Demo User', username: 'demo', avatar_url: null },
+      };
+      setLocalComments(prev => [...prev, newComment]);
+      toastSuccess('Kommentar hinzugefügt');
+      return;
+    }
     if (!user) return;
     try {
       const { data, error } = await supabase
@@ -157,7 +185,25 @@ export function GrowDetailClient({
     } catch (e) {
       toastError('Fehler beim Hinzufügen des Kommentars');
     }
-  }, [user, toastSuccess]);
+  }, [user, isDemoMode, toastSuccess]);
+
+  const handleDeleteEntry = useCallback(async (entryId: string) => {
+    if (isDemoMode) {
+      setEntries(prev => prev.filter(e => e.id !== entryId));
+      setLocalComments(prev => prev.filter(c => c.grow_entry_id !== entryId));
+      toastSuccess('Eintrag gelöscht');
+      return;
+    }
+    try {
+      const { error } = await supabase.from('grow_entries').delete().eq('id', entryId);
+      if (error) throw error;
+      setEntries(prev => prev.filter(e => e.id !== entryId));
+      setLocalComments(prev => prev.filter(c => c.grow_entry_id !== entryId));
+      toastSuccess('Eintrag gelöscht');
+    } catch {
+      toastError('Fehler beim Löschen');
+    }
+  }, [isDemoMode, toastSuccess, toastError]);
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
@@ -226,6 +272,7 @@ export function GrowDetailClient({
           comments={localComments as any}
           onPhotoClick={handlePhotoClick}
           onAddComment={handleAddComment}
+          onDeleteEntry={handleDeleteEntry}
         />
 
         <ReminderPanelCompact
