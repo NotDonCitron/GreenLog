@@ -80,3 +80,4 @@ scripts/test-upload-check.mjs
 # clerk configuration (can include secrets)
 /.clerk/
 .next_old/
+.worktrees/
