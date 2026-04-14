@@ -8,6 +8,9 @@ test.describe('Timeline Entry — Expand + Comment Form', () => {
 
   test.beforeEach(async ({ page }) => {
     await setupClerkTestingToken({ page });
+    // Clerk redirects to sign-in, accept cookie + age gate then navigate directly to grows
+    await page.goto('/grows', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2000);
 
     // Handle age gate
     const yearSelect = page.locator('select').first();
@@ -21,14 +24,6 @@ test.describe('Timeline Entry — Expand + Comment Form', () => {
     const cookieBtn = page.getByRole('button', { name: /Alle akzeptieren/i });
     if (await cookieBtn.isVisible()) await cookieBtn.click();
   });
-
-  test('should expand timeline entry and show comment form', async ({ page }) => {
-    // Step 1: Login
-    await page.goto('/login');
-    await page.getByPlaceholder(/email/i).fill(TEST_USER_EMAIL);
-    await page.getByPlaceholder(/passwort/i).fill(TEST_USER_PASSWORD);
-    await page.getByRole('button', { name: /continue|weiter|login|anmelden/i }).click();
-    await page.waitForTimeout(3000);
 
     // Step 2: Navigate to grows list, click first grow
     await page.goto('/grows', { waitUntil: 'domcontentloaded' });
@@ -88,12 +83,6 @@ test.describe('Timeline Entry — Expand + Comment Form', () => {
   });
 
   test('timeline entries are grouped by day', async ({ page }) => {
-    // Login
-    await page.goto('/login');
-    await page.getByPlaceholder(/email/i).fill(TEST_USER_EMAIL);
-    await page.getByPlaceholder(/passwort/i).fill(TEST_USER_PASSWORD);
-    await page.getByRole('button', { name: /continue/i }).click();
-    await page.waitForTimeout(3000);
 
     // Navigate to grows
     await page.goto('/grows', { waitUntil: 'domcontentloaded' });
