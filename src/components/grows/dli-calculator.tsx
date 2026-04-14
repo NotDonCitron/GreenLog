@@ -1,21 +1,18 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Calculator, Sun } from 'lucide-react';
 import type { GrowPreset } from '@/lib/types';
+import { calculateDLI } from '@/lib/grows/dli-utils';
 
 interface DLICalculatorProps {
   onCalculate?: (dli: number, ppfd: number, lightHours: number) => void;
   initialPPFD?: number;
   initialLightHours?: number;
-}
-
-function calculateDLI(ppfd: number, lightHours: number): number {
-  return Math.round(ppfd * lightHours * 0.0036 * 100) / 100;
 }
 
 export function DLICalculator({ onCalculate, initialPPFD, initialLightHours }: DLICalculatorProps) {
@@ -24,8 +21,6 @@ export function DLICalculator({ onCalculate, initialPPFD, initialLightHours }: D
   const [ppfd, setPpfd] = useState(initialPPFD?.toString() || '700');
   const [lightHours, setLightHours] = useState(initialLightHours?.toString() || '18');
   const [dli, setDli] = useState<number | null>(null);
-  const onCalculateRef = useRef(onCalculate);
-  onCalculateRef.current = onCalculate;
 
   useEffect(() => {
     async function loadPresets() {
@@ -44,8 +39,18 @@ export function DLICalculator({ onCalculate, initialPPFD, initialLightHours }: D
     const hoursNum = parseFloat(lightHours) || 0;
     const result = calculateDLI(ppfdNum, hoursNum);
     setDli(result);
-    if (onCalculateRef.current) onCalculateRef.current(result, ppfdNum, hoursNum);
-  }, [ppfd, lightHours]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ppfd, lightHours]); // intentionally exclude onCalculate to prevent infinite loop
+
+  // Separate effect to call onCalculate only when values actually change
+  useEffect(() => {
+    if (onCalculate && dli !== null) {
+      const ppfdNum = parseInt(ppfd) || 0;
+      const hoursNum = parseFloat(lightHours) || 0;
+      onCalculate(dli, ppfdNum, hoursNum);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dli]);
 
   function handlePresetChange(presetId: string | null) {
     if (!presetId) return;
@@ -86,7 +91,7 @@ export function DLICalculator({ onCalculate, initialPPFD, initialLightHours }: D
           </Label>
           <select
             value={selectedPreset}
-            onChange={(e) => handlePresetChange(e.target.value)}
+            onChange={(e) => handlePresetChange(e.target.value || null)}
             className="w-full h-10 px-3 bg-[var(--background)] border border-[var(--border)]/50 rounded-xl text-sm text-[var(--foreground)] focus:outline-none focus:border-[#2FF801]/50"
           >
             <option value="">Preset wählen...</option>

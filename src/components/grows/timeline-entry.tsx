@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Droplets, Leaf, Activity, Camera, Sun, Flag, FileText, ChevronDown } from 'lucide-react';
+import { Droplets, Leaf, Activity, Camera, Sun, Flag, FileText, ChevronDown, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { GrowEntry, GrowComment } from '@/lib/types';
 
@@ -45,9 +45,10 @@ interface Props {
   dayNumber: number;
   onPhotoClick?: (url: string) => void;
   onAddComment?: (entryId: string, text: string) => void;
+  onDeleteEntry?: (entryId: string) => void;
 }
 
-export function TimelineEntry({ entry, comments, isToday, dayNumber, onPhotoClick, onAddComment }: Props) {
+export function TimelineEntry({ entry, comments, isToday, dayNumber, onPhotoClick, onAddComment, onDeleteEntry }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [commentText, setCommentText] = useState('');
 
@@ -136,6 +137,16 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, onPhotoClic
                 size={12}
                 className={`text-[var(--muted-foreground)] transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`}
               />
+              {/* Delete button — only when expanded */}
+              {expanded && onDeleteEntry && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDeleteEntry(entry.id); }}
+                  className="p-1 text-red-400/60 hover:text-red-400 transition-colors"
+                  title="Eintrag löschen"
+                >
+                  <Trash2 size={12} />
+                </button>
+              )}
             </div>
           </div>
 

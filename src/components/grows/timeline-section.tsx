@@ -51,9 +51,10 @@ interface Props {
   comments: GrowComment[];
   onPhotoClick?: (url: string) => void;
   onAddComment?: (entryId: string, text: string) => void;
+  onDeleteEntry?: (entryId: string) => void;
 }
 
-export function TimelineSection({ entries, comments, onPhotoClick, onAddComment }: Props) {
+export function TimelineSection({ entries, comments, onPhotoClick, onAddComment, onDeleteEntry }: Props) {
   const days = groupByDay(entries, comments);
 
   if (entries.length === 0) {
@@ -130,6 +131,7 @@ export function TimelineSection({ entries, comments, onPhotoClick, onAddComment 
                     dayNumber={day.day_number}
                     onPhotoClick={onPhotoClick}
                     onAddComment={onAddComment}
+                    onDeleteEntry={onDeleteEntry}
                   />
                 ))}
               </div>
