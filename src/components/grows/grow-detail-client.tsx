@@ -266,6 +266,7 @@ export function GrowDetailClient({
           growId={growId}
           plantId={logModalPlantId}
           onEntryAdded={onEntryAdded}
+          defaultType={selectedLogType}
         />
       )}
     </main>

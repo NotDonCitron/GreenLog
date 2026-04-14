@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -14,9 +14,11 @@ import type { GrowEntryType } from '@/lib/types';
 interface LogEntryModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (entry_type: GrowEntryType, content: Record<string, unknown>) => void;
+  growId: string;
+  plantId?: string | null;
+  onEntryAdded: () => void;
   availableTypes?: GrowEntryType[];
-  defaultPlantId?: string;
+  defaultType?: GrowEntryType | null;
 }
 
 const ALL_TYPES: { value: GrowEntryType; label: string; icon: React.ReactNode }[] = [
@@ -31,9 +33,16 @@ const ALL_TYPES: { value: GrowEntryType; label: string; icon: React.ReactNode }[
 
 const MILESTONE_PHASES = ['germination', 'vegetation', 'flower', 'flush', 'harvest'];
 
-export function LogEntryModal({ open, onClose, onSubmit, availableTypes, defaultPlantId: _defaultPlantId }: LogEntryModalProps) {
+export function LogEntryModal({ open, onClose, growId, plantId, onEntryAdded, availableTypes, defaultType }: LogEntryModalProps) {
   const [selectedType, setSelectedType] = useState<GrowEntryType | null>(null);
   const [content, setContent] = useState<Record<string, unknown>>({});
+
+  // Auto-select type when modal opens with defaultType
+  useEffect(() => {
+    if (open && defaultType && availableTypes?.includes(defaultType)) {
+      setSelectedType(defaultType);
+    }
+  }, [open, defaultType, availableTypes]);
 
   // Form fields per type
   const [amountLiters, setAmountLiters] = useState('');
@@ -69,7 +78,7 @@ export function LogEntryModal({ open, onClose, onSubmit, availableTypes, default
     onClose();
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!selectedType) return;
 
     let finalContent: Record<string, unknown> = {};
@@ -98,8 +107,22 @@ export function LogEntryModal({ open, onClose, onSubmit, availableTypes, default
         break;
     }
 
-    onSubmit(selectedType, finalContent);
-    handleClose();
+    // Call API to add log entry
+    const response = await fetch('/api/grows/log-entry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        grow_id: growId,
+        plant_id: plantId,
+        entry_type: selectedType,
+        content: finalContent,
+      }),
+    });
+
+    if (response.ok) {
+      onEntryAdded();
+      handleClose();
+    }
   }
 
   function isValid(): boolean {
@@ -273,18 +296,18 @@ export function LogEntryModal({ open, onClose, onSubmit, availableTypes, default
               <Label className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-1 block">
                 Phase
               </Label>
-              <Select value={milestonePhase} onValueChange={(v: string | null) => v && setMilestonePhase(v)}>
-                <SelectTrigger className="bg-[var(--background)] border border-[var(--border)]/50">
-                  <SelectValue placeholder="Phase wählen..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {MILESTONE_PHASES.map(p => (
-                    <SelectItem key={p} value={p}>
-                      {p.charAt(0).toUpperCase() + p.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                value={milestonePhase}
+                onChange={(e) => setMilestonePhase(e.target.value)}
+                className="w-full h-10 px-3 bg-[var(--background)] border border-[var(--border)]/50 rounded-xl text-sm text-[var(--foreground)] focus:outline-none focus:border-[#2FF801]/50"
+              >
+                <option value="">Phase wählen...</option>
+                {MILESTONE_PHASES.map(p => (
+                  <option key={p} value={p}>
+                    {p.charAt(0).toUpperCase() + p.slice(1)}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         )}
