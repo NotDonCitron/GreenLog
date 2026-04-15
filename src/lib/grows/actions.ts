@@ -8,10 +8,23 @@ import { calculateDLI, validateEntryContent } from './utils';
 async function getServerUser() {
   try {
     const { userId, getToken } = await auth();
-    if (!userId) return null;
+    if (!userId) {
+      console.error('[getServerUser] No userId from Clerk auth()');
+      return null;
+    }
     const supabaseToken = await getToken();
-    const supabase = await getAuthenticatedClient(supabaseToken || '');
-    return { userId, supabase };
+    if (!supabaseToken) {
+      console.error('[getServerUser] No token from Clerk getToken()');
+      return null;
+    }
+    const supabase = await getAuthenticatedClient(supabaseToken);
+    // Validate token by calling getUser (like authenticateRequest does)
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('[getServerUser] Supabase getUser failed:', authError?.message);
+      return null;
+    }
+    return { userId: user.id, supabase };
   } catch (e: any) {
     console.error('[getServerUser] error:', e?.message);
     return null;
