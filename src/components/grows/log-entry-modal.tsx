@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { DLICalculator } from './dli-calculator';
+import { useToast } from '@/components/toast-provider';
 import { X, Droplets, Leaf, FileText, Camera, Activity, Flag, Zap } from 'lucide-react';
 import type { GrowEntryType } from '@/lib/types';
 
@@ -36,6 +37,7 @@ const MILESTONE_PHASES = ['germination', 'vegetation', 'flower', 'flush', 'harve
 export function LogEntryModal({ open, onClose, growId, plantId, onEntryAdded, availableTypes, defaultType }: LogEntryModalProps) {
   const [selectedType, setSelectedType] = useState<GrowEntryType | null>(null);
   const [content, setContent] = useState<Record<string, unknown>>({});
+  const toast = useToast();
 
   // Auto-select type when modal opens with defaultType
   useEffect(() => {
@@ -111,10 +113,25 @@ export function LogEntryModal({ open, onClose, growId, plantId, onEntryAdded, av
         break;
     }
 
-    // Call API to add log entry
+    // Call API to add log entry — include Clerk session token like supabase client does
+    let headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (typeof window !== 'undefined') {
+      const Clerk = (window as any).Clerk;
+      if (Clerk?.session) {
+        try {
+          const clerkToken = await Clerk.session.getToken();
+          if (clerkToken) {
+            headers['Authorization'] = `Bearer ${clerkToken}`;
+          }
+        } catch (e) {
+          console.warn('[LogEntryModal] Failed to get Clerk token:', e);
+        }
+      }
+    }
+
     const response = await fetch('/api/grows/log-entry', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         grow_id: growId,
         plant_id: plantId,
@@ -126,6 +143,10 @@ export function LogEntryModal({ open, onClose, growId, plantId, onEntryAdded, av
     if (response.ok) {
       onEntryAdded();
       handleClose();
+    } else {
+      const err = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
+      console.error('[LogEntryModal] Log entry failed:', err);
+      toast.error(err?.error?.message || 'Fehler beim Speichern');
     }
   }
 
