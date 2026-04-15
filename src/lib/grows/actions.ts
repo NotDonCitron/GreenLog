@@ -18,13 +18,9 @@ async function getServerUser() {
       return null;
     }
     const supabase = await getAuthenticatedClient(supabaseToken);
-    // Validate token by calling getUser (like authenticateRequest does)
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      console.error('[getServerUser] Supabase getUser failed:', authError?.message);
-      return null;
-    }
-    return { userId: user.id, supabase };
+    // Clerk's userId is already verified by clerkMiddleware — trust it directly.
+    // skip ping to /v1/user which can fail from Vercel Edge.
+    return { userId, supabase };
   } catch (e: any) {
     console.error('[getServerUser] error:', e?.message);
     return null;
