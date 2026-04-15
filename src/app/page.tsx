@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sprout, ArrowRight } from "lucide-react";
 import { Strain } from "@/lib/types";
 import Link from "next/link";
 import { normalizeCollectionSource } from "@/lib/strain-display";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { StrainCard } from "@/components/strains/strain-card";
 import { AgeGate } from "@/components/age-gate";
+import { Card } from "@/components/ui/card";
 
 const DEMO_SIMULATION_DATA: Strain[] = [
   {
@@ -31,9 +32,20 @@ const DEMO_SIMULATION_DATA: Strain[] = [
 
 const AGE_VERIFIED_KEY = "cannalog_age_verified";
 
+type ActiveGrow = {
+  id: string;
+  title: string;
+  grow_type: string;
+  status: string;
+  start_date: string;
+  strains?: { name: string } | null;
+  plant_count?: number;
+};
+
 function HomeContent() {
-  const { isDemoMode } = useAuth();
+  const { user, isDemoMode } = useAuth();
   const [strainOfTheDay, setStrainOfTheDay] = useState<Strain | null>(null);
+  const [activeGrow, setActiveGrow] = useState<ActiveGrow | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Fetch immediately — don't wait for auth
@@ -46,6 +58,7 @@ function HomeContent() {
 
         if (isDemoMode) {
           setStrainOfTheDay(DEMO_SIMULATION_DATA[0]);
+          setActiveGrow({ id: "demo-1", title: "Purple Haze Outdoor", grow_type: "outdoor", status: "active", start_date: "2024-03-01", strains: { name: "Purple Haze" }, plant_count: 2 });
           setLoading(false);
           return;
         }
@@ -55,20 +68,19 @@ function HomeContent() {
           1000 / 60 / 60 / 24
         );
 
-        const { data: allStrains } = await supabase
+        const { data: allStraains } = await supabase
           .from('strains')
           .select('*')
           .limit(100);
 
         if (cancelled) return;
 
-        if (allStrains && allStrains.length > 0) {
+        if (allStraains && allStraains.length > 0) {
           setStrainOfTheDay({
-            ...allStrains[dayOfYear % allStrains.length],
-            source: normalizeCollectionSource(allStrains[dayOfYear % allStrains.length].source),
+            ...allStraains[dayOfYear % allStraains.length],
+            source: normalizeCollectionSource(allStraains[dayOfYear % allStraains.length].source),
           });
         } else {
-          // No strains yet — show demo data
           setStrainOfTheDay(DEMO_SIMULATION_DATA[0]);
         }
       } catch (err) {
@@ -83,9 +95,45 @@ function HomeContent() {
     }
 
     void fetchHomeData();
-
     return () => { cancelled = true; };
   }, [isDemoMode]);
+
+  // Fetch active grow
+  useEffect(() => {
+    if (!user) return;
+
+    async function fetchActiveGrow() {
+      try {
+        const { data } = await supabase
+          .from("grows")
+          .select("*, strains(name)")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (data) {
+          const { data: plantCounts } = await supabase
+            .from("plants")
+            .select("grow_id")
+            .eq("grow_id", data.id)
+            .in("status", ["seedling", "vegetative", "flowering", "flushing"]);
+
+          setActiveGrow({
+            ...data,
+            plant_count: plantCounts?.length || 0,
+          });
+        }
+      } catch (err) {
+        console.error("Active grow fetch error:", err);
+      }
+    }
+
+    if (user) {
+      void fetchActiveGrow();
+    }
+  }, [user]);
 
   // Always show content after brief loading OR if we have demo data
   if (loading && !strainOfTheDay) {
@@ -104,6 +152,31 @@ function HomeContent() {
 
   return (
     <div className="flex-1 flex flex-col py-8">
+      {/* Active Grows Quick-Access Widget */}
+      {activeGrow && (
+        <Link href={`/grows/${activeGrow.id}`} className="block mb-6">
+          <Card className="bg-gradient-to-br from-[#2FF801]/10 to-transparent border border-[#2FF801]/30 overflow-hidden group active:scale-[0.98] transition-all">
+            <div className="p-4 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#2FF801]/10 flex items-center justify-center">
+                <Sprout size={24} className="text-[#2FF801]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] text-[#2FF801] font-black uppercase tracking-widest mb-0.5">Aktives Grow</p>
+                <h3 className="font-black text-sm uppercase tracking-tight leading-none text-[var(--foreground)] font-display truncate">
+                  {activeGrow.title}
+                </h3>
+                <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5">
+                  {activeGrow.strains?.name || "Unbekannte Sorte"} • Tag {Math.max(1, Math.floor((Date.now() - new Date(activeGrow.start_date).getTime()) / (1000 * 60 * 60 * 24)) + 1)}
+                </p>
+              </div>
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#2FF801]/10">
+                <ArrowRight size={16} className="text-[#2FF801]" />
+              </div>
+            </div>
+          </Card>
+        </Link>
+      )}
+
       {strainOfTheDay && (
         <div className="flex-1 flex items-center justify-center min-h-0 px-2">
           <StrainCard strain={strainOfTheDay} index={0} />

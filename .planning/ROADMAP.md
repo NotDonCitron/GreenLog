@@ -221,6 +221,16 @@
 **Overall v1 coverage:** 14/14 requirements mapped + 4 OMA + 15 GROW
 **Phase 6 coverage:** 15/15 GROW requirements planned
 
+### Phase 7: Grow-UI-Integration: Toggle-Switch in Collection (Meine Sorten/Meine Grows), Quick-Access Widget on Home Dashboard, Toggle-Switch in Social (Community Feed/Public Grows)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 6
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 7 to break down)
+
 ---
 
 ## Phase 5: Terpene Radar Chart

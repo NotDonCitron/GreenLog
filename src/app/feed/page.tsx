@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Sparkles, Users, Compass, Loader2, Search, Building2 } from "lucide-react";
+import { Sparkles, Users, Compass, Loader2, Search, Building2, Sprout } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { ActivityFeed } from "@/components/social/activity-feed";
 import { SuggestedUsers } from "@/components/social/suggested-users";
@@ -14,7 +14,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { useEffect, useCallback } from "react";
 
-type FeedTab = "foryou" | "following" | "discover";
+type FeedTab = "foryou" | "following" | "discover" | "grows";
 type FollowingFilter = "users" | "communities";
 type DiscoverTab = "users" | "communities";
 
@@ -124,6 +124,9 @@ function FeedContent() {
   const [otherCommunities, setOtherCommunities] = useState<CommunityOrg[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
 
+  // Social tab toggle: feed | grows
+  const [socialTab, setSocialTab] = useState<"feed" | "grows">("feed");
+
   // Discover tab state – init from URL, default "users"
   const getInitialDiscoverTab = (): DiscoverTab => {
     const param = searchParams.get("tab");
@@ -158,6 +161,7 @@ function FeedContent() {
     { id: "foryou", label: "Für dich", icon: Sparkles },
     { id: "following", label: "Following", icon: Users },
     { id: "discover", label: "Entdecken", icon: Compass },
+    { id: "grows", label: "Grows", icon: Sprout },
   ];
 
   // Fetch communities for following + discover tabs
