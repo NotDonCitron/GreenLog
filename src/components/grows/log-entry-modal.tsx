@@ -39,8 +39,12 @@ export function LogEntryModal({ open, onClose, growId, plantId, onEntryAdded, av
 
   // Auto-select type when modal opens with defaultType
   useEffect(() => {
-    if (open && defaultType && availableTypes?.includes(defaultType)) {
-      setSelectedType(defaultType);
+    if (open && defaultType) {
+      const allTypes = ALL_TYPES.map(t => t.value);
+      const types = availableTypes || allTypes;
+      if (types.includes(defaultType)) {
+        setSelectedType(defaultType);
+      }
     }
   }, [open, defaultType, availableTypes]);
 
