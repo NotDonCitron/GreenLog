@@ -1,26 +1,18 @@
 'use server';
 
-import { auth } from '@clerk/nextjs/server';
-import { getAuthenticatedClient } from '@/lib/supabase/client';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { jsonSuccess, jsonError } from '@/lib/api-response';
 import { calculateDLI, validateEntryContent } from './utils';
 
 async function getServerUser() {
   try {
-    const { userId, getToken } = await auth();
-    if (!userId) {
-      console.error('[getServerUser] No userId from Clerk auth()');
+    const supabase = await createServerSupabaseClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
+      console.error('[getServerUser] No user from Supabase:', error?.message);
       return null;
     }
-    const supabaseToken = await getToken();
-    if (!supabaseToken) {
-      console.error('[getServerUser] No token from Clerk getToken()');
-      return null;
-    }
-    const supabase = await getAuthenticatedClient(supabaseToken);
-    // Clerk's userId is already verified by clerkMiddleware — trust it directly.
-    // skip ping to /v1/user which can fail from Vercel Edge.
-    return { userId, supabase };
+    return { userId: user.id, supabase };
   } catch (e: any) {
     console.error('[getServerUser] error:', e?.message);
     return null;

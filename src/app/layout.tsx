@@ -6,7 +6,6 @@ import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import OnboardingGuide from "@/components/onboarding";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { ClerkProvider } from "@clerk/nextjs";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -117,7 +116,6 @@ export default function RootLayout({
         />
       </head>
       <body className="h-full bg-[var(--background)] text-[var(--foreground)] overflow-x-hidden font-body">
-        <ClerkProvider>
         <ServiceWorkerRegister />
         <Providers>
           <ErrorBoundary name="app">
@@ -128,7 +126,6 @@ export default function RootLayout({
             <CookieConsentBanner />
           </ErrorBoundary>
         </Providers>
-        </ClerkProvider>
       </body>
     </html>
   );
