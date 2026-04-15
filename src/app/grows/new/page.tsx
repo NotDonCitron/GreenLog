@@ -33,7 +33,7 @@ import { checkAndUnlockBadges } from "@/lib/badges";
 import { createGrow } from "@/lib/grows/actions";
 
 export default function NewGrowPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, session, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [strains, setStrains] = useState<Strain[]>([]);
@@ -98,7 +98,8 @@ export default function NewGrowPage() {
         strain_id: strainId || null,
         grow_type: growType,
         start_date: startDate,
-        is_public: isPublic
+        is_public: isPublic,
+        accessToken: session?.access_token
       });
 
       if (!result.success) {

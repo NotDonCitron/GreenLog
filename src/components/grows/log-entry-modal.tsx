@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { DLICalculator } from './dli-calculator';
 import { useToast } from '@/components/toast-provider';
+import { supabase } from '@/lib/supabase';
 import { X, Droplets, Leaf, FileText, Camera, Activity, Flag, Zap } from 'lucide-react';
 import type { GrowEntryType } from '@/lib/types';
 
@@ -113,19 +114,12 @@ export function LogEntryModal({ open, onClose, growId, plantId, onEntryAdded, av
         break;
     }
 
-    // Call API to add log entry — include Clerk session token like supabase client does
+    // Call API to add log entry — include Supabase session token
     let headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (typeof window !== 'undefined') {
-      const Clerk = (window as any).Clerk;
-      if (Clerk?.session) {
-        try {
-          const clerkToken = await Clerk.session.getToken();
-          if (clerkToken) {
-            headers['Authorization'] = `Bearer ${clerkToken}`;
-          }
-        } catch (e) {
-          console.warn('[LogEntryModal] Failed to get Clerk token:', e);
-        }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
       }
     }
 

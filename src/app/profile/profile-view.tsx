@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
+  AlertTriangle,
   ArrowRight,
   ArrowLeft,
   Eye,
@@ -178,9 +179,8 @@ export default function ProfilePage() {
   const { success: toastSuccess, error: toastError } = useToast();
 
   // React Query profile data
-  const { data: profileData, isLoading, refetch: refetchProfile } = useProfile();
+  const { data: profileData, isLoading, isError, refetch: refetchProfile } = useProfile();
 
-  const [pageState] = useState<"loading" | "ready" | "error">("loading");
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ displayName: "", bio: "" });
   const [isSaving, setIsSaving] = useState(false);
@@ -437,6 +437,24 @@ export default function ProfilePage() {
     </div>
   );
 
+  // Show error state if fetching fails
+  if (isError) {
+    return (
+      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex flex-col items-center justify-center p-6 text-center">
+        <AlertTriangle className="text-[#ff716c] mb-4" size={48} />
+        <h2 className="text-xl font-black uppercase italic mb-2">Fehler beim Laden</h2>
+        <p className="text-sm text-[var(--muted-foreground)] mb-6">Dein Profil konnte nicht geladen werden. Bitte versuche es später erneut.</p>
+        <button 
+          onClick={() => refetchProfile()}
+          className="px-6 py-3 bg-[var(--card)] border border-[var(--border)] rounded-xl text-xs font-black uppercase tracking-widest"
+        >
+          Erneut versuchen
+        </button>
+        <BottomNav />
+      </main>
+    );
+  }
+
   // Not logged in - show locked state
   if (!user && !isDemoMode) {
     return (
@@ -541,7 +559,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Owner Badge */}
-        {(identity.username === '@fabian.gebert' || identity.username === '@lars' || identity.username === '@lars.fieber' || identity.username === '@test' || identity.username === '@pascal' || identity.username === '@hintermaier.pascal' || identity.username === '@pascal.hintermaier_205') && (
+        {(identity.username === '@fabian.gebert' || identity.username === '@lars' || identity.username === '@lars.fieber' || identity.username === '@test' || identity.username === '@pascal' || identity.username === '@hintermaier.pascal' || identity.username === '@pascal.hintermaier_81') && (
           <div className="flex justify-center mb-4">
             <span className="inline-flex items-center gap-1 rounded-full border border-[#F39C12]/30 bg-[#F39C12]/10 px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#F39C12]">
               <Shield size={12} /> CannaLog Owner

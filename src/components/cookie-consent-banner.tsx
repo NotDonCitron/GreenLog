@@ -14,7 +14,7 @@ export function CookieConsentBanner() {
   const [consent, setConsent] = useState<ConsentLevel>(null)
   const [isVisible, setIsVisible] = useState(false)
   const bannerRef = useRef<HTMLDivElement>(null)
-  const { user } = useAuth()
+  const { user, session } = useAuth()
 
   useEffect(() => {
     try {
@@ -37,10 +37,10 @@ export function CookieConsentBanner() {
 
   // Sync analytics consent to Supabase when user logs in (if previously granted)
   useEffect(() => {
-    if (user && consent === 'all') {
-      syncAnalyticsConsentToSupabase(user.id)
+    if (user && consent === 'all' && session?.access_token) {
+      syncAnalyticsConsentToSupabase(user.id, session.access_token)
     }
-  }, [user, consent])
+  }, [user, consent, session?.access_token])
 
   const handleAcceptAll = async () => {
     try {
@@ -51,8 +51,8 @@ export function CookieConsentBanner() {
     setConsent('all')
     setIsVisible(false)
     await enableSentryAfterConsent()
-    if (user) {
-      await syncAnalyticsConsentToSupabase(user.id)
+    if (user && session?.access_token) {
+      await syncAnalyticsConsentToSupabase(user.id, session.access_token)
     }
   }
 

@@ -20,11 +20,16 @@ export async function disableSentryAfterRevoke(): Promise<void> {
  * Sync analytics consent to Supabase (for logged-in users).
  * This function is independent of Sentry and remains functional.
  */
-export async function syncAnalyticsConsentToSupabase(_userId: string): Promise<void> {
+export async function syncAnalyticsConsentToSupabase(_userId: string, token?: string): Promise<void> {
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
     await fetch('/api/gdpr/consent', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ consent_type: 'analytics', granted: true }),
     });
   } catch {

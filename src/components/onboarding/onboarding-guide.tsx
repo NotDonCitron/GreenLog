@@ -118,17 +118,20 @@ export function OnboardingGuide() {
                     .single();
 
                 if (error) {
-                    setIsVisible(true);
+                    // Only show if it's a real error, not just 'no rows'
+                    // For single() query, P0001 or no data means no row
                     return;
                 }
 
-                // Show if value is NOT explicitly true
-                if (data?.has_completed_onboarding !== true) {
+                // Show if value is EXPLICITLY false
+                if (data?.has_completed_onboarding === false) {
                     setIsVisible(true);
-                } else {
+                } else if (data?.has_completed_onboarding === true) {
                     // Sync local storage if DB says it's completed
                     localStorage.setItem("cannalog_onboarding_completed", "true");
                 }
+                // If it's null, we assume they haven't seen it yet OR we want to be conservative
+                // But for now, let's only show if it's explicitly false to avoid annoying users
             } catch (err) {
                 setIsVisible(true);
             }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase/client";
 
 export default function SignUpPage() {
     const router = useRouter();
@@ -19,15 +20,10 @@ export default function SignUpPage() {
         if (password.length < 6) { setError("Passwort muss mindestens 6 Zeichen haben"); return; }
         setLoading(true);
 
-        const res = await fetch("/api/auth/sign-up", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-        });
-
-        const data = await res.json();
+        const { error } = await supabase.auth.signUp({ email, password });
         setLoading(false);
-        if (!res.ok) { setError(data.error || "Registrierung fehlgeschlagen"); return; }
+
+        if (error) { setError(error.message); return; }
         router.push("/");
         router.refresh();
     };

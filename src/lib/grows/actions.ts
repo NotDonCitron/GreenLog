@@ -25,6 +25,7 @@ type CreateGrowInput = {
   grow_type: string;
   start_date: string;
   is_public: boolean;
+  accessToken?: string;
 };
 
 type ServerActionResult = {
@@ -34,12 +35,29 @@ type ServerActionResult = {
 };
 
 export async function createGrow(input: CreateGrowInput): Promise<ServerActionResult> {
-  const server = await getServerUser();
-  if (!server) return { success: false, error: { message: 'Unauthorized' } };
-  const { userId, supabase } = server;
+  const { accessToken, ...growData } = input;
+
+  let userId: string;
+  let supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>;
+
+  if (accessToken) {
+    // Use access token passed from browser (stored in localStorage by Supabase client)
+    const { getAuthenticatedClient } = await import('@/lib/supabase/client');
+    const client = await getAuthenticatedClient(accessToken);
+    const { data: { user }, error: authError } = await client.auth.getUser();
+    if (authError || !user) return { success: false, error: { message: 'Unauthorized' } };
+    userId = user.id;
+    supabase = client;
+  } else {
+    // Fallback to cookie-based auth (for internal/server-to-server calls)
+    const server = await getServerUser();
+    if (!server) return { success: false, error: { message: 'Unauthorized' } };
+    userId = server.userId;
+    supabase = server.supabase;
+  }
 
   try {
-    const { title, strain_id, grow_type, start_date, is_public = true } = input;
+    const { title, strain_id, grow_type, start_date, is_public = true } = growData;
 
     if (!title?.trim()) return { success: false, error: { message: 'Title is required' } };
     if (!grow_type || !['indoor', 'outdoor', 'greenhouse'].includes(grow_type)) {
@@ -184,16 +202,19 @@ export async function updatePlantStatus(request: Request): Promise<Response> {
   }
 }
 
-export async function addGrowLogEntry(request: Request): Promise<Response> {
-  let server;
-  try {
-    server = await getServerUser();
-  } catch (e: any) {
-    console.error('[addGrowLogEntry] getServerUser threw:', e?.message);
-    return jsonError('Auth error: ' + e?.message, 401) as unknown as Response;
+export async function addGrowLogEntry(request: Request, preAuth?: { userId: string; supabase: Awaited<ReturnType<typeof createServerSupabaseClient>> }): Promise<Response> {
+  let userId: string;
+  let supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>;
+
+  if (preAuth) {
+    userId = preAuth.userId;
+    supabase = preAuth.supabase;
+  } else {
+    const server = await getServerUser();
+    if (!server) return jsonError('Unauthorized', 401) as unknown as Response;
+    userId = server.userId;
+    supabase = server.supabase;
   }
-  if (!server) return jsonError('Unauthorized', 401) as unknown as Response;
-  const { userId, supabase } = server;
 
   try {
     const body = await request.json();
