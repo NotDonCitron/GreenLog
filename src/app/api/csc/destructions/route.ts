@@ -45,7 +45,7 @@ export async function GET(request: Request) {
                 id,
                 harvest_date,
                 total_weight_grams,
-                strains:strain_id (id, name, avg_thc, avg_cbd)
+                strains:strain_id (id, name, thc_min, thc_max, cbd_min, cbd_max)
             )
         `)
         .eq("organization_id", orgId)

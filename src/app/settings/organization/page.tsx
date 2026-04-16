@@ -302,8 +302,8 @@ export default function SettingsOrganizationPage() {
                 <Shield size={20} className="text-[#ffd76a]" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-black text-sm text-[var(--foreground)]">Admins verwalten</p>
-                <p className="text-[10px] text-[var(--muted-foreground)]">Admin einladen oder widerrufen</p>
+                <p className="font-black text-sm text-[var(--foreground)]">Admins & Rollen</p>
+                <p className="text-[10px] text-[var(--muted-foreground)]">Team einladen oder Rollen verwalten</p>
               </div>
             </button>
           </Card>

@@ -275,8 +275,8 @@ export default function StrainDetailPageClient() {
         user_image_url: publicUrl,
         batch_info: batchInfo || null,
         user_notes: userNotes || null,
-        user_thc_percent: strain.avg_thc ?? strain.thc_max ?? null,
-        user_cbd_percent: strain.avg_cbd ?? strain.cbd_max ?? null,
+        user_thc_percent: (strain as any).avg_thc ?? strain.thc_max ?? null,
+        user_cbd_percent: (strain as any).avg_cbd ?? strain.cbd_max ?? null,
       }, { onConflict: 'user_id,strain_id' });
 
       if (collectionError) throw collectionError;
@@ -409,8 +409,8 @@ export default function StrainDetailPageClient() {
         batchInfo,
         userNotes,
         userImageUrl: userImageUrl || undefined,
-        userThc: strain.avg_thc ?? strain.thc_max ?? undefined,
-        userCbd: strain.avg_cbd ?? strain.cbd_max ?? undefined
+        userThc: (strain as any).avg_thc ?? strain.thc_max ?? undefined,
+        userCbd: (strain as any).avg_cbd ?? strain.cbd_max ?? undefined
       });
 
       setHasCollected(true);
@@ -429,12 +429,12 @@ export default function StrainDetailPageClient() {
 
   const { color: themeColor, underlineClass: underlineBg } = getStrainTheme(strain?.type);
   const normalizedTerpenes = normalizeTerpeneList(strain?.terpenes);
-  const thcDisplay = formatPercent(strain?.avg_thc ?? strain?.thc_max, '—');
-  const cbdDisplay = formatPercent(strain?.avg_cbd ?? strain?.cbd_max, '< 1%');
+  const thcDisplay = formatPercent((strain as any)?.avg_thc ?? strain?.thc_max, '—');
+  const cbdDisplay = formatPercent((strain as any)?.avg_cbd ?? strain?.cbd_max, '< 1%');
   const tasteDisplay = strain ? getTasteDisplay(strain, 'Zitrus · Erdig').replace(/, /g, ' · ') : 'Zitrus · Erdig';
   const effectDisplay = strain ? getEffectDisplay(strain) : 'Euphorie';
 
-  const farmerDisplay = strain?.farmer?.trim() || strain?.manufacturer?.trim() || strain?.brand?.trim() || 'Unbekannter Farmer';
+  const farmerDisplay = strain?.farmer?.trim() || (strain as any).manufacturer?.trim() || (strain as any).brand?.trim() || 'Unbekannter Farmer';
   const normalizedStrainName = (() => {
     const rawName = strain?.name?.trim() || '';
     if (!rawName || farmerDisplay === 'Unbekannter Farmer') return rawName;

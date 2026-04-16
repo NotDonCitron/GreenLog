@@ -32,7 +32,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Fetch grow with entries and strain info
   const { data: grow, error: growError } = await supabase

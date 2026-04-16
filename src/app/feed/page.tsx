@@ -760,10 +760,17 @@ function FeedContent() {
                                 </div>
                               </div>
                               <div className="flex-shrink-0 flex flex-col items-center justify-center bg-[var(--muted)] px-3 py-2 rounded-2xl border border-[var(--border)]/50">
-                                <span className={`text-sm font-black leading-none italic ${comm.role === USER_ROLES.GRUENDER ? "text-[#ffd76a]" : comm.role === USER_ROLES.ADMIN ? "text-[#ff716c]" : "text-[var(--muted-foreground)]"}`}>
-                                  {comm.role === USER_ROLES.GRUENDER ? "Gründer" : comm.role === USER_ROLES.ADMIN ? "Admin" : "Member"}
-                                </span>
-                              </div>
+                                <span className={`text-sm font-black leading-none italic ${
+                                  comm.role === USER_ROLES.GRUENDER ? "text-[#ffd76a]" : 
+                                  comm.role === USER_ROLES.ADMIN ? "text-[#ff716c]" : 
+                                  comm.role === USER_ROLES.PRAEVENTIONSBEAUFTRAGTER ? "text-[#2FF801]" :
+                                  "text-[var(--muted-foreground)]"
+                                }`}>
+                                  {comm.role === USER_ROLES.GRUENDER ? "Gründer" : 
+                                   comm.role === USER_ROLES.ADMIN ? "Admin" : 
+                                   comm.role === USER_ROLES.PRAEVENTIONSBEAUFTRAGTER ? "Prev. Officer" :
+                                   "Member"}
+                                </span>                              </div>
                             </div>
                           </Link>
                         ))}

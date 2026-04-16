@@ -47,7 +47,7 @@ export async function GET(request: Request) {
                 harvest_date,
                 total_weight_grams,
                 strain_id,
-                strains:strain_id (id, name, avg_thc, avg_cbd)
+                strains:strain_id (id, name, thc_min, thc_max, cbd_min, cbd_max)
             )
         `)
         .eq("organization_id", orgId)
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
             csc_batches:batch_id (
                 id,
                 harvest_date,
-                strains:strain_id (id, name, avg_thc, avg_cbd)
+                strains:strain_id (id, name, thc_min, thc_max, cbd_min, cbd_max)
             )
         `)
         .single();

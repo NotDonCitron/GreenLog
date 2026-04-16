@@ -43,7 +43,7 @@ const AuthContext = createContext<AuthContextType>({
   signUp: async () => ({ error: null }),
   memberships: [],
   activeOrganization: null,
-  membershipsLoading: false,
+  membershipsLoading: true,
   setActiveOrganizationId: () => {},
   refreshMemberships: async () => {},
 });
@@ -87,14 +87,24 @@ async function fetchMembershipsForUser(userId: string): Promise<OrganizationMemb
   }
 }
 
+interface OrgState {
+  memberships: OrganizationMembership[];
+  activeId: string | null;
+  loading: boolean;
+}
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [membershipsLoading, setMembershipsLoading] = useState(false);
-  const [memberships, setMemberships] = useState<OrganizationMembership[]>([]);
-  const [activeOrganizationId, setActiveOrganizationIdState] = useState<string | null>(null);
+  
+  const [orgState, setOrgState] = useState<OrgState>({
+    memberships: [],
+    activeId: readStoredActiveOrganizationId(),
+    loading: true
+  });
+
   const [isDemoMode, setIsDemoMode] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem(DEMO_MODE_STORAGE_KEY) === "true";
@@ -117,53 +127,52 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const syncActiveOrganization = useCallback((nextMemberships: OrganizationMembership[]) => {
-    const storedId = readStoredActiveOrganizationId();
-    const fallbackId = nextMemberships[0]?.organization_id ?? null;
-    const nextId = nextMemberships.some((m) => m.organization_id === storedId)
-      ? storedId
-      : fallbackId;
-    setActiveOrganizationIdState(nextId);
-    if (typeof window !== "undefined") {
-      if (nextId) {
-        localStorage.setItem(ACTIVE_ORG_STORAGE_KEY, nextId);
-      } else {
-        localStorage.removeItem(ACTIVE_ORG_STORAGE_KEY);
-      }
-    }
-  }, []);
-
   const refreshMemberships = useCallback(async () => {
     if (!user) {
-      setMemberships([]);
-      setActiveOrganizationIdState(null);
+      setOrgState(prev => ({ ...prev, memberships: [], loading: false }));
       return;
     }
-    setMembershipsLoading(true);
+    
+    setOrgState(prev => ({ ...prev, loading: true }));
     try {
       const nextMemberships = await fetchMembershipsForUser(user.id);
-      setMemberships(nextMemberships);
-      syncActiveOrganization(nextMemberships);
+      
+      const storedId = readStoredActiveOrganizationId();
+      const fallbackId = nextMemberships[0]?.organization_id ?? null;
+      const nextId = nextMemberships.some((m) => m.organization_id === storedId)
+        ? storedId
+        : fallbackId;
+
+      if (typeof window !== "undefined") {
+        if (nextId) {
+          localStorage.setItem(ACTIVE_ORG_STORAGE_KEY, nextId);
+        } else {
+          localStorage.removeItem(ACTIVE_ORG_STORAGE_KEY);
+        }
+      }
+
+      setOrgState({
+        memberships: nextMemberships,
+        activeId: nextId,
+        loading: false
+      });
     } catch (error: unknown) {
       const errorCode = error && typeof error === 'object' && 'code' in error ? (error as { code: string }).code : null;
       const isKnownError = errorCode === 'PGRST205' || errorCode === '54001';
       if (!isKnownError) {
         console.error("Failed to fetch organization memberships:", error);
       }
-      setMemberships([]);
-      setActiveOrganizationIdState(null);
-    } finally {
-      setMembershipsLoading(false);
+      setOrgState({
+        memberships: [],
+        activeId: null,
+        loading: false
+      });
     }
-  }, [syncActiveOrganization, user]);
+  }, [user]);
 
   useEffect(() => {
     if (!user) {
-      setMemberships([]);
-      setActiveOrganizationIdState(null);
-      if (typeof window !== "undefined") {
-        localStorage.removeItem(ACTIVE_ORG_STORAGE_KEY);
-      }
+      setOrgState(prev => ({ ...prev, memberships: [], loading: false }));
       return;
     }
     void refreshMemberships();
@@ -175,7 +184,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const setActiveOrganizationId = (organizationId: string | null) => {
-    setActiveOrganizationIdState(organizationId);
+    setOrgState(prev => ({ ...prev, activeId: organizationId }));
     if (typeof window !== "undefined") {
       if (organizationId) {
         localStorage.setItem(ACTIVE_ORG_STORAGE_KEY, organizationId);
@@ -203,8 +212,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    setMemberships([]);
-    setActiveOrganizationIdState(null);
+    setOrgState({ memberships: [], activeId: null, loading: false });
     setDemoMode(false);
     if (typeof window !== "undefined") {
       localStorage.removeItem(ACTIVE_ORG_STORAGE_KEY);
@@ -213,8 +221,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const activeOrganization = useMemo(
-    () => memberships.find((m) => m.organization_id === activeOrganizationId) ?? null,
-    [activeOrganizationId, memberships]
+    () => orgState.memberships.find((m) => m.organization_id === orgState.activeId) ?? null,
+    [orgState.activeId, orgState.memberships]
   );
 
   return (
@@ -228,9 +236,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signOut,
         signIn,
         signUp,
-        memberships,
+        memberships: orgState.memberships,
         activeOrganization,
-        membershipsLoading,
+        membershipsLoading: orgState.loading,
         setActiveOrganizationId,
         refreshMemberships,
       }}

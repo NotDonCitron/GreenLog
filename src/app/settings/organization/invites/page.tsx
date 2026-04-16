@@ -14,7 +14,8 @@ import {
   Copy,
   CheckCircle2,
   AlertTriangle,
-  Clock
+  Clock,
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";

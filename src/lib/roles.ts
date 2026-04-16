@@ -3,6 +3,7 @@ export const USER_ROLES = {
     ADMIN: "admin",
     MEMBER: "member",
     VIEWER: "viewer",
+    STAFF: "staff",
     PRAEVENTIONSBEAUFTRAGTER: "präventionsbeauftragter",
 } as const;
 

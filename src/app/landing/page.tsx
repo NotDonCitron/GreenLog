@@ -18,7 +18,7 @@ import { Leaf, Users, Star, ArrowRight } from "lucide-react";
 const DEMO_STRAIN: Strain = {
   id: "demo-1",
   name: "Aurora Ghost Train Haze",
-  brand: "Aurora",
+  farmer: "Aurora",
   slug: "aurora-ghost-train-haze",
   thc_max: 34,
   type: "sativa",
@@ -26,7 +26,6 @@ const DEMO_STRAIN: Strain = {
   flavors: ["Zitrus", "Erdig"],
   effects: ["Energy", "Kreativität", "Fokus"],
   image_url: "/strains/aurora-ghost-train-haze.jpg",
-  is_medical: true,
   source: "pharmacy",
 };
 

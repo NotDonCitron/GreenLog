@@ -22,6 +22,7 @@ export function MatchScoreBadge({ strainId, strainName }: MatchScoreBadgeProps) 
     }
 
     async function fetchMatch() {
+      if (!session?.access_token) return;
       try {
         const accessToken = session.access_token;
         const res = await fetch(`/api/recommendations/match?strain_id=${strainId}`, {

@@ -24,7 +24,8 @@ interface Batch {
   id: string;
   harvest_date: string;
   total_weight_grams: number;
-  strains: { id: string; name: string; avg_thc: number | null; avg_cbd: number | null } | null;
+  quality_check_passed?: boolean;
+  strains: { id: string; name: string; thc_min?: number; thc_max?: number; cbd_min?: number; cbd_max?: number } | null;
 }
 
 interface Dispensations {
@@ -343,7 +344,7 @@ export default function CSCDispensationsPage() {
             </div>
             <Button
               type="submit"
-              disabled={saving || (memberLimit && parseFloat(amountGrams) > memberLimit.daily.remaining)}
+              disabled={saving || !!(memberLimit && parseFloat(amountGrams) > memberLimit.daily.remaining)}
               className="w-full h-12 bg-gradient-to-r from-[#00F5FF] to-[#00d4cc] hover:opacity-90 text-black font-black uppercase tracking-widest text-xs"
             >
               {saving ? <Loader2 size={14} className="animate-spin" /> : null}

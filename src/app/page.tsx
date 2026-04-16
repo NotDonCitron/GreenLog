@@ -17,7 +17,7 @@ const DEMO_SIMULATION_DATA: Strain[] = [
   {
     id: "sim-1",
     name: "Aurora Ghost Train Haze",
-    brand: "Aurora",
+    farmer: "Aurora",
     slug: "aurora-ghost-train-haze",
     thc_max: 34,
     type: "sativa",
@@ -25,7 +25,6 @@ const DEMO_SIMULATION_DATA: Strain[] = [
     flavors: ["Zitrus", "Erdig"],
     effects: ["Energy", "Kreativität", "Fokus"],
     image_url: "/strains/aurora-typ-1-island-sweet-skunk.jpg",
-    is_medical: true,
     source: "pharmacy",
   }
 ];
@@ -103,6 +102,7 @@ function HomeContent() {
     if (!user) return;
 
     async function fetchActiveGrow() {
+      if (!user) return;
       try {
         const { data } = await supabase
           .from("grows")

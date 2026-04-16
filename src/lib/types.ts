@@ -53,10 +53,14 @@ export interface Strain {
   slug: string;
   type: 'indica' | 'sativa' | 'hybrid' | 'ruderalis';
   farmer?: string;
+  brand?: string;
+  manufacturer?: string;
   thc_min?: number;
   thc_max?: number;
   cbd_min?: number;
   cbd_max?: number;
+  avg_thc?: number;
+  avg_cbd?: number;
   image_url?: string;
   image_attribution?: {
     source: 'seedbank' | 'wikimedia' | 'linhacanabica' | 'none';
@@ -70,6 +74,7 @@ export interface Strain {
   effects?: string[];
   // Custom strain fields
   is_custom?: boolean;
+  is_medical?: boolean;
   source?: 'pharmacy' | 'street' | 'grow' | 'csc' | 'other';
   created_by?: string;
   created_at?: string;
@@ -435,14 +440,19 @@ export type OrganizationActivityEventType =
   | 'role_changed'
   | 'invite_sent'
   | 'invite_accepted'
-  | 'invite_revoked';
+  | 'invite_revoked'
+  | 'batch_recorded'
+  | 'batch_quality_checked'
+  | 'cannabis_dispensed'
+  | 'batch_destroyed';
 
 export type OrganizationActivityTargetType =
   | 'strain'
   | 'member'
   | 'invite'
   | 'role'
-  | 'organization';
+  | 'organization'
+  | 'batch';
 
 export interface OrganizationActivity {
   id: string;
@@ -514,6 +524,9 @@ export interface CscBatch {
   status: 'active' | 'depleted' | 'expired' | 'destroyed';
   recorded_by: string;
   notes: string | null;
+  quality_check_passed?: boolean;
+  quality_check_notes?: string | null;
+  quality_checked_at?: string | null;
   created_at: string;
   updated_at: string;
 }

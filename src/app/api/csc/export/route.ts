@@ -50,7 +50,9 @@ export async function GET(request: Request) {
             total_weight_grams,
             plant_count,
             strain_id,
-            strains:strain_id (name, avg_thc, avg_cbd)
+            thc_percentage,
+            cbd_percentage,
+            strains:strain_id (name)
         `)
         .eq("organization_id", orgId)
         .gte("harvest_date", yearStart)
@@ -90,8 +92,8 @@ export async function GET(request: Request) {
         batchMap[b.id] = {
             date: b.harvest_date,
             strain: (b.strains as any)?.name || "Unbekannt",
-            thc: (b.strains as any)?.avg_thc ?? null,
-            cbd: (b.strains as any)?.avg_cbd ?? null,
+            thc: b.thc_percentage ?? null,
+            cbd: b.cbd_percentage ?? null,
             totalWeight: Number(b.total_weight_grams),
         };
     }
@@ -179,7 +181,7 @@ export async function GET(request: Request) {
     lines.push(`"Datum,Sorte,THC(%),CBD(%),Erntemenge(g),Pflanzenanzahl"`);
     for (const b of batches || []) {
         const strain = (b.strains as any)?.name || "Unbekannt";
-        lines.push(`"${b.harvest_date}","${sanitize(strain)}",${(b.strains as any)?.avg_thc ?? ""},${(b.strains as any)?.avg_cbd ?? ""},${Number(b.total_weight_grams).toFixed(2)},${b.plant_count}`);
+        lines.push(`"${b.harvest_date}","${sanitize(strain)}",${b.thc_percentage ?? ""},${b.cbd_percentage ?? ""},${Number(b.total_weight_grams).toFixed(2)},${b.plant_count}`);
     }
 
     lines.push("");

@@ -46,7 +46,7 @@ export async function GET(request: Request, { params }: RouteParams) {
             quality_checked_at,
             created_at,
             updated_at,
-            strains:strain_id (id, name, slug, avg_thc, avg_cbd)
+            strains:strain_id (id, name, slug, thc_min, thc_max, cbd_min, cbd_max)
         `)
         .eq("id", batchId)
         .eq("organization_id", organizationId)

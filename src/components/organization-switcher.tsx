@@ -29,6 +29,8 @@ function formatRoleLabel(role: string) {
             return "Mitglied";
         case USER_ROLES.VIEWER:
             return "Viewer";
+        case USER_ROLES.PRAEVENTIONSBEAUFTRAGTER:
+            return "Präventionsbeauftragter";
         default:
             return role;
     }

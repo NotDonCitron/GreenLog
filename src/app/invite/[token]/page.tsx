@@ -171,7 +171,9 @@ export default function InvitePage() {
           <div className="flex items-center gap-3">
             <Shield size={14} className="text-black/40 shrink-0" />
             <span className="text-sm font-bold text-black/70">
-              {preview?.role === USER_ROLES.ADMIN ? "Admin" : preview?.role === "staff" ? "Staff" : "Mitglied"}
+              {preview?.role === USER_ROLES.ADMIN ? "Admin" : 
+               preview?.role === USER_ROLES.PRAEVENTIONSBEAUFTRAGTER ? "Präventionsbeauftragter" :
+               preview?.role === "staff" ? "Staff" : "Mitglied"}
             </span>
           </div>
           <div className="flex items-center gap-3">

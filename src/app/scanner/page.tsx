@@ -21,7 +21,7 @@ export default function ScannerPage() {
 
   useEffect(() => {
     // Check if running in Capacitor
-    setIsCapacitor(!!window.Capacitor);
+    setIsCapacitor(!!(window as any).Capacitor);
     async function initWorker() {
       try {
         const { createWorker } = await import("tesseract.js");

@@ -107,7 +107,7 @@ export default function MembersPage() {
       }
     };
 
-    void fetchFollowers();
+    void fetchMembers();
     }, [authLoading, membershipsLoading, activeOrganization, router]);
 
     if (authLoading || membershipsLoading || activeOrganization === null) {
@@ -234,7 +234,7 @@ export default function MembersPage() {
                     <div className="flex flex-col items-end gap-1 shrink-0">
                       <div className="flex items-center gap-1 text-[9px] text-[#484849] font-mono">
                         <Clock size={10} />
-                        seit {formatJoinDate(member.joined_at || member.created_at)}
+                        seit {formatJoinDate(member.joined_at)}
                       </div>
                     </div>
                   </div>

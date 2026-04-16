@@ -4,7 +4,6 @@ import { useCallback, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
-import { emitCollectionUpdate } from "@/lib/collection-events";
 import { checkAndUnlockBadges } from "@/lib/badges";
 import type { Strain, StrainSource } from "@/lib/types";
 
@@ -91,7 +90,6 @@ export function useCollection() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["collection", user?.id] });
-      emitCollectionUpdate();
       if (user) {
         checkAndUnlockBadges(user.id, supabase).catch(() => {});
       }

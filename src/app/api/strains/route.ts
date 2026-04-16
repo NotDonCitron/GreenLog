@@ -14,7 +14,7 @@ export async function GET(request: Request) {
 
     let query = supabase
         .from("strains")
-        .select("id, name, slug, type, brand, farmer, avg_thc, avg_cbd, thc_min, thc_max, image_url, effects, flavors")
+        .select("id, name, slug, type, farmer, thc_min, thc_max, cbd_min, cbd_max, image_url, effects, flavors, description, terpenes, created_at")
         .range(offset, offset + limit - 1)
         .order("name", { ascending: true });
 

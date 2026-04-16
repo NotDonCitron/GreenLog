@@ -11,7 +11,7 @@ export function validateEntryContent(entryType: GrowEntryType, content: Record<s
     case 'watering':
       return typeof content.amount_liters === 'number' && content.amount_liters > 0;
     case 'feeding':
-      return typeof content.nutrient === 'string' && content.amount?.length > 0;
+      return typeof content.nutrient === 'string' && typeof content.amount === 'string' && content.amount.length > 0;
     case 'note':
       return typeof content.note_text === 'string';
     case 'photo':

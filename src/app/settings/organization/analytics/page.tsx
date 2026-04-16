@@ -105,7 +105,7 @@ export default function OrgAnalyticsPage() {
     );
   }
 
-  const canView = [USER_ROLES.GRUENDER, USER_ROLES.ADMIN].includes(activeOrganization.role);
+  const canView = [USER_ROLES.GRUENDER, USER_ROLES.ADMIN].some(role => activeOrganization.role === role);
   if (!canView) {
     return (
       <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">

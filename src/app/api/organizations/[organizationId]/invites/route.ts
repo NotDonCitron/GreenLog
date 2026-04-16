@@ -85,8 +85,8 @@ export async function POST(request: Request, { params }: RouteParams) {
         return jsonError("Invalid email format", 400);
     }
 
-    if (![USER_ROLES.ADMIN, "staff", USER_ROLES.MEMBER].includes(role)) {
-        return jsonError("role must be admin, staff, or member", 400);
+    if (![USER_ROLES.ADMIN, "staff", USER_ROLES.PRAEVENTIONSBEAUFTRAGTER, USER_ROLES.MEMBER, USER_ROLES.VIEWER].includes(role)) {
+        return jsonError("role must be admin, staff, präventionsbeauftragter, member, or viewer", 400);
     }
 
     if (role === USER_ROLES.ADMIN && membership.role !== USER_ROLES.GRUENDER) {

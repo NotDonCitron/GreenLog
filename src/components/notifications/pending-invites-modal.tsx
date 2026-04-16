@@ -179,7 +179,9 @@ export function PendingInvitesModal({ onClose, onInviteAccepted }: PendingInvite
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm text-[var(--foreground)]">{invite.organization?.name || "Organisation"}</p>
                     <p className="text-xs text-[var(--muted-foreground)]">
-                      {invite.role === USER_ROLES.ADMIN ? "Admin" : invite.role === "staff" ? "Staff" : "Mitglied"}
+                      {invite.role === USER_ROLES.ADMIN ? "Admin" : 
+                       invite.role === USER_ROLES.PRAEVENTIONSBEAUFTRAGTER ? "Präventionsbeauftragter" :
+                       invite.role === "staff" ? "Staff" : "Mitglied"}
                     </p>
                     {invite.inviter && (
                       <p className="text-[10px] text-[var(--muted-foreground)] mt-1">
@@ -190,7 +192,9 @@ export function PendingInvitesModal({ onClose, onInviteAccepted }: PendingInvite
                   <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/30 shrink-0">
                     <Shield size={10} className="text-[#00F5FF]" />
                     <span className="text-[10px] font-bold text-[#00F5FF]">
-                      {invite.role === USER_ROLES.ADMIN ? "Admin" : invite.role === "staff" ? "Staff" : "Member"}
+                      {invite.role === USER_ROLES.ADMIN ? "Admin" : 
+                       invite.role === USER_ROLES.PRAEVENTIONSBEAUFTRAGTER ? "Prev. Officer" :
+                       invite.role === "staff" ? "Staff" : "Member"}
                     </span>
                   </div>
                 </div>

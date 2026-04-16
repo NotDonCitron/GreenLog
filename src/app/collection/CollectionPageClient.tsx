@@ -171,7 +171,7 @@ export default function CollectionPageClient() {
             setGrows(data.map((g: { id: string; [key: string]: unknown }) => ({
               ...g,
               plant_count: countMap[g.id] || 0,
-            })));
+            })) as GrowRow[]);
           }
         }
       } catch (err) {

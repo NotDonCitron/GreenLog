@@ -81,7 +81,10 @@ function SortableCommunityCard({ org, role }: { org: SortableOrg; role?: string 
             </div>
             {role && (
               <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 text-[#00F5FF]">
-                {role === USER_ROLES.GRUENDER ? "Gründer" : role === USER_ROLES.ADMIN ? "Admin" : "Member"}
+                {role === USER_ROLES.GRUENDER ? "Gründer" : 
+                 role === USER_ROLES.ADMIN ? "Admin" : 
+                 role === USER_ROLES.PRAEVENTIONSBEAUFTRAGTER ? "Prev. Officer" :
+                 "Member"}
               </span>
             )}
             <div className="w-8 h-8 rounded-full bg-[var(--muted)] border border-[var(--border)]/50 flex items-center justify-center shrink-0">
