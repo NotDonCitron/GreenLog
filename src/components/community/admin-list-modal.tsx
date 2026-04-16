@@ -35,7 +35,7 @@ export function AdminListModal({ organizationId, onClose, onSuccess, onInvite }:
     const fetchAdmins = async () => {
       setLoading(true);
       const { data, error } = await supabase
-        .from("organization_memberships")
+        .from("organization_members")
         .select("*, profile:profiles(*)")
         .eq("organization_id", organizationId)
         .in("role", [USER_ROLES.ADMIN, USER_ROLES.GRUENDER])
@@ -56,7 +56,7 @@ export function AdminListModal({ organizationId, onClose, onSuccess, onInvite }:
     try {
       // Demote to member or remove entirely - we'll remove the membership
       const { error } = await supabase
-        .from("organization_memberships")
+        .from("organization_members")
         .delete()
         .eq("id", membershipId);
 
@@ -76,7 +76,7 @@ export function AdminListModal({ organizationId, onClose, onSuccess, onInvite }:
     setActionLoading(membershipId);
     try {
       const { error } = await supabase
-        .from("organization_memberships")
+        .from("organization_members")
         .update({ role: USER_ROLES.MEMBER })
         .eq("id", membershipId);
 

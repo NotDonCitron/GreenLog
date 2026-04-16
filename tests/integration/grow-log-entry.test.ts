@@ -1,12 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { POST } from '@/app/api/grows/log-entry/route';
-import { auth } from '@clerk/nextjs/server';
 import { getAuthenticatedClient } from '@/lib/supabase/client';
-
-// Mock Clerk auth
-vi.mock('@clerk/nextjs/server', () => ({
-  auth: vi.fn(),
-}));
 
 // Mock getAuthenticatedClient (used by getServerUser in actions.ts)
 vi.mock('@/lib/supabase/client', () => ({

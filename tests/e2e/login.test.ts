@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { setupClerkTestingToken } from '@clerk/testing/playwright';
 
 const USER_EMAIL = process.env.TEST_USER_EMAIL || 'Hintermaier.pascal@gmail.com';
 const USER_PASSWORD = process.env.TEST_USER_PASSWORD || '123456';
@@ -7,9 +6,6 @@ const USER_PASSWORD = process.env.TEST_USER_PASSWORD || '123456';
 test.describe('GreenLog E2E - Full User Flow', () => {
 
   test.beforeEach(async ({ page }) => {
-    // Inject Clerk testing token BEFORE any auth steps to bypass Cloudflare Turnstile
-    await setupClerkTestingToken({ page });
-
     // 1. Navigation zum Login
     await page.goto('/login');
 

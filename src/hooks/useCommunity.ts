@@ -39,26 +39,16 @@ async function fetchCommunityData(userId: string | undefined, memberships: { org
   let others: Organization[] = [];
 
   if (userId) {
-    const { data: savedOrder } = await supabase
-      .from("user_community_order")
-      .select("organization_id, position")
-      .eq("user_id", userId);
-
-    const orderMap = new Map<string, number>((savedOrder || []).map((o: CommunityOrder) => [o.organization_id, o.position]));
-
     const myOrgIds = new Set(memberships.map((m) => m.organization_id));
 
     for (const org of allOrgs) {
       if (myOrgIds.has(org.id)) {
         const membership = memberships.find((m) => m.organization_id === org.id);
-        mine.push({ ...org, membership_role: membership?.role, position: orderMap.get(org.id) ?? -1000 - mine.length });
+        mine.push({ ...org, membership_role: membership?.role, position: -1000 - mine.length });
       } else {
-        others.push({ ...org, position: orderMap.get(org.id) ?? 0 });
+        others.push({ ...org, position: 0 });
       }
     }
-
-    mine.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-    others.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
   } else {
     // Logged out — show all as "other"
     others = allOrgs.map(org => ({ ...org, position: 0 }));

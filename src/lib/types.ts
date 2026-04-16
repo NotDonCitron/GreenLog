@@ -14,6 +14,8 @@ export interface Organization {
   created_at: string;
   updated_at: string;
   logo_url?: string | null;
+  avatar_url?: string | null;
+  description?: string | null;
   requires_member_approval?: boolean;
 }
 
@@ -21,7 +23,7 @@ export interface OrganizationMembership {
   id: string;
   organization_id: string;
   user_id: string;
-  role: 'gründer' | 'admin' | 'member' | 'viewer';
+  role: 'gründer' | 'admin' | 'member' | 'viewer' | 'präventionsbeauftragter';
   membership_status: 'active' | 'invited' | 'removed' | 'pending';
   joined_at: string | null;
   invited_by: string | null;
@@ -35,7 +37,7 @@ export interface OrganizationInvite {
   id: string;
   organization_id: string;
   email: string;
-  role: 'admin';
+  role: 'admin' | 'staff' | 'member' | 'viewer' | 'präventionsbeauftragter';
   token_hash: string;
   status: 'pending' | 'accepted' | 'revoked' | 'expired';
   expires_at: string;
@@ -50,19 +52,11 @@ export interface Strain {
   name: string;
   slug: string;
   type: 'indica' | 'sativa' | 'hybrid' | 'ruderalis';
-  brand?: string;
-  manufacturer?: string;
   farmer?: string;
-  irradiation?: string;
-  avg_thc?: number;
-  avg_cbd?: number;
   thc_min?: number;
   thc_max?: number;
   cbd_min?: number;
   cbd_max?: number;
-  cbg?: number;
-  cbn?: number;
-  thcv?: number;
   image_url?: string;
   image_attribution?: {
     source: 'seedbank' | 'wikimedia' | 'linhacanabica' | 'none';
@@ -74,13 +68,11 @@ export interface Strain {
   terpenes?: (string | Terpene)[];
   flavors?: string[];
   effects?: string[];
-  genetics?: string;
-  indications?: string[];
-  is_medical?: boolean;
   // Custom strain fields
   is_custom?: boolean;
   source?: 'pharmacy' | 'street' | 'grow' | 'csc' | 'other';
   created_by?: string;
+  created_at?: string;
   // Organization scoping
   organization_id?: string | null;
 }
@@ -99,18 +91,31 @@ export type StrainSource = 'pharmacy' | 'street' | 'grow' | 'csc' | 'other';
 export interface Grow {
   id: string;
   user_id: string;
-  organization_id?: string;
+  organization_id: string;
   strain_id?: string | null;
   title: string;
   grow_type: 'indoor' | 'outdoor' | 'greenhouse';
-  status: 'active' | 'completed' | 'archived';
+  medium?: string | null;
+  light_type?: string | null;
+  nutrients?: string | null;
+  status: 'active' | 'completed' | 'abandoned';
   start_date: string;
   harvest_date?: string | null;
+  expected_harvest_date?: string | null;
+  yield_grams?: number | null;
+  grow_notes?: string | null;
   is_public: boolean;
+  created_at?: string;
   strains?: {
     name: string;
   } | null;
   plants?: Plant[];
+  // Joined from explore queries
+  profiles?: {
+    username: string | null;
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
 export type PlantStatus = 'seedling' | 'vegetative' | 'flowering' | 'flushing' | 'harvested' | 'destroyed';
@@ -143,6 +148,7 @@ export interface GrowEntry {
   id: string;
   grow_id: string;
   user_id: string;
+  organization_id?: string;
   plant_id?: string | null;
   entry_type?: GrowEntryType | null;
   content?: Record<string, unknown>;
@@ -155,6 +161,9 @@ export interface GrowEntry {
   temperature?: number;
   humidity?: number;
   ph_value?: number;
+  ec_value?: number;
+  water_temperature?: number;
+  nutrient_dose?: number;
   created_at: string;
 }
 
@@ -183,7 +192,8 @@ export interface GrowPreset {
 
 export interface GrowComment {
   id: string;
-  grow_entry_id: string;
+  grow_entry_id?: string | null;
+  grow_id?: string | null;
   user_id: string;
   comment: string;
   created_at: string;
@@ -292,6 +302,7 @@ export interface RatingRow {
   consumption_method: string | null;
   location: string | null;
   image_url: string | null;
+  is_public?: boolean;
   created_at: string;
 }
 
@@ -398,6 +409,8 @@ export interface ProfileRow {
   website?: string | null;
   social_links?: Record<string, unknown> | null;
   has_completed_onboarding?: boolean;
+  date_of_birth?: string | null;
+  full_name?: string | null;
   created_at: string;
 }
 
@@ -483,4 +496,83 @@ export interface MatchResult {
   strainSlug: string;
   score: number;        // 0-100 (Prozent)
   basedOnRatings: number;
+}
+
+// CSC Compliance Types (KCanG § 26)
+export interface CscBatch {
+  id: string;
+  organization_id: string;
+  strain_id: string;
+  batch_number: string;
+  quantity_grams: number;
+  thc_percentage: number;
+  cbd_percentage: number;
+  supplier: string | null;
+  received_at: string;
+  expiry_date: string | null;
+  remaining_grams: number;
+  status: 'active' | 'depleted' | 'expired' | 'destroyed';
+  recorded_by: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CscDispensation {
+  id: string;
+  organization_id: string;
+  batch_id: string;
+  member_id: string;
+  dispensed_by: string;
+  amount_grams: number;
+  dispensed_at: string;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface CscDestruction {
+  id: string;
+  organization_id: string;
+  batch_id: string | null;
+  amount_grams: number;
+  reason: string;
+  destroyed_by: string;
+  destroyed_at: string;
+  witness_name: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  message: string | null;
+  data: Record<string, unknown> | null;
+  read: boolean;
+  created_at: string;
+}
+
+export interface StrainReport {
+  id: string;
+  strain_id: string;
+  reporter_id: string;
+  reason: string;
+  details: string | null;
+  status: 'pending' | 'reviewed' | 'resolved' | 'dismissed';
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+}
+
+export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  icon_key: string;
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+  category: string;
+  criteria: Record<string, unknown>;
+  created_at: string;
 }

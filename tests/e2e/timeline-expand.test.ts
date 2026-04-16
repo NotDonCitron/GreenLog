@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { setupClerkTestingToken } from '@clerk/testing/playwright';
 
 const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL || 'test@greenlog.com';
 const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || 'TestPassword123!';
@@ -7,8 +6,7 @@ const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || 'TestPassword123!';
 test.describe('Timeline Entry — Expand + Comment Form', () => {
 
   test.beforeEach(async ({ page }) => {
-    await setupClerkTestingToken({ page });
-    // Clerk redirects to sign-in, accept cookie + age gate then navigate directly to grows
+    // Navigate directly to grows
     await page.goto('/grows', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
 

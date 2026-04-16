@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { setupClerkTestingToken } from '@clerk/testing/playwright';
 
 const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL || 'test@greenlog.com';
 const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || 'TestPassword123!';
@@ -7,8 +6,6 @@ const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || 'TestPassword123!';
 test.describe('Grow Detail Page — UI Modules', () => {
 
   test.beforeEach(async ({ page }) => {
-    await setupClerkTestingToken({ page });
-
     // Handle age gate
     const yearSelect = page.locator('select').first();
     if (await yearSelect.isVisible()) {
