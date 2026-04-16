@@ -16,7 +16,10 @@ import {
   AlertTriangle,
   Activity,
   UserCheck,
-  Users
+  Users,
+  Scale,
+  Package,
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -338,6 +341,67 @@ export default function SettingsOrganizationPage() {
               </div>
             </Card>
           </Link>
+        )}
+
+        {/* CSC Inventar — Owner/Admin only */}
+        {(isOwner || activeOrganization.role === USER_ROLES.ADMIN) && (
+          <>
+            <div className="pt-2 pb-1">
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[var(--muted-foreground)] px-1">KCanG § 26 Compliance</p>
+            </div>
+            <Link href="/settings/organization/csc/batches">
+              <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-[#2FF801]/10 border border-[#2FF801]/20 flex items-center justify-center shrink-0">
+                    <Scale size={20} className="text-[#2FF801]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-black text-sm text-[var(--foreground)]">Ernte-Übersicht</p>
+                    <p className="text-[10px] text-[var(--muted-foreground)]">Ernten für Behörde dokumentieren</p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+            <Link href="/settings/organization/csc/dispensations">
+              <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center shrink-0">
+                    <Package size={20} className="text-[#00F5FF]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-black text-sm text-[var(--foreground)]">Abgaben</p>
+                    <p className="text-[10px] text-[var(--muted-foreground)]">Mitgliederausgaben mit Limit-Prüfung</p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+            <Link href="/settings/organization/csc/destructions">
+              <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-[#ff716c]/10 border border-[#ff716c]/20 flex items-center justify-center shrink-0">
+                    <Trash2 size={20} className="text-[#ff716c]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-black text-sm text-[var(--foreground)]">Vernichtungen</p>
+                    <p className="text-[10px] text-[var(--muted-foreground)]">Nachweispflichtige Vernichtungen</p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+            <Link href="/settings/organization/csc/export">
+              <Card className="bg-[var(--card)] border border-[#ffd76a]/30 p-5 rounded-3xl">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-[#ffd76a]/10 border border-[#ffd76a]/20 flex items-center justify-center shrink-0">
+                    <Download size={20} className="text-[#ffd76a]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-black text-sm text-[var(--foreground)]">Behörden-Export</p>
+                    <p className="text-[10px] text-[var(--muted-foreground)]">§ 26 CSV für Behörde erstellen</p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          </>
         )}
 
         {/* Community löschen — Owner only */}
