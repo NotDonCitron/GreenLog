@@ -97,39 +97,51 @@ export function ActivityFeed({
     useEffect(() => {
         if (!user && !showDiscover) return;
 
-        const channel = supabase
-            .channel('user_activities_realtime')
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'user_activities',
-                    filter: showDiscover ? 'is_public=eq.true' : undefined,
-                },
-                async (payload) => {
-                    // Fetch the full activity with user profile
-                    const { data: newActivity } = await supabase
-                        .from("user_activities")
-                        .select(`*, user:profiles!user_id(*)`)
-                        .eq("id", payload.new.id)
-                        .single();
+        let channel: ReturnType<typeof supabase.channel> | null = null;
 
-                    if (newActivity && newActivity.user) {
-                        const feedItem: SocialFeedItem = {
-                            activity: newActivity,
-                            user: newActivity.user as ProfileRow,
-                        };
+        try {
+            // Check if realtime is available (WebSocket support)
+            if (!supabase.getChannels().length) {
+                channel = supabase
+                    .channel('user_activities_realtime')
+                    .on(
+                        'postgres_changes',
+                        {
+                            event: 'INSERT',
+                            schema: 'public',
+                            table: 'user_activities',
+                            filter: showDiscover ? 'is_public=eq.true' : undefined,
+                        },
+                        async (payload) => {
+                            // Fetch the full activity with user profile
+                            const { data: newActivity } = await supabase
+                                .from("user_activities")
+                                .select(`*, user:profiles!user_id(*)`)
+                                .eq("id", payload.new.id)
+                                .single();
 
-                        // Add to beginning of list (newest first)
-                        setActivities((prev) => [feedItem, ...prev.slice(0, 49)]);
-                    }
-                }
-            )
-            .subscribe();
+                            if (newActivity && newActivity.user) {
+                                const feedItem: SocialFeedItem = {
+                                    activity: newActivity,
+                                    user: newActivity.user as ProfileRow,
+                                };
+
+                                // Add to beginning of list (newest first)
+                                setActivities((prev) => [feedItem, ...prev.slice(0, 49)]);
+                            }
+                        }
+                    )
+                    .subscribe();
+            }
+        } catch (err) {
+            // WebSocket not available - realtime disabled, fallback to polling
+            console.warn('Realtime unavailable, using polling fallback');
+        }
 
         return () => {
-            void supabase.removeChannel(channel);
+            if (channel) {
+                void supabase.removeChannel(channel);
+            }
         };
     }, [user, showDiscover]);
 
