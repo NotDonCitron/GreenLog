@@ -252,12 +252,12 @@ export default function CSCBatchesPage() {
                         <AlertTriangle size={12} /> Qualitätsprüfung nicht bestanden
                       </div>
                     )}
-                    {batch.quality_check_passed === null && isAdmin && (
+                    {batch.quality_check_passed !== true && isAdmin && (
                       <button
                         onClick={() => setSelectedBatch(batch)}
                         className="mt-2 text-[10px] text-[#00F5FF] hover:underline"
                       >
-                        Qualitätsprüfung durchführen →
+                        {batch.quality_check_passed === null ? "Qualitätsprüfung durchführen →" : "Qualitätsprüfung wiederholen →"}
                       </button>
                     )}
                   </div>
