@@ -167,6 +167,17 @@ CREATE POLICY "csc_batches_insert" ON csc_batches
     )
   );
 
+CREATE POLICY "csc_batches_update" ON csc_batches
+  FOR UPDATE USING (
+    is_active_org_member(requesting_user_id(), organization_id)
+    AND EXISTS (
+      SELECT 1 FROM organization_members
+      WHERE organization_id = csc_batches.organization_id
+      AND user_id = requesting_user_id()
+      AND role IN ('gründer', 'admin')
+    )
+  );
+
 -- csc_dispensations: Org-Member >= admin sehen, nur gründer/admin einfügen
 CREATE POLICY "csc_dispensations_select" ON csc_dispensations
   FOR SELECT USING (

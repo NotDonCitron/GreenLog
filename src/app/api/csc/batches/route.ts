@@ -79,7 +79,7 @@ export async function POST(request: Request) {
         const { user, supabase } = auth;
 
         const body = await request.json();
-        const { organization_id, strain_id, harvest_date, total_weight_grams, plant_count, notes } = body;
+        const { organization_id, strain_id, harvest_date, total_weight_grams, plant_count, notes, quality_check_passed, quality_check_notes } = body;
 
         if (!organization_id) {
             return jsonError("organization_id is required", 400);
@@ -115,6 +115,9 @@ export async function POST(request: Request) {
                 plant_count,
                 notes,
                 recorded_by: user.id,
+                quality_check_passed: quality_check_passed ?? null,
+                quality_check_notes: quality_check_notes ?? null,
+                quality_checked_at: quality_check_passed !== undefined ? new Date().toISOString() : null,
             })
             .select(`
                 id,

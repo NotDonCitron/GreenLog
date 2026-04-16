@@ -52,6 +52,10 @@ export default function CSCBatchesPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
+  // Quality check at creation time
+  const [initialQualityPassed, setInitialQualityPassed] = useState<boolean | null>(null);
+  const [createQualityNotes, setCreateQualityNotes] = useState("");
+
   // Quality check dialog
   const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
   const [qualityNotes, setQualityNotes] = useState("");
@@ -109,6 +113,8 @@ export default function CSCBatchesPage() {
           total_weight_grams: parseFloat(totalWeight),
           plant_count: parseInt(plantCount, 10),
           notes: notes || null,
+          quality_check_passed: initialQualityPassed,
+          quality_check_notes: createQualityNotes || null,
         }),
       });
       const json = await res.json();
@@ -117,6 +123,7 @@ export default function CSCBatchesPage() {
       setMessage({ type: "success", msg: "Ernte-Los erfasst" });
       setShowCreateForm(false);
       setStrainId(""); setHarvestDate(""); setTotalWeight(""); setPlantCount(""); setNotes("");
+      setInitialQualityPassed(null); setCreateQualityNotes("");
       void fetchBatches();
     } catch (err: unknown) {
       setMessage({ type: "error", msg: err instanceof Error ? err.message : "Fehler" });
@@ -308,6 +315,41 @@ export default function CSCBatchesPage() {
             <div>
               <label className="text-[10px] font-black uppercase text-[var(--muted-foreground)] block mb-1">Notizen (optional)</label>
               <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="z.B. Indoor, erste Ernte..." />
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase text-[var(--muted-foreground)] block mb-1">Qualitätsprüfung § 11 KCanG (optional)</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setInitialQualityPassed(true)}
+                  className={`flex-1 h-10 rounded-xl border text-xs font-black uppercase tracking-widest transition-all ${
+                    initialQualityPassed === true
+                      ? "bg-[#2FF801]/20 border-[#2FF801] text-[#2FF801]"
+                      : "bg-[var(--input)] border-[var(--border)]/50 text-[var(--muted-foreground)]"
+                  }`}
+                >
+                  Bestanden
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInitialQualityPassed(false)}
+                  className={`flex-1 h-10 rounded-xl border text-xs font-black uppercase tracking-widest transition-all ${
+                    initialQualityPassed === false
+                      ? "bg-[#ff716c]/20 border-[#ff716c] text-[#ff716c]"
+                      : "bg-[var(--input)] border-[var(--border)]/50 text-[var(--muted-foreground)]"
+                  }`}
+                >
+                  Nicht bestanden
+                </button>
+              </div>
+              {initialQualityPassed !== null && (
+                <Input
+                  value={createQualityNotes}
+                  onChange={(e) => setCreateQualityNotes(e.target.value)}
+                  placeholder="Prüfnotiz..."
+                  className="mt-2"
+                />
+              )}
             </div>
             <Button type="submit" disabled={saving} className="w-full h-12 bg-gradient-to-r from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black font-black uppercase tracking-widest text-xs">
               {saving ? <Loader2 size={14} className="animate-spin" /> : null}
