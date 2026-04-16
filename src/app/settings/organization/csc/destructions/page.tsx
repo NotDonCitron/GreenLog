@@ -84,13 +84,14 @@ export default function CSCDestructionsPage() {
     setSaving(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/csc/destructions?organization_id=${orgId}`, {
+      const res = await fetch("/api/csc/destructions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
+          organization_id: orgId,
           batch_id: batchId || null,
           amount_grams: parseFloat(amountGrams),
           destruction_reason: destructionReason,

@@ -96,13 +96,14 @@ export default function CSCBatchesPage() {
     setSaving(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/csc/batches?organization_id=${orgId}`, {
+      const res = await fetch("/api/csc/batches", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
+          organization_id: orgId,
           strain_id: strainId,
           harvest_date: harvestDate,
           total_weight_grams: parseFloat(totalWeight),

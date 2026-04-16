@@ -134,13 +134,14 @@ export default function CSCDispensationsPage() {
     setSaving(true);
     setMessage(null);
     try {
-      const res = await fetch(`/api/csc/dispensations?organization_id=${orgId}`, {
+      const res = await fetch("/api/csc/dispensations", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
+          organization_id: orgId,
           member_id: selectedMemberId,
           batch_id: selectedBatchId,
           amount_grams: parseFloat(amountGrams),
