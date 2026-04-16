@@ -50,7 +50,7 @@ function formatRequestDate(dateStr: string | null) {
 }
 
 export default function PendingMembersPage() {
-  const { user, session, activeOrganization, isDemoMode } = useAuth();
+  const { user, loading: authLoading, session, activeOrganization, membershipsLoading, isDemoMode } = useAuth();
   const router = useRouter();
 
   const [pendingMembers, setPendingMembers] = useState<PendingMember[]>([]);
@@ -72,10 +72,15 @@ export default function PendingMembersPage() {
     activeOrganization?.role === USER_ROLES.ADMIN;
 
   useEffect(() => {
-    // Wait for activeOrganization to load before redirecting
-    if (activeOrganization === undefined) return;
+    // Wait for memberships to finish loading before any redirect
+    if (authLoading || membershipsLoading) return;
 
-    if (!activeOrganization) {
+    if (!user) {
+      router.push("/sign-in");
+      return;
+    }
+
+    if (activeOrganization === null) {
       router.push("/profile");
       return;
     }
@@ -86,7 +91,7 @@ export default function PendingMembersPage() {
     }
 
     void fetchPendingMembers();
-  }, [activeOrganization, isAdmin, router]);
+  }, [authLoading, membershipsLoading, activeOrganization, isAdmin, router]);
 
   const fetchPendingMembers = async () => {
     if (!activeOrganization || !session?.access_token) return;
@@ -181,8 +186,8 @@ export default function PendingMembersPage() {
     setRejectDialogOpen(true);
   };
 
-  // Show loader while checking auth (prevents flash of wrong redirect)
-  if (activeOrganization === undefined) {
+  // Show loader while memberships are loading (prevents flash of wrong redirect)
+  if (authLoading || membershipsLoading || activeOrganization === null) {
     return (
       <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
         <Loader2 className="animate-spin text-[#00F5FF]" size={32} />

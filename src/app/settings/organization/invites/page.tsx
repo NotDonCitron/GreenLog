@@ -33,7 +33,9 @@ function formatRoleLabel(role: string) {
   switch (role) {
     case USER_ROLES.ADMIN: return "Admin";
     case "staff": return "Staff";
+    case USER_ROLES.PRAEVENTIONSBEAUFTRAGTER: return "Präventionsbeauftragter";
     case USER_ROLES.MEMBER: return "Mitglied";
+    case USER_ROLES.VIEWER: return "Viewer";
     default: return role;
   }
 }
@@ -41,6 +43,7 @@ function formatRoleLabel(role: string) {
 function RoleBadge({ role }: { role: string }) {
   const color =
     role === USER_ROLES.ADMIN ? "text-[#ff716c] bg-[#ff716c]/10 border-[#ff716c]/20" :
+    role === USER_ROLES.PRAEVENTIONSBEAUFTRAGTER ? "text-[#2FF801] bg-[#2FF801]/10 border-[#2FF801]/20" :
     role === "staff" ? "text-[#00a3ff] bg-[#00a3ff]/10 border-[#00a3ff]/20" :
     "text-[var(--muted-foreground)] bg-[var(--muted)] border-[var(--border)]/50";
   return (
@@ -83,7 +86,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function InvitesPage() {
-  const { session, activeOrganization, isDemoMode } = useAuth();
+  const { user, loading: authLoading, session, activeOrganization, membershipsLoading, isDemoMode } = useAuth();
   const router = useRouter();
 
   const [invites, setInvites] = useState<Invite[]>([]);
@@ -94,7 +97,10 @@ export default function InvitesPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; msg: string } | null>(null);
-  const [newInvite, setNewInvite] = useState({ email: "", role: USER_ROLES.ADMIN as const });
+  const [newInvite, setNewInvite] = useState({ 
+    email: "", 
+    role: USER_ROLES.MEMBER as "admin" | "member" | "präventionsbeauftragter" | "viewer" | "staff"
+  });
   const [createdInviteToken, setCreatedInviteToken] = useState<string | null>(null);
   const [createdInviteEmail, setCreatedInviteEmail] = useState<string | null>(null);
 
@@ -128,7 +134,14 @@ export default function InvitesPage() {
   }, [activeOrganization, session?.access_token, isOwner]);
 
   useEffect(() => {
-    if (!activeOrganization) {
+    if (authLoading || membershipsLoading) return;
+
+    if (!user) {
+      router.push("/sign-in");
+      return;
+    }
+
+    if (activeOrganization === null) {
       router.push("/profile");
       return;
     }
@@ -137,7 +150,7 @@ export default function InvitesPage() {
       return;
     }
     void fetchInvites();
-  }, [activeOrganization, fetchInvites, router]);
+  }, [authLoading, membershipsLoading, activeOrganization, fetchInvites, router]);
 
   const handleCreateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,6 +221,14 @@ export default function InvitesPage() {
     }
   };
 
+  if (authLoading || membershipsLoading || activeOrganization === null) {
+    return (
+      <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#00F5FF]" size={32} />
+      </main>
+    );
+  }
+
   if (!activeOrganization) {
     return (
       <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
@@ -239,7 +260,7 @@ export default function InvitesPage() {
             {activeOrganization.organizations?.name}
           </p>
           <h1 className="text-2xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
-            Admin anlegen
+            Mitglieder einladen
           </h1>
         </div>
       </header>
@@ -306,7 +327,7 @@ export default function InvitesPage() {
                   <p className="text-xs font-black uppercase tracking-widest text-[var(--muted-foreground)]">Neue Einladung</p>
                   <button
                     type="button"
-                    onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: USER_ROLES.ADMIN }); }}
+                    onClick={() => { setShowCreateForm(false); setNewInvite({ email: "", role: USER_ROLES.MEMBER }); }}
                     className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                   >
                     <X size={16} />
@@ -325,9 +346,37 @@ export default function InvitesPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-[#ff716c]/10 border border-[#ff716c]/20">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#ff716c]">Admin</span>
-                  <span className="text-[10px] text-[var(--muted-foreground)]">Nur Admins können eingeladen werden</span>
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--muted-foreground)] mb-1 px-1">Rolle wählen</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: USER_ROLES.MEMBER, label: "Mitglied" },
+                      { id: USER_ROLES.ADMIN, label: "Admin" },
+                      { id: USER_ROLES.PRAEVENTIONSBEAUFTRAGTER, label: "Prävent." }
+                    ].map((r) => (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => setNewInvite(prev => ({ ...prev, role: r.id as any }))}
+                        className={`h-10 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${
+                          newInvite.role === r.id 
+                            ? "bg-[#00F5FF]/20 border-[#00F5FF] text-[#00F5FF]" 
+                            : "bg-[var(--muted)] border-[var(--border)]/50 text-[var(--muted-foreground)] hover:border-[var(--border)]"
+                        }`}
+                      >
+                        {r.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-[var(--muted)] border border-[var(--border)]/50">
+                  <Shield size={14} className="text-[var(--muted-foreground)]" />
+                  <span className="text-[10px] text-[var(--muted-foreground)] italic">
+                    {newInvite.role === USER_ROLES.ADMIN ? "Voller Zugriff auf Einstellungen" : 
+                     newInvite.role === USER_ROLES.PRAEVENTIONSBEAUFTRAGTER ? "Compliance & Prävention (KCanG § 23)" : 
+                     "Standard-Mitglied der Organisation"}
+                  </span>
                 </div>
 
                 <Button
