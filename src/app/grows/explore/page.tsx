@@ -96,7 +96,8 @@ export default function ExploreGrowsPage() {
 
           // Fetch plant counts for these grows
           if (data && data.length > 0) {
-            const growIds = data.map((g: Grow) => g.id);
+            const growsTyped = data as unknown as Grow[];
+            const growIds = growsTyped.map((g) => g.id);
             const { data: plantCounts } = await supabase
               .from("plants")
               .select("grow_id")
@@ -108,7 +109,7 @@ export default function ExploreGrowsPage() {
               countMap[p.grow_id] = (countMap[p.grow_id] || 0) + 1;
             });
 
-            const growsWithCounts = data.map((g: Grow) => ({
+            const growsWithCounts = growsTyped.map((g) => ({
               ...g,
               plant_count: countMap[g.id] || 0
             }));

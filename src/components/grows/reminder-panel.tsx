@@ -184,7 +184,7 @@ export function ReminderPanel({ growId, userId }: ReminderPanelProps) {
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-1 block">
                   Art
                 </Label>
-                <Select value={newType} onValueChange={setNewType}>
+                <Select value={newType} onValueChange={(value) => setNewType(value || '')}>
                   <SelectTrigger className="bg-[var(--background)] border border-[var(--border)]/50">
                     <SelectValue />
                   </SelectTrigger>

@@ -179,7 +179,7 @@ export function ConsumptionLogPanel({ userId }: ConsumptionLogPanelProps) {
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-1 block">
                   Konsumform *
                 </Label>
-                <Select value={newMethod} onValueChange={setNewMethod}>
+                <Select value={newMethod} onValueChange={(value) => setNewMethod(value || '')}>
                   <SelectTrigger className="bg-[var(--background)] border border-[var(--border)]/50">
                     <SelectValue />
                   </SelectTrigger>
@@ -226,7 +226,7 @@ export function ConsumptionLogPanel({ userId }: ConsumptionLogPanelProps) {
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-1 block">
                     Stimmung vorher
                   </Label>
-                  <Select value={newMoodBefore} onValueChange={setNewMoodBefore}>
+                  <Select value={newMoodBefore} onValueChange={(value) => setNewMoodBefore(value || '')}>
                     <SelectTrigger className="bg-[var(--background)] border border-[var(--border)]/50">
                       <SelectValue placeholder="-" />
                     </SelectTrigger>
@@ -241,7 +241,7 @@ export function ConsumptionLogPanel({ userId }: ConsumptionLogPanelProps) {
                   <Label className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-1 block">
                     Stimmung nachher
                   </Label>
-                  <Select value={newMoodAfter} onValueChange={setNewMoodAfter}>
+                  <Select value={newMoodAfter} onValueChange={(value) => setNewMoodAfter(value || '')}>
                     <SelectTrigger className="bg-[var(--background)] border border-[var(--border)]/50">
                       <SelectValue placeholder="-" />
                     </SelectTrigger>

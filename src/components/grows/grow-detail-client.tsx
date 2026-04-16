@@ -76,6 +76,7 @@ export function GrowDetailClient({
       const newEntry: GrowEntry = {
         id: `demo-${Date.now()}`,
         grow_id: growId,
+        user_id: 'demo-user',
         entry_type: entryType,
         content,
         created_at: new Date().toISOString(),
@@ -311,7 +312,7 @@ export function GrowDetailClient({
           onClose={() => { setLogModalOpen(false); setSelectedLogType(null); }}
           growId={growId}
           plantId={logModalPlantId}
-          onEntryAdded={onEntryAdded}
+          onEntryAdded={() => { onEntryAdded('note' as GrowEntryType, {}); }}
           defaultType={selectedLogType}
         />
       )}

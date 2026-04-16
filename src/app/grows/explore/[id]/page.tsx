@@ -66,13 +66,15 @@ export default function ExploreGrowDetailPage() {
                 if (isDemoMode) {
                     setGrow({
                         id: id as string,
+                        user_id: 'demo-user',
+                        organization_id: 'demo-org',
                         title: "Demo Grow",
                         grow_type: "indoor",
                         status: "active",
                         is_public: true,
                         start_date: new Date().toISOString().split('T')[0],
                         strains: { name: "Gorilla Glue #4" }
-                    });
+                    } as Grow);
                     setPlants([]);
                     setEntries([]);
                     setMilestones([]);

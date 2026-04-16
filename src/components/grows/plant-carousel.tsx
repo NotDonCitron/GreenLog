@@ -70,16 +70,19 @@ export function PlantCarousel({ plants, isOwner, onAddPlant, onStatusAdvance }: 
                 </p>
               )}
 
-              {isOwner && isActive && NEXT_STATUS[plant.status] && (
-                <Button
-                  onClick={() => onStatusAdvance(plant.id, NEXT_STATUS[plant.status]!)}
-                  size="sm"
-                  variant="outline"
-                  className="w-full mt-2 text-[9px] border-[var(--border)]/50"
-                >
-                  Weiter → {NEXT_LABELS[NEXT_STATUS[plant.status]]}
-                </Button>
-              )}
+              {isOwner && isActive && (() => {
+                const next = NEXT_STATUS[plant.status];
+                return next ? (
+                  <Button
+                    onClick={() => onStatusAdvance(plant.id, next)}
+                    size="sm"
+                    variant="outline"
+                    className="w-full mt-2 text-[9px] border-[var(--border)]/50"
+                  >
+                    Weiter → {NEXT_LABELS[next]}
+                  </Button>
+                ) : null;
+              })()}
             </div>
           );
         })}
