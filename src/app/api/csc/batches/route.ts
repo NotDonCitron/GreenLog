@@ -29,6 +29,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     if (!canView) return jsonError("Forbidden", 403);
 
     // Fetch batches with strain info
+    console.log("[csc/batches] Fetching for org:", orgId);
     const { data: batches, error } = await supabase
         .from("csc_batches")
         .select(`
@@ -50,7 +51,10 @@ export async function GET(request: Request, { params }: RouteParams) {
         .eq("organization_id", orgId)
         .order("harvest_date", { ascending: false });
 
-    if (error) return jsonError("Failed to fetch batches", 500, error.code, error.message);
+    if (error) {
+        console.error("[csc/batches] Supabase error:", error);
+        return jsonError("Failed to fetch batches", 500, error.code, error.message);
+    }
 
     return jsonSuccess({ batches });
 }
