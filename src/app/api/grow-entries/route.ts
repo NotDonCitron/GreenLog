@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient as createClient } from '@/lib/supabase/server';
+import { jsonSuccess, jsonError, authenticateRequest } from '@/lib/api-response';
+import { getAuthenticatedClient } from '@/lib/supabase/client';
 
 export const dynamic = 'force-dynamic';
 
 // POST /api/grow-entries - Create a grow entry with EC/Wasser tracking
 export async function POST(request: NextRequest) {
-  const supabase = createClient();
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (auth instanceof NextResponse) return auth;
+  const { user, supabase } = auth;
 
   const {
     grow_id,
@@ -16,17 +19,17 @@ export async function POST(request: NextRequest) {
     height_cm,
     temperature,
     humidity,
-    ph_value,         // Wasser pH
-    ec_value,         // Wasser EC (Leitfähigkeit)
-    water_temperature, // Wassertemperatur
-    nutrient_dose      // Dünger-Dosierung
+    ph_value,
+    ec_value,
+    water_temperature,
+    nutrient_dose
   } = await request.json();
 
   if (!grow_id) {
-    return NextResponse.json({ error: 'grow_id is required' }, { status: 400 });
+    return jsonError('grow_id is required', 400);
   }
 
-  // Get grow to verify ownership
+  // Verify ownership
   const { data: grow, error: growError } = await supabase
     .from('grows')
     .select('user_id')
@@ -34,7 +37,11 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (growError || !grow) {
-    return NextResponse.json({ error: 'Grow not found' }, { status: 404 });
+    return jsonError('Grow not found', 404);
+  }
+
+  if (grow.user_id !== user.id) {
+    return jsonError('Forbidden', 403);
   }
 
   const { data, error } = await supabase
@@ -57,8 +64,8 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message, 500);
   }
 
-  return NextResponse.json(data, { status: 201 });
+  return jsonSuccess(data, 201);
 }

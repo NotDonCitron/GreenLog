@@ -1,33 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient as createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
+import { jsonSuccess, jsonError, authenticateRequest } from '@/lib/api-response';
+import { getAuthenticatedClient } from '@/lib/supabase/client';
 
 export const dynamic = 'force-dynamic';
 
 // GET /api/reminders - List user's reminders
 export async function GET(request: NextRequest) {
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (auth instanceof NextResponse) return auth;
+  const { supabase } = auth;
+
   const { searchParams } = new URL(request.url);
   const growId = searchParams.get('grow_id');
   const status = searchParams.get('status'); // 'pending' | 'completed' | 'all'
-
-  // Auth check — cookies() MUST be in try/catch for Edge Runtime
-  let accessToken: string | undefined;
-  try {
-    const cookieStore = await cookies();
-    accessToken = cookieStore.get('sb-access-token')?.value;
-  } catch (err) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  if (!accessToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  let supabase;
-  try {
-    supabase = createClient();
-  } catch (err) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
 
   let query = supabase
     .from('grow_reminders')
@@ -56,24 +41,9 @@ export async function GET(request: NextRequest) {
 
 // POST /api/reminders - Create a reminder
 export async function POST(request: NextRequest) {
-  // Auth check — cookies() MUST be in try/catch for Edge Runtime
-  let accessToken: string | undefined;
-  try {
-    const cookieStore = await cookies();
-    accessToken = cookieStore.get('sb-access-token')?.value;
-  } catch (err) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  if (!accessToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  let supabase;
-  try {
-    supabase = createClient();
-  } catch (err) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (auth instanceof NextResponse) return auth;
+  const { supabase } = auth;
 
   const {
     grow_id,
@@ -86,18 +56,12 @@ export async function POST(request: NextRequest) {
 
   // Validate
   if (!title || !due_date || !reminder_type) {
-    return NextResponse.json(
-      { error: 'title, due_date and reminder_type are required' },
-      { status: 400 }
-    );
+    return jsonError('title, due_date and reminder_type are required', 400);
   }
 
   const validTypes = ['water', 'nutrient', 'repot', 'ph_check', 'temp_check', 'defoliation', 'harvest', 'general'];
   if (!validTypes.includes(reminder_type)) {
-    return NextResponse.json(
-      { error: 'Invalid reminder_type' },
-      { status: 400 }
-    );
+    return jsonError('Invalid reminder_type', 400);
   }
 
   const { data, error } = await supabase
@@ -114,8 +78,8 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message, 500);
   }
 
-  return NextResponse.json(data, { status: 201 });
+  return jsonSuccess(data, 201);
 }

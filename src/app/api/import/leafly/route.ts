@@ -3,7 +3,7 @@ import { jsonError, jsonSuccess, authenticateRequest } from "@/lib/api-response"
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import dns from "dns";
 
-const ADMIN_IDS = (process.env.NEXT_PUBLIC_APP_ADMIN_IDS || "").split(",").filter(Boolean);
+const ADMIN_IDS = (process.env.APP_ADMIN_IDS || process.env.NEXT_PUBLIC_APP_ADMIN_IDS || "").split(",").filter(Boolean);
 
 const LEAFLY_HOSTS = new Set(["leafly.com", "www.leafly.com"]);
 

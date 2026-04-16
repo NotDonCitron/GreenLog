@@ -1,8 +1,18 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { jsonSuccess, jsonError } from "@/lib/api-response";
+import { NextResponse } from "next/server";
+import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { sendPushToUser, getSupabaseAdmin } from "@/lib/push";
+import { isAppAdmin } from "@/lib/auth";
 
 export async function GET(request: Request) {
+    const auth = await authenticateRequest(request, getAuthenticatedClient);
+    if (auth instanceof NextResponse) return auth;
+    const { user } = auth;
+
+    if (!isAppAdmin(user.id)) {
+        return jsonError("Forbidden", 403);
+    }
+
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("user_id");
 
@@ -35,15 +45,22 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const auth = await authenticateRequest(request, getAuthenticatedClient);
+    if (auth instanceof NextResponse) return auth;
+    const { user } = auth;
 
-    let body: any = {};
+    if (!isAppAdmin(user.id)) {
+        return jsonError("Forbidden", 403);
+    }
+
+    let body: Record<string, unknown> = {};
     try {
         body = await request.json();
-    } catch (e) {}
+    } catch {
+        // empty body is ok
+    }
 
-    const targetUserId = body.user_id || user?.id;
+    const targetUserId = (body.user_id as string) || user.id;
 
     if (!targetUserId) {
         return jsonError("Unauthorized or no target user_id provided", 401);

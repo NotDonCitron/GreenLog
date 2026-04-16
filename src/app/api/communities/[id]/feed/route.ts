@@ -1,6 +1,6 @@
-import { supabase } from "@/lib/supabase/client";
-import { createClient } from "@supabase/supabase-js";
-import { jsonSuccess, jsonError } from "@/lib/api-response";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { USER_ROLES } from "@/lib/roles";
 
 type RouteParams = { params: Promise<{ id: string }> };
@@ -14,6 +14,9 @@ export async function GET(request: Request, { params }: RouteParams) {
         const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
         const offset = (page - 1) * limit;
+
+        // Use server client — feed is public-read via RLS
+        const supabase = await createServerSupabaseClient();
 
         const { data: feedEntries, error: feedError, count } = await supabase
             .from("community_feed")
@@ -58,29 +61,16 @@ export async function GET(request: Request, { params }: RouteParams) {
 
 // DELETE /api/communities/[id]/feed?feedId=xxx
 export async function DELETE(request: Request, { params }: RouteParams) {
+    const auth = await authenticateRequest(request, getAuthenticatedClient);
+    if (auth instanceof Response) return auth;
+    const { user, supabase: userClient } = auth;
+
     const { id: organizationId } = await params;
     const { searchParams } = new URL(request.url);
     const feedId = searchParams.get("feedId");
 
     if (!feedId) {
         return jsonError("feedId is required", 400);
-    }
-
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-        return jsonError("Unauthorized", 401);
-    }
-    const token = authHeader.slice(7);
-
-    const userClient = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
-        { global: { headers: { Authorization: `Bearer ${token}` } }, auth: { autoRefreshToken: false, persistSession: false } }
-    );
-
-    const { data: { user }, error: userError } = await userClient.auth.getUser();
-    if (userError || !user) {
-        return jsonError("Unauthorized", 401);
     }
 
     const { data: membership } = await userClient

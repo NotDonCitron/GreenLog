@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient as createClient } from '@/lib/supabase/server';
+import { jsonSuccess, jsonError, authenticateRequest } from '@/lib/api-response';
+import { getAuthenticatedClient } from '@/lib/supabase/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,26 +9,24 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (auth instanceof NextResponse) return auth;
+  const { supabase } = auth;
+
   const { id } = await params;
-  const supabase = createClient();
-  
   const body = await request.json();
   const { is_completed, due_date, title, notes, repeat_interval_days } = body;
 
   // If completing a reminder with repeat, also create next
   if (is_completed === true) {
-    // Use the DB function to handle completion + repeat
     const { data, error } = await supabase
       .rpc('complete_reminder_and_repeat', { p_reminder_id: id });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return jsonError(error.message, 500);
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      next_reminder_id: data 
-    });
+    return jsonSuccess({ success: true, next_reminder_id: data });
   }
 
   // Regular update
@@ -49,14 +48,14 @@ export async function PATCH(
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message, 500);
   }
 
   if (!data) {
-    return NextResponse.json({ error: 'Reminder not found' }, { status: 404 });
+    return jsonError('Reminder not found', 404);
   }
 
-  return NextResponse.json(data);
+  return jsonSuccess(data);
 }
 
 // DELETE /api/reminders/[id]
@@ -64,8 +63,11 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (auth instanceof NextResponse) return auth;
+  const { supabase } = auth;
+
   const { id } = await params;
-  const supabase = createClient();
 
   const { error } = await supabase
     .from('grow_reminders')
@@ -73,8 +75,8 @@ export async function DELETE(
     .eq('id', id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message, 500);
   }
 
-  return NextResponse.json({ success: true });
+  return jsonSuccess({ success: true });
 }

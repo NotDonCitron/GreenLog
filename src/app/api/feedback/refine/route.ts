@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
-import { jsonError } from "@/lib/api-response";
+import { jsonError, authenticateRequest } from "@/lib/api-response";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 
 export async function POST(req: Request) {
+    const auth = await authenticateRequest(req, getAuthenticatedClient);
+    if (auth instanceof NextResponse) return auth;
+
     try {
         const { title, description, context } = await req.json();
         const apiKey = process.env.MINIMAX_API_KEY;

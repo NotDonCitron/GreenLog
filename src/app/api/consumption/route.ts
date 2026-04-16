@@ -1,34 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient as createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
+import { jsonSuccess, jsonError, authenticateRequest } from '@/lib/api-response';
+import { getAuthenticatedClient } from '@/lib/supabase/client';
 
 export const dynamic = 'force-dynamic';
 
 // GET /api/consumption - List user's consumption logs
 export async function GET(request: NextRequest) {
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (auth instanceof NextResponse) return auth;
+  const { supabase } = auth;
+
   const { searchParams } = new URL(request.url);
   const strainId = searchParams.get('strain_id');
-  const limit = parseInt(searchParams.get('limit') || '30');
+  const limit = Math.min(parseInt(searchParams.get('limit') || '30'), 200);
   const offset = parseInt(searchParams.get('offset') || '0');
-
-  // Auth check
-  let accessToken: string | undefined;
-  try {
-    const cookieStore = await cookies();
-    accessToken = cookieStore.get('sb-access-token')?.value;
-  } catch (err) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  if (!accessToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  let supabase;
-  try {
-    supabase = createClient();
-  } catch (err) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
 
   let query = supabase
     .from('consumption_logs')
@@ -67,24 +52,9 @@ export async function GET(request: NextRequest) {
 
 // POST /api/consumption - Log a consumption
 export async function POST(request: NextRequest) {
-  // Auth check — cookies() MUST be in try/catch for Edge Runtime
-  let accessToken: string | undefined;
-  try {
-    const cookieStore = await cookies();
-    accessToken = cookieStore.get('sb-access-token')?.value;
-  } catch (err) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  if (!accessToken) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  let supabase;
-  try {
-    supabase = createClient();
-  } catch (err) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (auth instanceof NextResponse) return auth;
+  const { supabase } = auth;
 
   const {
     strain_id,
@@ -98,18 +68,12 @@ export async function POST(request: NextRequest) {
 
   // Validate
   if (!consumption_method || !consumed_at) {
-    return NextResponse.json(
-      { error: 'consumption_method and consumed_at are required' },
-      { status: 400 }
-    );
+    return jsonError('consumption_method and consumed_at are required', 400);
   }
 
   const validMethods = ['vaporizer', 'joint', 'bong', 'pipe', 'edible', 'oil', 'topical', 'other'];
   if (!validMethods.includes(consumption_method)) {
-    return NextResponse.json(
-      { error: 'Invalid consumption_method' },
-      { status: 400 }
-    );
+    return jsonError('Invalid consumption_method', 400);
   }
 
   const { data, error } = await supabase
@@ -127,8 +91,8 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return jsonError(error.message, 500);
   }
 
-  return NextResponse.json(data, { status: 201 });
+  return jsonSuccess(data, 201);
 }
