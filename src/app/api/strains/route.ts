@@ -2,6 +2,32 @@ import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { writeOrganizationActivity } from "@/lib/organization-activities";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get("limit") || "50", 10);
+    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const search = searchParams.get("search");
+
+    const auth = await authenticateRequest(request, getAuthenticatedClient);
+    if (auth instanceof Response) return auth;
+    const { supabase } = auth;
+
+    let query = supabase
+        .from("strains")
+        .select("id, name, slug, type, brand, farmer, avg_thc, avg_cbd, thc_min, thc_max, image_url, effects, flavors")
+        .range(offset, offset + limit - 1)
+        .order("name", { ascending: true });
+
+    if (search) {
+        query = query.ilike("name", `%${search}%`);
+    }
+
+    const { data: strains, error } = await query;
+    if (error) return jsonError("Failed to fetch strains", 500, error.code, error.message);
+
+    return jsonSuccess({ strains });
+}
+
 export async function POST(request: Request) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (!auth) return;
