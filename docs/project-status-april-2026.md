@@ -65,10 +65,10 @@ B2B-Mandantenfähige Plattform für Clubs (CSCs) und Apotheken zur Verwaltung vo
 - BadgeShowcase Modal mit Erklärungen
 
 ### ✅ Organization Management
-- Rollen: gründer, admin, member, viewer
+- Rollen: gründer, admin, member, viewer, präventionsbeauftragter
 - Organization Invite System
 - Member-Management (Admin only)
-- ⚠️ Nächste Erweiterung: `praeventionsbeauftragter` Rolle (KCanG § 9 Compliance — B2B Differenziator!)
+- `praeventionsbeauftragter` Rolle (KCanG § 9 Compliance — B2B Differenziator!) ✅ Implemented
 
 ### ✅ Auth (April 15 — von Clerk auf Supabase migriert)
 - Supabase Auth: email/password
@@ -111,7 +111,7 @@ Letzte Arbeit (Anfang April):
 
 ---
 
-## Letzte Änderungen (April 15 — Supabase Auth Migration)
+## Letzte Änderungen (April 15-16 — Supabase Auth & Compliance)
 
 ### Was gemacht wurde
 - Clerk komplett entfernt (Custom Domain nicht in Team-Besitz)
@@ -119,6 +119,8 @@ Letzte Arbeit (Anfang April):
 - `src/lib/supabase/client.ts`, `server.ts`, `admin.ts` neu strukturiert
 - Server-seitige Auth mit `getUser()` von Supabase
 - Debug-Logging in Grow Log-Entry APIs
+- **Rolle `präventionsbeauftragter` implementiert** (Database, API, UI)
+- **Fix:** Loader bei `activeOrganization === undefined` auf allen Einstellungsseiten hinzugefügt
 
 ### Was verloren ging
 - Alte Clerk-User nicht mehr nutzbar (`user_3C7BE3DilaUeeUoWzFGidTvvQ0i`)
@@ -137,7 +139,6 @@ Letzte Arbeit (Anfang April):
 | P1 | Impressum finalisieren (Betreiber-Name, Adresse, § 55 RStV) | Offen — rechtlich kritisch! |
 | P2 | React Query auf weitere Pages ausrollen | Partially done — `useCollection` existiert |
 | P3 | Grow-Tracker Feature Flag für Beta-Tester | Geplant |
-| P3 | `praeventionsbeauftragter` Rolle hinzufügen | Geplant — B2B Differenziator |
 
 ---
 
