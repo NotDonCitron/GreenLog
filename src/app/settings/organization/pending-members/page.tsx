@@ -72,6 +72,9 @@ export default function PendingMembersPage() {
     activeOrganization?.role === USER_ROLES.ADMIN;
 
   useEffect(() => {
+    // Wait for activeOrganization to load before redirecting
+    if (activeOrganization === undefined) return;
+
     if (!activeOrganization) {
       router.push("/profile");
       return;
