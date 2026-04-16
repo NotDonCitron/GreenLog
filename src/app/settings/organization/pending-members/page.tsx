@@ -181,6 +181,15 @@ export default function PendingMembersPage() {
     setRejectDialogOpen(true);
   };
 
+  // Show loader while checking auth (prevents flash of wrong redirect)
+  if (activeOrganization === undefined) {
+    return (
+      <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#00F5FF]" size={32} />
+      </main>
+    );
+  }
+
   if (!activeOrganization) {
     return (
       <main className="min-h-screen bg-[var(--background)] flex items-center justify-center">
