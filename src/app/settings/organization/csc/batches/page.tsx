@@ -125,7 +125,7 @@ export default function CSCBatchesPage() {
     }
   };
 
-  const handleQualityCheck = async () => {
+  const handleQualityCheck = async (passed: boolean) => {
     if (!selectedBatch || !orgId || !session?.access_token || isDemoMode) return;
     setQualitySaving(true);
     try {
@@ -136,7 +136,7 @@ export default function CSCBatchesPage() {
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          quality_check_passed: qualityPassed,
+          quality_check_passed: passed,
           quality_check_notes: qualityNotes,
         }),
       });
@@ -335,14 +335,14 @@ export default function CSCBatchesPage() {
               </div>
               <div className="flex gap-3">
                 <Button
-                  onClick={() => { setQualityPassed(true); setQualitySaving(true); void handleQualityCheck(); }}
+                  onClick={() => { setQualitySaving(true); void handleQualityCheck(true); }}
                   disabled={qualitySaving}
                   className="flex-1 h-12 bg-[#2FF801] hover:opacity-90 text-black font-black uppercase tracking-widest text-xs"
                 >
                   Bestanden
                 </Button>
                 <Button
-                  onClick={() => { setQualityPassed(false); setQualitySaving(true); void handleQualityCheck(); }}
+                  onClick={() => { setQualitySaving(true); void handleQualityCheck(false); }}
                   disabled={qualitySaving}
                   className="flex-1 h-12 bg-[#ff716c] hover:opacity-90 text-[var(--foreground)] font-black uppercase tracking-widest text-xs"
                 >
