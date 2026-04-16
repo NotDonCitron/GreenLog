@@ -2,13 +2,14 @@ import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 import { USER_ROLES } from "@/lib/roles";
 
-type RouteParams = { params: Promise<{ organizationId: string }> };
-
 // GET /api/csc/destructions?organization_id=xxx
-export async function GET(request: Request, { params }: RouteParams) {
-    const { organizationId } = await params;
+export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
-    const orgId = searchParams.get("organization_id") || organizationId;
+    const orgId = searchParams.get("organization_id");
+
+    if (!orgId) {
+        return jsonError("organization_id is required", 400);
+    }
 
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (auth instanceof Response) return auth;
@@ -56,17 +57,29 @@ export async function GET(request: Request, { params }: RouteParams) {
 }
 
 // POST /api/csc/destructions
-export async function POST(request: Request, { params }: RouteParams) {
-    const { organizationId } = await params;
-
+export async function POST(request: Request) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (auth instanceof Response) return auth;
     const { user, supabase } = auth;
 
+    const body = await request.json();
+    const { organization_id, batch_id, amount_grams, destruction_reason, documentation_url, notes } = body;
+
+    if (!organization_id) {
+        return jsonError("organization_id is required", 400);
+    }
+    if (!amount_grams || !destruction_reason) {
+        return jsonError("amount_grams and destruction_reason are required", 400);
+    }
+    if (amount_grams <= 0) {
+        return jsonError("amount_grams must be positive", 400);
+    }
+
+    // Membership check
     const { data: membership } = await supabase
         .from("organization_members")
         .select("role")
-        .eq("organization_id", organizationId)
+        .eq("organization_id", organization_id)
         .eq("user_id", user.id)
         .eq("membership_status", "active")
         .single();
@@ -76,21 +89,10 @@ export async function POST(request: Request, { params }: RouteParams) {
     const canManage = [USER_ROLES.GRUENDER, USER_ROLES.ADMIN].includes(membership.role as any);
     if (!canManage) return jsonError("Forbidden", 403);
 
-    const body = await request.json();
-    const { batch_id, amount_grams, destruction_reason, documentation_url, notes } = body;
-
-    if (!amount_grams || !destruction_reason) {
-        return jsonError("amount_grams and destruction_reason are required", 400);
-    }
-
-    if (amount_grams <= 0) {
-        return jsonError("amount_grams must be positive", 400);
-    }
-
     const { data: destruction, error } = await supabase
         .from("csc_destructions")
         .insert({
-            organization_id: organizationId,
+            organization_id,
             batch_id,
             amount_grams,
             destruction_reason,

@@ -1,17 +1,15 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 
-type RouteParams = { params: Promise<{ organizationId: string }> };
-
 // GET /api/csc/members/limit-check?member_id=xxx&organization_id=xxx
 // Returns remaining daily and monthly limits for a member (for UI preview before dispensing)
-export async function GET(request: Request, { params }: RouteParams) {
-    const { organizationId } = await params;
+export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const memberId = searchParams.get("member_id");
-    const orgId = searchParams.get("organization_id") || organizationId;
+    const orgId = searchParams.get("organization_id");
 
     if (!memberId) return jsonError("member_id is required", 400);
+    if (!orgId) return jsonError("organization_id is required", 400);
 
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (auth instanceof Response) return auth;

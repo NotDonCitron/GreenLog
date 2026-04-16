@@ -2,15 +2,16 @@ import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 import { USER_ROLES } from "@/lib/roles";
 
-type RouteParams = { params: Promise<{ organizationId: string }> };
-
 // GET /api/csc/export?organization_id=xxx&year=2025
 // Generates § 26 KCanG compliance CSV for authorities
-export async function GET(request: Request, { params }: RouteParams) {
-    const { organizationId } = await params;
+export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
-    const orgId = searchParams.get("organization_id") || organizationId;
+    const orgId = searchParams.get("organization_id");
     const year = parseInt(searchParams.get("year") || new Date().getFullYear().toString(), 10);
+
+    if (!orgId) {
+        return jsonError("organization_id is required", 400);
+    }
 
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (auth instanceof Response) return auth;

@@ -184,20 +184,36 @@ function HomeContent() {
       )}
 
       <div className="pt-6 shrink-0">
-        <Link href="/feed" className="block">
-          <button className="relative w-full h-16 group overflow-hidden rounded-2xl transition-all duration-300 active:scale-[0.98]">
-            <div className="absolute inset-0 bg-[#2FF801]/10 transition-all duration-300 group-hover:bg-[#2FF801]/20" />
-            <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#2FF801]/50 transition-all duration-300" />
-            <div className="relative flex items-center justify-center gap-2 h-full">
-              <div className="w-8 h-8 rounded-lg bg-[#2FF801]/20 flex items-center justify-center">
-                <span className="text-sm">🔍</span>
+        <div className="grid grid-cols-2 gap-3">
+          <Link href="/feed">
+            <button className="relative w-full h-16 group overflow-hidden rounded-2xl transition-all duration-300 active:scale-[0.98]">
+              <div className="absolute inset-0 bg-[#2FF801]/10 transition-all duration-300 group-hover:bg-[#2FF801]/20" />
+              <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#2FF801]/50 transition-all duration-300" />
+              <div className="relative flex items-center justify-center gap-2 h-full">
+                <div className="w-8 h-8 rounded-lg bg-[#2FF801]/20 flex items-center justify-center">
+                  <span className="text-sm">🔍</span>
+                </div>
+                <span className="text-[var(--foreground)] text-xs font-bold uppercase tracking-wide font-display">
+                  Entdecken
+                </span>
               </div>
-              <span className="text-[var(--foreground)] text-xs font-bold uppercase tracking-wide font-display">
-                Entdecken
-              </span>
-            </div>
-          </button>
-        </Link>
+            </button>
+          </Link>
+          <Link href="/grows">
+            <button className="relative w-full h-16 group overflow-hidden rounded-2xl transition-all duration-300 active:scale-[0.98]">
+              <div className="absolute inset-0 bg-[#00F5FF]/10 transition-all duration-300 group-hover:bg-[#00F5FF]/20" />
+              <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#00F5FF]/50 transition-all duration-300" />
+              <div className="relative flex items-center justify-center gap-2 h-full">
+                <div className="w-8 h-8 rounded-lg bg-[#00F5FF]/20 flex items-center justify-center">
+                  <Sprout size={16} className="text-[#00F5FF]" />
+                </div>
+                <span className="text-[var(--foreground)] text-xs font-bold uppercase tracking-wide font-display">
+                  Grows
+                </span>
+              </div>
+            </button>
+          </Link>
+        </div>
       </div>
     </div>
   );

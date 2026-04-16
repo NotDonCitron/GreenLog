@@ -3,14 +3,15 @@ import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response"
 import { USER_ROLES } from "@/lib/roles";
 import { writeOrganizationActivity } from "@/lib/organization-activities";
 
-type RouteParams = { params: Promise<{ organizationId: string }> };
-
 // GET /api/csc/dispensations?organization_id=xxx&member_id=xxx
-export async function GET(request: Request, { params }: RouteParams) {
-    const { organizationId } = await params;
+export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
-    const orgId = searchParams.get("organization_id") || organizationId;
+    const orgId = searchParams.get("organization_id");
     const memberId = searchParams.get("member_id");
+
+    if (!orgId) {
+        return jsonError("organization_id is required", 400);
+    }
 
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (auth instanceof Response) return auth;
@@ -64,17 +65,29 @@ export async function GET(request: Request, { params }: RouteParams) {
 
 // POST /api/csc/dispensations — dispense cannabis to member
 // NOTE: KCanG § 19 Abs. 3 hard block is enforced by DB trigger
-export async function POST(request: Request, { params }: RouteParams) {
-    const { organizationId } = await params;
-
+export async function POST(request: Request) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (auth instanceof Response) return auth;
     const { user, supabase } = auth;
 
+    const body = await request.json();
+    const { organization_id, member_id, batch_id, amount_grams, reason } = body;
+
+    if (!organization_id) {
+        return jsonError("organization_id is required", 400);
+    }
+    if (!member_id || !batch_id || !amount_grams) {
+        return jsonError("member_id, batch_id, and amount_grams are required", 400);
+    }
+    if (amount_grams <= 0) {
+        return jsonError("amount_grams must be positive", 400);
+    }
+
+    // Membership check
     const { data: membership } = await supabase
         .from("organization_members")
         .select("role")
-        .eq("organization_id", organizationId)
+        .eq("organization_id", organization_id)
         .eq("user_id", user.id)
         .eq("membership_status", "active")
         .single();
@@ -84,23 +97,12 @@ export async function POST(request: Request, { params }: RouteParams) {
     const canManage = [USER_ROLES.GRUENDER, USER_ROLES.ADMIN].includes(membership.role as any);
     if (!canManage) return jsonError("Forbidden", 403);
 
-    const body = await request.json();
-    const { member_id, batch_id, amount_grams, reason } = body;
-
-    if (!member_id || !batch_id || !amount_grams) {
-        return jsonError("member_id, batch_id, and amount_grams are required", 400);
-    }
-
-    if (amount_grams <= 0) {
-        return jsonError("amount_grams must be positive", 400);
-    }
-
     // Insert — DB trigger fires and enforces KCanG § 19 Abs. 3 limits
     // If limit exceeded, trigger raises EXCEPTION and this returns 500
     const { data: dispensation, error } = await supabase
         .from("csc_dispensations")
         .insert({
-            organization_id: organizationId,
+            organization_id,
             member_id,
             batch_id,
             amount_grams,
@@ -135,7 +137,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     // Log activity
     writeOrganizationActivity({
         supabase,
-        organizationId,
+        organizationId: organization_id,
         userId: user.id,
         eventType: "cannabis_dispensed",
         targetType: "member",
