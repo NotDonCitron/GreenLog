@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { memo } from "react";
 import { Trophy, Leaf, Archive, Crown, Sprout, Wheat, Star, Users, Pen, Heart, Flame, Sparkles, Sun, Moon, Building, Zap, FileText, Home, Shield, Gem, Bug, Gift } from "lucide-react";
 import { BadgeDefinition } from "@/lib/badges";
 
@@ -37,7 +38,7 @@ interface BadgeCardProps {
   compact?: boolean;
 }
 
-export function BadgeCard({ badge, unlocked, selected, onClick, compact }: BadgeCardProps) {
+export const BadgeCard = memo(function BadgeCard({ badge, unlocked, selected, onClick, compact }: BadgeCardProps) {
   const Icon = ICON_MAP[badge.icon] || Trophy;
 
   return (
@@ -83,4 +84,4 @@ export function BadgeCard({ badge, unlocked, selected, onClick, compact }: Badge
       )}
     </button>
   );
-}
+});

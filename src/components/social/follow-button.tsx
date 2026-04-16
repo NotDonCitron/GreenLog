@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, memo } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -20,7 +20,7 @@ interface FollowButtonProps {
     className?: string;
 }
 
-export function FollowButton({
+export const FollowButton = memo(function FollowButton({
     userId,
     profileVisibility,
     initialStatus,
@@ -211,4 +211,4 @@ export function FollowButton({
             )}
         </button>
     );
-}
+});

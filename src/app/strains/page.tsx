@@ -655,14 +655,14 @@ function StrainsPageContent() {
 
       <div className="fixed bottom-24 right-6 z-50 flex flex-col gap-4">
         <Link href="/scanner">
-          <button className="w-14 h-14 bg-gradient-to-br from-[#00F5FF] to-[#00e5ee] hover:opacity-90 text-black rounded-full flex items-center justify-center shadow-lg shadow-[#00F5FF]/30 transition-transform active:scale-95">
+          <button aria-label="Strain-Scanner öffnen" className="w-14 h-14 bg-gradient-to-br from-[#00F5FF] to-[#00e5ee] hover:opacity-90 text-black rounded-full flex items-center justify-center shadow-lg shadow-[#00F5FF]/30 transition-transform active:scale-95">
             <Camera size={28} />
           </button>
         </Link>
         <CreateStrainModal
           onSuccess={handleStrainCreated}
           trigger={
-            <button className="w-14 h-14 bg-gradient-to-br from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black rounded-full flex items-center justify-center shadow-lg shadow-[#2FF801]/30 transition-transform active:scale-95">
+            <button aria-label="Neue Sorte erstellen" className="w-14 h-14 bg-gradient-to-br from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black rounded-full flex items-center justify-center shadow-lg shadow-[#2FF801]/30 transition-transform active:scale-95">
               <Plus size={28} />
             </button>
           }

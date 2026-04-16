@@ -85,9 +85,9 @@ export const profileKeys = {
 async function fetchProfileData(userId: string, userEmail: string | null, userMetadata: Record<string, unknown> | undefined): Promise<ProfileViewModel> {
   const [profileDbRes, collCount, followersRes, followingRes, favsRes, badgesRes] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-    supabase.from("user_collection").select("*", { count: "exact", head: true }).eq("user_id", userId),
-    supabase.from("follows").select("*", { count: "exact", head: true }).eq("following_id", userId),
-    supabase.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", userId),
+    supabase.from("user_collection").select("id", { count: "exact", head: true }).eq("user_id", userId),
+    supabase.from("follows").select("id", { count: "exact", head: true }).eq("following_id", userId),
+    supabase.from("follows").select("id", { count: "exact", head: true }).eq("follower_id", userId),
     supabase
       .from("user_strain_relations")
       .select("*, strains:strain_id (*)")
@@ -95,7 +95,7 @@ async function fetchProfileData(userId: string, userEmail: string | null, userMe
       .eq("is_favorite", true)
       .order("position", { ascending: true })
       .limit(5),
-    supabase.from("user_badges").select("*").eq("user_id", userId),
+    supabase.from("user_badges").select("badge_id, unlocked_at").eq("user_id", userId),
   ]);
 
   let profileData = profileDbRes.data;
