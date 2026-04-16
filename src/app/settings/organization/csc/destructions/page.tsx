@@ -56,7 +56,7 @@ export default function CSCDestructionsPage() {
     });
     if (res.ok) {
       const data = await res.json();
-      setBatches(data.batches || []);
+      setBatches(data.data?.batches || []);
     }
   }, [orgId, session?.access_token]);
 
@@ -67,7 +67,7 @@ export default function CSCDestructionsPage() {
     });
     if (res.ok) {
       const data = await res.json();
-      setDestructions(data.destructions || []);
+      setDestructions(data.data?.destructions || []);
     }
   }, [orgId, session?.access_token]);
 

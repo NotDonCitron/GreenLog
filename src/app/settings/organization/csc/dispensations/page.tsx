@@ -74,7 +74,7 @@ export default function CSCDispensationsPage() {
     });
     if (res.ok) {
       const data = await res.json();
-      setMembers(data.members?.filter((m: Member) => m.membership_status === "active") || []);
+      setMembers(data.data?.members?.filter((m: Member) => m.membership_status === "active") || []);
     }
   }, [orgId, session?.access_token]);
 
@@ -85,7 +85,7 @@ export default function CSCDispensationsPage() {
     });
     if (res.ok) {
       const data = await res.json();
-      setBatches(data.batches?.filter((b: Batch) => b.quality_check_passed === true) || []);
+      setBatches(data.data?.batches?.filter((b: Batch) => b.quality_check_passed === true) || []);
     }
   }, [orgId, session?.access_token]);
 
@@ -96,7 +96,7 @@ export default function CSCDispensationsPage() {
     });
     if (res.ok) {
       const data = await res.json();
-      setDispensations(data.dispensations || []);
+      setDispensations(data.data?.dispensations || []);
     }
   }, [orgId, session?.access_token]);
 
@@ -108,7 +108,7 @@ export default function CSCDispensationsPage() {
     });
     if (res.ok) {
       const data = await res.json();
-      setMemberLimit(data.limits);
+      setMemberLimit(data.data?.limits);
     }
     setLoadingLimits(false);
   }, [orgId, session?.access_token]);
