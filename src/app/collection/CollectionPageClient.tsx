@@ -100,6 +100,8 @@ export default function CollectionPageClient() {
 
   // Collection tab toggle
   const [collectionTab, setCollectionTab] = useState<"strains" | "grows">("strains");
+  const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
   // Grows data
   const [grows, setGrows] = useState<GrowRow[]>([]);
@@ -221,6 +223,24 @@ export default function CollectionPageClient() {
 
   const activeGrowsCount = grows.filter(g => g.status === "active").length;
 
+  // Hide header when scrolling down, show when scrolling up or at top
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      if (scrollY <= 50) {
+        setIsSearchBarVisible(true);
+      } else if (scrollY > lastScrollY.current + 5) {
+        setIsSearchBarVisible(false);
+      } else if (scrollY < lastScrollY.current - 5) {
+        setIsSearchBarVisible(true);
+      }
+      lastScrollY.current = scrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
       {/* Ambient glow */}
@@ -240,7 +260,7 @@ export default function CollectionPageClient() {
         />
       </Suspense>
 
-      <header className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/30 px-6 pt-12 pb-4">
+      <header className={`sticky top-0 z-50 glass-surface border-b border-[var(--border)]/30 px-6 pt-12 pb-4 transition-transform duration-300 ${isSearchBarVisible ? "translate-y-0" : "-translate-y-full"}`}>
         <div className="flex justify-between items-end mb-4">
           <div>
             <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
