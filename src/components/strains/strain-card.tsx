@@ -113,20 +113,26 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
       {/* 4. STATS BAR — bottom with solid gradient background */}
       <div className="absolute bottom-0 left-0 right-0 z-10 px-2 pb-2 pt-4 bg-gradient-to-t from-black/90 via-black/70 to-transparent">
         <div className="rounded-xl border border-white/10 bg-[#121212]/90 p-1.5 shadow-inner backdrop-blur-sm">
-          <div className="grid grid-cols-4 gap-1">
+          <div className="grid grid-cols-[0.8fr_0.9fr_1.15fr_1.15fr] gap-1">
             <div className="flex flex-col items-center gap-0">
               <span className="text-[5px] font-bold uppercase tracking-widest text-white/40">THC</span>
-              <span className="text-[8px] font-black tracking-wide" style={{ color: themeColor }}>{thcDisplay}</span>
+              <span className="whitespace-nowrap text-[8px] font-black tracking-normal" style={{ color: themeColor }}>{thcDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1">
               <span className="text-[5px] font-bold uppercase tracking-widest text-white/40">CBD</span>
-              <span className="text-[8px] font-black tracking-wide" style={{ color: themeColor }}>{cbdDisplay}</span>
+              <span className="whitespace-nowrap text-[8px] font-black tracking-normal" style={{ color: themeColor }}>{cbdDisplay}</span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1 min-w-0">
-              <span className="text-[6px] font-medium tracking-wide text-white/60 leading-tight break-words text-left w-full">{tasteDisplay}</span>
+              <span className="text-[5px] font-bold uppercase tracking-widest text-white/40">Aroma</span>
+              <span className="line-clamp-2 w-full break-words text-center text-[6px] font-bold leading-[0.95] tracking-wide text-white/70">
+                {tasteDisplay}
+              </span>
             </div>
             <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1 min-w-0">
-              <span className="text-[6px] font-medium tracking-wide text-white/60 leading-tight break-words text-left w-full">{effectDisplay}</span>
+              <span className="text-[5px] font-bold uppercase tracking-widest text-white/40">Wirkung</span>
+              <span className="line-clamp-2 w-full break-words text-center text-[6px] font-bold leading-[0.95] tracking-wide text-white/70">
+                {effectDisplay}
+              </span>
             </div>
           </div>
         </div>
