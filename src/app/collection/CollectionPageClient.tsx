@@ -101,7 +101,6 @@ export default function CollectionPageClient() {
   // Collection tab toggle
   const [collectionTab, setCollectionTab] = useState<"strains" | "grows">("strains");
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
-  const lastScrollY = useRef(0);
 
   // Grows data
   const [grows, setGrows] = useState<GrowRow[]>([]);
