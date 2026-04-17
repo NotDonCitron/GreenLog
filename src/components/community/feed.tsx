@@ -175,7 +175,7 @@ const FeedItemCard = memo(function FeedItemCard({
     const cbdDisplay = formatPercent((strain as any)?.avg_cbd ?? strain?.cbd_max, "< 1%");
     const tasteDisplay = strain ? getTasteDisplay(strain) : "—";
     const effectDisplay = strain ? getEffectDisplay(strain) : "—";
-    const farmerDisplay = strain?.farmer?.trim() || (strain as any).manufacturer?.trim() || (strain as any).brand?.trim() || 'Unbekannter Farmer';
+    const farmerDisplay = strain?.farmer?.trim() || strain?.manufacturer?.trim() || strain?.brand?.trim() || 'Unbekannter Farmer';
 
     // Build card content (same structure as StrainCard)
     const cardContent = (
