@@ -501,15 +501,7 @@ export function CreateStrainModal({ strain, onSuccess, trigger, organizationId }
 
             const resultData = await saveStrain(basePayload);
 
-            // Write to community_feed for organization strains
             if (organizationId) {
-                await supabase.from("community_feed").insert({
-                    organization_id: organizationId,
-                    user_id: user.id,
-                    event_type: "strain_created",
-                    reference_id: resultData.id,
-                });
-
                 // Write to organization_activities for the activities page
                 await writeOrganizationActivity({
                     supabase,

@@ -106,14 +106,7 @@ export async function POST(request: Request) {
             activityError = actErr.error;
         }
 
-        // Also write to community_feed for the organization page
-        const { error: feedError } = await supabase.from('community_feed').insert({
-            organization_id: strain.organization_id,
-            user_id: user.id,
-            event_type: 'strain_created',
-            reference_id: strain.id,
-        });
-        if (feedError) console.error('Community feed write failed:', feedError);
+        // community_feed is written by the database trigger on strains.
     }
 
     return jsonSuccess({ strain, activityError }, 201);
