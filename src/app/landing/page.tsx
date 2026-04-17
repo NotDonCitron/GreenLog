@@ -43,6 +43,7 @@ export default function LandingPage() {
         const { data: allStrains } = await supabase
           .from("strains")
           .select("id")
+          .eq('source', 'pharmacy')
           .limit(500);
 
         if (allStrains && allStrains.length > 0) {

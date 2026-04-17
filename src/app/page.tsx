@@ -70,6 +70,7 @@ function HomeContent() {
         const { data: allStraains } = await supabase
           .from('strains')
           .select('*')
+          .eq('source', 'pharmacy')
           .limit(100);
 
         if (cancelled) return;

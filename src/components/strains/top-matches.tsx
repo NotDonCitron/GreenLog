@@ -79,7 +79,49 @@ export function TopMatches() {
   }
 
   if (!loading && matches.length === 0) {
-    return null; // Not enough data or no matches
+    // No matches yet — user needs to rate some strains first
+    return (
+      <section className="mb-6 relative">
+        <div className="flex items-center justify-between mb-3 px-2">
+          <div>
+            <h2 className="text-sm font-black uppercase tracking-wider text-[var(--foreground)]">
+              Für dich empfohlen
+            </h2>
+            <p className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-tight opacity-70">
+              Basierend auf deinen Bewertungen
+            </p>
+          </div>
+          <button
+            onClick={() => setIsCollapsed(v => !v)}
+            className="p-1.5 rounded-lg hover:bg-[var(--muted)] transition-colors text-[var(--muted-foreground)]"
+            aria-label={isCollapsed ? "Ausklappen" : "Einklappen"}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              className={`transition-transform duration-200 ${isCollapsed ? '' : 'rotate-180'}`}
+            >
+              <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </div>
+        {isCollapsed ? null : (
+          <div className="p-6 bg-[var(--card)] rounded-3xl border border-[var(--border)]/50">
+            <div className="text-center space-y-2">
+              <div className="text-3xl">🌿</div>
+              <p className="text-sm font-bold text-[var(--foreground)]">
+                Noch keine Empfehlungen
+              </p>
+              <p className="text-xs text-[var(--muted-foreground)] leading-relaxed max-w-[240px] mx-auto">
+                Bewerte ein paar Sorten mit Sternen — dann erscheinen hier personalisierte Empfehlungen basierend auf deinem Geschmacksprofil.
+              </p>
+            </div>
+          </div>
+        )}
+      </section>
+    );
   }
 
   return (

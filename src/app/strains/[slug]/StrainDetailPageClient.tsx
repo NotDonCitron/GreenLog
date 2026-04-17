@@ -434,7 +434,7 @@ export default function StrainDetailPageClient() {
   const tasteDisplay = strain ? getTasteDisplay(strain, 'Zitrus · Erdig').replace(/, /g, ' · ') : 'Zitrus · Erdig';
   const effectDisplay = strain ? getEffectDisplay(strain) : 'Euphorie';
 
-  const farmerDisplay = strain?.farmer?.trim() || (strain as any).manufacturer?.trim() || (strain as any).brand?.trim() || 'Unbekannter Farmer';
+  const farmerDisplay = strain?.farmer?.trim() || strain?.manufacturer?.trim() || strain?.brand?.trim() || 'Unbekannter Farmer';
   const normalizedStrainName = (() => {
     const rawName = strain?.name?.trim() || '';
     if (!rawName || farmerDisplay === 'Unbekannter Farmer') return rawName;

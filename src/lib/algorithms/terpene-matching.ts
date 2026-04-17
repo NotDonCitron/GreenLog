@@ -15,13 +15,14 @@ const ALL_KEYS = [...TERPENE_KEYS, ...CANNABINOID_KEYS] as const;
 export type VectorKey = typeof ALL_KEYS[number];
 
 // Terpen-Gewichtungen aus Bewertungen (pro Stern)
-const RATING_WEIGHTS = {
-  5: 0.1,
-  4: 0.05,
-  3: 0,
-  2: -0.025,
-  1: -0.05,
-} as const;
+// Wichtig: DB speichert als String "4.5", "5.0" etc.
+const RATING_WEIGHTS: Record<string, number> = {
+  "5": 0.1, "5.0": 0.1,
+  "4": 0.05, "4.5": 0.05,
+  "3": 0,
+  "2": -0.025,
+  "1": -0.05, "1.5": -0.025,
+};
 
 const FAVORITE_BONUS = 0.03;
 const WISHLIST_BONUS = 0.01;
@@ -191,7 +192,7 @@ export async function calculateUserPreferenceVector(
 
     const strain = rating.strains as unknown as Parameters<typeof extractStrainVector>[0];
     const strainVector = extractStrainVector(strain);
-    const ratingWeight = RATING_WEIGHTS[rating.overall_rating as keyof typeof RATING_WEIGHTS] || 0;
+    const ratingWeight = RATING_WEIGHTS[String(rating.overall_rating)] || 0;
     const isFavorite = favoriteIds.has(rating.strain_id);
     const isWishlist = wishlistIds.has(rating.strain_id);
 
