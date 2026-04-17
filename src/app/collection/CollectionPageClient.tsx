@@ -223,10 +223,16 @@ export default function CollectionPageClient() {
 
   const activeGrowsCount = grows.filter(g => g.status === "active").length;
 
-  // Hide header when scrolling down, show when scrolling up or at top
+  // Scroll hide/show state - only on mobile
+  const mainRef = useRef<HTMLDivElement>(null);
+  const lastScrollY = useRef(0);
+
   useEffect(() => {
+    const main = mainRef.current;
+    if (!main) return;
+
     const handleScroll = () => {
-      const scrollY = window.scrollY;
+      const scrollY = main.scrollTop;
       if (scrollY <= 50) {
         setIsSearchBarVisible(true);
       } else if (scrollY > lastScrollY.current + 5) {
@@ -237,12 +243,12 @@ export default function CollectionPageClient() {
       lastScrollY.current = scrollY;
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    main.addEventListener("scroll", handleScroll, { passive: true });
+    return () => main.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
+    <main ref={mainRef} className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32 overflow-y-auto">
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[120px] rounded-full" />
