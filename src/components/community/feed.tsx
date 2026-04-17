@@ -29,6 +29,7 @@ interface FeedItem {
     display_name: string | null;
     avatar_url: string | null;
   } | null;
+  strain?: Strain | null;
 }
 
 interface FeedApiResponse {
@@ -109,11 +110,16 @@ const FeedItemCard = memo(function FeedItemCard({
   };
   const Icon = config.icon;
 
-  const [strain, setStrain] = useState<Strain | null>(null);
+  const [strain, setStrain] = useState<Strain | null>(item.strain ?? null);
   const [imgError, setImgError] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
+    if (item.strain) {
+      setStrain(item.strain);
+      return;
+    }
+
     if (item.event_type === "strain_created" && item.reference_id) {
       setImgError(false);
       supabase
@@ -141,7 +147,7 @@ const FeedItemCard = memo(function FeedItemCard({
           setStrain(strainData);
         });
     }
-  }, [item.event_type, item.reference_id, item.user_id]);
+  }, [item.event_type, item.reference_id, item.strain, item.user_id]);
 
   const handleDelete = async () => {
     if (!organizationId || deleting) return;

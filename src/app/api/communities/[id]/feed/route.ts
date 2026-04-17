@@ -1,9 +1,16 @@
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { USER_ROLES } from "@/lib/roles";
 
 type RouteParams = { params: Promise<{ id: string }> };
+
+type FeedStrainRow = {
+    id: string;
+    organization_id: string | null;
+    [key: string]: unknown;
+};
 
 // GET /api/communities/[id]/feed
 export async function GET(request: Request, { params }: RouteParams) {
@@ -31,18 +38,50 @@ export async function GET(request: Request, { params }: RouteParams) {
             return jsonError("Failed to fetch feed", 500, feedError.code, feedError.message);
         }
 
-        const userIds = feedEntries?.map(entry => entry.user_id).filter(Boolean) || [];
+        const userIds = [...new Set(feedEntries?.map(entry => entry.user_id).filter(Boolean) || [])];
         const { data: profiles } = userIds.length > 0
             ? await supabase.from("profiles").select("id, username, display_name, avatar_url").in("id", userIds)
             : { data: [] };
 
         const profileMap = new Map((profiles || []).map(p => [p.id, p]));
 
+        const strainIds = [
+            ...new Set(
+                feedEntries
+                    ?.filter((entry) => entry.event_type === "strain_created" && entry.reference_id)
+                    .map((entry) => entry.reference_id) || []
+            ),
+        ];
+        let strainMap = new Map<string, Omit<FeedStrainRow, "organization_id">>();
+
+        if (strainIds.length > 0) {
+            try {
+                const adminClient = getSupabaseAdmin();
+                const { data: strains, error: strainError } = await adminClient
+                    .from("strains")
+                    .select("id, organization_id, name, slug, type, image_url, avg_thc, thc_max, avg_cbd, cbd_max, farmer, manufacturer, brand, flavors, terpenes, effects, is_medical")
+                    .in("id", strainIds);
+
+                if (strainError) {
+                    console.warn("Community feed strain lookup failed:", strainError.message);
+                } else {
+                    strainMap = new Map(
+                        ((strains || []) as FeedStrainRow[])
+                            .filter((strain) => strain.organization_id === null || strain.organization_id === organizationId)
+                            .map(({ organization_id: _organizationId, ...strain }) => [strain.id, strain])
+                    );
+                }
+            } catch (error) {
+                console.warn("Community feed strain lookup skipped:", error instanceof Error ? error.message : error);
+            }
+        }
+
         const feedWithUsers = feedEntries?.map(entry => {
             const profile = profileMap.get(entry.user_id) || null;
             return {
                 ...entry,
-                user: profile ? { id: profile.id, username: profile.username, display_name: profile.display_name, avatar_url: profile.avatar_url } : null
+                user: profile ? { id: profile.id, username: profile.username, display_name: profile.display_name, avatar_url: profile.avatar_url } : null,
+                strain: entry.event_type === "strain_created" ? strainMap.get(entry.reference_id) ?? null : null
             };
         });
 
