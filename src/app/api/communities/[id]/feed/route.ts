@@ -21,18 +21,19 @@ export async function GET(request: Request, { params }: RouteParams) {
         const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
         const offset = (page - 1) * limit;
+        const scanLimit = Math.min(500, Math.max(offset + limit, limit * 10));
 
         // Use server client — feed is public-read via RLS
         const supabase = await createServerSupabaseClient();
 
-        const { data: feedEntries, error: feedError, count } = await supabase
+        const { data: feedEntries, error: feedError } = await supabase
             .from("community_feed")
             .select(`
                 id, organization_id, event_type, reference_id, user_id, created_at
-            `, { count: "exact" })
+            `)
             .eq("organization_id", organizationId)
             .order("created_at", { ascending: false })
-            .range(offset, offset + limit - 1);
+            .range(0, scanLimit - 1);
 
         if (feedError) {
             return jsonError("Failed to fetch feed", 500, feedError.code, feedError.message);
@@ -56,8 +57,16 @@ export async function GET(request: Request, { params }: RouteParams) {
 
         if (strainIds.length > 0) {
             try {
-                const adminClient = getSupabaseAdmin();
-                const { data: strains, error: strainError } = await adminClient
+                let strainClient = supabase;
+
+                try {
+                    strainClient = getSupabaseAdmin();
+                } catch {
+                    // The community page only needs public display fields; fall back to RLS-protected reads
+                    // when the deployment has no service-role key configured.
+                }
+
+                const { data: strains, error: strainError } = await strainClient
                     .from("strains")
                     .select("id, organization_id, name, slug, type, image_url, avg_thc, thc_max, avg_cbd, cbd_max, farmer, manufacturer, brand, flavors, terpenes, effects, is_medical")
                     .in("id", strainIds);
@@ -76,20 +85,25 @@ export async function GET(request: Request, { params }: RouteParams) {
             }
         }
 
-        const feedWithUsers = feedEntries?.map(entry => {
+        const enrichedFeed = feedEntries?.map(entry => {
             const profile = profileMap.get(entry.user_id) || null;
             return {
                 ...entry,
                 user: profile ? { id: profile.id, username: profile.username, display_name: profile.display_name, avatar_url: profile.avatar_url } : null,
                 strain: entry.event_type === "strain_created" ? strainMap.get(entry.reference_id) ?? null : null
             };
-        });
+        }) || [];
 
-        const totalPages = Math.ceil((count || 0) / limit);
+        const visibleFeed = enrichedFeed
+            .filter((entry) => entry.event_type !== "strain_created" || entry.strain)
+            .slice(offset, offset + limit);
+
+        const total = enrichedFeed.filter((entry) => entry.event_type !== "strain_created" || entry.strain).length;
+        const totalPages = Math.ceil(total / limit);
 
         return jsonSuccess({
-            feed: feedWithUsers,
-            pagination: { page, limit, total: count || 0, totalPages }
+            feed: visibleFeed,
+            pagination: { page, limit, total, totalPages }
         });
 
     } catch (error) {
