@@ -34,6 +34,23 @@ type ServerActionResult = {
   error?: { message: string; code?: string; details?: unknown };
 };
 
+function dateOnlyToUtcTimestamp(date: string): number {
+  const [year, month, day] = date.split('-').map(Number);
+  return Date.UTC(year, month - 1, day);
+}
+
+function calculateGrowDayNumber(startDate: string | null | undefined, entryDate: string): number | null {
+  if (!startDate) return null;
+
+  const startTime = dateOnlyToUtcTimestamp(startDate);
+  const entryTime = dateOnlyToUtcTimestamp(entryDate);
+
+  if (Number.isNaN(startTime) || Number.isNaN(entryTime)) return null;
+
+  const diffDays = Math.floor((entryTime - startTime) / (1000 * 60 * 60 * 24));
+  return Math.max(1, diffDays + 1);
+}
+
 export async function createGrow(input: CreateGrowInput): Promise<ServerActionResult> {
   const { accessToken, ...growData } = input;
 
@@ -235,7 +252,7 @@ export async function addGrowLogEntry(request: Request, preAuth?: { userId: stri
     // Verify user owns this grow
     const { data: grow } = await supabase
       .from('grows')
-      .select('user_id, organization_id')
+      .select('user_id, organization_id, start_date')
       .eq('id', grow_id)
       .single();
 
@@ -248,6 +265,9 @@ export async function addGrowLogEntry(request: Request, preAuth?: { userId: stri
       finalContent = { ...content, dli: calculateDLI(content.ppfd, content.light_hours) };
     }
 
+    const finalEntryDate = entry_date || new Date().toISOString().split('T')[0];
+    const dayNumber = calculateGrowDayNumber(grow.start_date, finalEntryDate);
+
     const { data: entry, error } = await supabase
       .from('grow_entries')
       .insert({
@@ -257,7 +277,8 @@ export async function addGrowLogEntry(request: Request, preAuth?: { userId: stri
         plant_id: plant_id || null,
         entry_type,
         content: finalContent,
-        entry_date: entry_date || new Date().toISOString().split('T')[0],
+        entry_date: finalEntryDate,
+        day_number: dayNumber,
       })
       .select()
       .single();

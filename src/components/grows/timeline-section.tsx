@@ -11,12 +11,30 @@ interface DayGroup {
   comments: GrowComment[];
 }
 
+function dateOnlyToUtcTimestamp(date: string): number {
+  const [year, month, day] = date.split('-').map(Number);
+  return Date.UTC(year, month - 1, day);
+}
+
+function calculateGrowDayNumber(startDate: string | undefined, entryDate: string | undefined): number | null {
+  if (!startDate || !entryDate) return null;
+
+  const startTime = dateOnlyToUtcTimestamp(startDate);
+  const entryTime = dateOnlyToUtcTimestamp(entryDate);
+
+  if (Number.isNaN(startTime) || Number.isNaN(entryTime)) return null;
+
+  const diffDays = Math.floor((entryTime - startTime) / (1000 * 60 * 60 * 24));
+  return Math.max(1, diffDays + 1);
+}
+
 // Group entries by day_number — chronological (most recent first)
-function groupByDay(entries: GrowEntry[], comments: GrowComment[]): DayGroup[] {
+function groupByDay(entries: GrowEntry[], comments: GrowComment[], growStartDate?: string): DayGroup[] {
   const dayMap: Record<number, DayGroup> = {};
 
   for (const entry of entries) {
-    const day = entry.day_number ?? 0;
+    const entryDate = entry.entry_date ?? entry.created_at?.split('T')[0];
+    const day = entry.day_number ?? calculateGrowDayNumber(growStartDate, entryDate) ?? 0;
     if (!dayMap[day]) {
       dayMap[day] = {
         day_number: day,
@@ -49,13 +67,14 @@ function groupByDay(entries: GrowEntry[], comments: GrowComment[]): DayGroup[] {
 interface Props {
   entries: GrowEntry[];
   comments: GrowComment[];
+  growStartDate?: string;
   onPhotoClick?: (url: string) => void;
   onAddComment?: (entryId: string, text: string) => void;
   onDeleteEntry?: (entryId: string) => void;
 }
 
-export function TimelineSection({ entries, comments, onPhotoClick, onAddComment, onDeleteEntry }: Props) {
-  const days = groupByDay(entries, comments);
+export function TimelineSection({ entries, comments, growStartDate, onPhotoClick, onAddComment, onDeleteEntry }: Props) {
+  const days = groupByDay(entries, comments, growStartDate);
 
   if (entries.length === 0) {
     return (

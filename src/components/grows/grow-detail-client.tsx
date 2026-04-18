@@ -271,6 +271,7 @@ export function GrowDetailClient({
         <TimelineSection
           entries={entries}
           comments={localComments as any}
+          growStartDate={grow.start_date}
           onPhotoClick={handlePhotoClick}
           onAddComment={handleAddComment}
           onDeleteEntry={handleDeleteEntry}
