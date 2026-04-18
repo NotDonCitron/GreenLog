@@ -24,9 +24,10 @@ interface Props {
   isFollowing: boolean;
   onFollowToggle: () => void;
   isOwner: boolean;
+  onEditGrow: () => void;
 }
 
-export function GrowDetailHeader({ grow, followerCount, isFollowing, onFollowToggle, isOwner }: Props) {
+export function GrowDetailHeader({ grow, followerCount, isFollowing, onFollowToggle, isOwner, onEditGrow }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Derive phase from most advanced active plant
@@ -85,7 +86,10 @@ export function GrowDetailHeader({ grow, followerCount, isFollowing, onFollowTog
                 <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
                 <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl z-50 py-1">
                   <button
-                    onClick={() => setMenuOpen(false)}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onEditGrow();
+                    }}
                     className="w-full px-4 py-2 text-left text-sm hover:bg-[var(--muted)] flex items-center gap-2"
                   >
                     Bearbeiten
@@ -124,10 +128,28 @@ export function GrowDetailHeader({ grow, followerCount, isFollowing, onFollowTog
           </Link>
         )}
 
-        <div className="flex items-center gap-1 text-[var(--muted-foreground)] ml-auto">
-          {grow.is_public ? <Eye size={12} /> : <EyeOff size={12} />}
-        </div>
+        {isOwner ? (
+          <button
+            type="button"
+            onClick={onEditGrow}
+            className="ml-auto inline-flex items-center gap-1 rounded-lg border border-[var(--border)]/50 px-2 py-1 text-[10px] font-bold uppercase text-[var(--muted-foreground)] transition-colors hover:border-[#2FF801]/40 hover:text-[#2FF801]"
+          >
+            {grow.is_public ? <Eye size={12} /> : <EyeOff size={12} />}
+            {grow.is_public ? 'Öffentlich' : 'Privat'}
+          </button>
+        ) : (
+          <div className="flex items-center gap-1 text-[var(--muted-foreground)] ml-auto">
+            {grow.is_public ? <Eye size={12} /> : <EyeOff size={12} />}
+          </div>
+        )}
       </div>
+
+      {/* Grow notes — only shown when set */}
+      {grow.grow_notes && (
+        <p className="mt-2 text-xs text-[var(--muted-foreground)] line-clamp-1 italic">
+          {grow.grow_notes}
+        </p>
+      )}
 
       {/* Harvest Certificate banner when completed */}
       {grow.status === 'completed' && (
