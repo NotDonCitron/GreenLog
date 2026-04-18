@@ -83,6 +83,8 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
   // Collect photos
   const photos: string[] = [];
   if (entry.image_url) photos.push(entry.image_url);
+  const signedPhoto = (entry.content as { signed_photo_url?: string })?.signed_photo_url;
+  if (signedPhoto) photos.push(signedPhoto);
   const contentPhoto = (entry.content as { photo_url?: string })?.photo_url;
   if (contentPhoto) photos.push(contentPhoto);
 

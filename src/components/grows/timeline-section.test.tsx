@@ -144,4 +144,35 @@ describe('TimelineSection', () => {
     expect(screen.getByText('2L gegossen')).toBeTruthy();
     expect(screen.queryByText('BioBloom')).toBeNull();
   });
+
+  it('renders signed private photo URLs when a photo entry is expanded', () => {
+    const entries: GrowEntry[] = [
+      {
+        id: 'photo-entry',
+        grow_id: 'grow-1',
+        user_id: 'user-1',
+        entry_type: 'photo',
+        content: {
+          photo_path: 'user-1/grow-1/photo.webp',
+          signed_photo_url: 'https://example.supabase.co/storage/v1/object/sign/grow-entry-photos/photo.webp?token=signed',
+        },
+        entry_date: '2026-04-15',
+        created_at: '2026-04-15T10:00:00.000Z',
+      },
+    ];
+
+    render(
+      <TimelineSection
+        entries={entries}
+        comments={[]}
+        growStartDate="2026-04-01"
+      />
+    );
+
+    fireEvent.click(screen.getByText('📷 Foto hinzugefügt'));
+
+    expect(screen.getByAltText('Foto 1').getAttribute('src')).toBe(
+      'https://example.supabase.co/storage/v1/object/sign/grow-entry-photos/photo.webp?token=signed'
+    );
+  });
 });

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { DLICalculator } from './dli-calculator';
 import { useToast } from '@/components/toast-provider';
 import { supabase } from '@/lib/supabase';
+import { compressGrowPhoto } from '@/lib/grows/photo-compression';
 import { X, Droplets, Leaf, FileText, Camera, Activity, Flag, Zap } from 'lucide-react';
 import type { GrowEntryType, Plant, PlantStatus } from '@/lib/types';
 
@@ -18,7 +19,7 @@ interface LogEntryModalProps {
   growId: string;
   plantId?: string | null;
   plants?: Plant[];
-  onEntryAdded: () => void;
+  onEntryAdded: (entry?: unknown) => void;
   availableTypes?: GrowEntryType[];
   defaultType?: GrowEntryType | null;
 }
@@ -41,6 +42,7 @@ export function LogEntryModal({ open, onClose, growId, plantId, plants = [], onE
   const [selectedType, setSelectedType] = useState<GrowEntryType | null>(null);
   const [content, setContent] = useState<Record<string, unknown>>({});
   const [selectedPlantIds, setSelectedPlantIds] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const toast = useToast();
   const activePlants = useMemo(() => plants.filter(plant => ACTIVE_STATUSES.includes(plant.status)), [plants]);
   const activePlantIds = useMemo(() => activePlants.map(plant => plant.id), [activePlants]);
@@ -74,7 +76,8 @@ export function LogEntryModal({ open, onClose, growId, plantId, plants = [], onE
   const [feedAmount, setFeedAmount] = useState('');
   const [feedEc, setFeedEc] = useState('');
   const [noteText, setNoteText] = useState('');
-  const [photoUrl, setPhotoUrl] = useState('');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [photoCaption, setPhotoCaption] = useState('');
   const [phValue, setPhValue] = useState('');
   const [ecValue, setEcValue] = useState('');
@@ -91,7 +94,9 @@ export function LogEntryModal({ open, onClose, growId, plantId, plants = [], onE
     setFeedAmount('');
     setFeedEc('');
     setNoteText('');
-    setPhotoUrl('');
+    setPhotoFile(null);
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+    setPhotoPreviewUrl(null);
     setPhotoCaption('');
     setPhValue('');
     setEcValue('');
@@ -103,8 +108,65 @@ export function LogEntryModal({ open, onClose, growId, plantId, plants = [], onE
     onClose();
   }
 
+  async function getAuthorizationHeader(): Promise<Record<string, string>> {
+    if (typeof window === 'undefined') return {};
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) return {};
+
+    return { Authorization: `Bearer ${session.access_token}` };
+  }
+
+  function handlePhotoFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    setPhotoFile(file);
+
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+    setPhotoPreviewUrl(file ? URL.createObjectURL(file) : null);
+  }
+
+  async function readErrorResponse(response: Response) {
+    const text = await response.text();
+    try {
+      return {
+        status: response.status,
+        body: text ? JSON.parse(text) : null,
+      };
+    } catch {
+      return {
+        status: response.status,
+        body: text || null,
+      };
+    }
+  }
+
+  function getUploadErrorMessage(status: number, errorBody: any): string {
+    const message = errorBody?.error?.message || errorBody?.error || 'Fehler beim Foto-Upload';
+    const details = errorBody?.error?.details;
+
+    if (typeof details === 'string' && details.length > 0) {
+      return `${message}: ${details}`;
+    }
+
+    if (details?.message === 'Bucket not found' || details?.error === 'Bucket not found') {
+      return `${message}: Storage-Bucket grow-entry-photos fehlt`;
+    }
+
+    if (details?.message) {
+      return `${message}: ${details.message}`;
+    }
+
+    return `${message} (HTTP ${status})`;
+  }
+
+  function logHandledUploadFailure(status: number, body: unknown) {
+    const serializedBody = typeof body === 'string' ? body : JSON.stringify(body);
+    console.info(`[LogEntryModal] Photo upload failed with HTTP ${status}: ${serializedBody || 'no response body'}`);
+  }
+
   async function handleSubmit() {
     if (!selectedType) return;
+    setIsSubmitting(true);
 
     let finalContent: Record<string, unknown> = {};
 
@@ -119,7 +181,7 @@ export function LogEntryModal({ open, onClose, growId, plantId, plants = [], onE
         finalContent = { note_text: noteText };
         break;
       case 'photo':
-        finalContent = { photo_url: photoUrl, ...(photoCaption ? { caption: photoCaption } : {}) };
+        finalContent = {};
         break;
       case 'ph_ec':
         finalContent = { ph: parseFloat(phValue) || 0, ec: parseFloat(ecValue) || 0 };
@@ -137,34 +199,61 @@ export function LogEntryModal({ open, onClose, growId, plantId, plants = [], onE
       finalContent = { ...finalContent, affected_plant_ids: affectedPlantIds };
     }
 
-    // Call API to add log entry — include Supabase session token
-    let headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (typeof window !== 'undefined') {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
+    try {
+      const authHeader = await getAuthorizationHeader();
+
+      if (selectedType === 'photo') {
+        if (!photoFile) return;
+
+        const uploadBody = new FormData();
+        uploadBody.set('grow_id', growId);
+        uploadBody.set('image', await compressGrowPhoto(photoFile));
+        if (photoCaption.trim()) uploadBody.set('caption', photoCaption.trim());
+        if (affectedPlantIds.length > 0) {
+          uploadBody.set('affected_plant_ids', JSON.stringify(affectedPlantIds));
+        }
+
+        const response = await fetch('/api/grows/log-entry/photo', {
+          method: 'POST',
+          headers: authHeader,
+          body: uploadBody,
+        });
+
+        if (response.ok) {
+          const body = await response.json().catch(() => null);
+          onEntryAdded(body?.data?.entry);
+          handleClose();
+        } else {
+          const err = await readErrorResponse(response);
+          logHandledUploadFailure(err.status, err.body);
+          toast.error(getUploadErrorMessage(err.status, err.body));
+        }
+        return;
       }
-    }
 
-    const response = await fetch('/api/grows/log-entry', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        grow_id: growId,
-        plant_id: affectedPlantIds.length === 1 ? affectedPlantIds[0] : null,
-        affected_plant_ids: affectedPlantIds,
-        entry_type: selectedType,
-        content: finalContent,
-      }),
-    });
+      const response = await fetch('/api/grows/log-entry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeader },
+        body: JSON.stringify({
+          grow_id: growId,
+          plant_id: affectedPlantIds.length === 1 ? affectedPlantIds[0] : null,
+          affected_plant_ids: affectedPlantIds,
+          entry_type: selectedType,
+          content: finalContent,
+        }),
+      });
 
-    if (response.ok) {
-      onEntryAdded();
-      handleClose();
-    } else {
-      const err = await response.json().catch(() => ({ error: { message: 'Unknown error' } }));
-      console.error('[LogEntryModal] Log entry failed:', err);
-      toast.error(err?.error?.message || 'Fehler beim Speichern');
+      if (response.ok) {
+        const body = await response.json().catch(() => null);
+        onEntryAdded(body?.data?.entry);
+        handleClose();
+      } else {
+        const err = await readErrorResponse(response);
+        console.error('[LogEntryModal] Log entry failed:', err);
+        toast.error(err.body?.error?.message || 'Fehler beim Speichern');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -175,7 +264,7 @@ export function LogEntryModal({ open, onClose, growId, plantId, plants = [], onE
       case 'watering': return parseFloat(amountLiters) > 0;
       case 'feeding': return nutrient.length > 0 && feedAmount.length > 0;
       case 'note': return noteText.trim().length > 0;
-      case 'photo': return photoUrl.length > 0;
+      case 'photo': return photoFile !== null;
       case 'ph_ec': return parseFloat(phValue) > 0 && parseFloat(ecValue) >= 0;
       case 'milestone': return milestonePhase.length > 0;
       case 'dli': return !!(content.ppfd && content.light_hours);
@@ -332,15 +421,27 @@ export function LogEntryModal({ open, onClose, growId, plantId, plants = [], onE
           <div className="space-y-3">
             <div>
               <Label className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-1 block">
-                Foto URL
+                Foto
               </Label>
               <Input
-                type="url"
-                value={photoUrl}
-                onChange={e => setPhotoUrl(e.target.value)}
-                placeholder="https://..."
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handlePhotoFileChange}
                 className="bg-[var(--background)] border border-[var(--border)]/50"
               />
+              <p className="mt-1 text-[10px] text-[var(--muted-foreground)]">
+                Kamera oder Galerie wählen. Das Bild wird vor dem Upload verkleinert.
+              </p>
+              {photoPreviewUrl && (
+                <div className="mt-3 overflow-hidden rounded-lg border border-[var(--border)]/50 bg-[var(--card)]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={photoPreviewUrl}
+                    alt="Ausgewähltes Foto"
+                    className="h-40 w-full object-cover"
+                  />
+                </div>
+              )}
             </div>
             <div>
               <Label className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-1 block">
@@ -460,10 +561,10 @@ export function LogEntryModal({ open, onClose, growId, plantId, plants = [], onE
             {renderTypeForm()}
             <Button
               onClick={handleSubmit}
-              disabled={!isValid()}
+              disabled={!isValid() || isSubmitting}
               className="w-full mt-4 bg-gradient-to-r from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black font-bold"
             >
-              Eintrag speichern
+              {isSubmitting ? 'Speichert...' : 'Eintrag speichern'}
             </Button>
           </div>
         )}

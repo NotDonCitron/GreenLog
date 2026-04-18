@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { GrowComment } from '@/lib/types';
 import { useAuth } from '@/components/auth-provider';
 import { useToast } from '@/components/toast-provider';
@@ -62,6 +62,63 @@ export function GrowDetailClient({
 
   const isOwner = user?.id === grow.user_id;
 
+  useEffect(() => {
+    let isCancelled = false;
+    const entriesNeedingSignedUrls = entries.filter(entry => (
+      typeof entry.content?.photo_path === 'string'
+      && !entry.content?.signed_photo_url
+    ));
+
+    if (entriesNeedingSignedUrls.length === 0) return;
+
+    async function signMissingPhotoUrls() {
+      const signedEntries = await Promise.all(entriesNeedingSignedUrls.map(async (entry) => {
+        const photoPath = entry.content?.photo_path;
+        if (typeof photoPath !== 'string') return null;
+
+        const { data } = await supabase.storage
+          .from('grow-entry-photos')
+          .createSignedUrl(photoPath, 60 * 60);
+
+        if (!data?.signedUrl) return null;
+
+        return {
+          id: entry.id,
+          signedUrl: data.signedUrl,
+        };
+      }));
+
+      if (isCancelled) return;
+
+      const signedUrlByEntryId = new Map(
+        signedEntries
+          .filter((entry): entry is { id: string; signedUrl: string } => entry !== null)
+          .map(entry => [entry.id, entry.signedUrl])
+      );
+
+      if (signedUrlByEntryId.size === 0) return;
+
+      setEntries(prev => prev.map(entry => {
+        const signedUrl = signedUrlByEntryId.get(entry.id);
+        if (!signedUrl) return entry;
+
+        return {
+          ...entry,
+          content: {
+            ...entry.content,
+            signed_photo_url: signedUrl,
+          },
+        };
+      }));
+    }
+
+    signMissingPhotoUrls();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [entries]);
+
   // Open log modal — optionally with preselected type
   const openLogModal = useCallback((plantId: string | null = null, type?: GrowEntryType) => {
     setSelectedLogType(type ?? null);
@@ -69,7 +126,7 @@ export function GrowDetailClient({
     setLogModalOpen(true);
   }, []);
 
-  const onEntryAdded = useCallback(async (entryType: GrowEntryType, content: Record<string, unknown>) => {
+  const onEntryAdded = useCallback(async (entryType: GrowEntryType, content: Record<string, unknown>, createdEntry?: GrowEntry) => {
     setLogModalOpen(false);
     if (isDemoMode) {
       // In demo mode, add a local entry to entries state
@@ -85,6 +142,12 @@ export function GrowDetailClient({
       setEntries(prev => [newEntry, ...prev]);
       toastSuccess('Eintrag hinzugefügt');
     } else {
+      if (createdEntry) {
+        setEntries(prev => [createdEntry, ...prev.filter(entry => entry.id !== createdEntry.id)]);
+        toastSuccess('Eintrag hinzugefügt');
+        return;
+      }
+
       // Refetch entries from Supabase
       const { data } = await supabase
         .from('grow_entries')
@@ -315,7 +378,7 @@ export function GrowDetailClient({
           growId={growId}
           plantId={logModalPlantId}
           plants={plants}
-          onEntryAdded={() => { onEntryAdded('note' as GrowEntryType, {}); }}
+          onEntryAdded={(entry) => { onEntryAdded((entry as GrowEntry | undefined)?.entry_type ?? 'note', {}, entry as GrowEntry | undefined); }}
           defaultType={selectedLogType}
         />
       )}

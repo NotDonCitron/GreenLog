@@ -15,7 +15,7 @@ export function validateEntryContent(entryType: GrowEntryType, content: Record<s
     case 'note':
       return typeof content.note_text === 'string';
     case 'photo':
-      return typeof content.photo_url === 'string';
+      return typeof content.photo_path === 'string' && content.photo_path.length > 0;
     case 'ph_ec':
       return typeof content.ph === 'number' && typeof content.ec === 'number';
     case 'dli':

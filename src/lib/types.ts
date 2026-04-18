@@ -144,7 +144,7 @@ export type GrowEntryType = 'watering' | 'feeding' | 'note' | 'photo' | 'ph_ec' 
 export interface WateringContent { amount_liters: number; }
 export interface FeedingContent { nutrient: string; amount: string; ec?: number; }
 export interface NoteContent { note_text: string; }
-export interface PhotoContent { photo_url: string; caption?: string; }
+export interface PhotoContent { photo_path: string; signed_photo_url?: string; caption?: string; }
 export interface PhEcContent { ph: number; ec: number; }
 export interface DliContent { ppfd: number; light_hours: number; dli: number; }
 export interface MilestoneContent { milestone_phase: string; notes?: string; }

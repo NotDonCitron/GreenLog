@@ -2,9 +2,56 @@ import { notFound } from 'next/navigation';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { GrowDetailClient } from '@/components/grows/grow-detail-client';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+async function createSignedGrowPhotoUrl(supabase: SupabaseClient, photoPath: string): Promise<string | null> {
+  const { data } = await supabase.storage
+    .from('grow-entry-photos')
+    .createSignedUrl(photoPath, 60 * 60);
+
+  if (data?.signedUrl) return data.signedUrl;
+
+  try {
+    const admin = getSupabaseAdmin();
+    const { data: adminData, error } = await admin.storage
+      .from('grow-entry-photos')
+      .createSignedUrl(photoPath, 60 * 60);
+
+    if (error || !adminData?.signedUrl) return null;
+    return adminData.signedUrl;
+  } catch {
+    return null;
+  }
+}
+
+async function attachSignedPhotoUrls(supabase: SupabaseClient, entries: any[]) {
+  const entriesWithPhotoPaths = entries.filter(entry => (
+    typeof entry.content?.photo_path === 'string'
+    && entry.content.photo_path.length > 0
+  ));
+
+  if (entriesWithPhotoPaths.length === 0) return entries;
+
+  return Promise.all(entries.map(async (entry) => {
+    const photoPath = entry.content?.photo_path;
+    if (typeof photoPath !== 'string' || photoPath.length === 0) return entry;
+
+    const signedUrl = await createSignedGrowPhotoUrl(supabase, photoPath);
+    if (!signedUrl) return entry;
+
+    return {
+      ...entry,
+      content: {
+        ...entry.content,
+        signed_photo_url: signedUrl,
+      },
+    };
+  }));
 }
 
 export default async function GrowDetailPage({ params }: PageProps) {
@@ -21,11 +68,6 @@ export default async function GrowDetailPage({ params }: PageProps) {
   let reminders: any[] = [];
   let comments: any[] = [];
   let followerCount = 0;
-  let userId: string | null = null;
-
-  // Get user from session
-  const { data: { session } } = await supabase.auth.getSession();
-  userId = session?.user?.id || null;
 
   if (isDemoMode) {
     grow = {
@@ -71,7 +113,7 @@ export default async function GrowDetailPage({ params }: PageProps) {
       .select("*")
       .eq("grow_id", id)
       .order("created_at", { ascending: false });
-    entries = entriesData || [];
+    entries = await attachSignedPhotoUrls(supabase, entriesData || []);
 
     // Fetch milestones
     const { data: milestonesData } = await supabase
