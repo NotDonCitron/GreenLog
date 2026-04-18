@@ -11,6 +11,7 @@ import { PlantCarousel } from './plant-carousel';
 import { TimelineSection } from './timeline-section';
 import { ReminderPanelCompact } from './reminder-panel-compact';
 import { LogEntryModal } from './log-entry-modal';
+import { GrowEditDialog } from './grow-edit-dialog';
 import { BottomNav } from '@/components/bottom-nav';
 import { PlantLimitWarning } from './plant-limit-warning';
 import type { Grow, Plant, GrowEntry, GrowEntryType, GrowMilestone, PlantStatus } from '@/lib/types';
@@ -41,7 +42,7 @@ export function GrowDetailClient({
   const { error: toastError, success: toastSuccess } = useToast();
 
   // Local state for optimistic updates
-  const [grow] = useState<Grow>(initialGrow);
+  const [grow, setGrow] = useState<Grow>(initialGrow);
   const [plants, setPlants] = useState<Plant[]>(initialPlants);
   const [entries, setEntries] = useState<GrowEntry[]>(initialEntries);
   const [localComments, setLocalComments] = useState(initialComments as any[]);
@@ -59,6 +60,7 @@ export function GrowDetailClient({
   const [logModalOpen, setLogModalOpen] = useState(false);
   const [selectedLogType, setSelectedLogType] = useState<GrowEntryType | null>(null);
   const [logModalPlantId, setLogModalPlantId] = useState<string | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const isOwner = user?.id === grow.user_id;
 
@@ -213,6 +215,15 @@ export function GrowDetailClient({
     }
   };
 
+  const handleGrowSaved = useCallback((updatedGrow: Grow) => {
+    setGrow(prev => ({
+      ...prev,
+      ...updatedGrow,
+      plants: prev.plants,
+    }));
+    toastSuccess('Grow gespeichert');
+  }, [toastSuccess]);
+
   // Photo lightbox
   const handlePhotoClick = useCallback((url: string) => {
     setLightboxUrl(url);
@@ -289,6 +300,7 @@ export function GrowDetailClient({
         isFollowing={isFollowing}
         onFollowToggle={handleFollowToggle}
         isOwner={isOwner}
+        onEditGrow={() => setEditDialogOpen(true)}
       />
 
       <div className="p-6 space-y-6 relative z-10">
@@ -382,6 +394,13 @@ export function GrowDetailClient({
           defaultType={selectedLogType}
         />
       )}
+
+      <GrowEditDialog
+        grow={grow}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onSaved={handleGrowSaved}
+      />
     </main>
   );
 }

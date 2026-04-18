@@ -1,0 +1,2 @@
+ALTER TABLE grows
+  ADD COLUMN IF NOT EXISTS grow_notes TEXT;
