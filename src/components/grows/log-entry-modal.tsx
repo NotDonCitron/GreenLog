@@ -1,23 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { DLICalculator } from './dli-calculator';
 import { useToast } from '@/components/toast-provider';
 import { supabase } from '@/lib/supabase';
 import { X, Droplets, Leaf, FileText, Camera, Activity, Flag, Zap } from 'lucide-react';
-import type { GrowEntryType } from '@/lib/types';
+import type { GrowEntryType, Plant, PlantStatus } from '@/lib/types';
 
 interface LogEntryModalProps {
   open: boolean;
   onClose: () => void;
   growId: string;
   plantId?: string | null;
+  plants?: Plant[];
   onEntryAdded: () => void;
   availableTypes?: GrowEntryType[];
   defaultType?: GrowEntryType | null;
@@ -34,11 +34,19 @@ const ALL_TYPES: { value: GrowEntryType; label: string; icon: React.ReactNode }[
 ];
 
 const MILESTONE_PHASES = ['germination', 'vegetation', 'flower', 'flush', 'harvest'];
+const ACTIVE_STATUSES: PlantStatus[] = ['seedling', 'vegetative', 'flowering', 'flushing'];
+const PLANT_SCOPED_TYPES: GrowEntryType[] = ['watering', 'feeding', 'note', 'photo', 'ph_ec'];
 
-export function LogEntryModal({ open, onClose, growId, plantId, onEntryAdded, availableTypes, defaultType }: LogEntryModalProps) {
+export function LogEntryModal({ open, onClose, growId, plantId, plants = [], onEntryAdded, availableTypes, defaultType }: LogEntryModalProps) {
   const [selectedType, setSelectedType] = useState<GrowEntryType | null>(null);
   const [content, setContent] = useState<Record<string, unknown>>({});
+  const [selectedPlantIds, setSelectedPlantIds] = useState<string[]>([]);
   const toast = useToast();
+  const activePlants = useMemo(() => plants.filter(plant => ACTIVE_STATUSES.includes(plant.status)), [plants]);
+  const activePlantIds = useMemo(() => activePlants.map(plant => plant.id), [activePlants]);
+  const activePlantIdsKey = activePlantIds.join('|');
+  const isPlantScoped = selectedType ? PLANT_SCOPED_TYPES.includes(selectedType) : false;
+  const showPlantSelector = isPlantScoped && activePlants.length > 1;
 
   // Auto-select type when modal opens with defaultType
   useEffect(() => {
@@ -50,6 +58,15 @@ export function LogEntryModal({ open, onClose, growId, plantId, onEntryAdded, av
       }
     }
   }, [open, defaultType, availableTypes]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (plantId && activePlantIds.includes(plantId)) {
+      setSelectedPlantIds([plantId]);
+      return;
+    }
+    setSelectedPlantIds(activePlantIds);
+  }, [open, plantId, activePlantIds, activePlantIdsKey]);
 
   // Form fields per type
   const [amountLiters, setAmountLiters] = useState('');
@@ -68,6 +85,7 @@ export function LogEntryModal({ open, onClose, growId, plantId, onEntryAdded, av
   function resetForm() {
     setSelectedType(null);
     setContent({});
+    setSelectedPlantIds(activePlantIds);
     setAmountLiters('');
     setNutrient('');
     setFeedAmount('');
@@ -114,6 +132,11 @@ export function LogEntryModal({ open, onClose, growId, plantId, onEntryAdded, av
         break;
     }
 
+    const affectedPlantIds = isPlantScoped ? selectedPlantIds : [];
+    if (affectedPlantIds.length > 0) {
+      finalContent = { ...finalContent, affected_plant_ids: affectedPlantIds };
+    }
+
     // Call API to add log entry — include Supabase session token
     let headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (typeof window !== 'undefined') {
@@ -128,7 +151,8 @@ export function LogEntryModal({ open, onClose, growId, plantId, onEntryAdded, av
       headers,
       body: JSON.stringify({
         grow_id: growId,
-        plant_id: plantId,
+        plant_id: affectedPlantIds.length === 1 ? affectedPlantIds[0] : null,
+        affected_plant_ids: affectedPlantIds,
         entry_type: selectedType,
         content: finalContent,
       }),
@@ -146,6 +170,7 @@ export function LogEntryModal({ open, onClose, growId, plantId, onEntryAdded, av
 
   function isValid(): boolean {
     if (!selectedType) return false;
+    if (isPlantScoped && activePlants.length > 0 && selectedPlantIds.length === 0) return false;
     switch (selectedType) {
       case 'watering': return parseFloat(amountLiters) > 0;
       case 'feeding': return nutrient.length > 0 && feedAmount.length > 0;
@@ -156,6 +181,71 @@ export function LogEntryModal({ open, onClose, growId, plantId, onEntryAdded, av
       case 'dli': return !!(content.ppfd && content.light_hours);
       default: return false;
     }
+  }
+
+  function togglePlant(plantIdToToggle: string) {
+    setSelectedPlantIds(prev => (
+      prev.includes(plantIdToToggle)
+        ? prev.filter(id => id !== plantIdToToggle)
+        : [...prev, plantIdToToggle]
+    ));
+  }
+
+  function toggleAllPlants() {
+    setSelectedPlantIds(prev => (
+      prev.length === activePlantIds.length ? [] : activePlantIds
+    ));
+  }
+
+  function renderPlantSelector() {
+    if (!showPlantSelector) return null;
+
+    const allSelected = selectedPlantIds.length === activePlants.length;
+
+    return (
+      <div className="mt-4 space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <Label className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">
+            Betroffene Pflanzen
+          </Label>
+          <button
+            type="button"
+            onClick={toggleAllPlants}
+            className={`rounded-lg border px-2 py-1 text-[10px] font-black uppercase transition-colors ${
+              allSelected
+                ? 'border-[#2FF801]/50 bg-[#2FF801]/15 text-[#2FF801]'
+                : 'border-[var(--border)]/50 text-[var(--muted-foreground)]'
+            }`}
+          >
+            Alle
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {activePlants.map((plant, index) => {
+            const isSelected = selectedPlantIds.includes(plant.id);
+            return (
+              <button
+                key={plant.id}
+                type="button"
+                onClick={() => togglePlant(plant.id)}
+                className={`min-w-0 rounded-lg border p-2 text-left transition-all ${
+                  isSelected
+                    ? 'border-[#2FF801]/60 bg-[#2FF801]/10 text-[var(--foreground)]'
+                    : 'border-[var(--border)]/50 bg-[var(--card)] text-[var(--muted-foreground)]'
+                }`}
+              >
+                <span className="block text-[9px] font-black uppercase text-[#2FF801]">
+                  Pflanze {index + 1}
+                </span>
+                <span className="block truncate text-[11px] font-bold">
+                  {plant.plant_name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
   }
 
   function renderTypeForm() {
@@ -366,6 +456,7 @@ export function LogEntryModal({ open, onClose, growId, plantId, onEntryAdded, av
                 <X size={16} />
               </button>
             </div>
+            {renderPlantSelector()}
             {renderTypeForm()}
             <Button
               onClick={handleSubmit}

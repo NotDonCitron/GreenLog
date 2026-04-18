@@ -43,12 +43,13 @@ interface Props {
   comments: GrowComment[];
   isToday: boolean;
   dayNumber: number;
+  affectedPlantNames?: string[];
   onPhotoClick?: (url: string) => void;
   onAddComment?: (entryId: string, text: string) => void;
   onDeleteEntry?: (entryId: string) => void;
 }
 
-export function TimelineEntry({ entry, comments, isToday, dayNumber, onPhotoClick, onAddComment, onDeleteEntry }: Props) {
+export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPlantNames = [], onPhotoClick, onAddComment, onDeleteEntry }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [commentText, setCommentText] = useState('');
 
@@ -155,6 +156,13 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, onPhotoClic
             <p className="text-xs text-[var(--muted-foreground)] truncate pr-2">
               {formatEntrySummary(entry)}
             </p>
+          )}
+
+          {affectedPlantNames.length > 0 && (
+            <div className="mt-2 inline-flex max-w-full items-center gap-1 rounded-lg border border-[#2FF801]/25 bg-[#2FF801]/10 px-2 py-1 text-[10px] font-bold text-[#2FF801]">
+              <Leaf size={10} />
+              <span className="truncate">{affectedPlantNames.join(', ')}</span>
+            </div>
           )}
         </div>
 

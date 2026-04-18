@@ -1,8 +1,8 @@
 'use client';
 
-import { Clock } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { TimelineEntry } from './timeline-entry';
-import type { GrowEntry, GrowComment } from '@/lib/types';
+import type { GrowEntry, GrowComment, GrowEntryType, Plant } from '@/lib/types';
 
 interface DayGroup {
   day_number: number;
@@ -67,14 +67,58 @@ function groupByDay(entries: GrowEntry[], comments: GrowComment[], growStartDate
 interface Props {
   entries: GrowEntry[];
   comments: GrowComment[];
+  plants?: Plant[];
   growStartDate?: string;
   onPhotoClick?: (url: string) => void;
   onAddComment?: (entryId: string, text: string) => void;
   onDeleteEntry?: (entryId: string) => void;
 }
 
-export function TimelineSection({ entries, comments, growStartDate, onPhotoClick, onAddComment, onDeleteEntry }: Props) {
-  const days = groupByDay(entries, comments, growStartDate);
+function getAffectedPlantIds(entry: GrowEntry): string[] {
+  const affectedPlantIds = (entry.content as { affected_plant_ids?: unknown })?.affected_plant_ids;
+  if (Array.isArray(affectedPlantIds)) {
+    return affectedPlantIds.filter((id): id is string => typeof id === 'string');
+  }
+  return entry.plant_id ? [entry.plant_id] : [];
+}
+
+const TYPE_FILTERS: { value: 'all' | GrowEntryType; label: string }[] = [
+  { value: 'all', label: 'Alle' },
+  { value: 'watering', label: 'Gießen' },
+  { value: 'feeding', label: 'Füttern' },
+  { value: 'photo', label: 'Fotos' },
+  { value: 'note', label: 'Notizen' },
+  { value: 'ph_ec', label: 'pH/EC' },
+];
+
+function FilterChip({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`shrink-0 rounded-lg border px-3 py-1.5 text-[10px] font-black uppercase transition-colors ${
+        active
+          ? 'border-[#2FF801]/60 bg-[#2FF801]/15 text-[#2FF801]'
+          : 'border-[var(--border)]/50 bg-[var(--card)] text-[var(--muted-foreground)] hover:border-[#2FF801]/35 hover:text-[var(--foreground)]'
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+export function TimelineSection({ entries, comments, plants = [], growStartDate, onPhotoClick, onAddComment, onDeleteEntry }: Props) {
+  const [selectedType, setSelectedType] = useState<'all' | GrowEntryType>('all');
+  const [selectedPlantId, setSelectedPlantId] = useState<string>('all');
+  const plantNameById = new Map(plants.map(plant => [plant.id, plant.plant_name]));
+  const filteredEntries = useMemo(() => entries.filter(entry => {
+    const matchesType = selectedType === 'all' || entry.entry_type === selectedType;
+    const matchesPlant = selectedPlantId === 'all' || getAffectedPlantIds(entry).includes(selectedPlantId);
+    return matchesType && matchesPlant;
+  }), [entries, selectedPlantId, selectedType]);
+  const filteredEntryIds = new Set(filteredEntries.map(entry => entry.id));
+  const filteredComments = comments.filter(comment => comment.grow_entry_id ? filteredEntryIds.has(comment.grow_entry_id) : true);
+  const days = groupByDay(filteredEntries, filteredComments, growStartDate);
 
   if (entries.length === 0) {
     return (
@@ -96,15 +140,57 @@ export function TimelineSection({ entries, comments, growStartDate, onPhotoClick
   return (
     <div className="space-y-4">
       {/* Section header */}
-      <div className="flex items-center gap-2">
-        <div className="w-3 h-3 rounded-full bg-[#2FF801]/40" />
-        <h2 className="text-xs font-black uppercase tracking-widest text-[var(--muted-foreground)]">
-          Zeitstrahl
-        </h2>
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-[#2FF801]/40" />
+          <h2 className="text-xs font-black uppercase tracking-widest text-[var(--muted-foreground)]">
+            Zeitstrahl
+          </h2>
+          <span className="ml-auto text-[10px] font-bold text-[var(--muted-foreground)]">
+            {filteredEntries.length} Eintrag{filteredEntries.length === 1 ? '' : 'e'}
+          </span>
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {TYPE_FILTERS.map(filter => (
+            <FilterChip
+              key={filter.value}
+              active={selectedType === filter.value}
+              label={filter.label}
+              onClick={() => setSelectedType(filter.value)}
+            />
+          ))}
+        </div>
+
+        {plants.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            <FilterChip
+              active={selectedPlantId === 'all'}
+              label="Alle Pflanzen"
+              onClick={() => setSelectedPlantId('all')}
+            />
+            {plants.map(plant => (
+              <FilterChip
+                key={plant.id}
+                active={selectedPlantId === plant.id}
+                label={plant.plant_name}
+                onClick={() => setSelectedPlantId(plant.id)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
+      {filteredEntries.length === 0 && (
+        <div className="rounded-xl border border-dashed border-[var(--border)]/70 bg-[var(--card)]/40 p-6 text-center">
+          <p className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)]">
+            Keine Einträge für diesen Filter
+          </p>
+        </div>
+      )}
+
       {/* Timeline container with vertical line */}
-      <div className="relative">
+      {filteredEntries.length > 0 && <div className="relative">
         {/* Vertical gradient line */}
         <div
           className="absolute left-4 top-0 bottom-0 w-0.5"
@@ -148,6 +234,7 @@ export function TimelineSection({ entries, comments, growStartDate, onPhotoClick
                     comments={day.comments.filter(c => c.grow_entry_id === entry.id)}
                     isToday={isToday}
                     dayNumber={day.day_number}
+                    affectedPlantNames={getAffectedPlantIds(entry).map(id => plantNameById.get(id)).filter((name): name is string => Boolean(name))}
                     onPhotoClick={onPhotoClick}
                     onAddComment={onAddComment}
                     onDeleteEntry={onDeleteEntry}
@@ -157,7 +244,7 @@ export function TimelineSection({ entries, comments, growStartDate, onPhotoClick
             );
           })}
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

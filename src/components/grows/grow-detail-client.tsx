@@ -271,6 +271,7 @@ export function GrowDetailClient({
         <TimelineSection
           entries={entries}
           comments={localComments as any}
+          plants={plants}
           growStartDate={grow.start_date}
           onPhotoClick={handlePhotoClick}
           onAddComment={handleAddComment}
@@ -313,6 +314,7 @@ export function GrowDetailClient({
           onClose={() => { setLogModalOpen(false); setSelectedLogType(null); }}
           growId={growId}
           plantId={logModalPlantId}
+          plants={plants}
           onEntryAdded={() => { onEntryAdded('note' as GrowEntryType, {}); }}
           defaultType={selectedLogType}
         />

@@ -51,6 +51,12 @@ function calculateGrowDayNumber(startDate: string | null | undefined, entryDate:
   return Math.max(1, diffDays + 1);
 }
 
+function normalizePlantIds(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+
+  return Array.from(new Set(value.filter((id): id is string => typeof id === 'string' && id.length > 0)));
+}
+
 export async function createGrow(input: CreateGrowInput): Promise<ServerActionResult> {
   const { accessToken, ...growData } = input;
 
@@ -235,7 +241,7 @@ export async function addGrowLogEntry(request: Request, preAuth?: { userId: stri
 
   try {
     const body = await request.json();
-    const { grow_id, plant_id, entry_type, content, entry_date } = body;
+    const { grow_id, plant_id, entry_type, content, entry_date, affected_plant_ids } = body;
 
     if (!grow_id) return jsonError('grow_id is required', 400) as Response;
     if (!entry_type) return jsonError('entry_type is required', 400) as Response;
@@ -259,14 +265,37 @@ export async function addGrowLogEntry(request: Request, preAuth?: { userId: stri
     if (!grow) return jsonError('Grow not found', 404) as Response;
     if (grow.user_id !== userId) return jsonError('Forbidden', 403) as Response;
 
+    const affectedPlantIds = normalizePlantIds(affected_plant_ids);
+    if (typeof plant_id === 'string' && plant_id.length > 0 && affectedPlantIds.length === 0) {
+      affectedPlantIds.push(plant_id);
+    }
+
+    if (affectedPlantIds.length > 0) {
+      const { data: matchingPlants, error: plantsError } = await supabase
+        .from('plants')
+        .select('id')
+        .eq('grow_id', grow_id)
+        .eq('user_id', userId)
+        .in('id', affectedPlantIds);
+
+      if (plantsError) return jsonError('Failed to validate selected plants', 500, plantsError.code, plantsError.message) as Response;
+      if ((matchingPlants ?? []).length !== affectedPlantIds.length) {
+        return jsonError('One or more selected plants are invalid for this grow', 400) as Response;
+      }
+    }
+
     // Calculate DLI if entry_type is dli
     let finalContent = content || {};
     if (entry_type === 'dli' && content?.ppfd && content?.light_hours) {
       finalContent = { ...content, dli: calculateDLI(content.ppfd, content.light_hours) };
     }
+    if (affectedPlantIds.length > 0) {
+      finalContent = { ...finalContent, affected_plant_ids: affectedPlantIds };
+    }
 
     const finalEntryDate = entry_date || new Date().toISOString().split('T')[0];
     const dayNumber = calculateGrowDayNumber(grow.start_date, finalEntryDate);
+    const entryPlantId = affectedPlantIds.length === 1 ? affectedPlantIds[0] : null;
 
     const { data: entry, error } = await supabase
       .from('grow_entries')
@@ -274,7 +303,7 @@ export async function addGrowLogEntry(request: Request, preAuth?: { userId: stri
         grow_id,
         organization_id: grow.organization_id,
         user_id: userId,
-        plant_id: plant_id || null,
+        plant_id: entryPlantId,
         entry_type,
         content: finalContent,
         entry_date: finalEntryDate,
