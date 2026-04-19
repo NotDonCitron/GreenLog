@@ -8,7 +8,6 @@ import { ActivityFeed } from "@/components/social/activity-feed";
 import { SuggestedUsers } from "@/components/social/suggested-users";
 import { FollowButton } from "@/components/social/follow-button";
 import { useAuth } from "@/components/auth-provider";
-import { StatsBar } from "@/components/layout/stats-bar";
 import { USER_ROLES } from "@/lib/roles";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
@@ -339,7 +338,6 @@ function FeedContent() {
 
       {/* Feed Content */}
       <div className="pull-refresh px-4 mt-6 relative z-10 pb-24">
-        <StatsBar />
         {/* Für dich - All public activities */}
         {activeTab === "foryou" && loading && (
           <div className="text-center py-12 space-y-4">

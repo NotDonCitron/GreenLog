@@ -1,6 +1,7 @@
 "use client";
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { isChunkLoadError } from "@/lib/chunk-load-error";
 
 interface Props {
   children: ReactNode;
@@ -14,6 +15,8 @@ interface State {
 }
 
 export class ErrorBoundary extends Component<Props, State> {
+  private chunkErrorResetTimer: ReturnType<typeof setTimeout> | null = null;
+
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -24,11 +27,29 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    if (isChunkLoadError(error)) {
+      console.warn(`[ErrorBoundary: ${this.props.name || "unnamed"}] transient chunk load failed`, error);
+      this.chunkErrorResetTimer = setTimeout(() => {
+        this.setState({ hasError: false, error: null });
+      }, 1000);
+      return;
+    }
+
     console.error(`[ErrorBoundary: ${this.props.name || "unnamed"}]`, error, errorInfo);
+  }
+
+  componentWillUnmount() {
+    if (this.chunkErrorResetTimer) {
+      clearTimeout(this.chunkErrorResetTimer);
+    }
   }
 
   render() {
     if (this.state.hasError) {
+      if (isChunkLoadError(this.state.error)) {
+        return null;
+      }
+
       if (this.props.fallback) {
         return this.props.fallback;
       }

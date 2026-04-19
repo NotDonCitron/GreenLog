@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { isChunkLoadError } from '@/lib/chunk-load-error';
 
 export default function Error({
   error,
@@ -11,8 +12,17 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
+    if (isChunkLoadError(error)) {
+      const timeout = window.setTimeout(reset, 1000);
+      return () => window.clearTimeout(timeout);
+    }
+
     console.error('[Error]', error);
-  }, [error]);
+  }, [error, reset]);
+
+  if (isChunkLoadError(error)) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8 px-6 py-16">

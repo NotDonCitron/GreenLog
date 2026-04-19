@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import { isChunkLoadError } from '@/lib/chunk-load-error';
 
 export default function GlobalError({
   error,
@@ -11,8 +12,21 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
+    if (isChunkLoadError(error)) {
+      const timeout = window.setTimeout(reset, 1000);
+      return () => window.clearTimeout(timeout);
+    }
+
     console.error('[GlobalError]', error);
-  }, [error]);
+  }, [error, reset]);
+
+  if (isChunkLoadError(error)) {
+    return (
+      <html lang="de" className="h-full">
+        <body className="h-full bg-[#0e0e0f] text-white font-body antialiased" />
+      </html>
+    );
+  }
 
   return (
     <html lang="de" className="h-full">
