@@ -9,18 +9,22 @@ export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params
   const supabase = await createServerSupabaseClient()
 
-  const { data: strain } = await supabase
+  const { data: strain, error } = await supabase
     .from('strains')
-    .select('name, description, breeder, thc_max, thc_level, farmer, manufacturer, brand')
+    .select('name, description, thc_max, farmer')
     .eq('slug', slug)
     .single()
+
+  if (error) {
+    console.warn(`[strains/${slug}] metadata query failed:`, error.message)
+  }
 
   if (!strain) {
     return { title: 'Strain nicht gefunden | CannaLog' }
   }
 
-  const breeder = strain.breeder || strain.farmer || strain.manufacturer || strain.brand || 'Unbekannter Breeder'
-  const thcDisplay = strain.thc_max || strain.thc_level || null
+  const breeder = strain.farmer || 'Unbekannter Breeder'
+  const thcDisplay = strain.thc_max || null
 
   return {
     title: strain.name,
