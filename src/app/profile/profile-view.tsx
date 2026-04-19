@@ -27,7 +27,6 @@ import {
   Star,
   Trophy,
   UserRound,
-  Users,
   Zap,
   Calendar,
   Check,
@@ -65,7 +64,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BadgeCard } from "@/components/ui/badge-card";
 import { supabase } from "@/lib/supabase/client";
-import { ALL_BADGES, getBadgeById } from "@/lib/badges";
+import { ALL_BADGES } from "@/lib/badges";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import type {
@@ -531,8 +530,23 @@ export default function ProfilePage() {
     );
   }
 
-  const { identity, stats, favorites, badges } = profileData;
+  const { identity, stats, badges } = profileData;
   const isPublic = identity.profileVisibility === "public";
+  const unlockedBadgeById = new Map(badges.map((badge) => [badge.id, badge]));
+  const displayedBadgeIds = (selectedBadges.length > 0 ? selectedBadges : badges.slice(0, 4).map((badge) => badge.id))
+    .filter((badgeId, index, list) => list.indexOf(badgeId) === index && unlockedBadgeById.has(badgeId))
+    .slice(0, 4);
+  const displayedBadges = displayedBadgeIds.map((badgeId) => {
+    const profileBadge = unlockedBadgeById.get(badgeId);
+    const badgeDefinition = ALL_BADGES.find((badge) => badge.id === badgeId);
+
+    return {
+      id: badgeId,
+      name: badgeDefinition?.name || profileBadge?.name || badgeId.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      description: badgeDefinition?.description || profileBadge?.description || "Freigeschaltet",
+      iconKey: badgeDefinition?.icon || profileBadge?.iconKey || "trophy",
+    };
+  });
 
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
@@ -673,37 +687,34 @@ export default function ProfilePage() {
               Alle
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { id: "starter", name: "Starter", req: "1 Strain geloggt", icon: Sprout, threshold: 1 },
-              { id: "connoisseur", name: "Collector", req: "5 Strains gesammelt", icon: Trophy, threshold: 5 },
-              { id: "grower", name: "Grower", req: "1 Grow gestartet", icon: Leaf, threshold: 1 },
-              { id: "social", name: "Social", req: "1 Freund gefolgt", icon: Users, threshold: 1 }
-            ].map((b) => {
-              const meetsThreshold = (b.id === 'starter' && stats.totalStrains >= 1) ||
-                (b.id === 'connoisseur' && stats.totalStrains >= 5) ||
-                (b.id === 'social' && stats.following >= 1);
-              const isUnlocked = meetsThreshold;
+          {displayedBadges.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              {displayedBadges.map((badge) => {
+                const Icon = resolveBadgeIcon(badge.iconKey);
 
-              return (
-                <div key={b.id} className={`rounded-2xl p-4 flex flex-col items-center text-center gap-2 transition-all border ${isUnlocked
-                  ? "bg-[var(--card)] border-[#2FF801]/30"
-                  : "bg-[var(--input)] border-[var(--border)]/30 opacity-50 grayscale"
-                  }`}>
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-1 ${isUnlocked ? "bg-[#2FF801]/10 text-[#ffd76a]" : "bg-[var(--muted)] text-[#484849]"
-                    }`}>
-                    <b.icon size={28} />
+                return (
+                  <div
+                    key={badge.id}
+                    className="rounded-2xl border border-[#2FF801]/30 bg-[var(--card)] p-4 flex flex-col items-center text-center gap-2 transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-1 bg-[#2FF801]/10 text-[#ffd76a]">
+                      <Icon size={28} />
+                    </div>
+                    <p className="text-[11px] font-black uppercase tracking-tight leading-none text-[var(--foreground)]">
+                      {badge.name}
+                    </p>
+                    <p className="text-[8px] font-semibold uppercase tracking-tighter text-[#2FF801]">
+                      {badge.description}
+                    </p>
                   </div>
-                  <p className={`text-[11px] font-black uppercase tracking-tight leading-none ${isUnlocked ? "text-[var(--foreground)]" : "text-[#484849]"
-                    }`}>{b.name}</p>
-                  <p className={`text-[8px] font-semibold uppercase tracking-tighter ${isUnlocked ? "text-[#2FF801]" : "text-[#484849]"
-                    }`}>
-                    {isUnlocked ? b.req : `Ziel: ${b.req}`}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-[var(--border)]/50 bg-[var(--card)] py-10 text-center text-xs font-bold uppercase tracking-widest text-[#484849]">
+              Noch keine Abzeichen freigeschaltet
+            </div>
+          )}
         </section>
 
         {/* Favorites Section */}
