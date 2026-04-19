@@ -180,7 +180,7 @@ function HomeContent() {
 
       {strainOfTheDay && (
         <div className="flex-1 flex items-center justify-center min-h-0 px-2">
-          <StrainCard strain={strainOfTheDay} index={0} />
+          <StrainCard strain={strainOfTheDay} index={0} isCollected={false} />
         </div>
       )}
 

@@ -179,7 +179,7 @@ export default function LandingPage() {
                   Referenz-Eintrag
                 </p>
                 <div className="flex items-center justify-center">
-                  <StrainCard strain={strainOfTheDay} index={0} />
+                  <StrainCard strain={strainOfTheDay} index={0} isCollected={false} />
                 </div>
               </div>
             </ScrollAnimator>
