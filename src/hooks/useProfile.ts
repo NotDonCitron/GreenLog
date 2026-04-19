@@ -72,6 +72,7 @@ function createFallbackViewModel(): ProfileViewModel {
     stats,
     favorites: [],
     badges: [],
+    featuredBadgeIds: [],
     activity: [],
     preview: { title: "Privat", description: "", chips: [] },
   };
@@ -194,6 +195,7 @@ async function fetchProfileData(userId: string, userEmail: string | null, userMe
     stats,
     favorites,
     badges,
+    featuredBadgeIds: featuredBadges,
     activity: [],
     preview: { title: "", description: "", chips: [] },
   };

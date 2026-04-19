@@ -98,7 +98,7 @@ export function FeedPreview({ strainCount }: FeedPreviewProps) {
               So sieht CannaLOG aus
             </h2>
             <p className="text-lg text-white/60 max-w-2xl mx-auto">
-              Schau dir eine Vorschau der App an – von Strain-Details bis zur Community.
+              Sieh dir eine Vorschau der App an: Datensätze, Sammlung und Aktivitätsansicht.
             </p>
           </div>
         </ScrollAnimator>

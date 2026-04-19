@@ -18,7 +18,7 @@
 | Styling | Tailwind CSS v4, shadcn/ui, CSS Variables |
 | Backend | Next.js Route Handlers (API), React Server Actions |
 | Datenbank | Supabase PostgreSQL (mit RLS) |
-| Auth | Clerk (JWT/RLS über `requesting_user_id()`) |
+| Auth | Supabase Auth (RLS über `auth.uid()` / `requesting_user_id()` Helpers) |
 | State | TanStack Query (React Query) v5 |
 | Deployment | Vercel |
 | Mobile | Capacitor (Android) |
@@ -246,7 +246,7 @@ B2B multi-tenant platform for cannabis clubs (CSCs) and pharmacies to manage str
 
 ### Constraints
 
-- **Pages Router**: No Server Components — all data fetching is Client Components
+- **App Router**: Routes, pages, layouts and API route handlers live under `src/app`
 - **Existing hooks**: `useCollection` and `useCollectionIds` must continue working
 - **QueryProvider**: Already wraps the app — don't reconfigure the provider itself
 - **Demo mode**: Must work without Supabase connection (simulated data)
@@ -263,7 +263,7 @@ B2B multi-tenant platform for cannabis clubs (CSCs) and pharmacies to manage str
 - Node.js (via Next.js runtime)
 - npm 10+ (package-lock.json present)
 ## Frameworks
-- Next.js 16.2.1 - Pages Router with API Routes
+- Next.js 15.5.7 - App Router with Route Handlers
 - React 19.2.4 - UI library
 - React DOM 19.2.4
 - Tailwind CSS v4 - Utility-first CSS (postcss.config.mjs with @tailwindcss/postcss plugin)
@@ -297,7 +297,7 @@ B2B multi-tenant platform for cannabis clubs (CSCs) and pharmacies to manage str
 | Server Components / API Routes | Per-request | `@/lib/supabase/server` |
 | Admin operations (badges, GDPR) | Service role | `@/lib/supabase/client` with `SUPABASE_SERVICE_ROLE_KEY` |
 ## API Layer
-- Next.js API Routes (Pages Router pattern)
+- Next.js App Router Route Handlers
 - Route Handlers: `/src/app/api/**/route.ts`
 - Standardized responses via `jsonSuccess()` / `jsonError()` helpers (`@/lib/api-response`)
 - Bearer token authentication via `authenticateRequest()` helper
@@ -324,7 +324,7 @@ B2B multi-tenant platform for cannabis clubs (CSCs) and pharmacies to manage str
 - .env.vercel - Vercel deployment secrets
 ## Build Tools
 - ESLint 9 - Code linting
-- eslint-config-next 16.2.1 - Next.js ESLint config
+- eslint-config-next 15.5.7 - Next.js ESLint config
 - eslint.config.mjs - ESLint configuration
 - TypeScript 5 - Type safety
 - tsconfig.json - TypeScript configuration
@@ -349,7 +349,7 @@ B2B multi-tenant platform for cannabis clubs (CSCs) and pharmacies to manage str
 ## Key Source Directories
 | Directory | Purpose |
 |----------|---------|
-| `src/app/` | Next.js Pages Router (pages + API routes) |
+| `src/app/` | Next.js App Router pages, layouts and route handlers |
 | `src/app/api/` | API route handlers |
 | `src/components/` | React components (ui, social, community, strains) |
 | `src/lib/` | Utilities, Supabase clients, types, badges |
@@ -377,7 +377,7 @@ B2B multi-tenant platform for cannabis clubs (CSCs) and pharmacies to manage str
 ### Directories
 | Directory | Purpose |
 |-----------|---------|
-| `src/app/` | Next.js Pages Router pages and API routes |
+| `src/app/` | Next.js App Router pages, layouts and route handlers |
 | `src/app/api/` | API route handlers |
 | `src/components/` | React components (organized by feature) |
 | `src/components/ui/` | shadcn/ui base components |
@@ -496,7 +496,7 @@ B2B multi-tenant platform for cannabis clubs (CSCs) and pharmacies to manage str
 ## Architecture
 
 ## Pattern Overview
-- Server-side rendering via Next.js Pages Router
+- Server-side rendering via Next.js App Router
 - Supabase manages Auth, Database (PostgreSQL), Storage, and RLS
 - Client-side state via React Context + React Query
 - API routes handle server-side logic and Supabase Admin operations

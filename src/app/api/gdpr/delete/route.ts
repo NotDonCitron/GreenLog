@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 
@@ -11,6 +11,54 @@ interface OrgMembership {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
+const PERSONAL_DATA_TABLES = [
+  'grow_comments',
+  'grow_follows',
+  'grow_reminders',
+  'grow_entries',
+  'plants',
+  'grows',
+  'consumption_logs',
+  'push_subscriptions',
+  'user_activities',
+  'follows:follower_id',
+  'follows:following_id',
+  'follow_requests:requester_id',
+  'follow_requests:target_id',
+  'ratings',
+  'user_strain_relations',
+  'user_collection',
+  'user_badges',
+  'user_consents',
+] as const;
+
+async function deleteUserRows(
+  serviceClient: SupabaseClient<any, "public", "public">,
+  userId: string,
+  mode: 'anonymize' | 'full_delete'
+) {
+  const deletedTables: string[] = [];
+
+  for (const descriptor of PERSONAL_DATA_TABLES) {
+    const [table, column = 'user_id'] = descriptor.split(':');
+    const { error } = await serviceClient.from(table).delete().eq(column, userId);
+    if (error) {
+      throw new Error(`Failed to delete ${table}.${column}: ${error.message}`);
+    }
+    deletedTables.push(table === descriptor ? table : descriptor);
+  }
+
+  if (mode === 'full_delete') {
+    const { error } = await serviceClient.from('gdpr_export_jobs').delete().eq('user_id', userId);
+    if (error) {
+      throw new Error(`Failed to delete gdpr_export_jobs.user_id: ${error.message}`);
+    }
+    deletedTables.push('gdpr_export_jobs');
+  }
+
+  return deletedTables;
+}
+
 // POST /api/gdpr/delete - Request account deletion
 // For users with active organization memberships: data is anonymized (legal requirement)
 // For users without memberships: full deletion of personal data
@@ -18,6 +66,11 @@ export async function POST(request: Request) {
   const auth = await authenticateRequest(request, getAuthenticatedClient);
   if (!auth || auth instanceof Response) return auth || jsonError("Unauthorized", 401);
   const { user } = auth;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error("GDPR deletion service role configuration is missing");
+    return jsonError("Deletion service is not configured", 500, "GDPR_DELETE_NOT_CONFIGURED");
+  }
 
   // Use service role client for GDPR deletion operations (bypasses RLS)
   const serviceClient = createClient(supabaseUrl, supabaseServiceKey, {
@@ -67,7 +120,7 @@ export async function POST(request: Request) {
     return jsonError("Failed to create deletion request: " + requestError.message, 500);
   }
 
-  const deletedTables: string[] = [];
+  let deletedTables: string[] = [];
 
   if (hasActiveMemberships) {
     // PARTIAL DELETION: Anonymize personal data, keep org records
@@ -87,34 +140,11 @@ export async function POST(request: Request) {
       .eq('id', user.id);
     deletedTables.push('profiles (anonymized)');
 
-    // Anonymize activities
-    await serviceClient
-      .from('user_activities')
-      .update({
-        user_id: user.id, // FK constraint prevents actual anonymization without CASCADE
-      })
-      .eq('user_id', user.id);
-    // Note: Activities FK doesn't cascade, so we need to delete instead
-    await serviceClient
-      .from('user_activities')
-      .delete()
-      .eq('user_id', user.id);
-    deletedTables.push('user_activities');
-
-    // Delete social connections
-    await serviceClient.from('follows').delete().eq('follower_id', user.id);
-    await serviceClient.from('follows').delete().eq('following_id', user.id);
-    await serviceClient.from('follow_requests').delete().eq('requester_id', user.id);
-    await serviceClient.from('follow_requests').delete().eq('target_id', user.id);
-    deletedTables.push('follows, follow_requests');
-
-    // Delete ratings, relations, collection, badges
-    await serviceClient.from('ratings').delete().eq('user_id', user.id);
-    await serviceClient.from('user_strain_relations').delete().eq('user_id', user.id);
-    await serviceClient.from('user_collection').delete().eq('user_id', user.id);
-    await serviceClient.from('user_badges').delete().eq('user_id', user.id);
-    await serviceClient.from('user_consents').delete().eq('user_id', user.id);
-    deletedTables.push('ratings, user_strain_relations, user_collection, user_badges, user_consents');
+    try {
+      deletedTables = deletedTables.concat(await deleteUserRows(serviceClient, user.id, 'anonymize'));
+    } catch (error) {
+      return jsonError(error instanceof Error ? error.message : "Failed to delete user rows", 500);
+    }
 
     // Note: organization_members record is KEPT (legal requirement)
     // But we mark the user_id as anonymized in the profile
@@ -122,19 +152,11 @@ export async function POST(request: Request) {
   } else {
     // FULL DELETION: Delete all user data
 
-    // Order matters for FK constraints - delete children first
-    await serviceClient.from('user_activities').delete().eq('user_id', user.id);
-    await serviceClient.from('follows').delete().eq('follower_id', user.id);
-    await serviceClient.from('follows').delete().eq('following_id', user.id);
-    await serviceClient.from('follow_requests').delete().eq('requester_id', user.id);
-    await serviceClient.from('follow_requests').delete().eq('target_id', user.id);
-    await serviceClient.from('ratings').delete().eq('user_id', user.id);
-    await serviceClient.from('user_strain_relations').delete().eq('user_id', user.id);
-    await serviceClient.from('user_collection').delete().eq('user_id', user.id);
-    await serviceClient.from('user_badges').delete().eq('user_id', user.id);
-    await serviceClient.from('user_consents').delete().eq('user_id', user.id);
-    await serviceClient.from('gdpr_export_jobs').delete().eq('user_id', user.id);
-    deletedTables.push('All user data tables');
+    try {
+      deletedTables = await deleteUserRows(serviceClient, user.id, 'full_delete');
+    } catch (error) {
+      return jsonError(error instanceof Error ? error.message : "Failed to delete user rows", 500);
+    }
 
     // Delete profile (this cascades to auth.users because of ON DELETE CASCADE)
     await serviceClient.from('profiles').delete().eq('id', user.id);

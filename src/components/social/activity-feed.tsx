@@ -15,6 +15,55 @@ interface ActivityFeedProps {
     className?: string;
 }
 
+const STRAIN_ACTIVITY_TYPES = new Set(["rating", "favorite_added", "strain_collected"]);
+
+type StrainActivityPreview = {
+    id: string;
+    slug: string | null;
+    name: string | null;
+    image_url: string | null;
+};
+
+async function hydrateStrainPreviews(items: SocialFeedItem[]): Promise<SocialFeedItem[]> {
+    const strainIds = Array.from(new Set(
+        items
+            .filter((item) => STRAIN_ACTIVITY_TYPES.has(item.activity.activity_type))
+            .map((item) => item.activity.target_id)
+            .filter(Boolean)
+    ));
+
+    if (strainIds.length === 0) return items;
+
+    const { data, error } = await supabase
+        .from("strains")
+        .select("id, slug, name, image_url")
+        .in("id", strainIds);
+
+    if (error || !data) return items;
+
+    const previewById = new Map(
+        (data as StrainActivityPreview[]).map((strain) => [strain.id, strain])
+    );
+
+    return items.map((item) => {
+        const preview = previewById.get(item.activity.target_id);
+        if (!preview) return item;
+
+        return {
+            ...item,
+            activity: {
+                ...item.activity,
+                target_name: item.activity.target_name || preview.name || item.activity.target_name,
+                target_image_url: preview.image_url || item.activity.target_image_url,
+                metadata: {
+                    ...item.activity.metadata,
+                    strain_slug: preview.slug,
+                },
+            },
+        };
+    });
+}
+
 export function ActivityFeed({
     initialActivities = [],
     userId,
@@ -76,7 +125,7 @@ export function ActivityFeed({
                     user: activity.user as ProfileRow,
                 }));
 
-            setActivities(feedItems);
+            setActivities(await hydrateStrainPreviews(feedItems));
         } catch (err) {
             console.error("Error fetching activities:", err);
             setError("Failed to load activities");
@@ -125,9 +174,10 @@ export function ActivityFeed({
                                     activity: newActivity,
                                     user: newActivity.user as ProfileRow,
                                 };
+                                const [hydratedFeedItem] = await hydrateStrainPreviews([feedItem]);
 
                                 // Add to beginning of list (newest first)
-                                setActivities((prev) => [feedItem, ...prev.slice(0, 49)]);
+                                setActivities((prev) => [hydratedFeedItem, ...prev.slice(0, 49)]);
                             }
                         }
                     )

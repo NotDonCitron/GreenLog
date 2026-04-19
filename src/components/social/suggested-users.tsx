@@ -259,7 +259,6 @@ export function SuggestedUsers({
             }
         } catch (err) {
             console.error("[SuggestedUsers] Error fetching suggested users:", err);
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setError("Fehler beim Laden");
         } finally {
             setIsLoading(false);

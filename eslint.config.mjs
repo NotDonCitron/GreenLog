@@ -1,16 +1,112 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import next from "eslint-config-next";
+import js from "@eslint/js";
+import tsParser from "@typescript-eslint/parser";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
+import nextPlugin from "@next/eslint-plugin-next";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
 
-const eslintConfig = defineConfig([
-  ...next,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
-]);
+const nextRecommended = {
+  ...nextPlugin.configs.recommended.rules,
+  ...nextPlugin.configs["core-web-vitals"].rules,
+};
 
-export default eslintConfig;
+export default [
+  {
+    ignores: [
+      ".next/**",
+      ".claude/**",
+      ".worktrees/**",
+      "node_modules/**",
+      "out/**",
+      "build/**",
+      "venv/**",
+      "scripts/**",
+      "public/**",
+      "playwright-report/**",
+      "test-results/**",
+      "tests/e2e/**",
+      "next-env.d.ts",
+      "*.mjs",
+      "!eslint.config.mjs",
+      "*.cjs",
+      "lighthouserc.js",
+      "playwright.config.ts",
+    ],
+  },
+  js.configs.recommended,
+  {
+    files: ["**/*.{ts,tsx,js,jsx,mjs}"],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+        ecmaFeatures: { jsx: true },
+        project: false,
+      },
+      globals: {
+        React: "readonly",
+        JSX: "readonly",
+        Request: "readonly",
+        Response: "readonly",
+        Headers: "readonly",
+        URL: "readonly",
+        URLSearchParams: "readonly",
+        FormData: "readonly",
+        File: "readonly",
+        Blob: "readonly",
+        console: "readonly",
+        process: "readonly",
+        window: "readonly",
+        document: "readonly",
+        navigator: "readonly",
+        localStorage: "readonly",
+        sessionStorage: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        requestAnimationFrame: "readonly",
+        cancelAnimationFrame: "readonly",
+        IntersectionObserver: "readonly",
+        Notification: "readonly",
+        FileReader: "readonly",
+        Event: "readonly",
+        HTMLDivElement: "readonly",
+        HTMLSpanElement: "readonly",
+        HTMLImageElement: "readonly",
+        HTMLInputElement: "readonly",
+        HTMLLabelElement: "readonly",
+        BufferSource: "readonly",
+        fetch: "readonly",
+        global: "readonly",
+        __dirname: "readonly",
+        require: "readonly",
+        module: "readonly",
+        self: "readonly",
+        caches: "readonly",
+        AbortSignal: "readonly",
+        Buffer: "readonly",
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tsPlugin,
+      "@next/next": nextPlugin,
+      "react-hooks": reactHooksPlugin,
+    },
+    rules: {
+      ...nextRecommended,
+      ...reactHooksPlugin.configs.recommended.rules,
+      "no-unused-vars": "off",
+      "no-undef": "off",
+      "no-empty": "off",
+      "no-useless-escape": "off",
+      "no-case-declarations": "off",
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-explicit-any": "off",
+      "react-hooks/exhaustive-deps": "warn",
+    },
+    settings: {
+      next: { rootDir: "." },
+    },
+  },
+];

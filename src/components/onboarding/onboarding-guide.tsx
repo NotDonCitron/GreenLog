@@ -29,13 +29,13 @@ interface Step {
 const ONBOARDING_STEPS: Step[] = [
     {
         title: "Willkommen bei CannaLog",
-        description: "Dein digitaler Begleiter für Cannabis-Sorten. Entdecke unsere Sortenvielfalt, tracke deine Favoriten und teile Erfahrungen.",
+        description: "Dein Werkzeug für strukturierte Strain-Dokumentation, Sammlungen und Aktivitätsdaten.",
         icon: <img src="/logo.png" alt="Logo" width={40} height={40} className="object-contain" />,
         color: "#00F5FF",
         path: "/"
     },
     {
-        title: "Sorten entdecken & vergleichen",
+        title: "Datensätze durchsuchen & vergleichen",
         description: "Durchsuche die Datenbank mit Filtern, vergleiche Sorten im Side-by-Side-Modus und füge Favoriten per Rechtsklick hinzu.",
         icon: <Globe size={48} />,
         color: "#fbbf24",
@@ -50,7 +50,7 @@ const ONBOARDING_STEPS: Step[] = [
     },
     {
         title: "Community & Social",
-        description: "Folge anderen Nutzern, entdecke neue Sorten durch die Community und tritt Clubs oder Apotheken bei.",
+        description: "Verwalte Kontakte, Aktivitätsdaten und organisatorische Zuordnungen in einer gemeinsamen Oberfläche.",
         icon: <Users size={48} />,
         color: "#2FF801",
         path: "/discover"

@@ -1,24 +1,43 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
-import Image from "next/image";
 const AGE_VERIFIED_KEY = "cannalog_age_verified";
 const AGE_REJECTED_KEY = "cannalog_age_rejected";
+const AGE_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 180;
+const AGE_VERIFIED_COOKIE = "greenlog_age_verified";
+const AGE_REJECTED_COOKIE = "greenlog_age_rejected";
 
 interface AgeGateProps {
   onVerified: () => void;
+}
+
+export function buildAgeCookie(name: string, value: string, secure: boolean): string {
+  return [
+    `${name}=${value}`,
+    `Max-Age=${AGE_COOKIE_MAX_AGE_SECONDS}`,
+    "Path=/",
+    "SameSite=Lax",
+    secure ? "Secure" : null,
+  ].filter(Boolean).join("; ");
+}
+
+function setAgeCookie(name: string, value: string) {
+  document.cookie = buildAgeCookie(name, value, window.location.protocol === "https:");
 }
 
 export function AgeGate({ onVerified }: AgeGateProps) {
   const [birthYear, setBirthYear] = useState("");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next") || "/";
 
   useEffect(() => {
     // If already verified, skip
     if (localStorage.getItem(AGE_VERIFIED_KEY) === "true") {
+      setAgeCookie(AGE_VERIFIED_COOKIE, "true");
       onVerified();
       return;
     }
@@ -44,16 +63,19 @@ export function AgeGate({ onVerified }: AgeGateProps) {
 
     if (age >= 18) {
       localStorage.setItem(AGE_VERIFIED_KEY, "true");
-      // Force reload so parent useAgeVerified reads the new localStorage value
-      window.location.reload();
+      setAgeCookie(AGE_VERIFIED_COOKIE, "true");
+      onVerified();
+      router.replace(nextPath);
     } else {
       localStorage.setItem(AGE_REJECTED_KEY, "true");
+      setAgeCookie(AGE_REJECTED_COOKIE, "true");
       router.push("/age-gate-rejected");
     }
   };
 
   const handleReject = () => {
     localStorage.setItem(AGE_REJECTED_KEY, "true");
+    setAgeCookie(AGE_REJECTED_COOKIE, "true");
     router.push("/age-gate-rejected");
   };
 

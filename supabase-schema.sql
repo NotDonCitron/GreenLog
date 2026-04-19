@@ -465,6 +465,32 @@ CREATE INDEX idx_plants_grow ON plants(grow_id);
 CREATE INDEX idx_plants_user ON plants(user_id);
 CREATE INDEX idx_plants_status ON plants(status);
 
+CREATE OR REPLACE FUNCTION enforce_kcang_active_plant_limit()
+RETURNS TRIGGER AS $$
+DECLARE
+  active_count INTEGER;
+BEGIN
+  IF NEW.status IN ('seedling', 'vegetative', 'flowering', 'flushing') THEN
+    SELECT COUNT(*) INTO active_count
+    FROM plants
+    WHERE user_id = NEW.user_id
+      AND status IN ('seedling', 'vegetative', 'flowering', 'flushing')
+      AND (TG_OP = 'INSERT' OR id <> NEW.id);
+
+    IF active_count >= 3 THEN
+      RAISE EXCEPTION 'KCANG_PLANT_LIMIT: Max 3 active plants allowed per user';
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_kcang_active_plant_limit
+  BEFORE INSERT OR UPDATE OF status, user_id ON plants
+  FOR EACH ROW
+  EXECUTE FUNCTION enforce_kcang_active_plant_limit();
+
 
 -- =============================================
 -- 10. GROW ENTRIES (Tagebuch-Einträge)

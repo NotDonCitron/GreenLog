@@ -64,7 +64,7 @@ export function CTAForm() {
           ) : status === 'success' ? (
             <Check className="h-4 w-4" />
           ) : (
-            'Demo anfragen'
+            'Zugang anfragen'
           )}
         </button>
       </form>

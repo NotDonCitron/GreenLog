@@ -54,6 +54,7 @@ export default function SettingsOrganizationPage() {
 
   const isOwner = activeOrganization?.role === USER_ROLES.GRUENDER;
   const orgName = activeOrganization?.organizations?.name || "Organisation";
+  const currentOrgLogoUrl = logoUrl || activeOrganization?.organizations?.logo_url || null;
 
   const handleSaveName = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,12 +180,12 @@ export default function SettingsOrganizationPage() {
 
       <div className="px-6 space-y-6 mt-4 relative z-10">
         {/* Logo ändern */}
-        <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
+        <Card className="rounded-lg border border-[var(--border)]/50 bg-[var(--card)] p-5">
           <div className="flex items-center gap-4">
             <OrgLogoUpload
-              currentLogoUrl={logoUrl || activeOrganization.organizations?.logo_url}
+              currentLogoUrl={currentOrgLogoUrl}
               organizationId={activeOrganization.organization_id}
-              size={80}
+              size={84}
               onSuccess={(url) => {
                 setLogoUrl(url);
                 router.refresh();
@@ -192,7 +193,9 @@ export default function SettingsOrganizationPage() {
             />
             <div className="min-w-0 flex-1">
               <p className="font-black text-sm text-[var(--foreground)]">Logo ändern</p>
-              <p className="text-[10px] text-[var(--muted-foreground)]">Bild für deine Community</p>
+              <p className="text-[10px] leading-relaxed text-[var(--muted-foreground)]">
+                Das aktuelle Logo erscheint im grünen Kreis.
+              </p>
             </div>
           </div>
         </Card>
