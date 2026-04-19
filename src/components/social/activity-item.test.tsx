@@ -31,4 +31,23 @@ describe("ActivityItem", () => {
 
     expect(image.src).toContain("/strains/placeholder-1.svg");
   });
+
+  it("links grow activity target names to the grow detail page", () => {
+    render(
+      <ActivityItem
+        activity={{
+          ...activity,
+          activity_type: "grow_started",
+          target_id: "3d9e473a-fa25-42f5-a3cd-67a45321bd89",
+          target_name: "testgrow",
+          target_image_url: undefined,
+        }}
+        user={user}
+      />
+    );
+
+    expect(screen.getByRole("link", { name: "testgrow" }).getAttribute("href")).toBe(
+      "/grows/3d9e473a-fa25-42f5-a3cd-67a45321bd89"
+    );
+  });
 });

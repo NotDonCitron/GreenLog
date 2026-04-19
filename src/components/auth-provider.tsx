@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
+import { syncSupabaseSessionCookies } from "@/lib/auth/session-cookies";
 import type { User, Session } from "@supabase/supabase-js";
 import type { OrganizationMembership } from "@/lib/types";
 
@@ -115,12 +116,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      syncSupabaseSessionCookies(initialSession);
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      syncSupabaseSessionCookies(session);
       setSession(session);
       setUser(session?.user ?? null);
     });
@@ -213,6 +216,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    syncSupabaseSessionCookies(null);
     setOrgState({ memberships: [], activeId: null, loading: false });
     setDemoMode(false);
     if (typeof window !== "undefined") {

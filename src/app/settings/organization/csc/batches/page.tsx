@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { getDefaultHarvestDate } from "@/lib/csc/harvest-date";
 
 interface Strain {
   id: string;
@@ -207,7 +208,10 @@ export default function CSCBatchesPage() {
         {isAdmin && !isDemoMode && (
           <Card className="bg-[var(--card)] border border-[var(--border)]/50 p-5 rounded-3xl">
             <button
-              onClick={() => setShowCreateForm(true)}
+              onClick={() => {
+                setHarvestDate((current) => current || getDefaultHarvestDate());
+                setShowCreateForm(true);
+              }}
               className="w-full flex items-center gap-4 text-left hover:opacity-80 transition-opacity"
             >
               <div className="w-12 h-12 rounded-full bg-[#2FF801]/10 border border-[#2FF801]/20 flex items-center justify-center shrink-0">

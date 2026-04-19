@@ -14,6 +14,7 @@ import { ChevronLeft, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Dat
 import { Strain } from "@/lib/types";
 import { escapeRegExp } from '@/lib/string-utils';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeCollectionSource, normalizeTerpeneList } from "@/lib/strain-display";
+import { sanitizeDisplayText } from "@/lib/strain-display-text";
 import { checkAndUnlockBadges } from "@/lib/badges";
 import { useCollection } from "@/hooks/useCollection";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
@@ -434,7 +435,10 @@ export default function StrainDetailPageClient() {
   const tasteDisplay = strain ? getTasteDisplay(strain, 'Zitrus · Erdig').replace(/, /g, ' · ') : 'Zitrus · Erdig';
   const effectDisplay = strain ? getEffectDisplay(strain) : 'Euphorie';
 
-  const farmerDisplay = strain?.farmer?.trim() || strain?.manufacturer?.trim() || strain?.brand?.trim() || 'Unbekannter Farmer';
+  const farmerDisplay = sanitizeDisplayText(strain?.farmer)
+    || sanitizeDisplayText(strain?.manufacturer)
+    || sanitizeDisplayText(strain?.brand)
+    || 'Unbekannter Farmer';
   const normalizedStrainName = (() => {
     const rawName = strain?.name?.trim() || '';
     if (!rawName || farmerDisplay === 'Unbekannter Farmer') return rawName;

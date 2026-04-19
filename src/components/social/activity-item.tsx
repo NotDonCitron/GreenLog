@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Star, Trophy, Heart, Loader2 } from "lucide-react";
 import type { UserActivity, ProfileRow } from "@/lib/types";
 import { supabase } from "@/lib/supabase/client";
+import { formatRelativeTime } from "@/lib/relative-time";
 
 interface ActivityItemProps {
     activity: UserActivity;
@@ -42,7 +43,13 @@ function getActivityIconColor(type: string): string {
     }
 }
 
-function getActivityText(activity: UserActivity): string {
+function isGrowActivity(activity: UserActivity): boolean {
+    return activity.activity_type === "grow_started"
+        || activity.activity_type === "grow_completed"
+        || activity.metadata?.target_type === "grow";
+}
+
+function getActivityTextPrefix(activity: UserActivity): string {
     switch (activity.activity_type as string) {
         case "rating":
             const rating = activity.metadata?.rating as number | undefined;
@@ -53,30 +60,20 @@ function getActivityText(activity: UserActivity): string {
             return `hat ${activity.target_name} zu Favoriten hinzugefügt`;
         case "strain_collected":
             return `hat ${activity.target_name} gesammelt`;
+        case "grow_started":
+            return "hat Grow gestartet:";
+        case "grow_completed":
+            return "hat Grow abgeschlossen:";
         default:
-            return `hat mit ${activity.target_name} interagiert`;
+            return isGrowActivity(activity) ? "hat mit" : `hat mit ${activity.target_name} interagiert`;
     }
-}
-
-function formatTimeAgo(dateString: string): string {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return "Gerade eben";
-    if (diffMins < 60) return `vor ${diffMins} Min.`;
-    if (diffHours < 24) return `vor ${diffHours} Std.`;
-    if (diffDays < 7) return `vor ${diffDays} Tagen`;
-    return date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
 }
 
 export const ActivityItem = memo(function ActivityItem({ activity, user, className = "" }: ActivityItemProps) {
     const Icon = getActivityIcon(activity.activity_type);
     const iconColor = getActivityIconColor(activity.activity_type);
-    const activityText = getActivityText(activity);
+    const activityTextPrefix = getActivityTextPrefix(activity);
+    const growActivity = isGrowActivity(activity);
     const [liked, setLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(activity.metadata?.like_count as number || 0);
     const [liking, setLiking] = useState(false);
@@ -138,10 +135,21 @@ export const ActivityItem = memo(function ActivityItem({ activity, user, classNa
                             <Link href={`/user/${user.username}`} className="font-bold hover:text-[#00F5FF] transition-colors">
                                 {user.display_name || user.username}
                             </Link>{" "}
-                            <span className="text-[var(--muted-foreground)]">{activityText}</span>
+                            <span className="text-[var(--muted-foreground)]">
+                                {activityTextPrefix}
+                                {growActivity && (
+                                    <>
+                                        {" "}
+                                        <Link href={`/grows/${activity.target_id}`} className="font-bold text-[#00F5FF] hover:underline">
+                                            {activity.target_name}
+                                        </Link>
+                                        {activity.activity_type !== "grow_started" && activity.activity_type !== "grow_completed" ? " interagiert" : ""}
+                                    </>
+                                )}
+                            </span>
                         </p>
                         <p className="text-xs text-[var(--muted-foreground)]/60 mt-1">
-                            {formatTimeAgo(activity.created_at)}
+                            {formatRelativeTime(activity.created_at)}
                         </p>
                     </div>
                 </div>
