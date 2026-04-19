@@ -16,21 +16,16 @@ describe('API: POST /api/grows/log-entry', () => {
     vi.restoreAllMocks();
   });
 
-  function mockAuth(userId: string | null) {
-    (auth as ReturnType<typeof vi.fn>).mockResolvedValue({
-      userId,
-      getToken: vi.fn().mockResolvedValue('mock-token'),
-    } as any);
-  }
-
   function mockSupabase(mockClient: any) {
     (getAuthenticatedClient as ReturnType<typeof vi.fn>).mockResolvedValue(mockClient);
   }
 
-  function buildValidReq() {
+  function buildValidReq(withAuth = true) {
     return new Request('http://localhost:3000/api/grows/log-entry', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: withAuth
+        ? { 'Content-Type': 'application/json', Authorization: 'Bearer mock-token' }
+        : { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         grow_id: 'grow-1',
         entry_type: 'watering',
@@ -40,7 +35,7 @@ describe('API: POST /api/grows/log-entry', () => {
   }
 
   // Builds a mock Supabase client that chains .from().select().eq().single()
-  function makeMockClient(growData: any, entryData?: any, entryError?: any) {
+  function makeMockClient(userId: string | null, growData: any, entryData?: any, entryError?: any) {
     const growResponse = { data: growData, error: null };
     const entryResponse = entryData !== undefined
       ? { data: entryData, error: entryError || null }
@@ -48,6 +43,12 @@ describe('API: POST /api/grows/log-entry', () => {
 
     let callCount = 0;
     return {
+      auth: {
+        getUser: vi.fn(async () => ({
+          data: { user: userId ? { id: userId } : null },
+          error: null,
+        })),
+      },
       from: vi.fn((table: string) => {
         return {
           select: vi.fn(() => ({
@@ -73,21 +74,19 @@ describe('API: POST /api/grows/log-entry', () => {
   }
 
   it('should return 401 if not authenticated', async () => {
-    mockAuth(null);
     mockSupabase({});
 
-    const req = buildValidReq();
+    const req = buildValidReq(false);
     const res = await POST(req);
     expect(res.status).toBe(401);
   });
 
   it('should return 400 if grow_id is missing', async () => {
-    mockAuth('test-user-123');
-    mockSupabase({});
+    mockSupabase(makeMockClient('test-user-123', null));
 
     const req = new Request('http://localhost:3000/api/grows/log-entry', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer mock-token' },
       body: JSON.stringify({ entry_type: 'watering', content: {} }),
     });
 
@@ -98,12 +97,11 @@ describe('API: POST /api/grows/log-entry', () => {
   });
 
   it('should return 400 if entry_type is missing', async () => {
-    mockAuth('test-user-123');
-    mockSupabase({});
+    mockSupabase(makeMockClient('test-user-123', null));
 
     const req = new Request('http://localhost:3000/api/grows/log-entry', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer mock-token' },
       body: JSON.stringify({ grow_id: 'grow-1', content: {} }),
     });
 
@@ -114,12 +112,11 @@ describe('API: POST /api/grows/log-entry', () => {
   });
 
   it('should return 400 for invalid entry_type', async () => {
-    mockAuth('test-user-123');
-    mockSupabase({});
+    mockSupabase(makeMockClient('test-user-123', null));
 
     const req = new Request('http://localhost:3000/api/grows/log-entry', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer mock-token' },
       body: JSON.stringify({ grow_id: 'grow-1', entry_type: 'invalid-type', content: {} }),
     });
 
@@ -130,8 +127,7 @@ describe('API: POST /api/grows/log-entry', () => {
   });
 
   it('should return 404 if grow does not exist', async () => {
-    mockAuth('test-user-123');
-    const mockClient = makeMockClient(null); // grow not found
+    const mockClient = makeMockClient('test-user-123', null); // grow not found
     mockSupabase(mockClient);
 
     const req = buildValidReq();
@@ -140,8 +136,7 @@ describe('API: POST /api/grows/log-entry', () => {
   });
 
   it('should return 403 if user does not own the grow', async () => {
-    mockAuth('another-user');
-    const mockClient = makeMockClient({ id: 'grow-1', user_id: 'test-user-123' });
+    const mockClient = makeMockClient('another-user', { id: 'grow-1', user_id: 'test-user-123' });
     mockSupabase(mockClient);
 
     const req = buildValidReq();
@@ -150,7 +145,6 @@ describe('API: POST /api/grows/log-entry', () => {
   });
 
   it('should successfully create a watering entry', async () => {
-    mockAuth('test-user-123');
     const mockEntry = {
       id: 'entry-1',
       grow_id: 'grow-1',
@@ -159,6 +153,7 @@ describe('API: POST /api/grows/log-entry', () => {
       content: { amount_liters: 2.5 },
     };
     const mockClient = makeMockClient(
+      'test-user-123',
       { id: 'grow-1', user_id: 'test-user-123' },
       mockEntry
     );

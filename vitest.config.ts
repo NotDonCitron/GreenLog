@@ -7,6 +7,21 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    include: [
+      'src/**/*.{test,spec}.{ts,tsx}',
+      'tests/unit/**/*.{test,spec}.{ts,tsx}',
+      'tests/integration/**/*.{test,spec}.{ts,tsx}',
+      '!tests/e2e/**',
+    ],
+    exclude: [
+      'node_modules/**',
+      '.git/**',
+      '.next/**',
+      '.worktrees/**',
+      'tests/e2e/**',
+      'playwright-report/**',
+      'test-results/**',
+    ],
     alias: {
       '@': path.resolve(__dirname, './src'),
     },

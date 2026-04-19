@@ -80,6 +80,9 @@ export const ActivityItem = memo(function ActivityItem({ activity, user, classNa
     const [liked, setLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(activity.metadata?.like_count as number || 0);
     const [liking, setLiking] = useState(false);
+    const strainSlug = typeof activity.metadata?.strain_slug === "string"
+        ? activity.metadata.strain_slug
+        : activity.target_id;
 
     const handleLike = async () => {
         if (liking) return;
@@ -145,11 +148,16 @@ export const ActivityItem = memo(function ActivityItem({ activity, user, classNa
 
                 {/* Optional Image Preview */}
                 {activity.target_image_url && (
-                    <Link href={`/strains/${activity.target_id}`} className="block mt-3">
+                    <Link href={`/strains/${strainSlug}`} className="block mt-3">
                         <div className="relative h-20 w-20 rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--muted)]">
                             <img
                                 src={activity.target_image_url}
                                 alt={activity.target_name ?? ""}
+                                onError={(event) => {
+                                    const image = event.currentTarget;
+                                    if (image.src.endsWith("/strains/placeholder-1.svg")) return;
+                                    image.src = "/strains/placeholder-1.svg";
+                                }}
                                 className="absolute inset-0 w-full h-full object-cover"
                             />
                         </div>

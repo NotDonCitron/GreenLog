@@ -274,6 +274,7 @@ export interface ProfileViewModel {
   stats: ProfileStats;
   favorites: ProfileFavorite[];
   badges: ProfileBadge[];
+  featuredBadgeIds: string[];
   activity: ProfileActivityItem[];
   preview: PublicProfilePreview;
 }
@@ -322,7 +323,7 @@ export interface Follow {
 export interface UserActivity {
   id: string;
   user_id: string;
-  activity_type: 'rating' | 'grow_started' | 'grow_completed' | 'badge_earned' | 'favorite_added';
+  activity_type: 'rating' | 'grow_started' | 'grow_completed' | 'badge_earned' | 'favorite_added' | 'strain_collected';
   target_id: string;
   target_name: string;
   target_image_url?: string;

@@ -79,15 +79,15 @@ export default function LandingPage() {
     <>
       <Head>
         <title>CannaLOG – Cannabis Strain Tracking & Collection</title>
-        <meta name="description" content="Die Plattform für Clubs, Apotheken und Enthusiasten zur Verwaltung von Cannabis-Sorten. Strain-Datenbank, Community-Features und professionelle Tools." />
+        <meta name="description" content="Dokumentations- und Verwaltungssoftware für volljährige Nutzer, Organisationen und medizinische Cannabis-Kontexte." />
         <meta property="og:title" content="CannaLOG – Cannabis Strain Tracking & Collection" />
-        <meta property="og:description" content="Die Plattform für Clubs, Apotheken und Enthusiasten zur Verwaltung von Cannabis-Sorten." />
+        <meta property="og:description" content="Dokumentations- und Verwaltungssoftware für volljährige Nutzer und Organisationen." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://greenlog.app/landing" />
         <meta property="og:image" content="/api/og?title=CannaLOG%20%E2%80%93%20Strain%20Tracking" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="CannaLOG – Cannabis Strain Tracking & Collection" />
-        <meta name="twitter:description" content="Die Plattform für Clubs, Apotheken und Enthusiasten zur Verwaltung von Cannabis-Sorten." />
+        <meta name="twitter:description" content="Dokumentations- und Verwaltungssoftware für volljährige Nutzer und Organisationen." />
         <meta name="twitter:image" content="/api/og?title=CannaLOG%20%E2%80%93%20Strain%20Tracking" />
         <link rel="canonical" href="https://greenlog.app/landing" />
       </Head>
@@ -134,7 +134,7 @@ export default function LandingPage() {
           {/* Label */}
           <ScrollAnimator animation="fade-up">
             <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 border border-white/30 text-white text-sm font-medium mb-6">
-              Für Clubs, Apotheken & Enthusiasten
+              Für volljährige Nutzer und Organisationen
             </span>
           </ScrollAnimator>
 
@@ -148,8 +148,8 @@ export default function LandingPage() {
           {/* Subheadline */}
           <ScrollAnimator animation="fade-up" delay={200}>
             <p className="text-xl text-[var(--muted-foreground)] mb-10 max-w-2xl mx-auto">
-              Verwalte Strains, teile Bewertungen und entdecke neue Sorten.
-              Für Clubs und Apotheken.
+              Dokumentiere Strain-Daten, Sammlungen und organisatorische Abläufe.
+              Für volljährige Nutzer und Organisationen.
             </p>
           </ScrollAnimator>
 
@@ -158,13 +158,13 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link href="/login">
                 <button className="inline-flex items-center gap-2 px-8 py-4 h-14 rounded-xl bg-white/10 border border-white/30 text-white font-bold text-lg hover:bg-white/20 transition-all">
-                  Jetzt starten
+                  Zugang anfragen
                   <ArrowRight size={20} />
                 </button>
               </Link>
               <Link href="/strains">
                 <button className="inline-flex items-center gap-2 px-8 py-4 h-14 rounded-xl border-2 border-white/20 text-white font-bold text-lg hover:bg-white/5 transition-all">
-                  Strains ansehen
+                  Datensätze ansehen
                   <ArrowRight size={20} />
                 </button>
               </Link>
@@ -176,7 +176,7 @@ export default function LandingPage() {
             <ScrollAnimator animation="fade-up" delay={400}>
               <div className="max-w-xs mx-auto">
                 <p className="text-xs font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-4">
-                  Strain des Tages
+                  Referenz-Eintrag
                 </p>
                 <div className="flex items-center justify-center">
                   <StrainCard strain={strainOfTheDay} index={0} />
@@ -206,7 +206,7 @@ export default function LandingPage() {
                 Alles, was du brauchst
               </h2>
               <p className="text-lg text-[var(--muted-foreground)] max-w-2xl mx-auto">
-                CannaLog bietet alle Tools für eine professionelle Verwaltung deiner Cannabis-Community.
+                CannaLog bündelt Werkzeuge für strukturierte Dokumentation und Verwaltung.
               </p>
             </div>
           </ScrollAnimator>
@@ -220,8 +220,8 @@ export default function LandingPage() {
             />
             <FeatureBlock
               icon={<Users size={28} />}
-              title="Community & Social"
-              description="Folge anderen Usern, teile Strains und entdecke die Community. Bleib auf dem Laufenden mit dem Activity Feed."
+              title="Profile & Aktivitäten"
+              description="Verwalte Profile, Sammlungen und organisatorische Aktivitätsdaten in einer gemeinsamen Oberfläche."
               index={1}
             />
             <FeatureBlock
@@ -261,7 +261,7 @@ export default function LandingPage() {
                   <span className="text-2xl">🔍</span>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Smarter Filter</h3>
-                <p className="text-sm text-[var(--muted-foreground)]">Finde schnell die perfekte Sorte für deine Bedürfnisse</p>
+                <p className="text-sm text-[var(--muted-foreground)]">Filtere Datensätze nach passenden Kriterien</p>
               </div>
             </ScrollAnimator>
             <ScrollAnimator animation="fade-up" delay={200}>
@@ -270,7 +270,7 @@ export default function LandingPage() {
                   <span className="text-2xl">💬</span>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Community</h3>
-                <p className="text-sm text-[var(--muted-foreground)]">Teile Bewertungen und entdecke neue Strains</p>
+                <p className="text-sm text-[var(--muted-foreground)]">Dokumentiere Bewertungen und Aktivitäten</p>
               </div>
             </ScrollAnimator>
           </div>
@@ -290,7 +290,7 @@ export default function LandingPage() {
           </ScrollAnimator>
           <ScrollAnimator animation="fade-up" delay={100}>
             <p className="text-[var(--muted-foreground)] mb-8 text-lg">
-              Starte jetzt mit CannaLog und werde Teil der Community.
+              Frage deinen Zugang zu CannaLog an.
             </p>
           </ScrollAnimator>
           <ScrollAnimator animation="fade-up" delay={200}>

@@ -20,6 +20,12 @@ export async function GET(request: Request) {
     userBadgesResult,
     userCollectionResult,
     consentsResult,
+    growsResult,
+    plantsResult,
+    growEntriesResult,
+    growRemindersResult,
+    consumptionLogsResult,
+    pushSubscriptionsResult,
   ] = await Promise.all([
     // Profile
     supabase
@@ -92,15 +98,47 @@ export async function GET(request: Request) {
       .from('user_consents')
       .select('*')
       .eq('user_id', user.id),
+
+    supabase
+      .from('grows')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }),
+
+    supabase
+      .from('plants')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }),
+
+    supabase
+      .from('grow_entries')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }),
+
+    supabase
+      .from('grow_reminders')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }),
+
+    supabase
+      .from('consumption_logs')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false }),
+
+    supabase
+      .from('push_subscriptions')
+      .select('*')
+      .eq('user_id', user.id),
   ]);
 
   // Check for errors (profile is critical)
   if (profileResult.error) {
     return jsonError("Failed to export profile data", 500);
   }
-
-  // Note: Grows and grow_entries are excluded because they're PAUSED
-  // If re-enabled, add them here
 
   const exportData = {
     exported_at: new Date().toISOString(),
@@ -125,6 +163,16 @@ export async function GET(request: Request) {
     },
     privacy: {
       consents: consentsResult.data || [],
+      push_subscriptions: pushSubscriptionsResult.data || [],
+    },
+    grows: {
+      grows: growsResult.data || [],
+      plants: plantsResult.data || [],
+      grow_entries: growEntriesResult.data || [],
+      grow_reminders: growRemindersResult.data || [],
+    },
+    consumption: {
+      consumption_logs: consumptionLogsResult.data || [],
     },
     // Note: Organization memberships are NOT included in GDPR export
     // because they contain data controlled by the organization (Club), not the user

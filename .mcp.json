@@ -1,15 +1,8 @@
 {
   "mcpServers": {
-    "stitch": {
-      "command": "node",
-      "args": ["C:/Users/pasi/Documents/green-log/stitch-mcp-server/dist/index.js"],
-      "env": {
-        "STITCH_API_KEY": "AQ.Ab8RN6IB2HMmZVRaLs9EMzELAqKkCj6gliwGXtzL37ySrPVKmA"
-      }
-    },
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@executeautomation/playwright-mcp-server"]
+      "args": ["-y", "@executeautomation/playwright-mcp-server@latest"]
     }
   }
 }

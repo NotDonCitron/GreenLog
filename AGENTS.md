@@ -4,15 +4,16 @@
 
 1. **Lies CLAUDE.md** – dort ist der komplette Projektkontext
 2. **Prüfe MEMORY.md** (`~/.claude/projects/-home-phhttps-Dokumente-Greenlog/memory/`) für aktuelle Status-Updates
-3. **Nutze Skills** wenn verfügbar:
-   - `greenlog-supabase-rls` – bei RLS/Policy Problemen
-   - `greenlog-strain-import` – beim Importieren von Strains
-   - `greenlog-vercel-deploy` – bei Vercel Deployment/CSP Issues
+3. **Nutze Skills/MCPs** wenn verfügbar:
+   - `supabase` / `supabase-postgres-best-practices` – bei Supabase, RLS, Schema- und Policy-Problemen
+   - `context7` / `find-docs` – für aktuelle Library-Dokumentation
+   - `vercel-*` – bei Vercel Deployment, Next.js und Hosting-Themen
+   - `vitest`, `playwright-*` – für Unit-, Integration- und E2E-Tests
 
 ## Architektur-Entscheidungen
 
-### Pages Router (nicht App Router!)
-Dieses Projekt nutzt **Next.js Pages Router** (`/src/app` mit `pages/`-Struktur unter `/src/app`).
+### App Router
+Dieses Projekt nutzt **Next.js App Router** unter `src/app`.
 
 ### Supabase Realtime
 - Realtime ist für **Notifications** geplant aber noch nicht aktiv
@@ -32,7 +33,7 @@ Dieses Projekt nutzt **Next.js Pages Router** (`/src/app` mit `pages/`-Struktur 
 
 ## DON'T:
 
-- **Keine Grow-Features** – sind pausiert (rechtliche Klärung ausstehend)
+- Grow-Features sind aktiv. Änderungen müssen KCanG-Compliance beachten, insbesondere das Limit von maximal 3 aktiven Pflanzen pro User.
 - Keine Annahmen über Server-Client-Kommunikation ohne `use client` Directive
 - Keine hartcodierten URLs oder API-Keys – `.env.local` nutzen
 - Vermeide `any` Typen – lieber explizite Interfaces aus `types.ts`

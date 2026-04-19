@@ -156,6 +156,7 @@ function createFallbackViewModel(isDemoMode: boolean): ProfileViewModel {
     stats,
     favorites: [],
     badges: [],
+    featuredBadgeIds: [],
     activity: [],
     preview: { title: "Privat", description: "", chips: [] }
   };
@@ -203,6 +204,7 @@ export default function ProfilePage() {
         bio: profileData.identity.bio || ""
       });
       setUserBadges(profileData.badges.map(b => ({ badge_id: b.id })));
+      setSelectedBadges(profileData.featuredBadgeIds);
     }
   }, [profileData, isEditing]);
 
@@ -814,6 +816,7 @@ export default function ProfilePage() {
           userBadges={userBadges}
           featuredBadges={selectedBadges}
           onSelect={(badgeId) => setSelectedBadges(prev => prev.includes(badgeId) ? prev.filter(id => id !== badgeId) : [...prev, badgeId].slice(0, 4))}
+          onSelectionChange={setSelectedBadges}
           onClose={() => setShowBadgeShowcase(false)}
         />
       </Suspense>
