@@ -21,7 +21,6 @@ import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { TerpeneRadarChart } from "@/components/strains/terpene-radar-chart";
 import { ShareModal } from "@/components/social/share-modal";
 import { MatchScoreBadge } from "@/components/strains/match-score-badge";
-import { SimilarStrainsSection } from "@/components/strains/SimilarStrainsSection";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message) {
@@ -787,9 +786,6 @@ export default function StrainDetailPageClient() {
             </button>
           </Card>
         </div>
-      )}
-      {!isDemoMode && user && (
-        <SimilarStrainsSection strainId={strain.id} strainName={strain.name} />
       )}
       {!showRatingModal && <BottomNav />}
       <ShareModal
