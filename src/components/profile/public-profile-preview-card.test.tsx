@@ -23,6 +23,17 @@ describe("PublicProfilePreviewCard", () => {
     expect(screen.getByText("Favoriten")).toBeTruthy();
     expect(screen.getAllByText("Privat")).toHaveLength(2);
     expect(screen.getByText(/Versorgung, Mengen, Dosis, Charge, Apotheke und Notizen bleiben privat/i)).toBeTruthy();
+    expect(screen.queryByText("Öffentliche Lieblingsstrains ohne Bestand, Charge oder Apotheke.")).toBeNull();
+  });
+
+  it("can expand privacy block details", () => {
+    render(
+      <PublicProfilePreviewCard profile={profileFixture} disabled={false} onPreferenceChange={vi.fn()} />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Details anzeigen/i }));
+
+    expect(screen.getByText("Öffentliche Lieblingsstrains ohne Bestand, Charge oder Apotheke.")).toBeTruthy();
   });
 
   it("calls onPreferenceChange when a configurable block is toggled", () => {

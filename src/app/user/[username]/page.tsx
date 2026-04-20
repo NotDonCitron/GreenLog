@@ -69,6 +69,7 @@ export default function UserProfilePage() {
 
     const [profileData, setProfileData] = useState<SanitizedPublicProfile | null>(null);
     const [activeTab, setActiveTab] = useState<PublicProfileTab>("activity");
+    const [showAllBadges, setShowAllBadges] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -76,6 +77,8 @@ export default function UserProfilePage() {
     const isOwnProfile = user?.id === profile?.id;
     const counts = profileData?.counts ?? { followers: 0, following: 0, ratings: 0 };
     const badges = profileData?.badges ?? [];
+    const visibleBadges = showAllBadges ? badges : badges.slice(0, 4);
+    const hasHiddenBadges = badges.length > 4;
     const favorites = profileData?.favorites ?? [];
     const reviews = profileData?.reviews ?? [];
     const activities = profileData?.activities ?? [];
@@ -260,7 +263,7 @@ export default function UserProfilePage() {
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">
-                            {badges.map((badge) => {
+                            {visibleBadges.map((badge) => {
                                 const Icon = resolveBadgeIcon(badge.iconKey);
 
                                 return (
@@ -279,6 +282,16 @@ export default function UserProfilePage() {
                                 );
                             })}
                         </div>
+
+                        {hasHiddenBadges && (
+                            <button
+                                type="button"
+                                onClick={() => setShowAllBadges((current) => !current)}
+                                className="mt-3 w-full rounded-lg border border-[#2FF801]/25 bg-[#2FF801]/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#2FF801] transition-colors hover:bg-[#2FF801]/15"
+                            >
+                                {showAllBadges ? "Weniger anzeigen" : `Alle ${badges.length} anzeigen`}
+                            </button>
+                        )}
                     </section>
                 )}
             </div>

@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Check, Eye, Lock, Shield } from "lucide-react";
+import { Check, ChevronDown, Eye, Lock, Shield } from "lucide-react";
 
 import type { ProfileViewModel, PublicProfileBlockState, PublicProfilePreferences } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,7 @@ function getPreferenceValue(preferences: PublicProfilePreferences, key: PublicPr
 }
 
 export function PublicProfilePreviewCard({ profile, disabled = false, onPreferenceChange }: PublicProfilePreviewCardProps) {
+  const [showDetails, setShowDetails] = useState(false);
   const username = profile.identity.username.replace(/^@/, "");
   const publicBlocks = profile.publicBlocks;
   const visibleBlocks = publicBlocks.filter((block) => block.state === "public").length;
@@ -45,18 +47,18 @@ export function PublicProfilePreviewCard({ profile, disabled = false, onPreferen
   return (
     <section
       aria-labelledby="public-profile-preview-title"
-      className="rounded-lg border border-[var(--border)]/50 bg-[var(--card)] p-4"
+      className="w-full max-w-full overflow-hidden rounded-lg border border-[var(--border)]/50 bg-[var(--card)] p-4"
     >
-      <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#2FF801]/25 bg-[#2FF801]/10 text-[#2FF801]">
+      <div className="flex min-w-0 items-start gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#2FF801]/25 bg-[#2FF801]/10 text-[#2FF801] sm:h-10 sm:w-10">
           <Shield size={18} />
         </div>
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 id="public-profile-preview-title" className="text-sm font-black uppercase tracking-[0.18em] text-[var(--foreground)]">
+            <h2 id="public-profile-preview-title" className="min-w-0 text-xs font-black uppercase tracking-[0.12em] text-[var(--foreground)] sm:text-sm sm:tracking-[0.18em]">
               Dein öffentliches Profil
             </h2>
-            <span className="rounded-md border border-[#2FF801]/25 bg-[#2FF801]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#2FF801]">
+            <span className="rounded-md border border-[#2FF801]/25 bg-[#2FF801]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#2FF801] sm:tracking-[0.18em]">
               {visibleBlocks} sichtbar
             </span>
           </div>
@@ -68,6 +70,19 @@ export function PublicProfilePreviewCard({ profile, disabled = false, onPreferen
           </p>
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={() => setShowDetails((current) => !current)}
+        className="mt-4 inline-flex w-full items-center justify-between rounded-lg border border-[var(--border)]/50 bg-[var(--background)] px-3 py-2 text-[10px] font-black uppercase tracking-[0.12em] text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)] sm:tracking-[0.16em]"
+        aria-expanded={showDetails}
+      >
+        {showDetails ? "Details ausblenden" : "Details anzeigen"}
+        <ChevronDown
+          size={14}
+          className={cn("transition-transform", showDetails ? "rotate-180" : "rotate-0")}
+        />
+      </button>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
         {publicBlocks.map((block) => {
@@ -81,20 +96,20 @@ export function PublicProfilePreviewCard({ profile, disabled = false, onPreferen
             <div
               key={block.key}
               className={cn(
-                "rounded-lg border px-3 py-2",
+                "min-w-0 rounded-lg border px-3 py-2",
                 block.state === "public"
                   ? "border-[#2FF801]/25 bg-[#2FF801]/5"
                   : "border-[var(--border)]/50 bg-[var(--background)]"
               )}
             >
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--foreground)]">
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+                <p className="min-w-0 text-xs font-bold uppercase tracking-[0.12em] text-[var(--foreground)] sm:tracking-[0.16em]">
                   {block.label}
                 </p>
                 {isConfigurable && preferenceKey ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex shrink-0 items-center gap-2">
                     <span className={cn(
-                      "text-[10px] font-bold uppercase tracking-[0.16em]",
+                      "text-[10px] font-bold uppercase tracking-[0.1em] sm:tracking-[0.16em]",
                       checked ? "text-[#2FF801]" : "text-[var(--muted-foreground)]"
                     )}>
                       {checked ? "Öffentlich" : "Privat"}
@@ -133,26 +148,28 @@ export function PublicProfilePreviewCard({ profile, disabled = false, onPreferen
                   </span>
                 )}
               </div>
-              <p className="mt-1 text-[11px] leading-relaxed text-[var(--muted-foreground)]">
-                {block.description}
-              </p>
+              {showDetails && (
+                <p className="mt-1 text-[11px] leading-relaxed text-[var(--muted-foreground)]">
+                  {block.description}
+                </p>
+              )}
             </div>
           );
         })}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--border)]/50 bg-[var(--background)] px-3 py-2">
-        <div className="flex items-center gap-2">
+      <div className="mt-4 flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--border)]/50 bg-[var(--background)] px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2">
           <Eye size={14} className="text-[#2FF801]" />
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)]">
+          <p className="min-w-0 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)] sm:tracking-[0.16em]">
             {profile.publicPreferences.show_follow_counts ? "Follower-Zahlen sichtbar" : "Follower-Zahlen verborgen"}
           </p>
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-3">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 sm:justify-end">
           {onPreferenceChange ? (
             <div className="flex items-center gap-2">
               <span className={cn(
-                "text-[10px] font-bold uppercase tracking-[0.16em]",
+                "text-[10px] font-bold uppercase tracking-[0.1em] sm:tracking-[0.16em]",
                 profile.publicPreferences.show_follow_counts ? "text-[#2FF801]" : "text-[var(--muted-foreground)]"
               )}>
                 {profile.publicPreferences.show_follow_counts ? "Öffentlich" : "Privat"}
@@ -187,7 +204,7 @@ export function PublicProfilePreviewCard({ profile, disabled = false, onPreferen
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <Link
           href={`/user/${username}`}
-          className="inline-flex items-center gap-2 rounded-md border border-[#2FF801]/25 bg-[#2FF801] px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-black transition-colors hover:bg-[#2FF801]/90"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-[#2FF801]/25 bg-[#2FF801] px-3 py-2 text-center text-[11px] font-black uppercase tracking-[0.12em] text-black transition-colors hover:bg-[#2FF801]/90 sm:w-auto sm:tracking-[0.18em]"
         >
           Öffentliche Seite ansehen
         </Link>

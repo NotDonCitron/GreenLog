@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import UserProfilePage from "./page";
 import { useAuth } from "@/components/auth-provider";
@@ -70,8 +70,16 @@ describe("UserProfilePage", () => {
                             following: 8,
                             ratings: 3,
                         },
-                        badges: [],
-                        favorites: [],
+                        badges: [
+                            { id: "badge-1", name: "Starter", description: "Unlocked", iconKey: "starter", rarity: "common" },
+                            { id: "badge-2", name: "Explorer", description: "Unlocked", iconKey: "leaf", rarity: "common" },
+                            { id: "badge-3", name: "Social", description: "Unlocked", iconKey: "social", rarity: "common" },
+                            { id: "badge-4", name: "Grower", description: "Unlocked", iconKey: "grower", rarity: "common" },
+                            { id: "badge-5", name: "Connoisseur", description: "Unlocked", iconKey: "connoisseur", rarity: "common" },
+                        ],
+                        favorites: [
+                            { id: "strain-1", name: "Wedding Cake", slug: "wedding-cake", image_url: null },
+                        ],
                         triedStrains: [],
                         reviews: [],
                         activities: [],
@@ -95,5 +103,26 @@ describe("UserProfilePage", () => {
         expect(await screen.findByRole("button", { name: "Reviews" })).toBeTruthy();
         expect(screen.queryByRole("button", { name: "Sammlung" })).toBeNull();
         expect(screen.queryByRole("button", { name: "Grows" })).toBeNull();
+    });
+
+    it("shows four badges first and lets the visitor expand the rest", async () => {
+        render(<UserProfilePage />);
+
+        expect(await screen.findByText("Starter")).toBeTruthy();
+        expect(screen.getByText("Grower")).toBeTruthy();
+        expect(screen.queryByText("Connoisseur")).toBeNull();
+
+        fireEvent.click(screen.getByRole("button", { name: /Alle 5 anzeigen/i }));
+
+        expect(screen.getByText("Connoisseur")).toBeTruthy();
+    });
+
+    it("renders public favorites returned by the API", async () => {
+        render(<UserProfilePage />);
+
+        fireEvent.click(await screen.findByRole("button", { name: "Favorites" }));
+
+        expect(await screen.findByText("Wedding Cake")).toBeTruthy();
+        expect(screen.queryByText("No favorites yet")).toBeNull();
     });
 });

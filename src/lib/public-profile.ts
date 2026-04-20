@@ -241,7 +241,7 @@ export async function getPublicProfileByUsername(
           .from("user_strain_relations")
           .select("strain_id, strains:strain_id (id, name, slug, image_url)")
           .eq("user_id", profile.id)
-          .eq("public_status", "favorite")
+          .eq("is_favorite", true)
           .limit(12)
       : Promise.resolve({ data: [] as PublicFavoriteRow[] }),
     preferences.show_tried_strains
