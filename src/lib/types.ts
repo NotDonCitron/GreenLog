@@ -312,6 +312,30 @@ export interface RatingRow {
   created_at: string;
 }
 
+export type QuickLogEffectChip = "ruhe" | "fokus" | "schlaf" | "kreativitaet" | "appetit";
+export type QuickLogSideEffect = "trocken" | "unruhig" | "kopflastig" | "couchlock";
+export type QuickLogStatus = "nochmal" | "situativ" | "nicht_nochmal";
+
+export interface ConsumptionLogRow {
+  id: string;
+  user_id: string;
+  strain_id: string | null;
+  consumption_method: "vaporizer" | "joint" | "bong" | "pipe" | "edible" | "oil" | "topical" | "other";
+  amount_grams: number | null;
+  subjective_notes: string | null;
+  mood_before: string | null;
+  mood_after: string | null;
+  consumed_at: string;
+  effect_chips: QuickLogEffectChip[];
+  side_effects: QuickLogSideEffect[];
+  overall_rating: number | null;
+  private_status: QuickLogStatus | null;
+  private_note: string | null;
+  setting_context: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // Social Features Types
 export interface Follow {
   id: string;

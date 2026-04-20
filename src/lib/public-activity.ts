@@ -1,3 +1,5 @@
+import { sanitizePublicQuickLogPayload } from "./quick-log";
+
 export const PUBLIC_STREAK_ACTIVITY_TYPES = [
   "rating",
   "favorite_added",
@@ -44,28 +46,6 @@ type PublicQuickLogActivityInput = {
   setting?: unknown;
 };
 
-const PUBLIC_QUICK_LOG_EFFECT_ALLOWLIST = new Set([
-  "ruhe",
-  "fokus",
-  "schlaf",
-  "kreativitaet",
-  "appetit",
-]);
-
 export function buildPublicQuickLogActivityPayload(input: PublicQuickLogActivityInput) {
-  const effect_chips = Array.isArray(input.effectChips)
-    ? input.effectChips
-        .filter((value): value is string => typeof value === "string")
-        .filter((value) => PUBLIC_QUICK_LOG_EFFECT_ALLOWLIST.has(value))
-    : [];
-
-  return {
-    rating: Number(input.rating.toFixed(1)),
-    strain_slug: input.strainSlug,
-    effect_chips,
-    public_review_text:
-      typeof input.publicReviewText === "string" && input.publicReviewText.trim().length > 0
-        ? input.publicReviewText.trim()
-        : null,
-  };
+  return sanitizePublicQuickLogPayload(input);
 }
