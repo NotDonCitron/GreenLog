@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import ProfilePage from "./profile-view";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/components/auth-provider";
@@ -43,6 +43,16 @@ vi.mock("@/components/notifications/notification-bell", () => ({
 
 vi.mock("@/components/theme-toggle", () => ({
   ThemeToggle: () => null,
+}));
+
+const upsertMock = vi.fn();
+vi.mock("@/lib/supabase/client", () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      upsert: upsertMock,
+      update: vi.fn(() => ({ eq: vi.fn() })),
+    })),
+  },
 }));
 
 vi.mock("next/navigation", () => ({
@@ -115,6 +125,21 @@ describe("ProfileView component", () => {
       badges: [],
       featuredBadgeIds: [],
       activity: [],
+      preview: { title: "", description: "", chips: [] },
+      publicPreferences: {
+        user_id: "123",
+        show_badges: true,
+        show_favorites: false,
+        show_tried_strains: false,
+        show_reviews: false,
+        show_activity_feed: false,
+        show_follow_counts: true,
+        default_review_public: false,
+      },
+      publicBlocks: [
+        { key: "profile", label: "Profilinfo", state: "public", description: "Username, Avatar, Anzeigename und Bio." },
+        { key: "badges", label: "Abzeichen", state: "public", description: "Freigeschaltete Badges ohne private Konsumdaten." },
+      ],
     };
 
     (useAuth as any).mockReturnValue({
@@ -135,6 +160,7 @@ describe("ProfileView component", () => {
     expect(screen.getByText("42")).toBeTruthy(); // Strains count
     expect(screen.getByText("10")).toBeTruthy(); // Followers count
     expect(screen.getByText("20")).toBeTruthy(); // Following count
+    expect(screen.getByText("Dein öffentliches Profil")).toBeTruthy();
   });
 
   it("should render the selected featured badges on the profile", () => {
@@ -178,6 +204,21 @@ describe("ProfileView component", () => {
       ],
       featuredBadgeIds: ["collector-10", "first-strain"],
       activity: [],
+      preview: { title: "", description: "", chips: [] },
+      publicPreferences: {
+        user_id: "123",
+        show_badges: true,
+        show_favorites: false,
+        show_tried_strains: false,
+        show_reviews: false,
+        show_activity_feed: false,
+        show_follow_counts: true,
+        default_review_public: false,
+      },
+      publicBlocks: [
+        { key: "profile", label: "Profilinfo", state: "public", description: "Username, Avatar, Anzeigename und Bio." },
+        { key: "badges", label: "Abzeichen", state: "public", description: "Freigeschaltete Badges ohne private Konsumdaten." },
+      ],
     };
 
     (useAuth as any).mockReturnValue({
@@ -194,5 +235,77 @@ describe("ProfileView component", () => {
 
     expect(screen.getByText("Sammler")).toBeTruthy();
     expect(screen.getByText("Greenie")).toBeTruthy();
+  });
+
+  it("persists public profile preference toggles", async () => {
+    upsertMock.mockResolvedValue({ error: null });
+    const refetchProfile = vi.fn().mockResolvedValue(undefined);
+    const mockProfileData = {
+      identity: {
+        username: "@testuser",
+        displayName: "Test User",
+        initials: "TU",
+        avatarUrl: null,
+        profileVisibility: "public",
+        tagline: "",
+        bio: null,
+      },
+      stats: {
+        totalStrains: 1,
+        totalGrows: 0,
+        favoriteCount: 0,
+        unlockedBadgeCount: 0,
+        xp: 0,
+        level: 1,
+        progressToNextLevel: 0,
+        followers: 0,
+        following: 0,
+      },
+      favorites: [],
+      badges: [],
+      featuredBadgeIds: [],
+      activity: [],
+      preview: { title: "", description: "", chips: [] },
+      publicPreferences: {
+        user_id: "123",
+        show_badges: true,
+        show_favorites: false,
+        show_tried_strains: false,
+        show_reviews: false,
+        show_activity_feed: false,
+        show_follow_counts: true,
+        default_review_public: false,
+      },
+      publicBlocks: [
+        { key: "profile", label: "Profilinfo", state: "public", description: "Username, Avatar, Anzeigename und Bio." },
+        { key: "favorites", label: "Favoriten", state: "private", description: "Öffentliche Lieblingsstrains ohne Bestand, Charge oder Apotheke." },
+      ],
+    };
+
+    (useAuth as any).mockReturnValue({
+      user: { id: "123" },
+      loading: false,
+      isDemoMode: false,
+    });
+    (useProfile as any).mockReturnValue({
+      data: mockProfileData,
+      isLoading: false,
+      refetch: refetchProfile,
+    });
+
+    render(<ProfilePage />);
+    fireEvent.click(screen.getByRole("button", { name: /Details anzeigen/i }));
+    fireEvent.click(screen.getByRole("switch", { name: /Favoriten/i }));
+
+    await waitFor(() => {
+      expect(upsertMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user_id: "123",
+          show_favorites: true,
+        }),
+        { onConflict: "user_id" }
+      );
+    });
+    expect(refetchProfile).toHaveBeenCalled();
   });
 });

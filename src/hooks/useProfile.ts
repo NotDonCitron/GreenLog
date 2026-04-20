@@ -2,12 +2,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
+import { buildPublicProfileBlocks, withDefaultPublicPreferences } from "@/lib/public-profile";
 import type {
   ProfileBadge,
   ProfileFavorite,
   ProfileIdentity,
   ProfileStats,
   ProfileViewModel,
+  PublicProfilePreferences,
 } from "@/lib/types";
 
 // Re-export types for consumers
@@ -48,6 +50,9 @@ function createFallbackViewModel(): ProfileViewModel {
   const storedUsername = isBrowser ? localStorage.getItem("cannalog_demo_username") : null;
   const storedBio = isBrowser ? localStorage.getItem("cannalog_demo_bio") : null;
 
+  const publicPreferences = withDefaultPublicPreferences("guest", null);
+  const publicBlocks = buildPublicProfileBlocks(publicPreferences);
+
   const stats: ProfileStats = {
     totalStrains: 0,
     totalGrows: 0,
@@ -75,6 +80,8 @@ function createFallbackViewModel(): ProfileViewModel {
     featuredBadgeIds: [],
     activity: [],
     preview: { title: "Privat", description: "", chips: [] },
+    publicPreferences,
+    publicBlocks,
   };
 }
 
@@ -124,7 +131,7 @@ async function fetchProfileData(userId: string, userEmail: string | null, userMe
   }
 
   const favoriteIds = (favsRes.data || []).map((f: UserStrainRelation) => f.strains?.id).filter(Boolean);
-  
+
   let collectionData: CollectionEntry[] | null = null;
   if (favoriteIds.length > 0) {
     const { data } = await supabase
@@ -178,6 +185,17 @@ async function fetchProfileData(userId: string, userEmail: string | null, userMe
   }).filter((b): b is ProfileBadge => b !== null);
 
   const featuredBadges: string[] = profileData?.featured_badges || [];
+  const { data: publicPreferencesData } = await supabase
+    .from("user_public_preferences")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const publicPreferences = withDefaultPublicPreferences(
+    userId,
+    publicPreferencesData as Partial<PublicProfilePreferences> | null
+  );
+  const publicBlocks = buildPublicProfileBlocks(publicPreferences);
 
   const identity: ProfileIdentity = {
     email: userEmail ?? null,
@@ -198,6 +216,8 @@ async function fetchProfileData(userId: string, userEmail: string | null, userMe
     featuredBadgeIds: featuredBadges,
     activity: [],
     preview: { title: "", description: "", chips: [] },
+    publicPreferences,
+    publicBlocks,
   };
 
   return viewModel;
