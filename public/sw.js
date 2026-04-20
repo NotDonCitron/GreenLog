@@ -107,8 +107,16 @@ self.addEventListener('fetch', (event) => {
       })
     );
   } else {
-    // External APIs (Supabase etc.) → Network only!
-    event.respondWith(fetch(request));
+    // External APIs/CDNs (Supabase Storage, imgix, etc.) → Network only!
+    // We must explicitly set referrerPolicy here because the SW's fetch does NOT
+    // inherit the <img> tag's referrerPolicy attribute. imgix blocks requests
+    // that send a Referer header, so we suppress it for all external images.
+    const req = new Request(request, {
+      referrerPolicy: 'no-referrer',
+      mode: 'cors',
+      credentials: 'omit',
+    });
+    event.respondWith(fetch(req));
   }
 });
 
