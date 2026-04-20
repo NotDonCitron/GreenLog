@@ -269,6 +269,72 @@ export interface PublicProfilePreview {
   chips: string[];
 }
 
+export interface PublicProfilePreferences {
+  user_id: string;
+  show_badges: boolean;
+  show_favorites: boolean;
+  show_tried_strains: boolean;
+  show_reviews: boolean;
+  show_activity_feed: boolean;
+  show_follow_counts: boolean;
+  default_review_public: boolean;
+}
+
+export type PublicProfileBlockKey =
+  | "profile"
+  | "badges"
+  | "favorites"
+  | "tried_strains"
+  | "reviews"
+  | "activity";
+
+export interface PublicProfileBlockState {
+  key: PublicProfileBlockKey;
+  label: string;
+  state: "public" | "private";
+  description: string;
+}
+
+export interface PublicProfileFavorite {
+  id: string;
+  name: string;
+  slug: string;
+  image_url: string | null;
+}
+
+export interface PublicProfileRating {
+  id: string;
+  strain_id: string;
+  strain_name: string;
+  strain_slug: string;
+  overall_rating: number;
+  public_review_text: string | null;
+  created_at: string;
+}
+
+export interface SanitizedPublicProfile {
+  profile: {
+    id: string;
+    username: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    bio: string | null;
+    created_at: string;
+  };
+  preferences: PublicProfilePreferences;
+  blocks: PublicProfileBlockState[];
+  counts: {
+    followers: number;
+    following: number;
+    ratings: number;
+  };
+  badges: ProfileBadge[];
+  favorites: PublicProfileFavorite[];
+  triedStrains: PublicProfileFavorite[];
+  reviews: PublicProfileRating[];
+  activities: UserActivity[];
+}
+
 export interface ProfileViewModel {
   identity: ProfileIdentity;
   stats: ProfileStats;
@@ -287,6 +353,7 @@ export interface UserStrainRelation {
   is_wishlisted: boolean;
   favorite_rank: number | null;
   position: number | null;
+  public_status?: "private" | "tried" | "favorite";
   created_at?: string;
 }
 
@@ -308,7 +375,8 @@ export interface RatingRow {
   consumption_method: string | null;
   location: string | null;
   image_url: string | null;
-  is_public?: boolean;
+  is_public: boolean;
+  public_review_text?: string | null;
   created_at: string;
 }
 
