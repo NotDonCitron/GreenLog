@@ -7,7 +7,7 @@ DROP POLICY IF EXISTS "Followers can view private collections" ON user_collectio
 
 CREATE POLICY "Users can view own collection"
   ON user_collection FOR SELECT
-  USING (auth.uid() = user_id);
+  USING ((auth.uid())::text = user_id);
 
 CREATE POLICY "Public collections are viewable"
   ON user_collection FOR SELECT

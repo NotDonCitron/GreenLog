@@ -95,7 +95,7 @@ RETURNS BOOLEAN AS $$
     SELECT 1
     FROM organization_members om
     WHERE om.organization_id = p_organization_id
-      AND om.user_id = auth.uid()
+      AND om.user_id = (auth.uid())::text
       AND om.membership_status = 'active'
   );
 $$ LANGUAGE SQL STABLE;
@@ -105,7 +105,7 @@ RETURNS TEXT AS $$
   SELECT om.role
   FROM organization_members om
   WHERE om.organization_id = p_organization_id
-    AND om.user_id = auth.uid()
+    AND om.user_id = (auth.uid())::text
     AND om.membership_status = 'active'
   LIMIT 1;
 $$ LANGUAGE SQL STABLE;
@@ -190,7 +190,7 @@ CREATE POLICY "Users can view organizations they belong to"
 
 CREATE POLICY "Authenticated users can create organizations"
   ON organizations FOR INSERT
-  WITH CHECK (auth.uid() IS NOT NULL AND auth.uid() = created_by);
+  WITH CHECK (auth.uid() IS NOT NULL AND (auth.uid())::text = created_by);
 
 CREATE POLICY "Org managers can update organizations"
   ON organizations FOR UPDATE
@@ -216,13 +216,13 @@ CREATE POLICY "Org managers can update memberships"
 CREATE POLICY "Owners can add themselves as owner"
   ON organization_members FOR INSERT
   WITH CHECK (
-    auth.uid() = user_id
+    (auth.uid())::text = user_id
     AND role = 'owner'
     AND membership_status = 'active'
     AND EXISTS (
       SELECT 1 FROM organizations o
       WHERE o.id = organization_id
-        AND o.created_by = auth.uid()
+        AND o.created_by = (auth.uid())::text
     )
   );
 
@@ -247,18 +247,18 @@ CREATE POLICY "Organization members can view grows"
 CREATE POLICY "Org writers can create grows"
   ON grows FOR INSERT
   WITH CHECK (
-    auth.uid() = user_id
+    (auth.uid())::text = user_id
     AND can_write_org_data(organization_id)
   );
 
 CREATE POLICY "Org writers can update grows"
   ON grows FOR UPDATE
-  USING (can_write_org_data(organization_id) AND auth.uid() = user_id)
-  WITH CHECK (can_write_org_data(organization_id) AND auth.uid() = user_id);
+  USING (can_write_org_data(organization_id) AND (auth.uid())::text = user_id)
+  WITH CHECK (can_write_org_data(organization_id) AND (auth.uid())::text = user_id);
 
 CREATE POLICY "Org writers can delete grows"
   ON grows FOR DELETE
-  USING (can_write_org_data(organization_id) AND auth.uid() = user_id);
+  USING (can_write_org_data(organization_id) AND (auth.uid())::text = user_id);
 
 CREATE POLICY "Organization members can view grow entries"
   ON grow_entries FOR SELECT
@@ -267,7 +267,7 @@ CREATE POLICY "Organization members can view grow entries"
 CREATE POLICY "Org writers can create grow entries"
   ON grow_entries FOR INSERT
   WITH CHECK (
-    auth.uid() = user_id
+    (auth.uid())::text = user_id
     AND can_write_org_data(organization_id)
     AND EXISTS (
       SELECT 1 FROM grows g
@@ -278,9 +278,9 @@ CREATE POLICY "Org writers can create grow entries"
 
 CREATE POLICY "Org writers can update grow entries"
   ON grow_entries FOR UPDATE
-  USING (can_write_org_data(organization_id) AND auth.uid() = user_id)
-  WITH CHECK (can_write_org_data(organization_id) AND auth.uid() = user_id);
+  USING (can_write_org_data(organization_id) AND (auth.uid())::text = user_id)
+  WITH CHECK (can_write_org_data(organization_id) AND (auth.uid())::text = user_id);
 
 CREATE POLICY "Org writers can delete grow entries"
   ON grow_entries FOR DELETE
-  USING (can_write_org_data(organization_id) AND auth.uid() = user_id);
+  USING (can_write_org_data(organization_id) AND (auth.uid())::text = user_id);

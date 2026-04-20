@@ -3,9 +3,9 @@
 
 CREATE POLICY "Users can update own strains"
   ON strains FOR UPDATE
-  USING (auth.uid() = created_by)
-  WITH CHECK (auth.uid() = created_by);
+  USING ((auth.uid())::text = created_by)
+  WITH CHECK ((auth.uid())::text = created_by);
 
 CREATE POLICY "Users can delete own strains"
   ON strains FOR DELETE
-  USING (auth.uid() = created_by);
+  USING ((auth.uid())::text = created_by);

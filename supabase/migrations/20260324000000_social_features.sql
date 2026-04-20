@@ -13,8 +13,8 @@ ALTER TABLE ratings ADD COLUMN IF NOT EXISTS is_public BOOLEAN DEFAULT true;
 -- 3. Create follows table
 CREATE TABLE IF NOT EXISTS follows (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  follower_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  following_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  follower_id TEXT REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  following_id TEXT REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   created_at TIMESTAMPTZ DEFAULT now(),
   UNIQUE(follower_id, following_id)
 );
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS follows (
 -- 4. Create user_activities table (denormalized activity feed)
 CREATE TABLE IF NOT EXISTS user_activities (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   activity_type TEXT NOT NULL CHECK (activity_type IN ('rating', 'grow_started', 'grow_completed', 'badge_earned', 'favorite_added')),
   target_id UUID NOT NULL,
   target_name TEXT NOT NULL,
@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS user_activities (
 -- 5. Create follow_requests table (for private profiles)
 CREATE TABLE IF NOT EXISTS follow_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  requester_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  target_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  requester_id TEXT REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  target_id TEXT REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   created_at TIMESTAMPTZ DEFAULT now(),
   UNIQUE(requester_id, target_id)
@@ -69,33 +69,33 @@ CREATE POLICY "Follows are viewable if profile is public"
       SELECT 1 FROM profiles p
       WHERE p.id = following_id AND p.profile_visibility = 'public'
     )
-    OR auth.uid() = follower_id
-    OR auth.uid() = following_id
+    OR auth.uid()::text = follower_id
+    OR auth.uid()::text = following_id
   );
 
 -- Users can create follows for themselves
 CREATE POLICY "Users can create own follows"
-  ON follows FOR INSERT WITH CHECK (auth.uid() = follower_id);
+  ON follows FOR INSERT WITH CHECK (auth.uid()::text = follower_id);
 
 -- Profile owners can create follows when someone follows them (for approved requests)
 CREATE POLICY "Profile owners can create follows for requesters"
-  ON follows FOR INSERT WITH CHECK (auth.uid() = following_id);
+  ON follows FOR INSERT WITH CHECK (auth.uid()::text = following_id);
 
 -- Users can delete their own follows
 CREATE POLICY "Users can delete own follows"
-  ON follows FOR DELETE USING (auth.uid() = follower_id);
+  ON follows FOR DELETE USING (auth.uid()::text = follower_id);
 
 -- Users can view their own follows
 CREATE POLICY "Users can view own follows"
-  ON follows FOR SELECT USING (auth.uid() = follower_id);
+  ON follows FOR SELECT USING (auth.uid()::text = follower_id);
 
 -- Users can view who follows them
 CREATE POLICY "Users can view their followers"
-  ON follows FOR SELECT USING (auth.uid() = following_id);
+  ON follows FOR SELECT USING (auth.uid()::text = following_id);
 
 -- User Activities: View own, public activities, or activities from followed users
 CREATE POLICY "Users can view own activities"
-  ON user_activities FOR SELECT USING (auth.uid() = user_id);
+  ON user_activities FOR SELECT USING (auth.uid()::text = user_id);
 
 CREATE POLICY "Public activities visible to all"
   ON user_activities FOR SELECT USING (is_public = true);
@@ -104,45 +104,45 @@ CREATE POLICY "Followers can view followed user activities"
   ON user_activities FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM follows
-      WHERE follows.follower_id = auth.uid() AND follows.following_id = user_id
+      WHERE follows.follower_id = auth.uid()::text AND follows.following_id = user_id
     )
   );
 
 -- Users can create activities for themselves
 CREATE POLICY "Users can create own activities"
-  ON user_activities FOR INSERT WITH CHECK (auth.uid() = user_id);
+  ON user_activities FOR INSERT WITH CHECK (auth.uid()::text = user_id);
 
 -- Users can delete their own activities
 CREATE POLICY "Users can delete own activities"
-  ON user_activities FOR DELETE USING (auth.uid() = user_id);
+  ON user_activities FOR DELETE USING (auth.uid()::text = user_id);
 
 -- Follow Requests: View own requests or requests targeting own profile
 CREATE POLICY "Users can view own requests"
-  ON follow_requests FOR SELECT USING (auth.uid() = requester_id OR auth.uid() = target_id);
+  ON follow_requests FOR SELECT USING (auth.uid()::text = requester_id OR auth.uid()::text = target_id);
 
 -- Users can create follow requests for themselves
 CREATE POLICY "Users can create own follow requests"
-  ON follow_requests FOR INSERT WITH CHECK (auth.uid() = requester_id);
+  ON follow_requests FOR INSERT WITH CHECK (auth.uid()::text = requester_id);
 
 -- Users can view their own sent requests
 CREATE POLICY "Users can view own sent requests"
-  ON follow_requests FOR SELECT USING (auth.uid() = requester_id);
+  ON follow_requests FOR SELECT USING (auth.uid()::text = requester_id);
 
 -- Users can view requests sent to them
 CREATE POLICY "Users can view requests sent to them"
-  ON follow_requests FOR SELECT USING (auth.uid() = target_id);
+  ON follow_requests FOR SELECT USING (auth.uid()::text = target_id);
 
 -- Users can update their own requests (status changes)
 CREATE POLICY "Users can update own requests"
-  ON follow_requests FOR UPDATE USING (auth.uid() = target_id);
+  ON follow_requests FOR UPDATE USING (auth.uid()::text = target_id);
 
 -- Users can update (approve/reject) requests targeting them
 CREATE POLICY "Users can update requests targeting them"
-  ON follow_requests FOR UPDATE USING (auth.uid() = target_id);
+  ON follow_requests FOR UPDATE USING (auth.uid()::text = target_id);
 
 -- Users can delete (cancel) their own requests
 CREATE POLICY "Users can delete own requests"
-  ON follow_requests FOR DELETE USING (auth.uid() = requester_id);
+  ON follow_requests FOR DELETE USING (auth.uid()::text = requester_id);
 
 -- =============================================
 -- STORAGE BUCKET FOR AVATARS
@@ -169,19 +169,19 @@ CREATE POLICY "Users can update own avatar"
 -- =============================================
 
 -- Function to get follower count
-CREATE OR REPLACE FUNCTION get_follower_count(p_user_id UUID)
+CREATE OR REPLACE FUNCTION get_follower_count(p_user_id TEXT)
 RETURNS INTEGER AS $$
   SELECT COUNT(*)::INTEGER FROM follows WHERE following_id = p_user_id;
 $$ LANGUAGE SQL STABLE;
 
 -- Function to get following count
-CREATE OR REPLACE FUNCTION get_following_count(p_user_id UUID)
+CREATE OR REPLACE FUNCTION get_following_count(p_user_id TEXT)
 RETURNS INTEGER AS $$
   SELECT COUNT(*)::INTEGER FROM follows WHERE follower_id = p_user_id;
 $$ LANGUAGE SQL STABLE;
 
 -- Function to check if user A follows user B
-CREATE OR REPLACE FUNCTION is_following(follower_uuid UUID, following_uuid UUID)
+CREATE OR REPLACE FUNCTION is_following(follower_uuid TEXT, following_uuid TEXT)
 RETURNS BOOLEAN AS $$
   SELECT EXISTS (
     SELECT 1 FROM follows
@@ -219,22 +219,17 @@ RETURNS TRIGGER AS $$
 BEGIN
   IF TG_OP = 'INSERT' AND NEW.is_public = true THEN
     INSERT INTO user_activities (user_id, activity_type, target_id, target_name, metadata)
-    SELECT
+    VALUES (
       NEW.user_id,
       'grow_started',
       NEW.id,
       NEW.title,
       jsonb_build_object('grow_type', NEW.grow_type, 'medium', NEW.medium)
-    FROM grows
-    WHERE id = NEW.id;
+    );
   END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
-CREATE TRIGGER on_grow_started
-  AFTER INSERT ON grows
-  FOR EACH ROW EXECUTE FUNCTION create_grow_started_activity();
 
 -- Trigger function to create activity on grow completed
 CREATE OR REPLACE FUNCTION create_grow_completed_activity()
@@ -242,22 +237,34 @@ RETURNS TRIGGER AS $$
 BEGIN
   IF TG_OP = 'UPDATE' AND NEW.status = 'completed' AND OLD.status != 'completed' AND NEW.is_public = true THEN
     INSERT INTO user_activities (user_id, activity_type, target_id, target_name, metadata)
-    SELECT
+    VALUES (
       NEW.user_id,
       'grow_completed',
       NEW.id,
       NEW.title,
       jsonb_build_object('yield_grams', NEW.yield_grams, 'harvest_date', NEW.harvest_date)
-    FROM grows
-    WHERE id = NEW.id;
+    );
   END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER on_grow_completed
-  AFTER UPDATE ON grows
-  FOR EACH ROW EXECUTE FUNCTION create_grow_completed_activity();
+-- Create grow triggers only if grows table exists
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'grows') THEN
+    DROP TRIGGER IF EXISTS on_grow_started ON grows;
+    CREATE TRIGGER on_grow_started
+      AFTER INSERT ON grows
+      FOR EACH ROW EXECUTE FUNCTION create_grow_started_activity();
+
+    DROP TRIGGER IF EXISTS on_grow_completed ON grows;
+    CREATE TRIGGER on_grow_completed
+      AFTER UPDATE ON grows
+      FOR EACH ROW EXECUTE FUNCTION create_grow_completed_activity();
+  END IF;
+END;
+$$;
 
 -- Trigger function to create activity on badge earned
 CREATE OR REPLACE FUNCTION create_badge_activity()
