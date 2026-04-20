@@ -81,3 +81,32 @@ scripts/test-upload-check.mjs
 /.clerk/
 .next_old/
 .worktrees/
+
+# planning & brainstorming (internal, never commit)
+.planning/
+.superpowers/
+brainstorm/
+age_gate_output.html
+curl_out.txt
+dev_error_log.txt
+dev_log2.txt
+server_pid.txt
+
+# scraper scripts (internal tooling)
+scripts/chatgpt*
+scripts/firecrawl*
+scripts/playwright*
+scripts/cleanup*
+scripts/retry*
+scripts/generate-social-assets.mjs
+scripts/greenlog-leafly*
+scripts/greenlog-strain-scrape.mjs
+scripts/leafly-discover.mjs
+scripts/leafly-quality-scraper.mjs
+scripts/obscura
+scripts/scrape-*.log
+scripts/scrape-*.mjs
+scripts/social-content-generator.mjs
+scripts/output/
+scripts/.tmp-images/
+scripts/.tmp-leafly-images/
