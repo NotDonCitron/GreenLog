@@ -123,16 +123,27 @@ self.addEventListener('fetch', (event) => {
       })
     );
   } else {
-    // External APIs/CDNs (Supabase Storage, imgix, etc.) → Network only!
-    // We must explicitly set referrerPolicy here because the SW's fetch does NOT
-    // inherit the <img> tag's referrerPolicy attribute. imgix blocks requests
-    // that send a Referer header, so we suppress it for all external images.
-    const req = new Request(request, {
-      referrerPolicy: 'no-referrer',
-      mode: 'cors',
-      credentials: 'omit',
-    });
-    event.respondWith(fetch(req));
+    // External images/CDNs (Supabase Storage, imgix, etc.) → Network only, never cache.
+    //
+    // IMPORTANT: we must pass cache:'no-store' so the browser's HTTP cache does NOT
+    // serve a previously cached 404 / error response for these URLs (e.g. from when
+    // the Referer header was wrong). Without this, the browser serves the stale
+    // cached error even though our fetch() is now correct.
+    //
+    // referrerPolicy:'no-referrer' ensures imgix does not receive a Referer header
+    // (imgix blocks requests that send one).
+    try {
+      const req = new Request(request, {
+        referrerPolicy: 'no-referrer',
+        mode: 'cors',
+        credentials: 'omit',
+        cache: 'no-store',          // bypass browser HTTP cache
+      });
+      event.respondWith(fetch(req));
+    } catch (_) {
+      // NetworkError or similar — pass through so the img onError fires
+      event.respondWith(fetch(request));
+    }
   }
 });
 
