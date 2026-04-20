@@ -41,6 +41,9 @@ export function PublicProfilePreviewCard({ profile, disabled = false, onPreferen
   const [showDetails, setShowDetails] = useState(false);
   const username = profile.identity.username.replace(/^@/, "");
   const publicBlocks = profile.publicBlocks;
+  const displayedBlocks = showDetails
+    ? publicBlocks
+    : publicBlocks.filter((block) => block.key === "profile");
   const visibleBlocks = publicBlocks.filter((block) => block.state === "public").length;
   const hiddenBlocks = publicBlocks.length - visibleBlocks;
 
@@ -85,7 +88,7 @@ export function PublicProfilePreviewCard({ profile, disabled = false, onPreferen
       </button>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
-        {publicBlocks.map((block) => {
+        {displayedBlocks.map((block) => {
           const preferenceKey = BLOCK_TO_PREFERENCE[block.key];
           const isConfigurable = Boolean(preferenceKey && onPreferenceChange);
           const checked = preferenceKey
@@ -128,7 +131,7 @@ export function PublicProfilePreviewCard({ profile, disabled = false, onPreferen
                     >
                       <span
                         className={cn(
-                          "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
+                          "absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
                           checked ? "translate-x-5" : "translate-x-0.5"
                         )}
                       />
@@ -158,57 +161,61 @@ export function PublicProfilePreviewCard({ profile, disabled = false, onPreferen
         })}
       </div>
 
-      <div className="mt-4 flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--border)]/50 bg-[var(--background)] px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-2">
-          <Eye size={14} className="text-[#2FF801]" />
-          <p className="min-w-0 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)] sm:tracking-[0.16em]">
-            {profile.publicPreferences.show_follow_counts ? "Follower-Zahlen sichtbar" : "Follower-Zahlen verborgen"}
-          </p>
-        </div>
-        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 sm:justify-end">
-          {onPreferenceChange ? (
-            <div className="flex items-center gap-2">
-              <span className={cn(
-                "text-[10px] font-bold uppercase tracking-[0.1em] sm:tracking-[0.16em]",
-                profile.publicPreferences.show_follow_counts ? "text-[#2FF801]" : "text-[var(--muted-foreground)]"
-              )}>
-                {profile.publicPreferences.show_follow_counts ? "Öffentlich" : "Privat"}
-              </span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={profile.publicPreferences.show_follow_counts}
-                aria-label="Follower-Zahlen öffentlich anzeigen"
-                disabled={disabled}
-                onClick={() => onPreferenceChange("show_follow_counts", !profile.publicPreferences.show_follow_counts)}
-                className={cn(
-                  "relative h-6 w-11 rounded-full border border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-                  profile.publicPreferences.show_follow_counts ? "bg-[#2FF801]" : "bg-[var(--muted)]"
-                )}
-              >
-                <span
-                  className={cn(
-                    "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
-                    profile.publicPreferences.show_follow_counts ? "translate-x-5" : "translate-x-0.5"
-                  )}
-                />
-              </button>
+      {showDetails && (
+        <>
+          <div className="mt-4 flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--border)]/50 bg-[var(--background)] px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-2">
+              <Eye size={14} className="text-[#2FF801]" />
+              <p className="min-w-0 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--muted-foreground)] sm:tracking-[0.16em]">
+                {profile.publicPreferences.show_follow_counts ? "Follower-Zahlen sichtbar" : "Follower-Zahlen verborgen"}
+              </p>
             </div>
-          ) : null}
-          <p className="text-[11px] text-[var(--muted-foreground)]">
-            {hiddenBlocks} Bereiche bleiben privat
-          </p>
-        </div>
-      </div>
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 sm:justify-end">
+              {onPreferenceChange ? (
+                <div className="flex items-center gap-2">
+                  <span className={cn(
+                    "text-[10px] font-bold uppercase tracking-[0.1em] sm:tracking-[0.16em]",
+                    profile.publicPreferences.show_follow_counts ? "text-[#2FF801]" : "text-[var(--muted-foreground)]"
+                  )}>
+                    {profile.publicPreferences.show_follow_counts ? "Öffentlich" : "Privat"}
+                  </span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={profile.publicPreferences.show_follow_counts}
+                    aria-label="Follower-Zahlen öffentlich anzeigen"
+                    disabled={disabled}
+                    onClick={() => onPreferenceChange("show_follow_counts", !profile.publicPreferences.show_follow_counts)}
+                    className={cn(
+                      "relative h-6 w-11 rounded-full border border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                      profile.publicPreferences.show_follow_counts ? "bg-[#2FF801]" : "bg-[var(--muted)]"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
+                        profile.publicPreferences.show_follow_counts ? "translate-x-5" : "translate-x-0.5"
+                      )}
+                    />
+                  </button>
+                </div>
+              ) : null}
+              <p className="text-[11px] text-[var(--muted-foreground)]">
+                {hiddenBlocks} Bereiche bleiben privat
+              </p>
+            </div>
+          </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <Link
-          href={`/user/${username}`}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-[#2FF801]/25 bg-[#2FF801] px-3 py-2 text-center text-[11px] font-black uppercase tracking-[0.12em] text-black transition-colors hover:bg-[#2FF801]/90 sm:w-auto sm:tracking-[0.18em]"
-        >
-          Öffentliche Seite ansehen
-        </Link>
-      </div>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <Link
+              href={`/user/${username}`}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-[#2FF801]/25 bg-[#2FF801] px-3 py-2 text-center text-[11px] font-black uppercase tracking-[0.12em] text-black transition-colors hover:bg-[#2FF801]/90 sm:w-auto sm:tracking-[0.18em]"
+            >
+              Öffentliche Seite ansehen
+            </Link>
+          </div>
+        </>
+      )}
     </section>
   );
 }

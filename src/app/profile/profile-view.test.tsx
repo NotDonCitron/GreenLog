@@ -294,6 +294,7 @@ describe("ProfileView component", () => {
     });
 
     render(<ProfilePage />);
+    fireEvent.click(screen.getByRole("button", { name: /Details anzeigen/i }));
     fireEvent.click(screen.getByRole("switch", { name: /Favoriten/i }));
 
     await waitFor(() => {

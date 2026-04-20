@@ -11,7 +11,7 @@ vi.mock("next/link", () => ({
 }));
 
 describe("PublicProfilePreviewCard", () => {
-  it("shows public and private blocks and the private-data warning", () => {
+  it("shows only profile info until the privacy card is expanded", () => {
     render(
       <PublicProfilePreviewCard profile={profileFixture} disabled={false} onPreferenceChange={vi.fn()} />
     );
@@ -19,20 +19,23 @@ describe("PublicProfilePreviewCard", () => {
     expect(screen.getByText("Dein öffentliches Profil")).toBeTruthy();
     expect(screen.getByText("So sehen andere dein Profil.")).toBeTruthy();
     expect(screen.getByText("Profilinfo")).toBeTruthy();
-    expect(screen.getByText("Abzeichen")).toBeTruthy();
-    expect(screen.getByText("Favoriten")).toBeTruthy();
-    expect(screen.getAllByText("Privat")).toHaveLength(2);
+    expect(screen.queryByText("Abzeichen")).toBeNull();
+    expect(screen.queryByText("Favoriten")).toBeNull();
+    expect(screen.queryByRole("switch", { name: /Follower-Zahlen/i })).toBeNull();
     expect(screen.getByText(/Versorgung, Mengen, Dosis, Charge, Apotheke und Notizen bleiben privat/i)).toBeTruthy();
     expect(screen.queryByText("Öffentliche Lieblingsstrains ohne Bestand, Charge oder Apotheke.")).toBeNull();
   });
 
-  it("can expand privacy block details", () => {
+  it("can expand the remaining privacy controls", () => {
     render(
       <PublicProfilePreviewCard profile={profileFixture} disabled={false} onPreferenceChange={vi.fn()} />
     );
 
     fireEvent.click(screen.getByRole("button", { name: /Details anzeigen/i }));
 
+    expect(screen.getByText("Abzeichen")).toBeTruthy();
+    expect(screen.getByText("Favoriten")).toBeTruthy();
+    expect(screen.getByRole("switch", { name: /Follower-Zahlen/i })).toBeTruthy();
     expect(screen.getByText("Öffentliche Lieblingsstrains ohne Bestand, Charge oder Apotheke.")).toBeTruthy();
   });
 
@@ -47,6 +50,7 @@ describe("PublicProfilePreviewCard", () => {
       />
     );
 
+    fireEvent.click(screen.getByRole("button", { name: /Details anzeigen/i }));
     fireEvent.click(screen.getByRole("switch", { name: /Favoriten/i }));
 
     expect(onPreferenceChange).toHaveBeenCalledWith("show_favorites", true);
@@ -63,9 +67,26 @@ describe("PublicProfilePreviewCard", () => {
       />
     );
 
+    fireEvent.click(screen.getByRole("button", { name: /Details anzeigen/i }));
     fireEvent.click(screen.getByRole("switch", { name: /Follower-Zahlen/i }));
 
     expect(onPreferenceChange).toHaveBeenCalledWith("show_follow_counts", false);
+  });
+
+  it("positions switch knobs left when off and right when on", () => {
+    render(
+      <PublicProfilePreviewCard profile={profileFixture} disabled={false} onPreferenceChange={vi.fn()} />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Details anzeigen/i }));
+
+    const favoriteKnob = screen.getByRole("switch", { name: /Favoriten/i }).querySelector("span");
+    const badgeKnob = screen.getByRole("switch", { name: /Abzeichen/i }).querySelector("span");
+
+    expect(favoriteKnob?.className).toContain("left-0");
+    expect(favoriteKnob?.className).toContain("translate-x-0.5");
+    expect(badgeKnob?.className).toContain("left-0");
+    expect(badgeKnob?.className).toContain("translate-x-5");
   });
 });
 
