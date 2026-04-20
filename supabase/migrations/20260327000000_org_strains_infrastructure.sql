@@ -39,7 +39,7 @@ CREATE POLICY "Org managers can create org strains"
 -- 8. Users can update their own public strains
 CREATE POLICY "Users can update own public strains"
   ON strains FOR UPDATE USING (
-    auth.uid() = created_by
+    (auth.uid())::text = created_by
     AND organization_id IS NULL
   );
 
@@ -52,7 +52,7 @@ CREATE POLICY "Org managers can update org strains"
 -- 10. Users can delete their own public strains
 CREATE POLICY "Users can delete own public strains"
   ON strains FOR DELETE USING (
-    auth.uid() = created_by
+    (auth.uid())::text = created_by
     AND organization_id IS NULL
   );
 

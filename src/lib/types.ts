@@ -556,16 +556,65 @@ export interface CscBatch {
   updated_at: string;
 }
 
-export interface CscDispensation {
+// New hybrid Tier-1 dispensation record (table: `dispensations`).
+export interface Tier1Dispensation {
   id: string;
   organization_id: string;
-  batch_id: string;
   member_id: string;
   dispensed_by: string;
+  grams: number;
+  thc_percent: number | null;
+  dispensed_at: string;
+  created_at: string;
+}
+
+export interface Tier1DispensationInsert {
+  organization_id: string;
+  member_id: string;
+  dispensed_by: string;
+  grams: number;
+  thc_percent?: number | null;
+  dispensed_at?: string;
+}
+
+// Backward-compatible aliases for existing imports in this branch.
+export type CscDispensation = Tier1Dispensation;
+export type CscDispensationInsert = Tier1DispensationInsert;
+
+// Legacy CSC inventory dispensation record (table: `csc_dispensations`).
+// Kept explicit to avoid confusion with the hybrid Tier-1 dispensations table.
+export interface CscInventoryDispensation {
+  id: string;
+  organization_id: string;
+  member_id: string;
+  batch_id: string;
   amount_grams: number;
   dispensed_at: string;
-  notes: string | null;
+  dispensed_by: string;
+  reason: string | null;
   created_at: string;
+}
+
+export interface CscPreventionConsent {
+  id: string;
+  organization_id: string;
+  member_id: string;
+  granted_to_role: 'präventionsbeauftragter';
+  data_scopes: string[];
+  granted_at: string;
+  expires_at: string | null;
+  revoked_at: string | null;
+  created_at: string;
+}
+
+export interface CscPreventionConsentInsert {
+  organization_id: string;
+  member_id: string;
+  granted_to_role?: 'präventionsbeauftragter';
+  data_scopes?: string[];
+  granted_at?: string;
+  expires_at?: string | null;
+  revoked_at?: string | null;
 }
 
 export interface CscDestruction {

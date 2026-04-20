@@ -17,10 +17,10 @@ CREATE POLICY "Authenticated users can view all profiles"
 DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile"
   ON profiles FOR UPDATE
-  USING (auth.uid() = id);
+  USING ((auth.uid())::text = id);
 
 -- Ensure user insert policy exists
 DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
 CREATE POLICY "Users can insert own profile"
   ON profiles FOR INSERT
-  WITH CHECK (auth.uid() = id);
+  WITH CHECK ((auth.uid())::text = id);
