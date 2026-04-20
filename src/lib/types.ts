@@ -269,6 +269,72 @@ export interface PublicProfilePreview {
   chips: string[];
 }
 
+export interface PublicProfilePreferences {
+  user_id: string;
+  show_badges: boolean;
+  show_favorites: boolean;
+  show_tried_strains: boolean;
+  show_reviews: boolean;
+  show_activity_feed: boolean;
+  show_follow_counts: boolean;
+  default_review_public: boolean;
+}
+
+export type PublicProfileBlockKey =
+  | "profile"
+  | "badges"
+  | "favorites"
+  | "tried_strains"
+  | "reviews"
+  | "activity";
+
+export interface PublicProfileBlockState {
+  key: PublicProfileBlockKey;
+  label: string;
+  state: "public" | "private";
+  description: string;
+}
+
+export interface PublicProfileFavorite {
+  id: string;
+  name: string;
+  slug: string;
+  image_url: string | null;
+}
+
+export interface PublicProfileRating {
+  id: string;
+  strain_id: string;
+  strain_name: string;
+  strain_slug: string;
+  overall_rating: number;
+  public_review_text: string | null;
+  created_at: string;
+}
+
+export interface SanitizedPublicProfile {
+  profile: {
+    id: string;
+    username: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    bio: string | null;
+    created_at: string;
+  };
+  preferences: PublicProfilePreferences;
+  blocks: PublicProfileBlockState[];
+  counts: {
+    followers: number;
+    following: number;
+    ratings: number;
+  };
+  badges: ProfileBadge[];
+  favorites: PublicProfileFavorite[];
+  triedStrains: PublicProfileFavorite[];
+  reviews: PublicProfileRating[];
+  activities: UserActivity[];
+}
+
 export interface ProfileViewModel {
   identity: ProfileIdentity;
   stats: ProfileStats;
@@ -277,6 +343,8 @@ export interface ProfileViewModel {
   featuredBadgeIds: string[];
   activity: ProfileActivityItem[];
   preview: PublicProfilePreview;
+  publicPreferences: PublicProfilePreferences;
+  publicBlocks: PublicProfileBlockState[];
 }
 
 // Database row types for Supabase
@@ -287,6 +355,7 @@ export interface UserStrainRelation {
   is_wishlisted: boolean;
   favorite_rank: number | null;
   position: number | null;
+  public_status?: "private" | "tried" | "favorite";
   created_at?: string;
 }
 
@@ -308,8 +377,33 @@ export interface RatingRow {
   consumption_method: string | null;
   location: string | null;
   image_url: string | null;
-  is_public?: boolean;
+  is_public: boolean;
+  public_review_text?: string | null;
   created_at: string;
+}
+
+export type QuickLogEffectChip = "ruhe" | "fokus" | "schlaf" | "kreativitaet" | "appetit";
+export type QuickLogSideEffect = "trocken" | "unruhig" | "kopflastig" | "couchlock";
+export type QuickLogStatus = "nochmal" | "situativ" | "nicht_nochmal";
+
+export interface ConsumptionLogRow {
+  id: string;
+  user_id: string;
+  strain_id: string | null;
+  consumption_method: "vaporizer" | "joint" | "bong" | "pipe" | "edible" | "oil" | "topical" | "other";
+  amount_grams: number | null;
+  subjective_notes: string | null;
+  mood_before: string | null;
+  mood_after: string | null;
+  consumed_at: string;
+  effect_chips: QuickLogEffectChip[];
+  side_effects: QuickLogSideEffect[];
+  overall_rating: number | null;
+  private_status: QuickLogStatus | null;
+  private_note: string | null;
+  setting_context: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // Social Features Types
@@ -532,16 +626,64 @@ export interface CscBatch {
   updated_at: string;
 }
 
-export interface CscDispensation {
+// New hybrid Tier-1 dispensation record (table: `dispensations`).
+export interface Tier1Dispensation {
   id: string;
   organization_id: string;
-  batch_id: string;
   member_id: string;
   dispensed_by: string;
+  grams: number;
+  thc_percent: number | null;
+  dispensed_at: string;
+  created_at: string;
+}
+
+export interface Tier1DispensationInsert {
+  organization_id: string;
+  member_id: string;
+  dispensed_by: string;
+  grams: number;
+  thc_percent?: number | null;
+  dispensed_at?: string;
+}
+
+// Backward-compatible aliases for existing imports in this branch.
+export type CscDispensation = Tier1Dispensation;
+export type CscDispensationInsert = Tier1DispensationInsert;
+
+// Legacy CSC inventory dispensation record (table: `csc_dispensations`).
+// Kept explicit to avoid confusion with the hybrid Tier-1 dispensations table.
+export interface CscInventoryDispensation {
+  id: string;
+  organization_id: string;
+  member_id: string;
+  batch_id: string;
   amount_grams: number;
   dispensed_at: string;
-  notes: string | null;
+  dispensed_by: string;
+  reason: string | null;
   created_at: string;
+}
+export interface CscPreventionConsent {
+  id: string;
+  organization_id: string;
+  member_id: string;
+  granted_to_role: 'präventionsbeauftragter';
+  data_scopes: string[];
+  granted_at: string;
+  expires_at: string | null;
+  revoked_at: string | null;
+  created_at: string;
+}
+
+export interface CscPreventionConsentInsert {
+  organization_id: string;
+  member_id: string;
+  granted_to_role?: 'präventionsbeauftragter';
+  data_scopes?: string[];
+  granted_at?: string;
+  expires_at?: string | null;
+  revoked_at?: string | null;
 }
 
 export interface CscDestruction {

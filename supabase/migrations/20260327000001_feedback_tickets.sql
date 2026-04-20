@@ -27,7 +27,7 @@ CREATE POLICY "Anyone can view ticket approvals"
 -- RLS: users can delete their own approvals (un-approve)
 DROP POLICY IF EXISTS "Users can delete own approvals" ON ticket_approvals;
 CREATE POLICY "Users can delete own approvals"
-  ON ticket_approvals FOR DELETE USING (auth.uid() = user_id);
+  ON ticket_approvals FOR DELETE USING ((auth.uid())::text = user_id);
 
 CREATE INDEX IF NOT EXISTS idx_ticket_approvals_ticket ON ticket_approvals(ticket_id);
 CREATE INDEX IF NOT EXISTS idx_ticket_approvals_user ON ticket_approvals(user_id);
@@ -53,7 +53,7 @@ CREATE POLICY "Authenticated users can view all feedback tickets"
 -- New: creator or pascal can update tickets
 CREATE POLICY "Creator or pascal can update feedback tickets"
   ON feedback_tickets FOR UPDATE USING (
-    auth.uid() = user_id
+    (auth.uid())::text = user_id
     OR auth.uid() = '236a110e-0dbe-4500-97db-edf100158e4f'
   );
 

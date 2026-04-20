@@ -18,13 +18,13 @@ CREATE POLICY "Authenticated users can add custom strains"
 DROP POLICY IF EXISTS "Users can update own custom strains" ON strains;
 CREATE POLICY "Users can update own custom strains"
   ON strains FOR UPDATE
-  USING (auth.uid() = created_by AND is_custom = true);
+  USING ((auth.uid())::text = created_by AND is_custom = true);
 
 -- 5. Update RLS policy to allow users to delete their own custom strains
 DROP POLICY IF EXISTS "Users can delete own custom strains" ON strains;
 CREATE POLICY "Users can delete own custom strains"
   ON strains FOR DELETE
-  USING (auth.uid() = created_by AND is_custom = true);
+  USING ((auth.uid())::text = created_by AND is_custom = true);
 
 -- 6. Create index for filtering custom strains
 CREATE INDEX IF NOT EXISTS idx_strains_is_custom ON strains(is_custom) WHERE is_custom = true;
@@ -64,11 +64,11 @@ $$ LANGUAGE plpgsql;
 CREATE TABLE IF NOT EXISTS strain_reports (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   strain_id UUID REFERENCES strains(id) ON DELETE CASCADE NOT NULL,
-  reporter_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  reporter_id TEXT REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   reason TEXT NOT NULL CHECK (reason IN ('spam', 'inappropriate', 'duplicate', 'copyright', 'other')),
   description TEXT,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'dismissed', 'actioned')),
-  reviewed_by UUID REFERENCES profiles(id),
+  reviewed_by TEXT REFERENCES profiles(id),
   reviewed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT now(),
   UNIQUE(strain_id, reporter_id)
@@ -83,7 +83,7 @@ CREATE POLICY "Reports are viewable by everyone"
 -- Policy: authenticated users can create reports
 CREATE POLICY "Users can report strains"
   ON strain_reports FOR INSERT
-  WITH CHECK (auth.uid() IS NOT NULL AND auth.uid() = reporter_id);
+  WITH CHECK (auth.uid() IS NOT NULL AND (auth.uid())::text = reporter_id);
 
 -- Policy: admins can update report status
 CREATE POLICY "Admins can update reports"

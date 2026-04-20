@@ -419,8 +419,9 @@ export default function StrainDetailPageClient() {
         onClick: () => setShowShareModal(true),
       });
 
-    } catch (error: unknown) {
-      console.error("Save rating error:", error);
+    } catch (error: any) {
+      const errorDetails = error?.message ? error.message : JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
+      console.error("Save rating error details:", errorDetails, error);
       toastError("Error: " + getErrorMessage(error, "Bewertung konnte nicht gespeichert werden."));
     } finally {
       setIsSaving(false);
@@ -697,16 +698,16 @@ export default function StrainDetailPageClient() {
                   {normalizedTerpenes.length > 0 && (
                     <div className="pt-4 border-t border-[var(--border)]/50">
                       <div className="flex items-center justify-between mb-2">
-                      <p className="text-[9px] font-black uppercase text-[var(--muted-foreground)]">Terpene</p>
-                      <button
-                        onClick={() => setShowShareModal(true)}
-                        className="flex items-center gap-1 text-[9px] text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors"
-                        title="Chemische Analyse teilen"
-                      >
-                        <Share2 className="w-3 h-3" />
-                        <span>Teilen</span>
-                      </button>
-                    </div>
+                        <p className="text-[9px] font-black uppercase text-[var(--muted-foreground)]">Terpene</p>
+                        <button
+                          onClick={() => setShowShareModal(true)}
+                          className="flex items-center gap-1 text-[9px] text-[var(--muted-foreground)] hover:text-[#00F5FF] transition-colors"
+                          title="Chemische Analyse teilen"
+                        >
+                          <Share2 className="w-3 h-3" />
+                          <span>Teilen</span>
+                        </button>
+                      </div>
                       {strain.terpenes && strain.terpenes.length >= 3 ? (
                         <TerpeneRadarChart
                           terpenes={strain.terpenes}

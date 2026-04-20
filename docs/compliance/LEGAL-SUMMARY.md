@@ -52,6 +52,14 @@
 | Analytics Dashboard | 🟡 Mittel | Nur aggregierte Daten, keine individuellen Konsumdaten |
 | "Momente" / Stories | 🟢 Niedrig | ✅ Okay wenn öffentliche Inhalte |
 
+### Hybrid Tier Controls
+
+Die folgende Datenaufteilung ist im Code und in der Datenbank absichtlich eng begrenzt:
+
+- Tier-1 Limits werden durch einen Postgres `BEFORE INSERT` Trigger mit dem Namen `enforce_kcang_dispensation_limits` erzwungen.
+- Tier-2 Rohzugriff bleibt grundsätzlich owner-only und ist nur mit aktivem Prevention-Consent freigegeben.
+- Club-Analytics werden ausschließlich über aggregierte Ansichten mit k-Anonymity-Schwelle `>= 10` bereitgestellt.
+
 ---
 
 ## 🎯 Struktur-Empfehlung

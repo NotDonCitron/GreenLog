@@ -4,7 +4,9 @@
 
 CREATE TABLE IF NOT EXISTS feedback_tickets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  -- TEXT because GreenLog auth IDs are Clerk/Supabase subject strings.
+  -- No FK here: this migration runs before profiles exists in the current chain.
+  user_id TEXT,
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   status TEXT CHECK (status IN ('open', 'in_progress', 'resolved', 'closed')) DEFAULT 'open',
@@ -24,14 +26,13 @@ CREATE POLICY "Anyone can create tickets"
   ON feedback_tickets FOR INSERT WITH CHECK (true);
 
 -- 2. Nur Admins (oder der Ersteller) können Tickets sehen
--- Hinweis: Hier kannst du deine User-ID hart codieren oder eine Admin-Rolle nutzen.
--- Für den Anfang: Der Ersteller sieht seine eigenen Tickets, Admins sehen alles.
+-- Früh-migrationssicher ohne Abhängigkeit auf profiles.
 CREATE POLICY "Users can view own tickets"
-  ON feedback_tickets FOR SELECT USING (auth.uid() = user_id OR auth.uid() IN (SELECT id FROM profiles WHERE username = 'phhttps'));
+  ON feedback_tickets FOR SELECT USING ((auth.uid())::text = user_id);
 
--- 3. Nur Admins können Tickets aktualisieren (Status ändern etc.)
-CREATE POLICY "Admins can update tickets"
-  ON feedback_tickets FOR UPDATE USING (auth.uid() IN (SELECT id FROM profiles WHERE username = 'phhttps'));
+-- 3. Ersteller können ihre eigenen Tickets aktualisieren
+CREATE POLICY "Users can update own tickets"
+  ON feedback_tickets FOR UPDATE USING ((auth.uid())::text = user_id);
 
 -- Indexes für Performance
 CREATE INDEX IF NOT EXISTS idx_tickets_user ON feedback_tickets(user_id);

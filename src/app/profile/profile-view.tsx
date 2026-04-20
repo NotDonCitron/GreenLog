@@ -6,20 +6,14 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
-  Activity,
   AlertTriangle,
   ArrowRight,
   ArrowLeft,
-  Eye,
-  EyeOff,
-  Globe2,
   Heart,
   Leaf,
   Loader2,
-  Lock,
   LogOut,
   LogIn,
-  Pencil,
   Shield,
   Settings,
   Sparkles,
@@ -63,20 +57,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BadgeCard } from "@/components/ui/badge-card";
+import { PublicProfilePreviewCard } from "@/components/profile/public-profile-preview-card";
 import { supabase } from "@/lib/supabase/client";
 import { ALL_BADGES } from "@/lib/badges";
+import { buildPublicProfileBlocks, withDefaultPublicPreferences } from "@/lib/public-profile";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import type {
-  ProfileActivityItem,
   ProfileBadge,
   ProfileFavorite,
-  ProfileIdentity,
   ProfileStats,
   ProfileViewModel,
-  PublicProfilePreview,
-  Strain,
+  PublicProfilePreferences,
 } from "@/lib/types";
+import type { PublicProfilePreferenceToggleKey } from "@/components/profile/public-profile-preview-card";
 
 const BADGE_ICONS: Record<string, LucideIcon> = {
   starter: Sprout,
@@ -150,6 +144,7 @@ function resolveBadgeIcon(iconKey: string) {
 
 function createFallbackViewModel(isDemoMode: boolean): ProfileViewModel {
   const stats: ProfileStats = { totalStrains: 0, totalGrows: 0, favoriteCount: 0, unlockedBadgeCount: 0, xp: 0, level: 1, progressToNextLevel: 0, followers: 0, following: 0 };
+  const publicPreferences = withDefaultPublicPreferences("guest", null);
   return {
     identity: { email: null, username: "@guest", displayName: "Guest", initials: "GU", profileVisibility: "private", tagline: "", bio: null },
     stats,
@@ -157,7 +152,9 @@ function createFallbackViewModel(isDemoMode: boolean): ProfileViewModel {
     badges: [],
     featuredBadgeIds: [],
     activity: [],
-    preview: { title: "Privat", description: "", chips: [] }
+    preview: { title: "Privat", description: "", chips: [] },
+    publicPreferences,
+    publicBlocks: buildPublicProfileBlocks(publicPreferences),
   };
 }
 
@@ -192,7 +189,7 @@ export default function ProfilePage() {
   const [showBadgeShowcase, setShowBadgeShowcase] = useState(false);
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const [userBadges, setUserBadges] = useState<Array<{ badge_id: string; badges?: Partial<import("@/lib/badges").BadgeDefinition> }>>([]);
-  const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
+  const [isSavingPublicPreferences, setIsSavingPublicPreferences] = useState(false);
   const currentUserId = user?.id ?? "";
 
   useEffect(() => {
@@ -391,33 +388,6 @@ export default function ProfilePage() {
     }
   };
 
-  const handleToggleVisibility = async () => {
-    if (!user || isDemoMode || isTogglingVisibility) return;
-
-    setIsTogglingVisibility(true);
-
-    // Optimistic update - store original visibility
-    const wasPublic = identity.profileVisibility === "public";
-    const nextVisibility = wasPublic ? "private" : "public";
-
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ profile_visibility: nextVisibility })
-        .eq("id", user.id);
-
-      if (error) throw error;
-
-      toastSuccess(`Profil ist nun ${nextVisibility === "public" ? "öffentlich" : "privat"}`);
-      await refetchProfile();
-    } catch (e) {
-      console.error("Visibility toggle error:", e);
-      toastError("Fehler beim Ändern der Sichtbarkeit. Bitte versuche es erneut.");
-    } finally {
-      setIsTogglingVisibility(false);
-    }
-  };
-
   const handleBadgeToggle = (badgeId: string) => {
     setSelectedBadges(prev => {
       if (prev.includes(badgeId)) {
@@ -426,6 +396,36 @@ export default function ProfilePage() {
       if (prev.length >= 4) return prev; // Max 4
       return [...prev, badgeId];
     });
+  };
+
+  const handlePublicPreferenceChange = async (
+    key: PublicProfilePreferenceToggleKey,
+    value: boolean
+  ) => {
+    if (!user || isDemoMode || isSavingPublicPreferences || !profileData) return;
+
+    setIsSavingPublicPreferences(true);
+    try {
+      const nextPreferences: PublicProfilePreferences = {
+        ...profileData.publicPreferences,
+        user_id: user.id,
+        [key]: value,
+      };
+
+      const { error } = await supabase
+        .from("user_public_preferences")
+        .upsert(nextPreferences, { onConflict: "user_id" });
+
+      if (error) throw error;
+
+      toastSuccess("Öffentliches Profil aktualisiert");
+      await refetchProfile();
+    } catch (error) {
+      console.error("Public preference update error:", error);
+      toastError("Öffentliches Profil konnte nicht aktualisiert werden.");
+    } finally {
+      setIsSavingPublicPreferences(false);
+    }
   };
 
   // Show loading while auth is hydrating
@@ -531,7 +531,6 @@ export default function ProfilePage() {
   }
 
   const { identity, stats, badges } = profileData;
-  const isPublic = identity.profileVisibility === "public";
   const unlockedBadgeById = new Map(badges.map((badge) => [badge.id, badge]));
   const displayedBadgeIds = (selectedBadges.length > 0 ? selectedBadges : badges.slice(0, 4).map((badge) => badge.id))
     .filter((badgeId, index, list) => list.indexOf(badgeId) === index && unlockedBadgeById.has(badgeId))
@@ -783,30 +782,12 @@ export default function ProfilePage() {
           )}
         </section>
 
-        {/* Visibility Toggle */}
-        <section className="bg-[var(--card)] rounded-2xl p-5 border border-[var(--border)]/50">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h3 className="text-sm font-black uppercase tracking-widest text-[var(--foreground)] font-display">Profil Sichtbarkeit</h3>
-              <p className="text-[10px] text-[var(--muted-foreground)]">{isPublic ? "Dein Profil ist für alle sichtbar" : "Nur du siehst dein Profil"}</p>
-            </div>
-            <button
-              onClick={handleToggleVisibility}
-              disabled={isTogglingVisibility}
-              className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${isPublic
-                ? 'bg-[#2FF801]/10 border-[#2FF801]/30 text-[#2FF801]'
-                : 'bg-[var(--muted)] border-[var(--border)]/50 text-[var(--muted-foreground)]'
-                } ${isTogglingVisibility ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80'}`}
-            >
-              {isTogglingVisibility ? (
-                <Loader2 size={20} className="animate-spin" />
-              ) : isPublic ? (
-                <Eye size={20} />
-              ) : (
-                <EyeOff size={20} />
-              )}
-            </button>
-          </div>
+        <section className="space-y-3">
+          <PublicProfilePreviewCard
+            profile={profileData}
+            disabled={isSavingPublicPreferences}
+            onPreferenceChange={handlePublicPreferenceChange}
+          />
         </section>
 
         {/* Logout */}
