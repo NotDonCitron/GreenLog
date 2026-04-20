@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useCallback, lazy, useRef } from "react";
+import { useState, useEffect, Suspense, useCallback, lazy, useRef, useMemo } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
@@ -12,7 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Strain, StrainSource } from "@/lib/types";
 import { useCollection } from "@/hooks/useCollection";
-const CreateStrainModal = lazy(() => import("@/components/strains/create-strain-modal").then(m => ({ default: m.CreateStrainModal })));
+import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { StrainCard } from "@/components/strains/strain-card";
 const FilterPanel = lazy(() => import("@/components/strains/filter-panel").then(m => ({ default: m.FilterPanel })));
 import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";
@@ -87,13 +87,18 @@ function StrainsPageContent() {
   const [filterCbdMax, setFilterCbdMax] = useState(CBD_RANGE.max);
   const [filterFlavors, setFilterFlavors] = useState<string[]>([]);
   const searchParams = useSearchParams();
-  const compareSlugs = (searchParams.get("compare")?.split(",").filter(Boolean) || []);
+  const compareSlugs = useMemo(
+    () => searchParams.get("compare")?.split(",").filter(Boolean) || [],
+    [searchParams],
+  );
   const { collectedIds } = useCollection();
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const [totalStrainCount, setTotalStrainCount] = useState(0);
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(true);
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const lastScrollY = useRef(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const hasCompareSelection = compareSlugs.length >= 2;
 
   // Debounce search input by 300ms to avoid excessive Supabase queries
   useEffect(() => {
@@ -423,7 +428,7 @@ function StrainsPageContent() {
   }, []);
 
   return (
-    <main ref={scrollContainerRef} className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32 overflow-y-auto">
+    <main ref={scrollContainerRef} className={`min-h-screen bg-[var(--background)] text-[var(--foreground)] overflow-y-auto ${hasCompareSelection ? "pb-52" : "pb-32"}`}>
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
@@ -630,43 +635,69 @@ function StrainsPageContent() {
         )}
       </div>
 
-      {compareSlugs.length >= 2 && (
-        <div className="fixed bottom-24 right-6 z-50">
-          <div className="bg-[#121212] border border-[#2FF801]/30 rounded-2xl p-3 shadow-lg shadow-[#2FF801]/10 backdrop-blur-md mb-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Scale size={14} className="text-[#2FF801]" />
-              <span className="text-xs font-bold text-white">
-                {compareSlugs.length} Strain{compareSlugs.length > 1 ? "s" : ""} gewählt
-              </span>
-              <button onClick={clearCompare} className="ml-1 p-0.5 rounded text-white/40 hover:text-white/70 transition-colors">
-                <X size={12} />
+      {hasCompareSelection && (
+        <div data-testid="strain-compare-bar" className="fixed bottom-24 left-4 right-4 z-40">
+          <div className="bg-[#121212]/95 border border-[#2FF801]/30 rounded-2xl p-3 shadow-lg shadow-[#2FF801]/10 backdrop-blur-md">
+            <div className="flex items-center gap-3">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
+                <Scale size={16} className="shrink-0 text-[#2FF801]" />
+                <span className="truncate text-sm font-black text-white">
+                  {compareSlugs.length} Strain{compareSlugs.length > 1 ? "s" : ""} gewählt
+                </span>
+              </div>
+              <Link
+                href={`/strains/compare?slugs=${compareSlugs.join(",")}`}
+                className="flex shrink-0 items-center justify-center gap-1 rounded-xl bg-gradient-to-r from-[#2FF801] to-[#2fe000] px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-black transition-all hover:opacity-90"
+              >
+                <Scale size={12} />
+                Vergleichen
+              </Link>
+              <button
+                onClick={clearCompare}
+                aria-label="Vergleichsauswahl leeren"
+                className="shrink-0 rounded-full p-1.5 text-white/45 transition-colors hover:bg-white/10 hover:text-white/80"
+              >
+                <X size={14} />
               </button>
             </div>
-            <Link
-              href={`/strains/compare?slugs=${compareSlugs.join(",")}`}
-              className="block w-full px-3 py-2 rounded-xl text-[10px] font-bold bg-gradient-to-r from-[#2FF801] to-[#2fe000] text-black hover:opacity-90 transition-all flex items-center justify-center gap-1"
-            >
-              <Scale size={10} />
-              Vergleichen
-            </Link>
           </div>
         </div>
       )}
 
-      <div className="fixed bottom-24 right-6 z-50 flex flex-col gap-4">
-        <Link href="/scanner">
-          <button aria-label="Strain-Scanner öffnen" className="w-14 h-14 bg-gradient-to-br from-[#00F5FF] to-[#00e5ee] hover:opacity-90 text-black rounded-full flex items-center justify-center shadow-lg shadow-[#00F5FF]/30 transition-transform active:scale-95">
-            <Camera size={28} />
-          </button>
-        </Link>
-        <CreateStrainModal
-          onSuccess={handleStrainCreated}
-          trigger={
-            <button aria-label="Neue Sorte erstellen" className="w-14 h-14 bg-gradient-to-br from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black rounded-full flex items-center justify-center shadow-lg shadow-[#2FF801]/30 transition-transform active:scale-95">
-              <Plus size={28} />
-            </button>
-          }
-        />
+      <div
+        data-testid="strain-action-menu"
+        className={`fixed right-6 z-50 flex flex-col items-end gap-3 transition-[bottom] duration-300 ${hasCompareSelection ? "bottom-44" : "bottom-24"}`}
+      >
+        {isActionMenuOpen && (
+          <div className="flex flex-col items-end gap-2">
+            <Link href="/scanner" onClick={() => setIsActionMenuOpen(false)}>
+              <button aria-label="Strain per Foto hinzufügen" className="flex h-12 items-center gap-2 rounded-full bg-gradient-to-br from-[#00F5FF] to-[#00e5ee] px-4 text-xs font-black uppercase tracking-wider text-black shadow-lg shadow-[#00F5FF]/25 transition-transform active:scale-95">
+                <Camera size={20} />
+                Foto
+              </button>
+            </Link>
+            <CreateStrainModal
+              onSuccess={handleStrainCreated}
+              trigger={
+                <button
+                  aria-label="Strain manuell hinzufügen"
+                  className="flex h-12 items-center gap-2 rounded-full bg-gradient-to-br from-[#2FF801] to-[#2fe000] px-4 text-xs font-black uppercase tracking-wider text-black shadow-lg shadow-[#2FF801]/25 transition-transform active:scale-95"
+                >
+                  <Plus size={20} />
+                  Manuell
+                </button>
+              }
+            />
+          </div>
+        )}
+        <button
+          aria-label="Strain hinzufügen"
+          aria-expanded={isActionMenuOpen}
+          onClick={() => setIsActionMenuOpen((open) => !open)}
+          className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#2FF801] to-[#2fe000] text-black shadow-lg shadow-[#2FF801]/30 transition-transform active:scale-95"
+        >
+          <Plus size={30} className={`transition-transform duration-200 ${isActionMenuOpen ? "rotate-45" : "rotate-0"}`} />
+        </button>
       </div>
 
       <Suspense fallback={null}>

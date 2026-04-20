@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Globe, Wand2, Check, Loader2 } from "lucide-react";
+import { Plus, Check, Loader2 } from "lucide-react";
 import { Strain, StrainSource } from "@/lib/types";
 import { safeParsePercent } from "@/lib/strain-display";
 import { useEffect } from "react";
@@ -136,7 +136,6 @@ export function CreateStrainModal({ strain, onSuccess, trigger, organizationId }
     const { user } = useAuth();
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [isImporting, setIsImporting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const isEditMode = !!strain;
@@ -151,7 +150,6 @@ export function CreateStrainModal({ strain, onSuccess, trigger, organizationId }
     const [selectedTerpenes, setSelectedTerpenes] = useState<string[]>([]);
     const [selectedEffects, setSelectedEffects] = useState<string[]>([]);
     const [description, setDescription] = useState("");
-    const [leaflyUrl, setLeaflyUrl] = useState("");
     const [importedImageUrl, setImportedImageUrl] = useState<string | null>(null);
 
     // Effect to populate fields in edit mode
@@ -244,7 +242,6 @@ export function CreateStrainModal({ strain, onSuccess, trigger, organizationId }
         setSelectedTerpenes([]);
         setSelectedEffects([]);
         setDescription("");
-        setLeaflyUrl("");
         setImportedImageUrl(null);
         setError(null);
     };
@@ -324,123 +321,6 @@ export function CreateStrainModal({ strain, onSuccess, trigger, organizationId }
             }
 
             throw response.error;
-        }
-    };
-
-    const handleImportFromLeafly = async () => {
-        try {
-            const parsedUrl = new URL(leaflyUrl.trim());
-            const isValidLeaflyHost = parsedUrl.hostname === "leafly.com" || parsedUrl.hostname === "www.leafly.com";
-            const isValidStrainPath = parsedUrl.pathname.startsWith("/strains/");
-
-            if (!isValidLeaflyHost || !isValidStrainPath) {
-                setError("Bitte gib eine gültige Leafly-URL ein.");
-                return;
-            }
-        } catch {
-            setError("Bitte gib eine gültige Leafly-URL ein.");
-            return;
-        }
-
-        setIsImporting(true);
-        setError(null);
-
-        try {
-            const response = await fetch("/api/import/leafly", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ url: leaflyUrl.trim() }),
-            });
-
-            if (!response.ok) throw new Error("Import fehlgeschlagen");
-
-            const data = await response.json();
-
-            if (data.name) setName(data.name);
-            if (data.type) setType(data.type === "hybrid" || data.type === "sativa" || data.type === "indica" ? data.type : "hybrid");
-
-            if (data.thc !== undefined && data.thc !== null) setThcEstimate(String(data.thc));
-            if (data.cbd !== undefined && data.cbd !== null) setCbdEstimate(String(data.cbd));
-
-            if (data.description) setDescription(data.description.replace(/<[^>]*>/g, '').slice(0, 500));
-            if (typeof data.image_url === "string" && data.image_url.trim()) setImportedImageUrl(data.image_url);
-
-            // Extensive Mapping Dictionary
-            const TASTE_MAP: Record<string, string[]> = {
-                "Erdig": ["earthy", "wood", "pine", "soil", "musty"],
-                "Süß": ["sweet", "candy", "sugar", "vanilla", "honey", "caramel"],
-                "Zitrone": ["citrus", "lemon", "lime", "orange", "grapefruit", "zest", "sour"],
-                "Kiefer": ["pine", "pinene", "forest", "wood"],
-                "Beeren": ["berry", "blueberry", "grape", "strawberry", "cherry", "raspberry"],
-                "Würzig": ["spicy", "pepper", "clove", "herbal", "mint", "sage"],
-                "Fruchtig": ["fruity", "tropical", "mango", "pineapple", "apple", "peach", "pear"],
-                "Diesel": ["diesel", "gas", "chemical", "skunk", "pungent", "fuel"],
-                "Skunk": ["skunk", "pungent"],
-                "Minze": ["mint", "menthol", "peppermint"],
-                "Kaffee": ["coffee", "roasted", "dark"],
-                "Nussig": ["nutty", "chestnut", "almond"],
-                "Vanille": ["vanilla", "cream"],
-                "Blumig": ["flowery", "floral", "lavender", "rose", "violet"],
-                "Käse": ["cheese", "blue cheese", "pungent"],
-                "Grapefruit": ["grapefruit", "citrus"],
-                "Tropisch": ["tropical", "pineapple", "mango", "exotic"],
-                "Honig": ["honey", "syrup"],
-                "Chemisch": ["chemical", "ammonia", "bleach"],
-                "Menthol": ["menthol", "cooling"]
-            };
-
-            const EFFECT_MAP: Record<string, string[]> = {
-                "Entspannt": ["relaxed", "calm", "couch-lock", "soothing", "body high"],
-                "Kreativ": ["creative", "inspired", "artistic", "abstract"],
-                "Glücklich": ["happy", "cheerful", "content"],
-                "Fokussiert": ["focused", "clear-headed", "attentive", "productive"],
-                "Euphörisch": ["euphoric", "uplifted", "blissful", "exhilarated"],
-                "Schläfrig": ["sleepy", "tired", "insomnia", "sedated", "drowsy"],
-                "Energisch": ["energetic", "active", "aroused", "motivated"],
-                "Gesprächig": ["talkative", "social", "chatty"],
-                "Hungrig": ["hungry", "munchies", "appetite"],
-                "Kichernd": ["giggly", "laughing"],
-                "Beruhigend": ["calming", "soothing", "anxiety", "relief"],
-                "Prickelnd": ["tingly", "body-buzz"],
-                "Motiviert": ["motivated", "productive"],
-                "Klar": ["clear", "mental clarity"]
-            };
-
-            const importedTasteValues = Array.isArray(data.flavors)
-                ? data.flavors
-                : Array.isArray(data.terpenes)
-                    ? data.terpenes
-                    : [];
-
-            if (importedTasteValues.length > 0) {
-                const foundTastes = TASTE_OPTIONS.filter(opt => {
-                    const keywords = TASTE_MAP[opt] || [];
-                    const normalizedImported = importedTasteValues.map((t: string) => t.toLowerCase());
-                    return normalizedImported.some((t: string) =>
-                        t.includes(opt.toLowerCase()) ||
-                        keywords.some(k => t.includes(k))
-                    );
-                });
-                setSelectedTerpenes(foundTastes);
-            }
-
-            if (Array.isArray(data.effects)) {
-                const foundEffects = EFFECT_OPTIONS.filter(opt => {
-                    const keywords = EFFECT_MAP[opt] || [];
-                    const normalizedImported = data.effects.map((e: string) => e.toLowerCase());
-                    return normalizedImported.some((e: string) =>
-                        e.includes(opt.toLowerCase()) ||
-                        keywords.some(k => e.includes(k))
-                    );
-                });
-                setSelectedEffects(foundEffects);
-            }
-
-        } catch (err) {
-            console.error("Import error:", err);
-            setError("Konnte Daten nicht von Leafly laden.");
-        } finally {
-            setIsImporting(false);
         }
     };
 
@@ -576,31 +456,6 @@ export function CreateStrainModal({ strain, onSuccess, trigger, organizationId }
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
-                    {/* Leafly Quick Import - Only show in CREATE mode */}
-                    {!isEditMode && (
-                        <div className="space-y-3 bg-[#00F5FF]/5 p-4 rounded-3xl border border-[#00F5FF]/20">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-[#00F5FF] flex items-center gap-2">
-                                <Globe size={12} /> Leafly Quick Import
-                            </Label>
-                            <div className="flex gap-2">
-                                <Input
-                                    value={leaflyUrl}
-                                    onChange={(e) => setLeaflyUrl(e.target.value)}
-                                    placeholder="https://www.leafly.com/strains/..."
-                                    className="bg-black/20 border-white/10 rounded-xl text-xs h-10 flex-1 focus:border-[#00F5FF]"
-                                />
-                                <Button
-                                    type="button"
-                                    onClick={handleImportFromLeafly}
-                                    disabled={isImporting || !leaflyUrl}
-                                    className="h-10 px-4 bg-[#00F5FF] text-black font-black uppercase text-[10px] rounded-xl hover:bg-[#00F5FF]/80 transition-all"
-                                >
-                                    {isImporting ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-[var(--foreground)]/60">Name *</Label>
