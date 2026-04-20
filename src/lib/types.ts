@@ -417,7 +417,7 @@ export interface Follow {
 export interface UserActivity {
   id: string;
   user_id: string;
-  activity_type: 'rating' | 'grow_started' | 'grow_completed' | 'badge_earned' | 'favorite_added' | 'strain_collected';
+  activity_type: 'rating' | 'grow_started' | 'grow_completed' | 'badge_earned' | 'favorite_added' | 'strain_collected' | 'strain_created';
   target_id: string;
   target_name: string;
   target_image_url?: string;
@@ -731,4 +731,21 @@ export interface Badge {
   category: string;
   criteria: Record<string, unknown>;
   created_at: string;
+}
+
+// Org community hub stats
+export interface OrgStats {
+  memberCount: number;
+  strainCount: number;
+  newestStrain: { id: string; name: string; slug: string } | null;
+}
+
+// Org activity feed item
+export interface OrgActivityItem {
+  id: string;
+  type: 'strain_created' | 'rating';
+  user: { displayName: string; username: string };
+  strain: { id: string; name: string; slug: string };
+  rating?: number;
+  createdAt: string;
 }
