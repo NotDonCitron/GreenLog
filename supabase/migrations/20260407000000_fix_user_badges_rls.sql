@@ -20,5 +20,5 @@ CREATE POLICY "Service role only for badge inserts" ON user_badges
   FOR INSERT TO anon, authenticated
   WITH CHECK (false);
 
--- SELECT and DELETE policies remain unchanged (auth.uid() = user_id)
+-- SELECT and DELETE policies remain unchanged ((auth.uid())::text = user_id)
 -- We only modified the INSERT policy to prevent direct client-side badge creation

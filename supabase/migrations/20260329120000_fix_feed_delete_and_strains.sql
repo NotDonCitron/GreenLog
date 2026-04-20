@@ -7,7 +7,7 @@
 DROP POLICY IF EXISTS "Users can delete own feed entries" ON community_feed;
 CREATE POLICY "Users can delete own feed entries"
   ON community_feed FOR DELETE USING (
-    auth.uid() = user_id
+    (auth.uid())::text = user_id
     OR EXISTS (
       SELECT 1 FROM organization_members
       WHERE organization_members.organization_id = community_feed.organization_id
@@ -24,5 +24,5 @@ CREATE POLICY "Strains viewable by all"
   ON strains FOR SELECT USING (
     organization_id IS NULL
     OR is_org_member(organization_id)
-    OR auth.uid() = created_by
+    OR (auth.uid())::text = created_by
   );

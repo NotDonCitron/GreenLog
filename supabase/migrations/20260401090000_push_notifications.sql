@@ -31,5 +31,5 @@ DROP POLICY IF EXISTS "Users can manage their own push subscriptions" ON push_su
 CREATE POLICY "Users can manage their own push subscriptions"
     ON push_subscriptions
     FOR ALL
-    USING (auth.uid() = user_id)
-    WITH CHECK (auth.uid() = user_id);
+    USING ((auth.uid())::text = user_id)
+    WITH CHECK ((auth.uid())::text = user_id);

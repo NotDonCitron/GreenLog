@@ -30,4 +30,4 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 DROP POLICY IF EXISTS "Users can create follows" ON follows;
 CREATE POLICY "Users can create follows"
   ON follows FOR INSERT
-  WITH CHECK (auth.uid() = follower_id);
+  WITH CHECK ((auth.uid())::text = follower_id);

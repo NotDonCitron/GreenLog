@@ -22,7 +22,7 @@ DROP POLICY IF EXISTS "Users can delete own ratings" ON ratings;
 --    - Org ratings = org members only
 CREATE POLICY "Ratings viewable by all"
   ON ratings FOR SELECT USING (
-    auth.uid() = user_id
+    (auth.uid())::text = user_id
     OR (organization_id IS NULL AND is_public = true)
     OR (organization_id IS NOT NULL AND is_org_member(organization_id))
   );
@@ -33,7 +33,7 @@ CREATE POLICY "Ratings viewable by all"
 --    - Public strain: no org required
 CREATE POLICY "Users can create ratings"
   ON ratings FOR INSERT WITH CHECK (
-    auth.uid() = user_id
+    (auth.uid())::text = user_id
     AND (
       -- Public strain rating (no org)
       (organization_id IS NULL AND strain_id IN (
@@ -46,8 +46,8 @@ CREATE POLICY "Users can create ratings"
 
 -- 7. Update: Own rating only
 CREATE POLICY "Users can update own ratings"
-  ON ratings FOR UPDATE USING (auth.uid() = user_id);
+  ON ratings FOR UPDATE USING ((auth.uid())::text = user_id);
 
 -- 8. Delete: Own rating only
 CREATE POLICY "Users can delete own ratings"
-  ON ratings FOR DELETE USING (auth.uid() = user_id);
+  ON ratings FOR DELETE USING ((auth.uid())::text = user_id);
