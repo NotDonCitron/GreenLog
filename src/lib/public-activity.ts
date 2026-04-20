@@ -29,3 +29,43 @@ export function buildPublicRatingActivityPayload(input: PublicRatingActivityInpu
     public_review_text: input.reviewText?.trim() || null,
   };
 }
+
+type PublicQuickLogActivityInput = {
+  rating: number;
+  strainSlug: string;
+  effectChips: unknown;
+  publicReviewText?: string | null;
+  sideEffects?: unknown;
+  privateStatus?: unknown;
+  privateNote?: unknown;
+  dose?: unknown;
+  batch?: unknown;
+  pharmacy?: unknown;
+  setting?: unknown;
+};
+
+const PUBLIC_QUICK_LOG_EFFECT_ALLOWLIST = new Set([
+  "ruhe",
+  "fokus",
+  "schlaf",
+  "kreativitaet",
+  "appetit",
+]);
+
+export function buildPublicQuickLogActivityPayload(input: PublicQuickLogActivityInput) {
+  const effect_chips = Array.isArray(input.effectChips)
+    ? input.effectChips
+        .filter((value): value is string => typeof value === "string")
+        .filter((value) => PUBLIC_QUICK_LOG_EFFECT_ALLOWLIST.has(value))
+    : [];
+
+  return {
+    rating: Number(input.rating.toFixed(1)),
+    strain_slug: input.strainSlug,
+    effect_chips,
+    public_review_text:
+      typeof input.publicReviewText === "string" && input.publicReviewText.trim().length > 0
+        ? input.publicReviewText.trim()
+        : null,
+  };
+}

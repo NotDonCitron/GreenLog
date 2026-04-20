@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { CscDispensation, CscDispensationInsert } from "@/lib/types";
+import type { Tier1Dispensation, Tier1DispensationInsert } from "@/lib/types";
 
 export type DispensationErrorCode =
   | "daily_limit"
@@ -44,8 +44,8 @@ export function mapDispensationError(error: unknown): DispensationError | null {
 
 export async function createDispensation(
   supabase: SupabaseClient,
-  input: CscDispensationInsert,
-): Promise<CscDispensation> {
+  input: Tier1DispensationInsert,
+): Promise<Tier1Dispensation> {
   const { data, error } = await supabase.from("dispensations").insert(input).select("*").single();
 
   if (error) {
@@ -58,5 +58,5 @@ export async function createDispensation(
     throw new Error("Failed to create dispensation");
   }
 
-  return data as CscDispensation;
+  return data as Tier1Dispensation;
 }
