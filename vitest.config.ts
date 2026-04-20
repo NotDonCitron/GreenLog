@@ -9,6 +9,7 @@ export default defineConfig({
     globals: true,
     include: [
       'src/**/*.{test,spec}.{ts,tsx}',
+      'tests/api/**/*.{test,spec}.{ts,tsx}',
       'tests/unit/**/*.{test,spec}.{ts,tsx}',
       'tests/integration/**/*.{test,spec}.{ts,tsx}',
       '!tests/e2e/**',
