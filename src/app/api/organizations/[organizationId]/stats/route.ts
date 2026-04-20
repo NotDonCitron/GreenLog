@@ -13,7 +13,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = getAuthenticatedClient(accessToken);
+    const supabase = await getAuthenticatedClient(accessToken);
 
     // Verify user is org member
     const { data: { user } } = await supabase.auth.getUser();

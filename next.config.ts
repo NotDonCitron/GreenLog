@@ -1,5 +1,20 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
+
+type SentryWrapper = (config: NextConfig, options?: Record<string, unknown>) => NextConfig;
+
+const withSentryConfig: SentryWrapper = (() => {
+  try {
+    // Keep build resilient when Sentry package is not installed in this branch.
+    const sentry = require("@sentry/nextjs");
+    if (typeof sentry?.withSentryConfig === "function") {
+      return sentry.withSentryConfig as SentryWrapper;
+    }
+  } catch {
+    // No-op fallback when @sentry/nextjs is unavailable.
+  }
+
+  return (config: NextConfig) => config;
+})();
 
 const nextConfig: NextConfig = {
   async headers() {
