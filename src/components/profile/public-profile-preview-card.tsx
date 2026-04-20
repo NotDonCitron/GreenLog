@@ -148,9 +148,40 @@ export function PublicProfilePreviewCard({ profile, disabled = false, onPreferen
             {profile.publicPreferences.show_follow_counts ? "Follower-Zahlen sichtbar" : "Follower-Zahlen verborgen"}
           </p>
         </div>
-        <p className="text-[11px] text-[var(--muted-foreground)]">
-          {hiddenBlocks} Bereiche bleiben privat
-        </p>
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {onPreferenceChange ? (
+            <div className="flex items-center gap-2">
+              <span className={cn(
+                "text-[10px] font-bold uppercase tracking-[0.16em]",
+                profile.publicPreferences.show_follow_counts ? "text-[#2FF801]" : "text-[var(--muted-foreground)]"
+              )}>
+                {profile.publicPreferences.show_follow_counts ? "Öffentlich" : "Privat"}
+              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={profile.publicPreferences.show_follow_counts}
+                aria-label="Follower-Zahlen öffentlich anzeigen"
+                disabled={disabled}
+                onClick={() => onPreferenceChange("show_follow_counts", !profile.publicPreferences.show_follow_counts)}
+                className={cn(
+                  "relative h-6 w-11 rounded-full border border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+                  profile.publicPreferences.show_follow_counts ? "bg-[#2FF801]" : "bg-[var(--muted)]"
+                )}
+              >
+                <span
+                  className={cn(
+                    "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
+                    profile.publicPreferences.show_follow_counts ? "translate-x-5" : "translate-x-0.5"
+                  )}
+                />
+              </button>
+            </div>
+          ) : null}
+          <p className="text-[11px] text-[var(--muted-foreground)]">
+            {hiddenBlocks} Bereiche bleiben privat
+          </p>
+        </div>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">

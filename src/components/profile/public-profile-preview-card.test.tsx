@@ -40,6 +40,22 @@ describe("PublicProfilePreviewCard", () => {
 
     expect(onPreferenceChange).toHaveBeenCalledWith("show_favorites", true);
   });
+
+  it("allows follower counts to be toggled separately", () => {
+    const onPreferenceChange = vi.fn();
+
+    render(
+      <PublicProfilePreviewCard
+        profile={profileFixture}
+        disabled={false}
+        onPreferenceChange={onPreferenceChange}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("switch", { name: /Follower-Zahlen/i }));
+
+    expect(onPreferenceChange).toHaveBeenCalledWith("show_follow_counts", false);
+  });
 });
 
 const profileFixture = {
