@@ -629,13 +629,43 @@ export interface CscBatch {
 export interface CscDispensation {
   id: string;
   organization_id: string;
-  batch_id: string;
   member_id: string;
   dispensed_by: string;
-  amount_grams: number;
+  grams: number;
+  thc_percent: number | null;
   dispensed_at: string;
-  notes: string | null;
   created_at: string;
+}
+
+export interface CscDispensationInsert {
+  organization_id: string;
+  member_id: string;
+  dispensed_by: string;
+  grams: number;
+  thc_percent?: number | null;
+  dispensed_at?: string;
+}
+
+export interface CscPreventionConsent {
+  id: string;
+  organization_id: string;
+  member_id: string;
+  granted_to_role: 'präventionsbeauftragter';
+  data_scopes: string[];
+  granted_at: string;
+  expires_at: string | null;
+  revoked_at: string | null;
+  created_at: string;
+}
+
+export interface CscPreventionConsentInsert {
+  organization_id: string;
+  member_id: string;
+  granted_to_role?: 'präventionsbeauftragter';
+  data_scopes?: string[];
+  granted_at?: string;
+  expires_at?: string | null;
+  revoked_at?: string | null;
 }
 
 export interface CscDestruction {
