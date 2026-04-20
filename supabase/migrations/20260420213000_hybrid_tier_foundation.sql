@@ -146,4 +146,239 @@ CREATE POLICY "Dispensations are insertable by org admins"
     )
   );
 
+-- ============================================================
+-- 5. TIER-2 RAW DATA: Reuse existing ratings and user_collection
+-- ============================================================
+ALTER TABLE public.ratings
+  ADD COLUMN IF NOT EXISTS side_effects TEXT[] NOT NULL DEFAULT '{}'::TEXT[],
+  ADD COLUMN IF NOT EXISTS effect_tags TEXT[] NOT NULL DEFAULT '{}'::TEXT[],
+  ADD COLUMN IF NOT EXISTS is_club_feedback BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE public.user_collection
+  ADD COLUMN IF NOT EXISTS prevention_opt_in BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS prevention_opt_in_at TIMESTAMPTZ;
+
+CREATE INDEX IF NOT EXISTS idx_ratings_org_club_feedback
+  ON public.ratings (organization_id, strain_id)
+  WHERE organization_id IS NOT NULL AND is_club_feedback = true;
+
+CREATE TABLE IF NOT EXISTS public.prevention_consents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+  member_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  granted_to_role TEXT NOT NULL DEFAULT 'präventionsbeauftragter'
+    CHECK (granted_to_role = 'präventionsbeauftragter'),
+  data_scopes TEXT[] NOT NULL DEFAULT '{}'::TEXT[],
+  granted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ,
+  revoked_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_prevention_consents_org_member_active
+  ON public.prevention_consents (organization_id, member_id)
+  WHERE revoked_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_prevention_consents_org_role_active
+  ON public.prevention_consents (organization_id, granted_to_role)
+  WHERE revoked_at IS NULL;
+
+ALTER TABLE public.prevention_consents ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Members can view own prevention consents" ON public.prevention_consents;
+CREATE POLICY "Members can view own prevention consents"
+  ON public.prevention_consents
+  FOR SELECT
+  USING (requesting_user_id() = member_id);
+
+DROP POLICY IF EXISTS "Members can create own prevention consents" ON public.prevention_consents;
+CREATE POLICY "Members can create own prevention consents"
+  ON public.prevention_consents
+  FOR INSERT
+  WITH CHECK (
+    requesting_user_id() = member_id
+    AND is_active_org_member(requesting_user_id(), organization_id)
+  );
+
+DROP POLICY IF EXISTS "Members can revoke own prevention consents" ON public.prevention_consents;
+CREATE POLICY "Members can revoke own prevention consents"
+  ON public.prevention_consents
+  FOR UPDATE
+  USING (requesting_user_id() = member_id)
+  WITH CHECK (requesting_user_id() = member_id);
+
+DROP POLICY IF EXISTS "Prevention officers can view prevention consents" ON public.prevention_consents;
+CREATE POLICY "Prevention officers can view prevention consents"
+  ON public.prevention_consents
+  FOR SELECT
+  USING (
+    granted_to_role = 'präventionsbeauftragter'
+    AND EXISTS (
+      SELECT 1
+      FROM public.organization_members om
+      WHERE om.organization_id = prevention_consents.organization_id
+        AND om.user_id = requesting_user_id()
+        AND om.membership_status = 'active'
+        AND om.role = 'präventionsbeauftragter'
+    )
+  );
+
+-- ============================================================
+-- 6. Consent gate for prevention data
+-- ============================================================
+CREATE OR REPLACE FUNCTION public.can_view_prevention_data(
+  p_requester_id TEXT,
+  p_member_id TEXT,
+  p_organization_id UUID,
+  p_scope TEXT
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+STABLE
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1
+    FROM public.organization_members om
+    JOIN public.prevention_consents pc
+      ON pc.organization_id = p_organization_id
+     AND pc.member_id = p_member_id
+    WHERE om.organization_id = p_organization_id
+      AND om.user_id = p_requester_id
+      AND om.membership_status = 'active'
+      AND om.role = 'präventionsbeauftragter'
+      AND pc.revoked_at IS NULL
+      AND (pc.expires_at IS NULL OR pc.expires_at > now())
+      AND pc.granted_to_role = 'präventionsbeauftragter'
+      AND p_scope = ANY (pc.data_scopes)
+      AND EXISTS (
+        SELECT 1
+        FROM public.organization_members member_om
+        WHERE member_om.organization_id = p_organization_id
+          AND member_om.user_id = p_member_id
+          AND member_om.membership_status = 'active'
+      )
+  );
+END;
+$$;
+
+-- ============================================================
+-- 7. Tier-2 RLS: owner-private unless prevention consent exists
+-- ============================================================
+ALTER TABLE public.ratings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Ratings are viewable by everyone" ON public.ratings;
+DROP POLICY IF EXISTS "Ratings viewable by all" ON public.ratings;
+DROP POLICY IF EXISTS "Users can create own ratings" ON public.ratings;
+DROP POLICY IF EXISTS "Users can create ratings" ON public.ratings;
+DROP POLICY IF EXISTS "Users can update own ratings" ON public.ratings;
+DROP POLICY IF EXISTS "Users can delete own ratings" ON public.ratings;
+
+CREATE POLICY "Ratings are viewable by owners or consented prevention officers"
+  ON public.ratings
+  FOR SELECT
+  USING (
+    requesting_user_id() = user_id
+    OR organization_id IS NULL
+    OR can_view_prevention_data(requesting_user_id(), user_id, organization_id, 'ratings')
+  );
+
+CREATE POLICY "Users can create own ratings"
+  ON public.ratings
+  FOR INSERT
+  WITH CHECK (
+    requesting_user_id() = user_id
+    AND (
+      organization_id IS NULL
+      OR is_active_org_member(requesting_user_id(), organization_id)
+    )
+  );
+
+CREATE POLICY "Users can update own ratings"
+  ON public.ratings
+  FOR UPDATE
+  USING (requesting_user_id() = user_id)
+  WITH CHECK (requesting_user_id() = user_id);
+
+CREATE POLICY "Users can delete own ratings"
+  ON public.ratings
+  FOR DELETE
+  USING (requesting_user_id() = user_id);
+
+ALTER TABLE public.user_collection ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view their own collection" ON public.user_collection;
+DROP POLICY IF EXISTS "Users can view own collection" ON public.user_collection;
+DROP POLICY IF EXISTS "Public collections are viewable" ON public.user_collection;
+DROP POLICY IF EXISTS "Followers can view private collections" ON public.user_collection;
+DROP POLICY IF EXISTS "Users can insert into their own collection" ON public.user_collection;
+DROP POLICY IF EXISTS "Users can add to collection" ON public.user_collection;
+DROP POLICY IF EXISTS "Users can update their own collection" ON public.user_collection;
+DROP POLICY IF EXISTS "Users can delete from their own collection" ON public.user_collection;
+
+CREATE POLICY "User collection is viewable by owners or consented prevention officers"
+  ON public.user_collection
+  FOR SELECT
+  USING (
+    requesting_user_id() = user_id
+    OR can_view_prevention_data(requesting_user_id(), user_id, organization_id, 'user_collection')
+  );
+
+CREATE POLICY "Users can add to collection"
+  ON public.user_collection
+  FOR INSERT
+  WITH CHECK (
+    requesting_user_id() = user_id
+    AND (
+      organization_id IS NULL
+      OR is_active_org_member(requesting_user_id(), organization_id)
+    )
+  );
+
+CREATE POLICY "Users can update own collection"
+  ON public.user_collection
+  FOR UPDATE
+  USING (requesting_user_id() = user_id)
+  WITH CHECK (
+    requesting_user_id() = user_id
+    AND (
+      organization_id IS NULL
+      OR is_active_org_member(requesting_user_id(), organization_id)
+    )
+  );
+
+CREATE POLICY "Users can delete from own collection"
+  ON public.user_collection
+  FOR DELETE
+  USING (requesting_user_id() = user_id);
+
+-- ============================================================
+-- 8. Aggregate-only club analytics with k-anonymity
+-- ============================================================
+CREATE OR REPLACE VIEW public.club_tier2_analytics AS
+SELECT
+  r.organization_id,
+  r.strain_id,
+  COUNT(*)::INT AS sample_size,
+  ROUND(AVG(r.overall_rating)::NUMERIC, 1) AS avg_overall_rating,
+  ROUND(AVG(r.effect_rating)::NUMERIC, 1) AS avg_effect_rating,
+  ROUND(AVG(r.taste_rating)::NUMERIC, 1) AS avg_taste_rating
+FROM public.ratings r
+JOIN public.organizations o
+  ON o.id = r.organization_id
+WHERE r.organization_id IS NOT NULL
+  AND o.organization_type = 'club'
+  AND o.status = 'active'
+  AND r.is_club_feedback = true
+  AND is_active_org_member(requesting_user_id(), r.organization_id)
+GROUP BY r.organization_id, r.strain_id
+HAVING COUNT(*) >= 10;
+
+COMMENT ON VIEW public.club_tier2_analytics IS
+  'Aggregate-only Tier-2 club analytics with k-anonymity threshold of at least 10 records per group.';
+
+GRANT SELECT ON public.club_tier2_analytics TO authenticated;
+
 COMMIT;
