@@ -227,7 +227,7 @@ CREATE INDEX idx_follows_following ON follows(following_id);
 
 -- Helper function for creating follows via API (bypasses RLS for approve flow)
 CREATE OR REPLACE FUNCTION create_follow(follower_uuid TEXT, following_uuid TEXT)
-RETURNS TEXT AS $
+RETURNS TEXT AS $$
 DECLARE
   follow_id TEXT;
 BEGIN
