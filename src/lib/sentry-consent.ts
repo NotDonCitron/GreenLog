@@ -1,19 +1,33 @@
-/**
- * Sentry Consent Management — DISABLED
- *
- * Sentry has been temporarily disabled due to a build conflict
- * with Vercel Turbopack (ENOENT middleware.js.nft.json).
- *
- * These are no-op stubs so existing imports don't break.
- * Re-enable once @sentry/nextjs supports Turbopack middleware.
- */
-
 export async function enableSentryAfterConsent(): Promise<void> {
-  // no-op: Sentry disabled
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    const Sentry = await import("@sentry/nextjs");
+    const replay = Sentry.getReplay();
+    if (replay) {
+      await replay.start();
+    }
+  } catch {
+    // Silent – consent flow must never break UX
+  }
 }
 
 export async function disableSentryAfterRevoke(): Promise<void> {
-  // no-op: Sentry disabled
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    const Sentry = await import("@sentry/nextjs");
+    const replay = Sentry.getReplay();
+    if (replay) {
+      replay.stop();
+    }
+  } catch {
+    // Silent – consent flow must never break UX
+  }
 }
 
 /**

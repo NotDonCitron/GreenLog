@@ -43,7 +43,7 @@ DROP POLICY IF EXISTS "Owners can add themselves as owner" ON organization_membe
 CREATE POLICY "Gründer can be added by themselves"
   ON organization_members FOR INSERT
   WITH CHECK (
-    auth.uid() = user_id
+    (auth.uid())::text = user_id
     AND role = 'gründer'
     AND membership_status = 'active'
     AND EXISTS (

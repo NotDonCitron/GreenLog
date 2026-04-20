@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import { useAuth } from '@/components/auth-provider'
 import { enableSentryAfterConsent } from '@/lib/sentry-consent'
+import { disableSentryAfterRevoke } from '@/lib/sentry-consent'
 import { syncAnalyticsConsentToSupabase } from '@/lib/sentry-consent'
 
 const COOKIE_CONSENT_KEY = 'cookie_consent'
@@ -56,7 +57,7 @@ export function CookieConsentBanner() {
     }
   }
 
-  const handleEssentialOnly = () => {
+  const handleEssentialOnly = async () => {
     try {
       localStorage.setItem(COOKIE_CONSENT_KEY, 'essential')
     } catch {
@@ -64,6 +65,7 @@ export function CookieConsentBanner() {
     }
     setConsent('essential')
     setIsVisible(false)
+    await disableSentryAfterRevoke()
   }
 
   if (!isVisible) return null
@@ -105,7 +107,7 @@ export function CookieConsentBanner() {
           </button>
         </div>
         <button
-          onClick={() => {
+          onClick={async () => {
             try {
               localStorage.setItem(COOKIE_CONSENT_KEY, 'essential')
             } catch {
@@ -113,6 +115,7 @@ export function CookieConsentBanner() {
             }
             setConsent('essential')
             setIsVisible(false)
+            await disableSentryAfterRevoke()
           }}
           className="absolute top-2 right-2 p-1 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
           aria-label="Dismiss cookie banner"

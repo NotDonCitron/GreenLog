@@ -14,8 +14,8 @@ CREATE TABLE community_followers (
 ALTER TABLE community_followers ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "community_followers_read_all" ON community_followers FOR SELECT USING (true);
-CREATE POLICY "community_followers_insert_own" ON community_followers FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "community_followers_delete_own" ON community_followers FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "community_followers_insert_own" ON community_followers FOR INSERT WITH CHECK ((auth.uid())::text = user_id);
+CREATE POLICY "community_followers_delete_own" ON community_followers FOR DELETE USING ((auth.uid())::text = user_id);
 
 CREATE INDEX idx_community_followers_org ON community_followers(organization_id);
 CREATE INDEX idx_community_followers_user ON community_followers(user_id);
