@@ -1,4 +1,53 @@
 
+-- 0. LEGACY BOOTSTRAP (for local migration chain)
+-- This repository's migration history predates a proper baseline migration.
+-- Ensure core tables exist before legacy ALTER/CREATE statements run.
+CREATE TABLE IF NOT EXISTS profiles (
+  id TEXT PRIMARY KEY,
+  username TEXT UNIQUE NOT NULL,
+  display_name TEXT,
+  avatar_url TEXT,
+  bio TEXT,
+  profile_visibility TEXT DEFAULT 'public' CHECK (profile_visibility IN ('public', 'private')),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS strains (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  type TEXT CHECK (type IN ('indica', 'sativa', 'hybrid')) NOT NULL,
+  thc_min DECIMAL(4,1),
+  thc_max DECIMAL(4,1),
+  cbd_min DECIMAL(4,1),
+  cbd_max DECIMAL(4,1),
+  description TEXT,
+  effects TEXT[] DEFAULT '{}',
+  flavors TEXT[] DEFAULT '{}',
+  terpenes TEXT[] DEFAULT '{}',
+  image_url TEXT,
+  image_attribution JSONB DEFAULT '{"source": "none"}',
+  created_by TEXT REFERENCES profiles(id),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS ratings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  strain_id UUID REFERENCES strains(id) ON DELETE CASCADE NOT NULL,
+  user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  overall_rating NUMERIC(2,1) CHECK (overall_rating >= 0 AND overall_rating <= 5) NOT NULL,
+  taste_rating NUMERIC(2,1) CHECK (taste_rating >= 0 AND taste_rating <= 5),
+  effect_rating NUMERIC(2,1) CHECK (effect_rating >= 0 AND effect_rating <= 5),
+  look_rating NUMERIC(2,1) CHECK (look_rating >= 0 AND look_rating <= 5),
+  review TEXT,
+  consumption_method TEXT CHECK (consumption_method IN ('joint', 'bong', 'vaporizer', 'pipe', 'edible', 'other')),
+  location TEXT,
+  image_url TEXT,
+  is_public BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(strain_id, user_id)
+);
+
 -- 1. RATINGS AUF 0.5 SCHRITTE AKTUALISIEREN
 -- View zuerst droppen, da sie von den Spalten abhängt
 DROP VIEW IF EXISTS strain_ratings;
