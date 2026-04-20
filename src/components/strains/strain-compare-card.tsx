@@ -32,6 +32,7 @@ export function StrainCompareCard({ strain }: StrainCompareCardProps) {
           src={strain.image_url || "/strains/placeholder-1.svg"}
           alt={strain.name}
           className="absolute inset-0 w-full h-full object-cover"
+          referrerPolicy="no-referrer"
         />
         <div className="absolute bottom-2 left-2">
           <span

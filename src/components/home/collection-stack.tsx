@@ -80,6 +80,7 @@ export function CollectionStack({
                 alt={currentStrain.name}
                 className="absolute inset-0 w-full h-full object-cover"
                 loading="eager"
+                referrerPolicy="no-referrer"
               />
               <div className="absolute bottom-2 left-2 border bg-black/70 backdrop-blur-md uppercase text-[9px] px-2 py-1 rounded-sm font-bold" style={{ borderColor: themeColor, color: themeColor }}>{typeDisplay}</div>
             </div>

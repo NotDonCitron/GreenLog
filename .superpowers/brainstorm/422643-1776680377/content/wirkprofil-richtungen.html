@@ -1,0 +1,71 @@
+<h2>Was soll das Wirkprofil in GreenLog werden?</h2>
+<p class="subtitle">Drei mögliche Produkt-Richtungen. Klick gern eine Option an, aber schreib mir im Terminal vor allem, was sich richtig oder falsch anfühlt.</p>
+
+<div class="cards">
+  <div class="card" data-choice="quick-checkin" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Quick Log</div>
+        <div class="mockup-body">
+          <div class="label">Animal Mints · heute 21:10</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;">
+            <button class="mock-button">Fokus</button>
+            <button class="mock-button">Ruhe</button>
+            <button class="mock-button">Schlaf</button>
+            <button class="mock-button">Appetit</button>
+          </div>
+          <div class="placeholder">Nebenwirkungen: trocken · kopflastig</div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="mock-button">Nochmal</button>
+            <button class="mock-button">Nicht nochmal</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A · Schneller Wirk-Check-in</h3>
+      <p>Nach Konsum schnell auswählen: wirkt bei mir, Nebenwirkungen, Status. Sehr niedrigschwellig und mobil stark.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="detailed-profile" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Wirkprofil</div>
+        <div class="mockup-body">
+          <div class="label">Wirkt bei mir eher</div>
+          <div style="display:grid;gap:8px;margin-top:12px;">
+            <div>Fokus <div class="placeholder" style="height:8px;margin-top:4px;">hoch</div></div>
+            <div>Schlaf <div class="placeholder" style="height:8px;margin-top:4px;">mittel</div></div>
+            <div>Ruhe <div class="placeholder" style="height:8px;margin-top:4px;">hoch</div></div>
+            <div>Kreativität <div class="placeholder" style="height:8px;margin-top:4px;">niedrig</div></div>
+          </div>
+          <div class="placeholder" style="margin-top:12px;">Dosis · Charge · Setting · Tageszeit</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B · Detailliertes persönliches Profil</h3>
+      <p>Eintrag mit Kontext und Intensität. Daraus entstehen später Muster und Empfehlungen, braucht aber mehr Pflege.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="strain-memory" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Mein Strain-Gedächtnis</div>
+        <div class="mockup-body">
+          <h3 style="margin:0;">Animal Mints</h3>
+          <p class="subtitle" style="margin:4px 0 12px;">bei mir: Ruhe, trocken, abends gut</p>
+          <div class="placeholder">Ähnliche Wirkung wie: Wedding Cake</div>
+          <div class="placeholder" style="margin-top:8px;">Nicht nochmal bei: Arbeit / tagsüber</div>
+          <div class="placeholder" style="margin-top:8px;">Beste Charge: ABC-123 · 0,2g Vaporizer</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C · Persönliches Strain-Gedächtnis</h3>
+      <p>Weniger “Bewertung”, mehr Erinnerung: wann passt der Strain, was ähnelt ihm, was sollte ich vermeiden?</p>
+    </div>
+  </div>
+</div>

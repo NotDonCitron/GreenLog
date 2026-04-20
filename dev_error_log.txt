@@ -1,0 +1,12 @@
+   ▲ Next.js 15.5.15
+   - Local:        http://localhost:3005
+   - Network:      http://10.188.255.119:3005
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ✓ Starting...
+ ✓ Ready in 1800ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 595ms (114 modules)
+[?25h

@@ -77,6 +77,7 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
         alt={strain.name}
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         loading="lazy"
+        referrerPolicy="no-referrer"
       />
 
       {/* 2. HEADER OVERLAY: Farmer + Strain Name — gradient top */}

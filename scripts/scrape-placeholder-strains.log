@@ -1,0 +1,841 @@
+◇ injected env (6) from ../.env.local // tip: ◈ secrets for agents [www.dotenvx.com]
+
+🔄 Retrying 20 placeholder strains...
+
+[1/20] Asteroid OG... [2m2026-04-20T04:24:17.927548Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:24:20.406184Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:24:22.901318Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:24:25.415153Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[2/20] London Pound Cake... [2m2026-04-20T04:24:29.774710Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:24:32.270225Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:24:34.670814Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:24:37.191920Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:24:39.115442Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[3/20] Mount Cook... [2m2026-04-20T04:24:43.510891Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:24:45.498091Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:24:48.170407Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:24:50.658731Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[4/20] Thin Mint GSC... [2m2026-04-20T04:24:54.693768Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:24:57.296976Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:24:59.202122Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:01.115454Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[5/20] Blue City Diesel... [2m2026-04-20T04:25:05.015504Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:06.883773Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:08.741730Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:10.568624Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[6/20] Bubba Kush #5... [2m2026-04-20T04:25:14.997663Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:16.957694Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:18.812575Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:21.342313Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[7/20] El Jefe... [2m2026-04-20T04:25:25.316426Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:27.201240Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:29.039585Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:30.942625Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[8/20] Herijuana... [2m2026-04-20T04:25:35.421085Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:37.181682Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[9/20] G13... [2m2026-04-20T04:25:41.271956Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:43.087186Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[10/20] Island Pink... [2m2026-04-20T04:25:47.504629Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:49.501956Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:51.454247Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:53.283930Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[11/20] Bubba Cheesecake... [2m2026-04-20T04:25:57.201641Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:25:59.197329Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:01.814432Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:03.680534Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[12/20] Hell's Angel OG... [2m2026-04-20T04:26:07.443290Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:09.314776Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:11.934652Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:13.804146Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:15.655980Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:17.667790Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:19.554064Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[13/20] Cheesequake... [2m2026-04-20T04:26:23.524104Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:25.413114Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[14/20] Exotic OG... ✅ (exotic-og) – effects, flavors
+
+[15/20] Cupcake... [2m2026-04-20T04:26:38.271130Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:40.186830Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[16/20] Asian Thai... [2m2026-04-20T04:26:44.024080Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:45.971263Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:48.589652Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:50.995228Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[17/20] King Louis XIII... [2m2026-04-20T04:26:54.869239Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:56.854471Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:26:58.798845Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:27:01.259593Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[18/20] Russian Assassin OG... [2m2026-04-20T04:27:05.196553Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:27:07.190331Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:27:09.029366Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:27:11.064203Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[19/20] Bomb Bolt... [2m2026-04-20T04:27:15.045707Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:27:17.005638Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:27:19.541234Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:27:21.604824Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+[20/20] Grape Stomper... [2m2026-04-20T04:27:25.470454Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:27:27.927774Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:27:30.044375Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+[2m2026-04-20T04:27:31.905631Z[0m [33m WARN[0m [2mobscura_browser::page[0m[2m:[0m Script error (https://public.leafly.com/web-web/_next/static/chunks/webpack-4a677ef95e88d7f5.js): JS error: InvariantError: Invariant: Expected document.currentScript to be a <script> element. Received undefined instead. This is a bug in Next.js.
+    at a (<script>:1:61816)
+    at u (<script>:32:6209)
+    at Object.83861 (<script>:31:1411)
+    at i (<script>:1:161)
+    at s (<script>:1:465)
+    at <script>:1:499
+    at i.O (<script>:1:554)
+    at <script>:1:526
+    at r (<script>:1:19302)
+    at Array.forEach (<anonymous>)
+⚠️  Leafly not found
+
+
+========== SUMMARY ==========
+Success: 1  |  Failed: 19  |  Total: 20
+=============================
+
