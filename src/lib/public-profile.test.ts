@@ -27,6 +27,10 @@ describe("public profile sanitizer", () => {
       dose: "0.2g",
       batch: "ABC-123",
       pharmacy: "Private Apotheke",
+      side_effects: ["dry mouth"],
+      private_status: "nicht_nochmal",
+      private_note: "Too strong for daytime use",
+      setting_context: "At home",
       created_at: "2026-04-20T08:00:00.000Z",
       strains: {
         name: "Wedding Cake",
@@ -46,6 +50,10 @@ describe("public profile sanitizer", () => {
     expect(JSON.stringify(sanitized)).not.toContain("Private Apotheke");
     expect(JSON.stringify(sanitized)).not.toContain("ABC-123");
     expect(JSON.stringify(sanitized)).not.toContain("0.2g");
+    expect(JSON.stringify(sanitized)).not.toContain("dry mouth");
+    expect(JSON.stringify(sanitized)).not.toContain("nicht_nochmal");
+    expect(JSON.stringify(sanitized)).not.toContain("Too strong for daytime use");
+    expect(JSON.stringify(sanitized)).not.toContain("At home");
   });
 
   it("uses public_payload and ignores raw private metadata for activities", () => {
@@ -56,7 +64,14 @@ describe("public profile sanitizer", () => {
       target_id: "strain-1",
       target_name: "Wedding Cake",
       target_image_url: null,
-      metadata: { pharmacy: "Private Apotheke", dose: "0.2g" },
+      metadata: {
+        pharmacy: "Private Apotheke",
+        dose: "0.2g",
+        side_effects: ["dry mouth"],
+        private_status: "nicht_nochmal",
+        private_note: "Too strong for daytime use",
+        setting_context: "At home",
+      },
       public_payload: { rating: 4, strain_slug: "wedding-cake" },
       private_payload: { batch: "ABC-123" },
       is_public: true,
@@ -67,6 +82,46 @@ describe("public profile sanitizer", () => {
     expect(JSON.stringify(sanitized)).not.toContain("Private Apotheke");
     expect(JSON.stringify(sanitized)).not.toContain("ABC-123");
     expect(JSON.stringify(sanitized)).not.toContain("0.2g");
+    expect(JSON.stringify(sanitized)).not.toContain("dry mouth");
+    expect(JSON.stringify(sanitized)).not.toContain("nicht_nochmal");
+    expect(JSON.stringify(sanitized)).not.toContain("Too strong for daytime use");
+    expect(JSON.stringify(sanitized)).not.toContain("At home");
+  });
+
+  it("allows public review text and stars without quick log private fields", () => {
+    const sanitized = sanitizePublicRating({
+      id: "rating-2",
+      strain_id: "strain-2",
+      overall_rating: 5,
+      public_review_text: "Strong and clean finish",
+      dose: "0.3g",
+      batch: "BATCH-777",
+      side_effects: ["dry mouth"],
+      private_status: "situativ",
+      private_note: "Saved for evenings",
+      setting_context: "At home",
+      created_at: "2026-04-20T09:00:00.000Z",
+      strains: {
+        name: "Lemon Haze",
+        slug: "lemon-haze",
+      },
+    });
+
+    expect(sanitized).toEqual({
+      id: "rating-2",
+      strain_id: "strain-2",
+      strain_name: "Lemon Haze",
+      strain_slug: "lemon-haze",
+      overall_rating: 5,
+      public_review_text: "Strong and clean finish",
+      created_at: "2026-04-20T09:00:00.000Z",
+    });
+    expect(JSON.stringify(sanitized)).not.toContain("0.3g");
+    expect(JSON.stringify(sanitized)).not.toContain("BATCH-777");
+    expect(JSON.stringify(sanitized)).not.toContain("dry mouth");
+    expect(JSON.stringify(sanitized)).not.toContain("situativ");
+    expect(JSON.stringify(sanitized)).not.toContain("Saved for evenings");
+    expect(JSON.stringify(sanitized)).not.toContain("At home");
   });
 
   it("loads favorites from is_favorite when the public favorites block is enabled", async () => {
