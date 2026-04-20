@@ -60,7 +60,7 @@ SELECT results_eq(
   'Adult baseline dispense is stored.'
 );
 
-SELECT lives_ok(
+SELECT throws_ok(
   $$INSERT INTO public.dispensations (
       organization_id,
       member_id,
@@ -79,7 +79,7 @@ SELECT lives_ok(
   'Daily limit is enforced by the trigger.'
 );
 
-SELECT throws_ok(
+SELECT lives_ok(
   $$INSERT INTO public.dispensations (
       organization_id,
       member_id,
