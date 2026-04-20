@@ -19,7 +19,7 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 -- Users can view their own notifications
 CREATE POLICY "Users can view own notifications"
   ON notifications FOR SELECT
-  USING (auth.uid() = user_id);
+  USING ((auth.uid())::text = user_id);
 
 -- System can insert notifications (for triggers)
 CREATE POLICY "System can insert notifications"
@@ -29,12 +29,12 @@ CREATE POLICY "System can insert notifications"
 -- Users can update (mark read) their own notifications
 CREATE POLICY "Users can update own notifications"
   ON notifications FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING ((auth.uid())::text = user_id);
 
 -- Users can delete their own notifications
 CREATE POLICY "Users can delete own notifications"
   ON notifications FOR DELETE
-  USING (auth.uid() = user_id);
+  USING ((auth.uid())::text = user_id);
 
 -- Indexes
 CREATE INDEX idx_notifications_user ON notifications(user_id);

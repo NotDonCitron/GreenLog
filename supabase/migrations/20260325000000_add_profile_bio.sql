@@ -13,7 +13,7 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS bio TEXT;
 CREATE POLICY "Bio is viewable with follow relationship"
   ON profiles FOR SELECT USING (
     profile_visibility = 'public'
-    OR auth.uid() = id
+    OR (auth.uid())::text = id
     OR EXISTS (
       SELECT 1 FROM follow_requests
       WHERE follow_requests.requester_id = auth.uid()
@@ -24,7 +24,7 @@ CREATE POLICY "Bio is viewable with follow relationship"
 
 -- Users can update their own bio
 CREATE POLICY "Users can update own bio"
-  ON profiles FOR UPDATE USING (auth.uid() = id);
+  ON profiles FOR UPDATE USING ((auth.uid())::text = id);
 
 -- =============================================
 -- DATA MIGRATION

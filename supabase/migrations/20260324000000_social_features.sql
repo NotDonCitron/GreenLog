@@ -219,22 +219,17 @@ RETURNS TRIGGER AS $$
 BEGIN
   IF TG_OP = 'INSERT' AND NEW.is_public = true THEN
     INSERT INTO user_activities (user_id, activity_type, target_id, target_name, metadata)
-    SELECT
+    VALUES (
       NEW.user_id,
       'grow_started',
       NEW.id,
       NEW.title,
       jsonb_build_object('grow_type', NEW.grow_type, 'medium', NEW.medium)
-    FROM grows
-    WHERE id = NEW.id;
+    );
   END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
-CREATE TRIGGER on_grow_started
-  AFTER INSERT ON grows
-  FOR EACH ROW EXECUTE FUNCTION create_grow_started_activity();
 
 -- Trigger function to create activity on grow completed
 CREATE OR REPLACE FUNCTION create_grow_completed_activity()
@@ -242,22 +237,34 @@ RETURNS TRIGGER AS $$
 BEGIN
   IF TG_OP = 'UPDATE' AND NEW.status = 'completed' AND OLD.status != 'completed' AND NEW.is_public = true THEN
     INSERT INTO user_activities (user_id, activity_type, target_id, target_name, metadata)
-    SELECT
+    VALUES (
       NEW.user_id,
       'grow_completed',
       NEW.id,
       NEW.title,
       jsonb_build_object('yield_grams', NEW.yield_grams, 'harvest_date', NEW.harvest_date)
-    FROM grows
-    WHERE id = NEW.id;
+    );
   END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER on_grow_completed
-  AFTER UPDATE ON grows
-  FOR EACH ROW EXECUTE FUNCTION create_grow_completed_activity();
+-- Create grow triggers only if grows table exists
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'grows') THEN
+    DROP TRIGGER IF EXISTS on_grow_started ON grows;
+    CREATE TRIGGER on_grow_started
+      AFTER INSERT ON grows
+      FOR EACH ROW EXECUTE FUNCTION create_grow_started_activity();
+
+    DROP TRIGGER IF EXISTS on_grow_completed ON grows;
+    CREATE TRIGGER on_grow_completed
+      AFTER UPDATE ON grows
+      FOR EACH ROW EXECUTE FUNCTION create_grow_completed_activity();
+  END IF;
+END;
+$$;
 
 -- Trigger function to create activity on badge earned
 CREATE OR REPLACE FUNCTION create_badge_activity()

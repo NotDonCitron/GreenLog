@@ -21,14 +21,14 @@ DROP POLICY IF EXISTS "Users can delete from their own collection" ON user_colle
 --    - Org-strain collection = org members can see each other's
 CREATE POLICY "Users can view own collection"
   ON user_collection FOR SELECT USING (
-    auth.uid() = user_id
+    (auth.uid())::text = user_id
     OR (organization_id IS NOT NULL AND is_org_member(organization_id))
   );
 
 -- 6. Insert
 CREATE POLICY "Users can add to collection"
   ON user_collection FOR INSERT WITH CHECK (
-    auth.uid() = user_id
+    (auth.uid())::text = user_id
     AND (
       organization_id IS NULL
       OR is_org_member(organization_id)
@@ -37,8 +37,8 @@ CREATE POLICY "Users can add to collection"
 
 -- 7. Update
 CREATE POLICY "Users can update own collection"
-  ON user_collection FOR UPDATE USING (auth.uid() = user_id);
+  ON user_collection FOR UPDATE USING ((auth.uid())::text = user_id);
 
 -- 8. Delete
 CREATE POLICY "Users can delete from own collection"
-  ON user_collection FOR DELETE USING (auth.uid() = user_id);
+  ON user_collection FOR DELETE USING ((auth.uid())::text = user_id);
