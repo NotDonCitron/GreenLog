@@ -74,7 +74,7 @@ ALTER TABLE ratings ADD CONSTRAINT ratings_look_rating_check CHECK (look_rating 
 -- 2. USER_COLLECTION ERSTELLEN (Das persönliche Journal)
 CREATE TABLE IF NOT EXISTS user_collection (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   strain_id UUID REFERENCES strains(id) ON DELETE CASCADE NOT NULL,
   date_added TIMESTAMPTZ DEFAULT now(),
   user_thc_percent DECIMAL(4,1),
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS user_collection (
 
 -- 3. FAVORITES & WISHLIST
 CREATE TABLE IF NOT EXISTS user_strain_relations (
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   strain_id UUID REFERENCES strains(id) ON DELETE CASCADE NOT NULL,
   is_wishlisted BOOLEAN DEFAULT false,
   is_favorite BOOLEAN DEFAULT false,
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS badges (
 );
 
 CREATE TABLE IF NOT EXISTS user_badges (
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
   badge_id UUID REFERENCES badges(id) ON DELETE CASCADE NOT NULL,
   unlocked_at TIMESTAMPTZ DEFAULT now(),
   PRIMARY KEY (user_id, badge_id)
@@ -121,23 +121,23 @@ ALTER TABLE user_badges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE badges ENABLE ROW LEVEL SECURITY;
 
 -- Policies für user_collection
-CREATE POLICY "Users can view their own collection" ON user_collection FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert into their own collection" ON user_collection FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own collection" ON user_collection FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Users can delete from their own collection" ON user_collection FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users can view their own collection" ON user_collection FOR SELECT USING ((auth.uid())::text = user_id);
+CREATE POLICY "Users can insert into their own collection" ON user_collection FOR INSERT WITH CHECK ((auth.uid())::text = user_id);
+CREATE POLICY "Users can update their own collection" ON user_collection FOR UPDATE USING ((auth.uid())::text = user_id);
+CREATE POLICY "Users can delete from their own collection" ON user_collection FOR DELETE USING ((auth.uid())::text = user_id);
 
 -- Policies für user_strain_relations
-CREATE POLICY "Users can view their own relations" ON user_strain_relations FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert their own relations" ON user_strain_relations FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own relations" ON user_strain_relations FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Users can delete their own relations" ON user_strain_relations FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users can view their own relations" ON user_strain_relations FOR SELECT USING ((auth.uid())::text = user_id);
+CREATE POLICY "Users can insert their own relations" ON user_strain_relations FOR INSERT WITH CHECK ((auth.uid())::text = user_id);
+CREATE POLICY "Users can update their own relations" ON user_strain_relations FOR UPDATE USING ((auth.uid())::text = user_id);
+CREATE POLICY "Users can delete their own relations" ON user_strain_relations FOR DELETE USING ((auth.uid())::text = user_id);
 
 -- Policies für badges
 CREATE POLICY "Badges are viewable by everyone" ON badges FOR SELECT USING (true);
 
 -- Policies für user_badges
 CREATE POLICY "User badges are viewable by everyone" ON user_badges FOR SELECT USING (true);
-CREATE POLICY "Users can unlock badges" ON user_badges FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can unlock badges" ON user_badges FOR INSERT WITH CHECK ((auth.uid())::text = user_id);
 
 -- 6. MVP BADGES EINFÜGEN
 INSERT INTO badges (name, description, icon_url, rarity) VALUES
