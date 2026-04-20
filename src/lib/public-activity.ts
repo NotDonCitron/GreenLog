@@ -1,3 +1,5 @@
+import { sanitizePublicQuickLogPayload } from "./quick-log";
+
 type PublicRatingActivityInput = {
   rating: number;
   strainSlug: string;
@@ -14,4 +16,22 @@ export function buildPublicRatingActivityPayload(input: PublicRatingActivityInpu
     strain_slug: input.strainSlug,
     public_review_text: input.reviewText?.trim() || null,
   };
+}
+
+type PublicQuickLogActivityInput = {
+  rating: number;
+  strainSlug: string;
+  effectChips: unknown;
+  publicReviewText?: string | null;
+  sideEffects?: unknown;
+  privateStatus?: unknown;
+  privateNote?: unknown;
+  dose?: unknown;
+  batch?: unknown;
+  pharmacy?: unknown;
+  setting?: unknown;
+};
+
+export function buildPublicQuickLogActivityPayload(input: PublicQuickLogActivityInput) {
+  return sanitizePublicQuickLogPayload(input);
 }
