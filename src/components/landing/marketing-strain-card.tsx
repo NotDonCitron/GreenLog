@@ -64,7 +64,6 @@ export const MarketingStrainCard = memo(function MarketingStrainCard({ strain }:
           loading="lazy"
           referrerPolicy="no-referrer"
         />
-        />
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
