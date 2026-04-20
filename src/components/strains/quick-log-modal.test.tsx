@@ -57,4 +57,27 @@ describe("QuickLogModal", () => {
       publicReviewText: "Abends angenehm ruhig.",
     });
   });
+
+  it("marks selected side effects as strongly active", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <QuickLogModal
+        open
+        strainName="Lime Skunk"
+        isSaving={false}
+        onClose={vi.fn()}
+        onSave={vi.fn()}
+      />
+    );
+
+    const sideEffectButton = screen.getByRole("button", { name: "Trocken" });
+    expect(sideEffectButton.getAttribute("aria-pressed")).toBe("false");
+
+    await user.click(sideEffectButton);
+
+    expect(sideEffectButton.getAttribute("aria-pressed")).toBe("true");
+    expect(sideEffectButton.className).toContain("ring-1");
+    expect(sideEffectButton.className).toContain("shadow-[0_0_0_1px_rgba(255,138,0,0.35)]");
+  });
 });

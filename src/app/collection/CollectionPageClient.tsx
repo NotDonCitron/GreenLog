@@ -10,7 +10,6 @@ import { Strain, StrainSource } from "@/lib/types";
 import { StrainCard } from "@/components/strains/strain-card";
 import { TopMatches } from "@/components/strains/top-matches";
 import { CalendarPanel } from "@/components/collection/calendar-panel"
-import { normalizeCollectionSource } from "@/lib/strain-display";
 const FilterPanel = lazy(() => import("@/components/strains/filter-panel").then(m => ({ default: m.FilterPanel })));
 import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";
 import { useSearchParams } from "next/navigation";
@@ -37,6 +36,9 @@ const SOURCE_FILTERS: { id: StrainSource | "all"; label: string }[] = [
   { id: "csc", label: "CSC" },
   { id: "other", label: "Sonstiges" },
 ];
+
+const CALENDAR_PANEL_OPEN_STORAGE_KEY = "greenlog:collection:calendar-open";
+const FILTER_PANEL_OPEN_STORAGE_KEY = "greenlog:collection:filter-open";
 
 // Separate component for search params sync (must be in Suspense for SSG)
 function SearchParamsSync({
@@ -92,6 +94,7 @@ export default function CollectionPageClient() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [hasLoadedPanelPreferences, setHasLoadedPanelPreferences] = useState(false);
   const [filterEffects, setFilterEffects] = useState<string[]>([]);
   const [filterThcMin, setFilterThcMin] = useState(THC_RANGE.min);
   const [filterThcMax, setFilterThcMax] = useState(THC_RANGE.max);
@@ -221,6 +224,50 @@ export default function CollectionPageClient() {
   }), [collection, search, sourceFilter, selectedDate, filterEffects, filterThcMin, filterThcMax, filterCbdMin, filterCbdMax, user]);
 
   const activeGrowsCount = grows.filter(g => g.status === "active").length;
+
+  useEffect(() => {
+    if (!user) {
+      setIsCalendarOpen(false);
+      setFilterPanelOpen(false);
+      setHasLoadedPanelPreferences(false);
+      return;
+    }
+
+    setHasLoadedPanelPreferences(false);
+    try {
+      const calendarKey = `${CALENDAR_PANEL_OPEN_STORAGE_KEY}:${user.id}`;
+      const filterKey = `${FILTER_PANEL_OPEN_STORAGE_KEY}:${user.id}`;
+      setIsCalendarOpen(window.localStorage.getItem(calendarKey) === "1");
+      setFilterPanelOpen(window.localStorage.getItem(filterKey) === "1");
+    } catch {
+      setIsCalendarOpen(false);
+      setFilterPanelOpen(false);
+    } finally {
+      setHasLoadedPanelPreferences(true);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || !hasLoadedPanelPreferences) return;
+
+    try {
+      const calendarKey = `${CALENDAR_PANEL_OPEN_STORAGE_KEY}:${user.id}`;
+      window.localStorage.setItem(calendarKey, isCalendarOpen ? "1" : "0");
+    } catch {
+      // Ignore storage issues.
+    }
+  }, [user, isCalendarOpen, hasLoadedPanelPreferences]);
+
+  useEffect(() => {
+    if (!user || !hasLoadedPanelPreferences) return;
+
+    try {
+      const filterKey = `${FILTER_PANEL_OPEN_STORAGE_KEY}:${user.id}`;
+      window.localStorage.setItem(filterKey, filterPanelOpen ? "1" : "0");
+    } catch {
+      // Ignore storage issues.
+    }
+  }, [user, filterPanelOpen, hasLoadedPanelPreferences]);
 
   // Scroll hide/show state - only on mobile
   const mainRef = useRef<HTMLDivElement>(null);

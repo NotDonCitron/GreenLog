@@ -38,6 +38,27 @@ function isAppAdmin(userId: string): boolean {
   return APP_ADMIN_IDS.split(",").map(id => id.trim()).filter(Boolean).includes(userId);
 }
 
+type UserQuickLogSnapshot = {
+  consumed_at: string;
+  private_status: "nochmal" | "situativ" | "nicht_nochmal" | null;
+  side_effects: string[];
+  setting_context: string | null;
+  private_note: string | null;
+};
+
+const QUICK_LOG_STATUS_LABELS: Record<NonNullable<UserQuickLogSnapshot["private_status"]>, string> = {
+  nochmal: "Nochmal",
+  situativ: "Situativ",
+  nicht_nochmal: "Nicht nochmal",
+};
+
+const QUICK_LOG_SIDE_EFFECT_LABELS: Record<string, string> = {
+  trocken: "Trocken",
+  unruhig: "Unruhig",
+  kopflastig: "Kopflastig",
+  couchlock: "Couchlock",
+};
+
 export default function StrainDetailPageClient() {
   const { slug } = useParams();
   const { user, session, isDemoMode, activeOrganization } = useAuth();
@@ -64,6 +85,7 @@ export default function StrainDetailPageClient() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [batchInfo, setBatchInfo] = useState("");
   const [userNotes, setUserNotes] = useState("");
+  const [latestQuickLog, setLatestQuickLog] = useState<UserQuickLogSnapshot | null>(null);
 
   async function fetchStrainDetail() {
     // Try to fetch by slug first, then by id (in case slug is actually an id)
@@ -102,6 +124,7 @@ export default function StrainDetailPageClient() {
     let strainData = null;
     let userFav = false;
     let userCollection: { user_image_url: string | null; batch_info: string | null; user_notes: string | null } | null = null;
+    let quickLogSnapshot: UserQuickLogSnapshot | null = null;
     let othersCount = 0;
     let isDeletableVal = false;
 
@@ -135,6 +158,27 @@ export default function StrainDetailPageClient() {
           .neq("user_id", user.id);
         othersCount = count || 0;
         isDeletableVal = othersCount === 0;
+
+        const { data: lastQuickLog } = await supabase
+          .from("consumption_logs")
+          .select("consumed_at, private_status, side_effects, setting_context, private_note")
+          .eq("strain_id", data.id)
+          .eq("user_id", user.id)
+          .order("consumed_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (lastQuickLog) {
+          quickLogSnapshot = {
+            consumed_at: lastQuickLog.consumed_at,
+            private_status: lastQuickLog.private_status,
+            side_effects: Array.isArray(lastQuickLog.side_effects)
+              ? lastQuickLog.side_effects.filter((value): value is string => typeof value === "string")
+              : [],
+            setting_context: typeof lastQuickLog.setting_context === "string" ? lastQuickLog.setting_context : null,
+            private_note: typeof lastQuickLog.private_note === "string" ? lastQuickLog.private_note : null,
+          };
+        }
       }
     } else if (isDemoMode) {
       strainData = {
@@ -148,7 +192,15 @@ export default function StrainDetailPageClient() {
       };
     }
 
-    return { strain: strainData, isFavorited: userFav, userImageUrl: userCollection?.user_image_url || null, batchInfo: userCollection?.batch_info || "", userNotes: userCollection?.user_notes || "", isDeletable: isDeletableVal };
+    return {
+      strain: strainData,
+      isFavorited: userFav,
+      userImageUrl: userCollection?.user_image_url || null,
+      batchInfo: userCollection?.batch_info || "",
+      userNotes: userCollection?.user_notes || "",
+      latestQuickLog: quickLogSnapshot,
+      isDeletable: isDeletableVal
+    };
   }
 
   const { data: detailData, isLoading, error: detailError, refetch } = useQuery({
@@ -165,6 +217,7 @@ export default function StrainDetailPageClient() {
       setUserImageUrl(detailData.userImageUrl);
       setBatchInfo(detailData.batchInfo);
       setUserNotes(detailData.userNotes);
+      setLatestQuickLog(detailData.latestQuickLog);
       setIsDeletable(detailData.isDeletable);
     }
   }, [detailData]);
@@ -516,6 +569,16 @@ export default function StrainDetailPageClient() {
     return rawName;
   })();
 
+  const latestQuickLogStatus = latestQuickLog?.private_status ? QUICK_LOG_STATUS_LABELS[latestQuickLog.private_status] : null;
+  const latestQuickLogSideEffects = (latestQuickLog?.side_effects ?? []).map((value) => QUICK_LOG_SIDE_EFFECT_LABELS[value] || value);
+  const latestSettingContext = latestQuickLog?.setting_context?.trim() || null;
+  const latestPrivateNote = latestQuickLog?.private_note?.trim() || null;
+  const fallbackPrivateNote = userNotes?.trim() || null;
+  const journalNote = latestPrivateNote || fallbackPrivateNote;
+  const hasQuickLogData = Boolean(latestQuickLogStatus || latestQuickLogSideEffects.length > 0 || latestSettingContext || journalNote);
+  const hasJournalData = Boolean(batchInfo || hasQuickLogData);
+  const showJournalSection = Boolean(user && isCollected);
+
   if (isLoading) return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -761,11 +824,50 @@ export default function StrainDetailPageClient() {
                     </div>
                   )}
                 </div>
-                {(userNotes || batchInfo) && (
+                {showJournalSection && (
                   <div className="pt-4 border-t border-[var(--border)]/50 space-y-4">
                     <div className="flex items-center gap-2 text-[#00F5FF]"><Database size={12} /><h4 className="text-[10px] font-black uppercase">Mein Journal</h4></div>
-                    {batchInfo && <p className="text-[10px] font-bold text-[var(--foreground)]">{batchInfo}</p>}
-                    {userNotes && <p className="text-[10px] italic text-[var(--muted-foreground)] bg-[var(--card)] p-3 rounded-xl line-clamp-3">{userNotes}</p>}
+                    {hasJournalData ? (
+                      <>
+                        {batchInfo && <p className="text-[10px] font-bold text-[var(--foreground)]">{batchInfo}</p>}
+                        {latestQuickLogStatus && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[9px] uppercase font-black tracking-wider text-[var(--muted-foreground)]">Status</span>
+                            <span className="text-[9px] font-black uppercase rounded-md border border-[#ffb000]/40 bg-[#ffb000]/10 text-[#ffb000] px-2 py-1">
+                              {latestQuickLogStatus}
+                            </span>
+                          </div>
+                        )}
+                        {latestQuickLogSideEffects.length > 0 && (
+                          <div className="space-y-1">
+                            <p className="text-[9px] uppercase font-black tracking-wider text-[var(--muted-foreground)]">Nebenwirkungen</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {latestQuickLogSideEffects.map((sideEffect) => (
+                                <span
+                                  key={sideEffect}
+                                  className="text-[8px] font-bold px-2 py-1 rounded-md border border-[#ff8a00]/40 bg-[#ff8a00]/10 text-[#ffb874]"
+                                >
+                                  {sideEffect}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {latestSettingContext && (
+                          <div className="space-y-1">
+                            <p className="text-[9px] uppercase font-black tracking-wider text-[var(--muted-foreground)]">Setting</p>
+                            <p className="text-[10px] text-[var(--foreground)]">{latestSettingContext}</p>
+                          </div>
+                        )}
+                        {journalNote && (
+                          <p className="text-[10px] italic text-[var(--muted-foreground)] bg-[var(--card)] p-3 rounded-xl line-clamp-3">{journalNote}</p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-[10px] text-[var(--muted-foreground)]">
+                        Noch kein privater Quick-Log für diese Sorte gespeichert.
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
@@ -781,10 +883,69 @@ export default function StrainDetailPageClient() {
         </div>
 
         <div className="w-full max-w-[340px] mt-10">
-          <button type="button" onClick={() => !isCollected && setShowRatingModal(true)} disabled={isCollected} className={`w-full font-black py-5 rounded-2xl uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all ${isCollected ? "bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/30" : "bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black hover:opacity-90"}`}>
-            {isCollected ? <><CheckCircle2 size={24} /> In Collection</> : "Collect & Rate"}
+          <button
+            type="button"
+            onClick={() => setShowRatingModal(true)}
+            className={`w-full font-black py-5 rounded-2xl uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all ${isCollected ? "bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/30 hover:bg-[#2FF801]/15" : "bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black hover:opacity-90"}`}
+          >
+            {isCollected ? <><CheckCircle2 size={24} /> Quick Log aktualisieren</> : "Collect & Rate"}
           </button>
         </div>
+
+        {showJournalSection && (
+          <div className="w-full max-w-[340px] mt-4">
+            <Card className="rounded-2xl border border-[var(--border)]/50 bg-[var(--card)] p-4 space-y-3">
+              <div className="flex items-center gap-2 text-[#00F5FF]">
+                <Database size={14} />
+                <h4 className="text-[11px] font-black uppercase tracking-wider">Letzter Quick Log</h4>
+              </div>
+
+              {hasJournalData ? (
+                <>
+                  {latestQuickLogStatus && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] uppercase font-black tracking-wider text-[var(--muted-foreground)]">Status</span>
+                      <span className="text-[10px] font-black uppercase rounded-md border border-[#ffb000]/40 bg-[#ffb000]/10 text-[#ffb000] px-2 py-1">
+                        {latestQuickLogStatus}
+                      </span>
+                    </div>
+                  )}
+                  {latestQuickLogSideEffects.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase font-black tracking-wider text-[var(--muted-foreground)]">Nebenwirkungen</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {latestQuickLogSideEffects.map((sideEffect) => (
+                          <span
+                            key={sideEffect}
+                            className="text-[9px] font-bold px-2 py-1 rounded-md border border-[#ff8a00]/40 bg-[#ff8a00]/10 text-[#ffb874]"
+                          >
+                            {sideEffect}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {latestSettingContext && (
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase font-black tracking-wider text-[var(--muted-foreground)]">Setting</p>
+                      <p className="text-[11px] text-[var(--foreground)]">{latestSettingContext}</p>
+                    </div>
+                  )}
+                  {journalNote && (
+                    <div className="space-y-1">
+                      <p className="text-[10px] uppercase font-black tracking-wider text-[var(--muted-foreground)]">Notiz</p>
+                      <p className="text-[11px] italic text-[var(--foreground)] bg-black/20 p-3 rounded-xl">{journalNote}</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-[11px] text-[var(--muted-foreground)]">
+                  Noch kein privater Quick-Log für diese Sorte gespeichert.
+                </p>
+              )}
+            </Card>
+          </div>
+        )}
       </div>
 
       <QuickLogModal

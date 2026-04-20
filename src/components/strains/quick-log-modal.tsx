@@ -128,10 +128,11 @@ export function QuickLogModal({ open, strainName, isSaving, onClose, onSave }: Q
                   <button
                     key={effect.value}
                     type="button"
+                    aria-pressed={isActive}
                     onClick={() => setSideEffects((current) => toggleValue(current, effect.value))}
                     className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                       isActive
-                        ? "border-white/30 bg-white/10 text-white"
+                        ? "border-[#ff8a00]/80 bg-[#ff8a00]/25 text-[#fff3dd] ring-1 ring-[#ff8a00]/60 shadow-[0_0_0_1px_rgba(255,138,0,0.35)]"
                         : "border-white/10 bg-white/5 text-white/70 hover:bg-white/10"
                     }`}
                   >

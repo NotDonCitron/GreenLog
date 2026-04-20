@@ -11,6 +11,8 @@ interface StrainCardProps {
 
 export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollected = true }: StrainCardProps) {
   const { color: themeColor, className: themeClass } = getStrainTheme(strain.type);
+  const privateNote = "user_notes" in strain && typeof strain.user_notes === "string" ? strain.user_notes.trim() : "";
+  const hasPrivateNote = privateNote.length > 0;
 
   const farmerDisplay = strain.farmer?.trim() || strain.manufacturer?.trim() || strain.brand?.trim() || 'Unbekannter Farmer';
   const thcDisplay = formatPercent(strain.avg_thc ?? strain.thc_max, '—');
@@ -108,6 +110,11 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
           style={{ backgroundColor: '#00F5FF20' }}>
           <div className="w-1 h-1 rounded-full bg-[#00F5FF]" />
           <span className="text-[7px] font-bold uppercase tracking-wider text-[#00F5FF]">In Sammlung</span>
+        </div>
+      )}
+      {hasPrivateNote && (
+        <div className="absolute bottom-20 right-2 z-20 flex items-center gap-1 px-1.5 py-0.5 rounded-full backdrop-blur-md border border-[#ffb000]/40 bg-[#ffb000]/15">
+          <span className="text-[7px] font-bold uppercase tracking-wider text-[#ffb000]">Notiz</span>
         </div>
       )}
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
 import { StrainCard } from "./strain-card";
 import { useAuth } from "@/components/auth-provider";
 import { supabase } from "@/lib/supabase/client";
@@ -15,12 +14,46 @@ interface TopMatch {
   basedOnRatings: number;
 }
 
+const TOP_MATCHES_COLLAPSE_STORAGE_KEY = "greenlog:collection:top-matches-collapsed";
+
 export function TopMatches() {
   const { user, session } = useAuth();
   const [matches, setMatches] = useState<TopMatch[]>([]);
   const [strains, setStrains] = useState<Record<string, Strain>>({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [hasLoadedCollapsePreference, setHasLoadedCollapsePreference] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setIsCollapsed(false);
+      setHasLoadedCollapsePreference(false);
+      return;
+    }
+
+    setHasLoadedCollapsePreference(false);
+    try {
+      const storageKey = `${TOP_MATCHES_COLLAPSE_STORAGE_KEY}:${user.id}`;
+      const persisted = window.localStorage.getItem(storageKey);
+      setIsCollapsed(persisted === "1");
+    } catch {
+      // Ignore storage errors (private mode, blocked storage).
+      setIsCollapsed(false);
+    } finally {
+      setHasLoadedCollapsePreference(true);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || !hasLoadedCollapsePreference) return;
+
+    try {
+      const storageKey = `${TOP_MATCHES_COLLAPSE_STORAGE_KEY}:${user.id}`;
+      window.localStorage.setItem(storageKey, isCollapsed ? "1" : "0");
+    } catch {
+      // Ignore storage errors.
+    }
+  }, [user, isCollapsed, hasLoadedCollapsePreference]);
 
   useEffect(() => {
     // session.access_token muss auch vorhanden sein (wird asynchron gesetzt)
@@ -55,7 +88,6 @@ export function TopMatches() {
         }
       } catch (e) {
         console.error("Failed to fetch top matches:", e);
-        setError("Fehler beim Laden der Top-Matches");
       } finally {
         setLoading(false);
       }
@@ -63,8 +95,6 @@ export function TopMatches() {
 
     fetchTopMatches();
   }, [user, session]);
-
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (!user || (loading && matches.length === 0)) {
     return (
