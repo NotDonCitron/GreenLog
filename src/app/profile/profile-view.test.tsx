@@ -115,6 +115,21 @@ describe("ProfileView component", () => {
       badges: [],
       featuredBadgeIds: [],
       activity: [],
+      preview: { title: "", description: "", chips: [] },
+      publicPreferences: {
+        user_id: "123",
+        show_badges: true,
+        show_favorites: false,
+        show_tried_strains: false,
+        show_reviews: false,
+        show_activity_feed: false,
+        show_follow_counts: true,
+        default_review_public: false,
+      },
+      publicBlocks: [
+        { key: "profile", label: "Profilinfo", state: "public", description: "Username, Avatar, Anzeigename und Bio." },
+        { key: "badges", label: "Abzeichen", state: "public", description: "Freigeschaltete Badges ohne private Konsumdaten." },
+      ],
     };
 
     (useAuth as any).mockReturnValue({
@@ -135,6 +150,7 @@ describe("ProfileView component", () => {
     expect(screen.getByText("42")).toBeTruthy(); // Strains count
     expect(screen.getByText("10")).toBeTruthy(); // Followers count
     expect(screen.getByText("20")).toBeTruthy(); // Following count
+    expect(screen.getByText("Öffentliche Vorschau")).toBeTruthy();
   });
 
   it("should render the selected featured badges on the profile", () => {
@@ -178,6 +194,21 @@ describe("ProfileView component", () => {
       ],
       featuredBadgeIds: ["collector-10", "first-strain"],
       activity: [],
+      preview: { title: "", description: "", chips: [] },
+      publicPreferences: {
+        user_id: "123",
+        show_badges: true,
+        show_favorites: false,
+        show_tried_strains: false,
+        show_reviews: false,
+        show_activity_feed: false,
+        show_follow_counts: true,
+        default_review_public: false,
+      },
+      publicBlocks: [
+        { key: "profile", label: "Profilinfo", state: "public", description: "Username, Avatar, Anzeigename und Bio." },
+        { key: "badges", label: "Abzeichen", state: "public", description: "Freigeschaltete Badges ohne private Konsumdaten." },
+      ],
     };
 
     (useAuth as any).mockReturnValue({

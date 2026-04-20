@@ -343,6 +343,8 @@ export interface ProfileViewModel {
   featuredBadgeIds: string[];
   activity: ProfileActivityItem[];
   preview: PublicProfilePreview;
+  publicPreferences: PublicProfilePreferences;
+  publicBlocks: PublicProfileBlockState[];
 }
 
 // Database row types for Supabase
