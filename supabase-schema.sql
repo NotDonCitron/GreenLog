@@ -395,6 +395,71 @@ CREATE POLICY "Users can update own ratings"
 CREATE POLICY "Users can delete own ratings"
   ON ratings FOR DELETE USING (requesting_user_id() = user_id);
 
+-- =============================================
+-- 8a. CONSUMPTION LOGS (Private Quick Logs)
+-- =============================================
+CREATE TABLE IF NOT EXISTS consumption_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  strain_id UUID REFERENCES strains(id) ON DELETE SET NULL,
+  consumption_method TEXT CHECK (consumption_method IN ('vaporizer', 'joint', 'bong', 'pipe', 'edible', 'oil', 'topical', 'other')) NOT NULL,
+  amount_grams DECIMAL(6,3),
+  subjective_notes TEXT,
+  mood_before TEXT,
+  mood_after TEXT,
+  consumed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  effect_chips TEXT[] NOT NULL DEFAULT '{}',
+  side_effects TEXT[] NOT NULL DEFAULT '{}',
+  overall_rating SMALLINT CHECK (overall_rating BETWEEN 1 AND 5),
+  private_status TEXT CHECK (private_status IN ('nochmal', 'situativ', 'nicht_nochmal')),
+  private_note TEXT,
+  setting_context TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE consumption_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own consumption logs" ON consumption_logs;
+CREATE POLICY "Users can view own consumption logs"
+  ON consumption_logs FOR SELECT USING (requesting_user_id() = user_id);
+
+DROP POLICY IF EXISTS "Users can create own consumption logs" ON consumption_logs;
+CREATE POLICY "Users can create own consumption logs"
+  ON consumption_logs FOR INSERT WITH CHECK (requesting_user_id() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own consumption logs" ON consumption_logs;
+CREATE POLICY "Users can update own consumption logs"
+  ON consumption_logs FOR UPDATE USING (requesting_user_id() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own consumption logs" ON consumption_logs;
+CREATE POLICY "Users can delete own consumption logs"
+  ON consumption_logs FOR DELETE USING (requesting_user_id() = user_id);
+
+ALTER TABLE consumption_logs
+  ADD COLUMN IF NOT EXISTS effect_chips TEXT[] NOT NULL DEFAULT '{}';
+
+ALTER TABLE consumption_logs
+  ADD COLUMN IF NOT EXISTS side_effects TEXT[] NOT NULL DEFAULT '{}';
+
+ALTER TABLE consumption_logs
+  ADD COLUMN IF NOT EXISTS overall_rating SMALLINT CHECK (overall_rating BETWEEN 1 AND 5);
+
+ALTER TABLE consumption_logs
+  ADD COLUMN IF NOT EXISTS private_status TEXT CHECK (private_status IN ('nochmal', 'situativ', 'nicht_nochmal'));
+
+ALTER TABLE consumption_logs
+  ADD COLUMN IF NOT EXISTS private_note TEXT;
+
+ALTER TABLE consumption_logs
+  ADD COLUMN IF NOT EXISTS setting_context TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_consumption_logs_user_time
+  ON consumption_logs(user_id, consumed_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_consumption_logs_strain_user
+  ON consumption_logs(strain_id, user_id);
+
 
 -- =============================================
 -- 9. GROWS (Grow-Tagebuch)
