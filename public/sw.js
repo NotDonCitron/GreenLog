@@ -3,6 +3,11 @@ const API_CACHE = 'greenlog-api-v2';
 
 const MAX_STATIC = 100;
 const MAX_API = 50;
+const IMAGE_EXTENSIONS = ['.avif', '.gif', '.jpeg', '.jpg', '.png', '.svg', '.webp'];
+const BYPASS_IMAGE_HOSTS = new Set([
+  'leafly-public.imgix.net',
+  'uwjyvvvykyueuxtdkscs.supabase.co',
+]);
 
 const STATIC_ASSETS = [
   '/manifest.json',
@@ -41,6 +46,18 @@ async function evictLRU(cacheName, maxEntries) {
   if (keys.length >= maxEntries) {
     await cache.delete(keys[0]);
   }
+}
+
+function isImageRequest(request, url) {
+  if (request.destination === 'image') return true;
+  const pathname = url.pathname.toLowerCase();
+  return IMAGE_EXTENSIONS.some((extension) => pathname.endsWith(extension));
+}
+
+function shouldBypassExternalImageRequest(request, url) {
+  return url.origin !== self.location.origin &&
+    BYPASS_IMAGE_HOSTS.has(url.hostname) &&
+    isImageRequest(request, url);
 }
 
 // Fetch: network-first for API, cache-first for static
@@ -84,6 +101,12 @@ self.addEventListener('fetch', (event) => {
   // Next.js dev chunks → never cache, always network
   if (url.pathname.startsWith('/_next/')) {
     event.respondWith(fetch(request));
+    return;
+  }
+
+  // Let the browser handle external image requests for imgix and Supabase Storage natively.
+  // Rebuilding the Request in the SW can change fetch metadata in ways those CDNs reject.
+  if (shouldBypassExternalImageRequest(request, url)) {
     return;
   }
 
