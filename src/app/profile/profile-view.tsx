@@ -45,6 +45,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
+import { useToast } from "@/components/toast-provider";
 
 import { FollowersListModal } from "@/components/social/followers-list-modal";
 import { AvatarUpload } from "@/components/social/avatar-upload";
@@ -67,7 +68,9 @@ import type {
   ProfileFavorite,
   ProfileStats,
   ProfileViewModel,
+  PublicProfilePreferences,
 } from "@/lib/types";
+import type { PublicProfilePreferenceToggleKey } from "@/components/profile/public-profile-preview-card";
 
 const BADGE_ICONS: Record<string, LucideIcon> = {
   starter: Sprout,
@@ -170,6 +173,7 @@ function SectionHeader({ eyebrow, title, icon: Icon, iconColor }: { eyebrow?: st
 export default function ProfilePage() {
   const { user, session, signOut, loading, isDemoMode } = useAuth();
   const router = useRouter();
+  const { success: toastSuccess, error: toastError } = useToast();
 
   // React Query profile data
   const { data: profileData, isLoading, isError, refetch: refetchProfile } = useProfile();
@@ -185,6 +189,7 @@ export default function ProfilePage() {
   const [showBadgeShowcase, setShowBadgeShowcase] = useState(false);
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const [userBadges, setUserBadges] = useState<Array<{ badge_id: string; badges?: Partial<import("@/lib/badges").BadgeDefinition> }>>([]);
+  const [isSavingPublicPreferences, setIsSavingPublicPreferences] = useState(false);
   const currentUserId = user?.id ?? "";
 
   useEffect(() => {
@@ -391,6 +396,36 @@ export default function ProfilePage() {
       if (prev.length >= 4) return prev; // Max 4
       return [...prev, badgeId];
     });
+  };
+
+  const handlePublicPreferenceChange = async (
+    key: PublicProfilePreferenceToggleKey,
+    value: boolean
+  ) => {
+    if (!user || isDemoMode || isSavingPublicPreferences || !profileData) return;
+
+    setIsSavingPublicPreferences(true);
+    try {
+      const nextPreferences: PublicProfilePreferences = {
+        ...profileData.publicPreferences,
+        user_id: user.id,
+        [key]: value,
+      };
+
+      const { error } = await supabase
+        .from("user_public_preferences")
+        .upsert(nextPreferences, { onConflict: "user_id" });
+
+      if (error) throw error;
+
+      toastSuccess("Öffentliches Profil aktualisiert");
+      await refetchProfile();
+    } catch (error) {
+      console.error("Public preference update error:", error);
+      toastError("Öffentliches Profil konnte nicht aktualisiert werden.");
+    } finally {
+      setIsSavingPublicPreferences(false);
+    }
   };
 
   // Show loading while auth is hydrating
@@ -748,7 +783,11 @@ export default function ProfilePage() {
         </section>
 
         <section className="space-y-3">
-          <PublicProfilePreviewCard profile={profileData} />
+          <PublicProfilePreviewCard
+            profile={profileData}
+            disabled={isSavingPublicPreferences}
+            onPreferenceChange={handlePublicPreferenceChange}
+          />
         </section>
 
         {/* Logout */}
