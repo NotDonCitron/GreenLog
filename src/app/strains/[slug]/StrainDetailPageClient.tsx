@@ -21,6 +21,7 @@ import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { TerpeneRadarChart } from "@/components/strains/terpene-radar-chart";
 import { ShareModal } from "@/components/social/share-modal";
 import { MatchScoreBadge } from "@/components/strains/match-score-badge";
+import { buildPublicRatingActivityPayload } from "@/lib/public-activity";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message) {
@@ -62,6 +63,7 @@ export default function StrainDetailPageClient() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [batchInfo, setBatchInfo] = useState("");
   const [userNotes, setUserNotes] = useState("");
+  const [isRatingPublic, setIsRatingPublic] = useState(false);
 
   const [ratings, setRatings] = useState({
     taste: 4.5,
@@ -384,18 +386,56 @@ export default function StrainDetailPageClient() {
     if (!user || !strain || isDemoMode) return;
     setIsSaving(true);
     try {
+      const overallRating = (ratings.taste + ratings.effect + ratings.look) / 3;
+      const publicReviewText = isRatingPublic ? userNotes.trim() || null : null;
+
       // 1. Save the rating itself
       const { error: rError } = await supabase.from("ratings").upsert({
         strain_id: strain.id,
         user_id: user.id,
-        overall_rating: (ratings.taste + ratings.effect + ratings.look) / 3,
+        overall_rating: overallRating,
         taste_rating: ratings.taste,
         effect_rating: ratings.effect,
         look_rating: ratings.look,
         organization_id: isOrgStrain ? strain.organization_id : null,
+        is_public: isRatingPublic,
+        public_review_text: publicReviewText,
       }, { onConflict: 'strain_id,user_id' });
 
       if (rError) throw rError;
+
+      const { error: activityDeleteError } = await supabase
+        .from("user_activities")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("activity_type", "rating")
+        .eq("target_id", strain.id);
+      if (activityDeleteError) throw activityDeleteError;
+
+      if (isRatingPublic) {
+        const publicPayload = buildPublicRatingActivityPayload({
+          rating: overallRating,
+          strainSlug: slug as string,
+          reviewText: publicReviewText,
+          batch: batchInfo,
+          pharmacy: null,
+          privateNotes: userNotes,
+        });
+
+        const { error: activityError } = await supabase.from("user_activities").insert({
+          user_id: user.id,
+          activity_type: "rating",
+          target_id: strain.id,
+          target_name: strain.name,
+          target_image_url: strain.image_url || null,
+          metadata: publicPayload,
+          public_payload: publicPayload,
+          private_payload: {},
+          is_public: true,
+        });
+
+        if (activityError) throw activityError;
+      }
 
       // 2. Invalidate strain detail cache so ratings reflect immediately
       queryClient.invalidateQueries({ queryKey: strainKeys.detail(slug as string) });
@@ -780,6 +820,24 @@ export default function StrainDetailPageClient() {
             <div className="space-y-4">
               <input type="text" placeholder="Batch / Apotheke" className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-xl py-3 px-4 text-xs text-[var(--foreground)] placeholder:text-[#484849] outline-none focus:border-[#00F5FF]" value={batchInfo} onChange={(e) => setBatchInfo(e.target.value)} />
               <textarea placeholder="Deine Notizen..." className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-xl py-3 px-4 text-xs text-[var(--foreground)] placeholder:text-[#484849] min-h-[100px] outline-none focus:border-[#00F5FF]" value={userNotes} onChange={(e) => setUserNotes(e.target.value)} />
+            </div>
+            <div className="rounded-xl border border-[#00F5FF]/20 bg-[#00F5FF]/5 p-4">
+              <label className="flex items-start justify-between gap-4">
+                <span className="min-w-0">
+                  <span className="block text-xs font-black uppercase tracking-widest text-[var(--foreground)]">
+                    Öffentlich teilbar?
+                  </span>
+                  <span className="mt-1 block text-[10px] leading-relaxed text-[var(--muted-foreground)]">
+                    Andere sehen Strain, Sterne und deinen öffentlichen Review. Dosis, Charge, Apotheke und private Notizen bleiben privat.
+                  </span>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={isRatingPublic}
+                  onChange={(event) => setIsRatingPublic(event.target.checked)}
+                  className="mt-1 h-5 w-5 accent-[#2FF801]"
+                />
+              </label>
             </div>
             <button type="button" onClick={saveRating} disabled={isSaving} className="w-full h-16 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black font-black uppercase rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-[#00F5FF]/20 relative z-20">
               {isSaving ? <Loader2 className="animate-spin" /> : "SAVE LOG"}
