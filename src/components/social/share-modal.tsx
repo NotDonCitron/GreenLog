@@ -15,8 +15,8 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://greenlog.app"
 export function ShareModal({ open, onClose, strainName, strainUrl }: ShareModalProps) {
   const [copied, setCopied] = useState(false)
 
-  const shareUrl = strainUrl.startsWith("http") ? strainUrl : `${BASE_URL}${strainUrl}`
-  const caption = `Analytisches Profil für ${strainName}. Quelle: GreenLog Datenbank.`
+  const shareUrl = `${BASE_URL}/api/og?mode=laborblatt&name=${encodeURIComponent(strainName)}`
+  const caption = `Öffentliches Labor-Datenblatt für ${strainName}. Nur anonymisierte Analysedaten ohne private Einzeldaten.`
 
   const handleWhatsApp = () => {
     const url = `https://wa.me/?text=${encodeURIComponent(caption + " " + shareUrl)}`
@@ -52,7 +52,7 @@ export function ShareModal({ open, onClose, strainName, strainUrl }: ShareModalP
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <Share2 className="w-5 h-5 text-green-600" />
-            <h2 className="text-lg font-semibold text-zinc-900">Analysedaten teilen</h2>
+            <h2 className="text-lg font-semibold text-zinc-900">Labor-Datenblatt teilen</h2>
           </div>
 
           <p className="text-sm text-zinc-500">
@@ -70,7 +70,7 @@ export function ShareModal({ open, onClose, strainName, strainUrl }: ShareModalP
               </svg>
               <div>
                 <div className="font-medium text-zinc-800">WhatsApp</div>
-                <div className="text-xs text-zinc-500">Private Nachricht</div>
+                <div className="text-xs text-zinc-500">Öffentlicher Laborblatt-Link</div>
               </div>
             </button>
 
@@ -84,7 +84,7 @@ export function ShareModal({ open, onClose, strainName, strainUrl }: ShareModalP
               </svg>
               <div>
                 <div className="font-medium text-zinc-800">Telegram</div>
-                <div className="text-xs text-zinc-500">Private Nachricht</div>
+                <div className="text-xs text-zinc-500">Öffentlicher Laborblatt-Link</div>
               </div>
             </button>
 
@@ -100,7 +100,7 @@ export function ShareModal({ open, onClose, strainName, strainUrl }: ShareModalP
               )}
               <div>
                 <div className="font-medium text-zinc-800">{copied ? "Kopiert!" : "Link kopieren"}</div>
-                <div className="text-xs text-zinc-500">{copied ? "In Zwischenablage" : "Für jede App"}</div>
+                <div className="text-xs text-zinc-500">{copied ? "In Zwischenablage" : "Anonymisierte Laboransicht"}</div>
               </div>
             </button>
           </div>
