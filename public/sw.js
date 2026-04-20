@@ -3,6 +3,11 @@ const API_CACHE = 'greenlog-api-v2';
 
 const MAX_STATIC = 100;
 const MAX_API = 50;
+const IMAGE_EXTENSIONS = ['.avif', '.gif', '.jpeg', '.jpg', '.png', '.svg', '.webp'];
+const BYPASS_IMAGE_HOSTS = new Set([
+  'leafly-public.imgix.net',
+  'uwjyvvvykyueuxtdkscs.supabase.co',
+]);
 
 const STATIC_ASSETS = [
   '/manifest.json',
@@ -41,6 +46,18 @@ async function evictLRU(cacheName, maxEntries) {
   if (keys.length >= maxEntries) {
     await cache.delete(keys[0]);
   }
+}
+
+function isImageRequest(request, url) {
+  if (request.destination === 'image') return true;
+  const pathname = url.pathname.toLowerCase();
+  return IMAGE_EXTENSIONS.some((extension) => pathname.endsWith(extension));
+}
+
+function shouldBypassExternalImageRequest(request, url) {
+  return url.origin !== self.location.origin &&
+    BYPASS_IMAGE_HOSTS.has(url.hostname) &&
+    isImageRequest(request, url);
 }
 
 // Fetch: network-first for API, cache-first for static
@@ -87,6 +104,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Let the browser handle external image requests for imgix and Supabase Storage natively.
+  // Rebuilding the Request in the SW can change fetch metadata in ways those CDNs reject.
+  if (shouldBypassExternalImageRequest(request, url)) {
+    return;
+  }
+
+  // Dynamic app routes → NEVER cache, always network.
+  // These contain user-specific data (strains, grows, profile, etc.)
+  // and must always be fetched fresh. The SW's Cache-First strategy
+  // would serve stale data otherwise.
+  if (
+    url.pathname.startsWith('/strains') ||
+    url.pathname.startsWith('/grows') ||
+    url.pathname.startsWith('/profile') ||
+    url.pathname.startsWith('/collection') ||
+    url.pathname.startsWith('/harvest') ||
+    request.headers.has('service-worker-navigation-preload')
+  ) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
   // Static assets → cache first, fall back to network
   // Only cache same-origin requests to prevent accidentally caching external APIs (like Supabase) forever!
   if (url.origin === self.location.origin) {
@@ -107,8 +146,27 @@ self.addEventListener('fetch', (event) => {
       })
     );
   } else {
-    // External APIs (Supabase etc.) → Network only!
-    event.respondWith(fetch(request));
+    // External images/CDNs (Supabase Storage, imgix, etc.) → Network only, never cache.
+    //
+    // IMPORTANT: we must pass cache:'no-store' so the browser's HTTP cache does NOT
+    // serve a previously cached 404 / error response for these URLs (e.g. from when
+    // the Referer header was wrong). Without this, the browser serves the stale
+    // cached error even though our fetch() is now correct.
+    //
+    // referrerPolicy:'no-referrer' ensures imgix does not receive a Referer header
+    // (imgix blocks requests that send one).
+    try {
+      const req = new Request(request, {
+        referrerPolicy: 'no-referrer',
+        mode: 'cors',
+        credentials: 'omit',
+        cache: 'no-store',          // bypass browser HTTP cache
+      });
+      event.respondWith(fetch(req));
+    } catch (_) {
+      // NetworkError or similar — pass through so the img onError fires
+      event.respondWith(fetch(request));
+    }
   }
 });
 
