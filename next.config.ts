@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.greenlog-prod.app https://clerk.greenlog.app https://*.clerk.accounts.dev; connect-src 'self' https://clerk.greenlog-prod.app https://clerk.greenlog.app https://*.clerk.accounts.dev https://uwjyvvvykyueuxtdkscs.supabase.co; img-src 'self' data: blob: https://*.clerk.com https://uwjyvvvykyueuxtdkscs.supabase.co https://www.leafly.com https://images.leafly.com https://pollinations.ai; worker-src 'self' blob:; frame-src https://*.clerk.com https://clerk.greenlog-prod.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.greenlog-prod.app https://clerk.greenlog.app https://*.clerk.accounts.dev; connect-src 'self' https://clerk.greenlog-prod.app https://clerk.greenlog.app https://*.clerk.accounts.dev https://uwjyvvvykyueuxtdkscs.supabase.co; img-src 'self' data: blob: https://*.clerk.com https://uwjyvvvykyueuxtdkscs.supabase.co https://www.leafly.com https://images.leafly.com https://leafly-public.imgix.net https://pollinations.ai; worker-src 'self' blob:; frame-src https://*.clerk.com https://clerk.greenlog-prod.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;",
           },
         ],
       },
@@ -34,6 +34,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'images.leafly.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'leafly-public.imgix.net',
         port: '',
         pathname: '/**',
       },
