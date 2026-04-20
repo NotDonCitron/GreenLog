@@ -9,22 +9,22 @@
  * 3. Process bis zu CONCURRENT requests parallel via p-limit
  * 4. Nur vollständige Strains importieren (thc, description, image, effects, flavors, terpenes)
  *
- * Performance (100 strains):
- *   OLD: sequentiell, Obscura 60s timeout, 1.5s sleep → 160+ Sekunden
- *   NEW: curl HTTP-only, 5x parallel, kein sleep         → ~15 Sekunden  (10x faster)
+ * Performance (15 strains test @ 3x concurrency, 20s timeout):
+ *   OLD: sequentiell, Obscura 60s timeout, 1.5s sleep → ~90+ Sekunden
+ *   NEW: curl HTTP-only, 3x parallel, kein sleep         → ~32 Sekunden (15/15 OK)
  *
  * Setup:
  *   node scripts/leafly-quality-scraper.mjs                    # full run
- *   node scripts/leafly-quality-scraper.mjs --dry              # dry run (no DB write)
- *   node scripts/leafly-quality-scraper.mjs --limit 50         # limit for testing
- *   node scripts/leafly-quality-scraper.mjs --concurrent 10    # 10 parallel workers
- *   node scripts/leafly-quality-scraper.mjs --wishlist kushy   # use kushy-strains.csv
+ *   node scripts/leafly-quality-scraper.mjs --dry            # dry run (no DB write)
+ *   node scripts/leafly-quality-scraper.mjs --limit 50       # limit for testing
+ *   node scripts/leafly-quality-scraper.mjs --concurrent 3   # 3 parallel workers
+ *   node scripts/leafly-quality-scraper.mjs --wishlist kushy # use kushy-strains.csv
  */
 
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
-import { exec, execSync } from 'child_process';
+import { exec } from 'child_process';
 import { promisify } from 'util';
 
 const execAsync = promisify(exec);
@@ -46,8 +46,8 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 const DRY_RUN = process.argv.includes('--dry');
 const LIMIT = parseNumberArg('--limit', 0);
 const USE_WISHLIST = process.argv.includes('--wishlist');
-const CONCURRENT = parseNumberArg('--concurrent', 5);   // parallel workers
-const CURL_TIMEOUT = 12;   // seconds per strain
+const CONCURRENT = parseNumberArg('--concurrent', 3);  // 3 parallel — Leafly wird bei mehr parallel langsamer
+const CURL_TIMEOUT = 20;   // seconds per strain (max observed: ~16s bei manchen strains)
 
 // Quality gates - ONLY import strains that meet ALL these criteria
 const QUALITY_GATES = {
@@ -96,10 +96,6 @@ function parseNumberArg(name, fallback) {
         return Number.isFinite(val) ? val : fallback;
     }
     return fallback;
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function ensureTmpDir() {
@@ -169,7 +165,7 @@ async function getExistingStrainNames() {
 function getKushyWishlist() {
     const csvPath = path.join(PROJECT_ROOT, 'kushy-strains.csv');
     if (!fs.existsSync(csvPath)) {
-        console.warn('⚠️  kushy-strains.csv not found, using empty wishlist');
+        console.warn('⚠️  kushy-strains.csv not found');
         return [];
     }
     const content = fs.readFileSync(csvPath, 'utf8');
@@ -201,22 +197,18 @@ function getKushyWishlist() {
 }
 
 // ---------------------------------------------------------------------------
-// HTTP fetch (fast path - no browser needed for SSR pages)
+// HTTP fetch (Leafly SSR liefert __NEXT_DATA__ direkt — kein Browser nötig)
 // ---------------------------------------------------------------------------
 async function httpFetchHtml(url) {
     try {
-        // --compressed: accept gzip/brotli from server
-        // --max-time 10: don't hang on slow responses
-        // --user-agent: Leafly may block default curl
-        const { stdout, stderr } = await execAsync(
-            `curl -s --compressed --max-time 10 --max-redirs 5 \
-             -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
-             -H "Accept-Language: en-US,en;q=0.9" \
-             -H "Accept-Encoding: gzip, deflate, br" \
+        // --compressed: Leafly sendet gzip/br, ohne decompress timed curl aus
+        // --max-time: harte Grenze, execAsync timeout darüber
+        const { stdout } = await execAsync(
+            `curl -s --compressed --max-time ${CURL_TIMEOUT} --max-redirs 5 \
              -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" \
-             -H "Cache-Control: no-cache" \
+             -H "Accept-Language: en-US,en;q=0.9" \
              -L "${url.replace(/"/g, '\\"')}"`,
-            { timeout: 15000 }
+            { timeout: CURL_TIMEOUT * 1000 + 5000 }
         );
         return stdout || null;
     } catch {
@@ -225,36 +217,12 @@ async function httpFetchHtml(url) {
 }
 
 // ---------------------------------------------------------------------------
-// Browser fetch via obscura CLI (slow path - only when HTTP fails)
+// Smart fetch: HTTP only (Leafly SSR ist vollständig)
 // ---------------------------------------------------------------------------
-async function obscuraFetchHtml(url) {
-    const cmd = `obscura fetch "${url}" --dump html --wait 3 --wait-until domcontentloaded --stealth -q`;
-    try {
-        const { stdout } = await execAsync(cmd, {
-            cwd: PROJECT_ROOT,
-            shell: '/bin/bash',
-            timeout: BROWSER_TIMEOUT_MS,
-            maxBuffer: 5 * 1024 * 1024,
-        });
-        return stdout;
-    } catch {
-        return null;
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Smart fetch: try HTTP first, fall back to browser
-// ---------------------------------------------------------------------------
-async function smartFetchHtml(url, attempt = 0) {
-    // Try fast HTTP first
+async function smartFetchHtml(url) {
     const html = await httpFetchHtml(url);
     if (html && /__NEXT_DATA__|__NEXT_QUERY_DATA__/.test(html)) {
-        return html;  // HTTP worked!
-    }
-
-    // If HTTP didn't get __NEXT_DATA__, try browser (max 1 retry per variant)
-    if (attempt === 0) {
-        return await obscuraFetchHtml(url);
+        return html;
     }
     return null;
 }
@@ -404,7 +372,7 @@ async function importStrain(data) {
 }
 
 // ---------------------------------------------------------------------------
-// Process a single strain (stateless — all state via params)
+// Process a single strain
 // ---------------------------------------------------------------------------
 async function processStrain(strainName, existingNames, notFoundCache, stats) {
     const normalizedName = strainName.toLowerCase().trim();
@@ -427,8 +395,6 @@ async function processStrain(strainName, existingNames, notFoundCache, stats) {
 
     for (const variant of variants) {
         const url = `https://leafly.com/strains/${variant}`;
-
-        // Try HTTP first (fast), fall back to browser
         const html = await smartFetchHtml(url);
         const nextData = parseNextData(html);
 
@@ -508,53 +474,36 @@ function pLimit(concurrency) {
         running--;
         if (queue.length > 0) {
             const { fn, resolve, reject } = queue.shift();
-            run(fn, resolve, reject);
+            running++;
+            fn().then(resolve).catch(reject).finally(next);
         }
     }
 
-    async function run(fn, resolve, reject) {
+    const run = async (fn, resolve, reject) => {
         running++;
-        try {
-            const result = await fn();
-            resolve(result);
-        } catch (err) {
-            reject(err);
-        } finally {
-            next();
-        }
-    }
-
-    function enqueue(fn) {
-        return new Promise((resolve, reject) => {
-            if (running < concurrency) {
-                run(fn, resolve, reject);
-            } else {
-                queue.push({ fn, resolve, reject });
-            }
-        });
-    }
-
-    enqueue.abort = () => {
-        for (const { reject } of queue) {
-            reject(new Error('Aborted'));
-        }
-        queue.length = 0;
+        try { resolve(await fn()); }
+        catch (e) { reject(e); }
+        finally { next(); }
     };
 
-    return enqueue;
+    return (fn) => new Promise((resolve, reject) => {
+        if (running < concurrency) {
+            run(fn, resolve, reject);
+        } else {
+            queue.push({ fn, resolve, reject });
+        }
+    });
 }
 
 // ---------------------------------------------------------------------------
-// Parallel processor: runs N strains concurrently, saves progress
+// Parallel processor
 // ---------------------------------------------------------------------------
 async function processBatch(strains, existingNames, notFoundCache, stats) {
     const limit = pLimit(CONCURRENT);
     const start = Date.now();
 
-    // Build all promises
-    const tasks = strains.map((strainName, idx) =>
+    const tasks = strains.map((strainName) =>
         limit(async () => {
-            // Save progress every 5 tasks
             const processed = stats._processed || 0;
             const result = await processStrain(strainName, existingNames, notFoundCache, stats);
             stats._processed = processed + 1;
@@ -569,7 +518,6 @@ async function processBatch(strains, existingNames, notFoundCache, stats) {
                 );
             }
 
-            // Compact log line
             if (result) {
                 const imgSrc = result.image_source || 'none';
                 process.stdout.write(
@@ -600,11 +548,11 @@ function saveProgress(stats) {
 // Main
 // ---------------------------------------------------------------------------
 async function main() {
-    console.log('\n🌿 GreenLog Quality-First Leafly Scraper  [PARALLELIZED]');
+    console.log('\n🌿 GreenLog Quality-First Leafly Scraper  [PARALLELIZED + HTTP-ONLY]');
     console.log('='.repeat(50));
-    console.log(`   Concurrency: ${CONCURRENT} parallel workers`);
-    console.log(`   Fast path:   HTTP/curl (__NEXT_DATA__ from SSR HTML)`);
-    console.log(`   Slow path:   Obscura/browser (only if HTTP fails)\n`);
+    console.log(`   Concurrency:  ${CONCURRENT}x parallel workers`);
+    console.log(`   HTTP method:  curl --compressed (Leafly liefert __NEXT_DATA__ im SSR HTML)`);
+    console.log(`   Timeout:      ${CURL_TIMEOUT}s per strain\n`);
 
     if (DRY_RUN) {
         console.log('⚠️  DRY RUN MODE - No data will be written to database\n');
@@ -628,7 +576,7 @@ async function main() {
             'pineapple-express', 'blue-dream', 'granddaddy-purple', 'white-widow',
             'northern-lights', 'ak-47', 'jack-herer', 'durban-poison',
             'chemdawg', 'purple-haze', 'silver-haze', 'super-lemon-haze',
-            'critical-kush', 'critical-mass', 'master-kush', ' Durban-poison',
+            'critical-kush', 'critical-mass', 'master-kush',
         ];
         console.log(`📋 Using default popular strains list (${wishlist.length} strains)\n`);
     }
@@ -655,9 +603,8 @@ async function main() {
     await processBatch(wishlist, existingNames, notFoundCache, stats);
 
     const elapsed = ((Date.now() - batchStart) / 1000).toFixed(1);
-    const rate = (stats.total / (Date.now() - batchStart) / 1000).toFixed(1);
+    const rate = (stats.total / parseFloat(elapsed)).toFixed(1);
 
-    // Final report
     console.log('\n' + '='.repeat(50));
     console.log('📊 FINAL REPORT');
     console.log('='.repeat(50));
@@ -668,7 +615,7 @@ async function main() {
     console.log(`🔄 Already in DB: ${stats.skipped_duplicate}`);
     console.log(`⏭️  Skipped (cached not found): ${stats.skipped_not_found_cache}`);
     console.log(`❌ Import error: ${stats.import_error}`);
-    console.log(`⏱  Total time: ${elapsed}s  (~${(stats.total / parseFloat(elapsed)).toFixed(1)} strains/sec)`);
+    console.log(`⏱  Total time: ${elapsed}s  (~${rate} strains/sec)`);
 
     const successRate = stats.total > 0 ? ((stats.imported / stats.total) * 100).toFixed(1) : 0;
     console.log(`Success rate: ${successRate}%`);
@@ -678,6 +625,7 @@ async function main() {
         stats,
         wishlist_size: wishlist.length,
         concurrency: CONCURRENT,
+        curl_timeout: CURL_TIMEOUT,
         dry_run: DRY_RUN,
     });
     console.log(`\n💾 Report saved to: ${QUALITY_REPORT}`);
