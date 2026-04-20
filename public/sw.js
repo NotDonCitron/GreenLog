@@ -87,6 +87,22 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Dynamic app routes → NEVER cache, always network.
+  // These contain user-specific data (strains, grows, profile, etc.)
+  // and must always be fetched fresh. The SW's Cache-First strategy
+  // would serve stale data otherwise.
+  if (
+    url.pathname.startsWith('/strains') ||
+    url.pathname.startsWith('/grows') ||
+    url.pathname.startsWith('/profile') ||
+    url.pathname.startsWith('/collection') ||
+    url.pathname.startsWith('/harvest') ||
+    request.headers.has('service-worker-navigation-preload')
+  ) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
   // Static assets → cache first, fall back to network
   // Only cache same-origin requests to prevent accidentally caching external APIs (like Supabase) forever!
   if (url.origin === self.location.origin) {

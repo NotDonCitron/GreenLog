@@ -679,12 +679,9 @@ export default function StrainDetailPageClient() {
                   <div className="absolute bottom-2 left-2 border bg-black/70 backdrop-blur-md uppercase text-[9px] px-2 py-1 rounded-sm font-bold" style={{ borderColor: themeColor, color: themeColor }}>{strain.type || 'HYBRID'}</div>
                 </div>
               </div>
-              {strain.image_attribution && strain.image_attribution.source !== 'none' && (
+              {strain.image_attribution && strain.image_attribution.source !== 'none' && strain.image_attribution.url && (
                 <p className="text-xs text-gray-500 mt-1">
-                  Foto: {strain.image_attribution?.author} · {strain.image_attribution?.license}
-                  {strain.image_attribution?.url && (
-                    <> · <a href={strain.image_attribution?.url} target="_blank" rel="noopener noreferrer" className="underline">Quelle</a></>
-                  )}
+                  <a href={strain.image_attribution.url} target="_blank" rel="noopener noreferrer" className="underline">Quelle</a>
                 </p>
               )}
               <div className="px-5 mt-5 w-full mb-5">
