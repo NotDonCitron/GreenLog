@@ -4,8 +4,6 @@ import { useState, useRef } from "react";
 import { Camera, Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/components/toast-provider";
-import { uploadToMinio } from "@/lib/minio-storage";
-import { supabase } from "@/lib/supabase/client";
 
 interface OrgLogoUploadProps {
     currentLogoUrl?: string | null;
@@ -20,7 +18,7 @@ export function OrgLogoUpload({
     onSuccess,
     size = 80,
 }: OrgLogoUploadProps) {
-    const { user } = useAuth();
+    const { user, session } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { error: toastError } = useToast();
     const [isUploading, setIsUploading] = useState(false);
@@ -45,25 +43,22 @@ export function OrgLogoUpload({
 
         setIsUploading(true);
         try {
-            const ext = file.name.split(".").pop();
-            const filename = `${organizationId}/${Date.now()}.${ext}`;
+            if (!session?.access_token) throw new Error("Missing session");
 
-            // Upload to MinIO Storage
-            const { publicUrl: logoUrl } = await uploadToMinio(
-                "org-logos",
-                filename,
-                file,
-                file.type || "image/jpeg",
-                { upsert: true, cacheControl: "3600" }
-            );
+            const formData = new FormData();
+            formData.append("image", file);
 
-            const { error: updateError } = await supabase
-                .from("organizations")
-                .update({ logo_url: logoUrl })
-                .eq("id", organizationId);
+            const response = await fetch(`/api/organizations/${organizationId}/logo`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${session.access_token}` },
+                body: formData,
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result?.error?.message || "Upload failed");
+            }
 
-            if (updateError) throw updateError;
-
+            const logoUrl = result.data.logo_url as string;
             setPreviewUrl(null);
             onSuccess?.(logoUrl);
         } catch (err) {

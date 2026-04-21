@@ -51,7 +51,6 @@ export default function StrainDetailPageClient() {
   const [userImageUrl, setUserImageUrl] = useState<string | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [isAdminUploading, setIsAdminUploading] = useState(false);
   const [globalImageRefresh, setGlobalImageRefresh] = useState(0);
   const [isFavorited, setIsFavorite] = useState(false);
@@ -245,27 +244,29 @@ export default function StrainDetailPageClient() {
       return;
     }
 
-    setIsUploading(true);
     try {
-      const fileExt = file.name.split('.').pop() || "jpg";
-      const fileName = `${user.id}/${strain.slug}-${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('strains').upload(fileName, file, { upsert: false });
-      if (uploadError) throw uploadError;
+      const accessToken = session?.access_token;
+      if (!accessToken) {
+        throw new Error("Du musst eingeloggt sein.");
+      }
 
-      const { data: { publicUrl } } = supabase.storage.from('strains').getPublicUrl(fileName);
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("batch_info", batchInfo);
+      formData.append("user_notes", userNotes);
+
+      const response = await fetch(`/api/strains/${strain.id}/user-image`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: formData,
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result?.error?.message || "Upload fehlgeschlagen");
+      }
+
+      const publicUrl = result.data.user_image_url as string;
       setUserImageUrl(publicUrl);
-
-      const { error: collectionError } = await supabase.from('user_collection').upsert({
-        user_id: user.id,
-        strain_id: strain.id,
-        user_image_url: publicUrl,
-        batch_info: batchInfo || null,
-        user_notes: userNotes || null,
-        user_thc_percent: (strain as any).avg_thc ?? strain.thc_max ?? null,
-        user_cbd_percent: (strain as any).avg_cbd ?? strain.cbd_max ?? null,
-      }, { onConflict: 'user_id,strain_id' });
-
-      if (collectionError) throw collectionError;
 
       // React Query will handle UI update via collectedIds from useCollection hook
       // Fire and forget badge check - don't block UI
@@ -276,7 +277,6 @@ export default function StrainDetailPageClient() {
       toastError("Error: " + getErrorMessage(error, "Foto konnte nicht hochgeladen werden."));
     } finally {
       e.target.value = "";
-      setIsUploading(false);
     }
   };
 

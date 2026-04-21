@@ -1,10 +1,39 @@
-import { supabase, getAuthenticatedClient } from "@/lib/supabase/client";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
 import { isAppAdmin } from "@/lib/auth";
+import { deleteFromMinio, uploadToMinio } from "@/lib/minio-storage";
+import { storagePathFromMediaUrl } from "@/lib/storage/media";
+
+export const runtime = "nodejs";
+
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 function getErrorMessage(error: unknown, fallback: string): string {
     if (error instanceof Error && error.message) return error.message;
     return fallback;
+}
+
+function extensionForMimeType(mimeType: string): string {
+    if (mimeType === "image/png") return "png";
+    if (mimeType === "image/webp") return "webp";
+    if (mimeType === "image/gif") return "gif";
+    return "jpg";
+}
+
+function isUploadFile(value: FormDataEntryValue | null): value is File {
+    return Boolean(value && typeof value === "object" && "arrayBuffer" in value && "type" in value && "size" in value);
+}
+
+async function deletePreviousMinioImage(imageUrl: string | null, canonicalImagePath: string | null) {
+    const path = storagePathFromMediaUrl(imageUrl) ?? canonicalImagePath;
+    if (!path?.startsWith("strains/")) return;
+
+    try {
+        await deleteFromMinio("strains", path.slice("strains/".length));
+    } catch (deleteError) {
+        console.error("Failed to delete old MinIO image:", deleteError);
+    }
 }
 
 export async function PATCH(
@@ -33,18 +62,17 @@ export async function PATCH(
         }
 
         const formData = await request.formData();
-        const imageFile = formData.get("image") as File | null;
+        const imageFile = formData.get("image");
 
-        if (!imageFile) {
+        if (!isUploadFile(imageFile)) {
             return jsonError("No image provided", 400);
         }
 
-        const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-        if (!allowedMimeTypes.includes(imageFile.type)) {
+        if (!ALLOWED_MIME_TYPES.has(imageFile.type)) {
             return jsonError("Invalid file type. Allowed: JPG, PNG, WEBP, GIF", 400);
         }
 
-        if (imageFile.size > 5242880) {
+        if (imageFile.size > MAX_UPLOAD_BYTES) {
             return jsonError("File too large. Maximum size is 5MB", 400);
         }
 
@@ -58,44 +86,22 @@ export async function PATCH(
             return jsonError("Strain not found", 404);
         }
 
-        const fileExt = imageFile.name.split(".").pop() || "jpg";
-        const storagePath = `strains-images/${strainId}.${fileExt}`;
+        const fileExt = extensionForMimeType(imageFile.type);
+        const storageKey = `${strainId}.${fileExt}`;
+        const buffer = Buffer.from(await imageFile.arrayBuffer());
 
-        const arrayBuffer = await imageFile.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        await deletePreviousMinioImage(strain.image_url ?? null, strain.canonical_image_path ?? null);
 
-        if (strain.canonical_image_path || strain.image_url) {
-            try {
-                let oldPath = strain.canonical_image_path ?? null;
-                if (!oldPath && strain.image_url) {
-                    const oldPathMatch = strain.image_url.match(/\/strains-images\/(.+)$/);
-                    if (oldPathMatch) oldPath = oldPathMatch[1];
-                }
-                if (oldPath) {
-                    await supabaseAuth.storage.from("strains-images").remove([oldPath]);
-                }
-            } catch (deleteError) {
-                console.error("Failed to delete old image:", deleteError);
-            }
+        const upload = await uploadToMinio("strains", storageKey, buffer, imageFile.type, { upsert: true });
+        if (!upload.publicUrl) {
+            return jsonError("Failed to create public image URL", 500);
         }
-
-        const { error: uploadError } = await supabaseAuth.storage
-            .from("strains-images")
-            .upload(storagePath, buffer, { contentType: imageFile.type, upsert: true });
-
-        if (uploadError) {
-            return jsonError("Failed to upload image: " + getErrorMessage(uploadError, "Unknown error"), 500);
-        }
-
-        const { data: { publicUrl } } = supabaseAuth.storage
-            .from("strains-images")
-            .getPublicUrl(storagePath);
 
         const { error: updateError } = await supabaseAuth
             .from("strains")
             .update({
-                image_url: publicUrl,
-                canonical_image_path: storagePath,
+                image_url: upload.publicUrl,
+                canonical_image_path: upload.path,
             })
             .eq("id", strainId);
 
@@ -103,10 +109,10 @@ export async function PATCH(
             return jsonError("Failed to update strain image URL", 500, updateError.code, updateError.message);
         }
 
-        return jsonSuccess({ success: true, image_url: publicUrl });
+        return jsonSuccess({ success: true, image_url: upload.publicUrl, canonical_image_path: upload.path });
 
     } catch (error) {
         console.error("Unexpected error:", error);
-        return jsonError("Internal server error", 500);
+        return jsonError("Internal server error", 500, undefined, getErrorMessage(error, "Unknown error"));
     }
 }

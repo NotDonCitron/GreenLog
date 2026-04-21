@@ -5,7 +5,6 @@ import type { GrowComment } from '@/lib/types';
 import { useAuth } from '@/components/auth-provider';
 import { useToast } from '@/components/toast-provider';
 import { supabase } from '@/lib/supabase/client';
-import { getSignedMinioUrl } from '@/lib/minio-storage';
 import { GrowDetailHeader } from './grow-detail-header';
 import { QuickActionBar } from './quick-action-bar';
 import { PlantCarousel } from './plant-carousel';
@@ -39,7 +38,7 @@ export function GrowDetailClient({
   initialFollowerCount,
 }: Props) {
   const growId = initialGrow.id;
-  const { user, isDemoMode } = useAuth();
+  const { user, session, isDemoMode } = useAuth();
   const { error: toastError, success: toastSuccess } = useToast();
 
   // Local state for optimistic updates
@@ -79,9 +78,19 @@ export function GrowDetailClient({
         const photoPath = entry.content?.photo_path;
         if (typeof photoPath !== 'string') return null;
 
-        const signedUrl = await getSignedMinioUrl('grow-entry-photos', photoPath, 60 * 60);
+        if (!session?.access_token) return null;
 
-        if (!signedUrl) return null;
+        const response = await fetch('/api/grows/log-entry/photo/sign', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ photo_path: photoPath }),
+        });
+        const result = await response.json().catch(() => null);
+        const signedUrl = result?.data?.signed_photo_url;
+        if (!response.ok || typeof signedUrl !== 'string') return null;
 
         return {
           id: entry.id,
@@ -118,7 +127,7 @@ export function GrowDetailClient({
     return () => {
       isCancelled = true;
     };
-  }, [entries]);
+  }, [entries, session?.access_token]);
 
   // Open log modal — optionally with preselected type
   const openLogModal = useCallback((plantId: string | null = null, type?: GrowEntryType) => {

@@ -4,11 +4,8 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/components/toast-provider";
-import { uploadToMinio } from "@/lib/minio-storage";
-import { supabase } from "@/lib/supabase";
 
 interface AvatarUploadProps {
     currentAvatarUrl?: string | null;
@@ -46,7 +43,7 @@ export function AvatarUpload({
     className = "",
     onUploadComplete,
 }: AvatarUploadProps) {
-    const { user } = useAuth();
+    const { user, session } = useAuth();
     const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { error: toastError } = useToast();
@@ -79,26 +76,20 @@ export function AvatarUpload({
         setIsUploading(true);
 
         try {
-            // Generate unique filename
-            const ext = file.name.split(".").pop();
-            const filename = `${user.id}/${Date.now()}.${ext}`;
+            if (!session?.access_token) throw new Error("Missing session");
 
-            // Upload to MinIO Storage
-            const { publicUrl } = await uploadToMinio(
-                "avatars",
-                filename,
-                file,
-                file.type || "image/jpeg",
-                { upsert: true, cacheControl: "3600" }
-            );
+            const formData = new FormData();
+            formData.append("image", file);
 
-            // Update profile
-            const { error: updateError } = await supabase
-                .from("profiles")
-                .update({ avatar_url: publicUrl })
-                .eq("id", user.id);
-
-            if (updateError) throw updateError;
+            const response = await fetch("/api/profile/avatar", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${session.access_token}` },
+                body: formData,
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result?.error?.message || "Upload failed");
+            }
 
             setPreviewUrl(null);
             if (onUploadComplete) {
