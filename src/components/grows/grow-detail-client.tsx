@@ -5,7 +5,7 @@ import type { GrowComment } from '@/lib/types';
 import { useAuth } from '@/components/auth-provider';
 import { useToast } from '@/components/toast-provider';
 import { supabase } from '@/lib/supabase/client';
-import { minioCreateSignedUrl } from '@/lib/minio-storage';
+import { getSignedMinioUrl } from '@/lib/minio-storage';
 import { GrowDetailHeader } from './grow-detail-header';
 import { QuickActionBar } from './quick-action-bar';
 import { PlantCarousel } from './plant-carousel';
@@ -79,13 +79,13 @@ export function GrowDetailClient({
         const photoPath = entry.content?.photo_path;
         if (typeof photoPath !== 'string') return null;
 
-        const signedResult = await minioCreateSignedUrl('grow-entry-photos', photoPath, 60 * 60);
+        const signedUrl = await getSignedMinioUrl('grow-entry-photos', photoPath, 60 * 60);
 
-        if (!signedResult.data?.signedUrl) return null;
+        if (!signedUrl) return null;
 
         return {
           id: entry.id,
-          signedUrl: signedResult.data.signedUrl,
+          signedUrl,
         };
       }));
 

@@ -3,7 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { GrowDetailClient } from '@/components/grows/grow-detail-client';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { minioCreateSignedUrl } from '@/lib/minio-storage';
+import { getSignedMinioUrl } from '@/lib/minio-storage';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 interface PageProps {
@@ -11,9 +11,10 @@ interface PageProps {
 }
 
 async function createSignedGrowPhotoUrl(photoPath: string): Promise<string | null> {
-  const result = await minioCreateSignedUrl('grow-entry-photos', photoPath, 60 * 60);
-
-  if (result.data?.signedUrl) return result.data.signedUrl;
+  try {
+    const url = await getSignedMinioUrl('grow-entry-photos', photoPath, 60 * 60);
+    if (url) return url;
+  } catch {}
 
   try {
     const admin = getSupabaseAdmin();

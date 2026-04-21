@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/components/auth-provider';
-import { AlertCircle, Loader2, ChevronDown, ChevronUp, X } from 'lucide-react';
+import { AlertCircle, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface Strain {
   id: string;

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedClient } from '@/lib/supabase/client';
-import { minioBucket } from '@/lib/minio-storage';
+import { uploadToMinio, deleteFromMinio, getSignedMinioUrl } from '@/lib/minio-storage';
 
 const MINIO_BUCKET = 'grow-entry-photos';
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
@@ -148,12 +148,7 @@ export async function POST(request: Request) {
     const photoPath = `${user.id}/${growId}/${crypto.randomUUID()}.${extension}`;
     const buffer = Buffer.from(await image.arrayBuffer());
 
-    const uploadResult = await minioBucket(MINIO_BUCKET).upload(photoPath, buffer, { contentType: image.type, upsert: false });
-
-    if (uploadResult.error) {
-      console.error('[POST /api/grows/log-entry/photo] Storage upload failed:', serializeErrorDetails(uploadResult.error));
-      return jsonError('Failed to upload image', 500, serializeErrorDetails(uploadResult.error));
-    }
+    const uploadResult = await uploadToMinio(MINIO_BUCKET, photoPath, buffer, image.type, { upsert: false });
 
     const entryDate = typeof entryDateValue === 'string' && entryDateValue.length > 0
       ? entryDateValue
@@ -180,11 +175,11 @@ export async function POST(request: Request) {
       .single();
 
     if (entryError) {
-      await minioBucket(MINIO_BUCKET).remove([photoPath]);
+      await deleteFromMinio(MINIO_BUCKET, photoPath);
       return jsonError('Failed to add log entry', 500, serializeErrorDetails(entryError));
     }
 
-    const signedPhoto = await minioBucket(MINIO_BUCKET).createSignedUrl(photoPath, 60 * 60);
+    const signedPhotoUrl = await getSignedMinioUrl(MINIO_BUCKET, photoPath, 60 * 60);
 
     return NextResponse.json({
       data: {
@@ -192,7 +187,7 @@ export async function POST(request: Request) {
           ...entry,
           content: {
             ...entry.content,
-            ...(signedPhoto.data?.signedUrl ? { signed_photo_url: signedPhoto.data.signedUrl } : {}),
+            ...(signedPhotoUrl ? { signed_photo_url: signedPhotoUrl } : {}),
           },
         },
       },
