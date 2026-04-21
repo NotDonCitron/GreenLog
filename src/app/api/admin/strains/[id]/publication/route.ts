@@ -45,7 +45,7 @@ export async function PATCH(
   const { data: strain, error: loadError } = await supabase
     .from("strains")
     .select(
-      "id, name, slug, type, description, thc_min, thc_max, cbd_min, cbd_max, avg_thc, avg_cbd, terpenes, flavors, effects, image_url, canonical_image_path, primary_source"
+      "id, name, slug, type, description, thc_min, thc_max, cbd_min, cbd_max, terpenes, flavors, effects, image_url, canonical_image_path, primary_source"
     )
     .eq("id", id)
     .single();
