@@ -215,14 +215,19 @@ function parseKushyCSV() {
     const breederIsUnknown =
       breeder_clean && breeder_clean.toLowerCase() === 'unknown';
 
-    const hasExtra =
-      effects.length > 0 ||
-      genetics_cross !== null ||
-      (breeder_clean !== null && !breederIsUnknown);
+    // ── Quality Gate: mindestens 2 substanzielle Felder ──
+    const scoreFields = [
+      effects.length > 0,        // effects
+      flavors.length > 0,        // flavors
+      genetics_cross !== null,   // genetics
+      breeder_clean !== null && !breederIsUnknown, // breeder (echter)
+    ];
+    const substanceScore = scoreFields.filter(Boolean).length;
 
     const hasValidType = type !== null;
+    const passesQualityGate = hasValidType && substanceScore >= 2;
 
-    if (!hasValidType || !hasExtra) continue;
+    if (!passesQualityGate) continue;
 
     strains.push({
       name: name.trim(),
@@ -287,19 +292,21 @@ async function main() {
     if (s.brand) withBreeder++;
   }
 
-  console.log('📊 Kushy CSV Qualität:');
-  console.log(`   Strains gesamt:      ${allStrains.length}`);
-  console.log(`   Typ vorhanden:       ${allStrains.length - byType.none}`);
+  console.log('📊 Kushy CSV Qualität (nach Quality Gate):');
+  console.log(`   Strains qualifiziert: ${allStrains.length}`);
+  console.log(`   Typ vorhanden:        ${allStrains.length - byType.none}`);
   console.log(
-    `   Effects vorhanden:   ${withEffects} (${((withEffects / allStrains.length) * 100).toFixed(1)}%)`
+    `   Effects vorhanden:    ${withEffects} (${((withEffects / allStrains.length) * 100).toFixed(1)}%)`
   );
   console.log(
-    `   Flavors vorhanden:   ${withFlavors} (${((withFlavors / allStrains.length) * 100).toFixed(1)}%)`
+    `   Flavors vorhanden:    ${withFlavors} (${((withFlavors / allStrains.length) * 100).toFixed(1)}%)`
   );
-  console.log(`   Genetics vorhanden:  ${withGenetics}`);
+  console.log(`   Genetics vorhanden:   ${withGenetics}`);
   console.log(
-    `   Brand vorhanden:     ${withBreeder} (${((withBreeder / allStrains.length) * 100).toFixed(1)}%)`
+    `   Brand vorhanden:      ${withBreeder} (${((withBreeder / allStrains.length) * 100).toFixed(1)}%)`
   );
+  console.log('');
+  console.log('🔒 Quality Gate: mindestens 2 von (effects, flavors, genetics, breeder)');
   console.log('');
   console.log('📊 Type-Verteilung:');
   console.log(`   Hybrid: ${byType.hybrid}`);

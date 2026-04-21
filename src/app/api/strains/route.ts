@@ -23,6 +23,11 @@ export async function GET(request: Request) {
         query = query.ilike("name", `%${search}%`);
     }
 
+    // Only show strains with real images (no placeholders / null)
+    query = query.not("image_url", "ilike", "%placeholder%")
+                 .not("image_url", "ilike", "%picsum%")
+                 .not("image_url", "is", null);
+
     const { data: strains, error } = await query;
     if (error) return jsonError("Failed to fetch strains", 500, error.code, error.message);
 

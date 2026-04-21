@@ -3,6 +3,14 @@ import Link from 'next/link';
 import { Strain } from '@/lib/types';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay } from '@/lib/strain-display';
 import { escapeRegExp } from '@/lib/string-utils';
+
+function hasRealImage(strain: Strain): boolean {
+  if (!strain.image_url) return false;
+  const lower = strain.image_url.toLowerCase();
+  if (lower.includes('placeholder') || lower.includes('picsum') || lower.includes('dummy')) return false;
+  try { new URL(strain.image_url); return true; } catch { return false; }
+}
+
 interface StrainCardProps {
   strain: Strain;
   index?: number;
@@ -61,6 +69,8 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
     return rawName;
   })();
 
+  const realImage = hasRealImage(strain);
+
   return (
     <Link
       href={`/strains/${strain.slug}`}
@@ -71,23 +81,55 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
         animationFillMode: 'both'
       }}
     >
-      {/* 1. IMAGE fills entire card — using img tag to bypass Vercel image optimization limit */}
-      <img
-        src={strain.image_url || "/strains/placeholder-1.svg"}
-        alt={strain.name}
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-        loading="lazy"
-      />
-
-      {/* 2. HEADER OVERLAY: Farmer + Strain Name — gradient top */}
-      <div className="absolute top-0 left-0 right-0 z-10 px-3 pt-2 pb-0 min-w-0 bg-gradient-to-b from-black/80 via-black/30 to-transparent">
-        <p className="text-[7px] font-bold tracking-[0.12em] uppercase text-white/40 truncate">
-          {farmerDisplay}
-        </p>
-        <p className="title-font italic text-[12px] font-black leading-tight uppercase text-white break-words line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-          {normalizedStrainName}
-        </p>
-      </div>
+      {realImage ? (
+        <>
+          {/* 1. REAL IMAGE fills entire card */}
+          <img
+            src={strain.image_url!}
+            alt={strain.name}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            loading="lazy"
+          />
+          {/* 2. HEADER OVERLAY: Farmer + Strain Name — gradient top */}
+          <div className="absolute top-0 left-0 right-0 z-10 px-3 pt-2 pb-0 min-w-0 bg-gradient-to-b from-black/80 via-black/30 to-transparent">
+            <p className="text-[7px] font-bold tracking-[0.12em] uppercase text-white/40 truncate">
+              {farmerDisplay}
+            </p>
+            <p className="title-font italic text-[12px] font-black leading-tight uppercase text-white break-words line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+              {normalizedStrainName}
+            </p>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* NO IMAGE: typographic fallback — never looks like a product photo */}
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center p-4"
+            style={{ backgroundColor: `${themeColor}10` }}
+          >
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center mb-2"
+              style={{ backgroundColor: `${themeColor}20`, border: `2px solid ${themeColor}40` }}
+            >
+              <span className="text-lg font-black uppercase" style={{ color: themeColor }}>
+                {strain.type === 'sativa' ? 'S' : strain.type === 'indica' ? 'I' : 'H'}
+              </span>
+            </div>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-white/30 text-center">
+              Bild nicht verfügbar
+            </p>
+          </div>
+          {/* HEADER: Farmer + Strain Name — solid background, never gradient-over-photo */}
+          <div className="absolute top-0 left-0 right-0 z-10 px-3 pt-2 pb-1.5 min-w-0" style={{ backgroundColor: '#121212' }}>
+            <p className="text-[7px] font-bold tracking-[0.12em] uppercase text-white/40 truncate">
+              {farmerDisplay}
+            </p>
+            <p className="title-font italic text-[12px] font-black leading-tight uppercase text-white break-words line-clamp-2">
+              {normalizedStrainName}
+            </p>
+          </div>
+        </>
+      )}
 
       {/* 3. BADGES — centered over image, above stats bar */}
       <div className="absolute bottom-14 left-2 z-20">
