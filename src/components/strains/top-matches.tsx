@@ -65,6 +65,25 @@ export function TopMatches() {
   }, [user, session]);
 
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const collapseStorageKey = user
+    ? `greenlog:collection:top-matches-collapsed:${user.id}`
+    : "greenlog:collection:top-matches-collapsed:anon";
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = window.localStorage.getItem(collapseStorageKey);
+    setIsCollapsed(saved === "true");
+  }, [collapseStorageKey]);
+
+  const toggleCollapsed = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(collapseStorageKey, next ? "true" : "false");
+      }
+      return next;
+    });
+  };
 
   if (!user || (loading && matches.length === 0)) {
     return (
@@ -92,7 +111,7 @@ export function TopMatches() {
             </p>
           </div>
           <button
-            onClick={() => setIsCollapsed(v => !v)}
+            onClick={toggleCollapsed}
             className="p-1.5 rounded-lg hover:bg-[var(--muted)] transition-colors text-[var(--muted-foreground)]"
             aria-label={isCollapsed ? "Ausklappen" : "Einklappen"}
           >
@@ -136,7 +155,7 @@ export function TopMatches() {
           </p>
         </div>
         <button
-          onClick={() => setIsCollapsed(v => !v)}
+          onClick={toggleCollapsed}
           className="p-1.5 rounded-lg hover:bg-[var(--muted)] transition-colors text-[var(--muted-foreground)]"
           aria-label={isCollapsed ? "Ausklappen" : "Einklappen"}
         >
