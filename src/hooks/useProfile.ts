@@ -34,6 +34,14 @@ type UserStrainRelation = {
   } | null;
 };
 
+type QueryResult<T> = {
+  data: T;
+  count?: number | null;
+  error: Error | null;
+};
+
+const PROFILE_QUERY_TIMEOUT_MS = process.env.NODE_ENV === "test" ? 25 : 10_000;
+
 function getInitials(value: string) {
   const cleaned = value.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("");
   return cleaned || "CU";
@@ -90,26 +98,85 @@ export const profileKeys = {
   detail: (userId: string) => ["profile", userId] as const,
 };
 
+function createTimeoutError(label: string) {
+  return new Error(`${label} timed out after ${PROFILE_QUERY_TIMEOUT_MS}ms`);
+}
+
+async function withQueryTimeout<T>(promise: PromiseLike<{ data: T; count?: number | null; error: unknown }>, fallback: QueryResult<T>, label: string): Promise<QueryResult<T>> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      Promise.resolve(promise).then((result) => ({
+        data: result.data,
+        count: result.count ?? null,
+        error: result.error instanceof Error ? result.error : result.error ? new Error(String(result.error)) : null,
+      })),
+      new Promise<QueryResult<T>>((resolve) => {
+        timeoutId = setTimeout(() => {
+          resolve({
+            ...fallback,
+            error: createTimeoutError(label),
+          });
+        }, PROFILE_QUERY_TIMEOUT_MS);
+      }),
+    ]);
+  } catch (error) {
+    return {
+      ...fallback,
+      error: error instanceof Error ? error : new Error(String(error)),
+    };
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
+}
+
 async function fetchProfileData(userId: string, userEmail: string | null, userMetadata: Record<string, unknown> | undefined): Promise<ProfileViewModel> {
   const [profileDbRes, collCount, followersRes, followingRes, favsRes, badgesRes] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-    supabase.from("user_collection").select("id", { count: "exact", head: true }).eq("user_id", userId),
-    supabase.from("follows").select("id", { count: "exact", head: true }).eq("following_id", userId),
-    supabase.from("follows").select("id", { count: "exact", head: true }).eq("follower_id", userId),
-    supabase
-      .from("user_strain_relations")
-      .select("*, strains:strain_id (*)")
-      .eq("user_id", userId)
-      .eq("is_favorite", true)
-      .order("position", { ascending: true })
-      .limit(5),
-    supabase.from("user_badges").select("badge_id, unlocked_at").eq("user_id", userId),
+    withQueryTimeout(
+      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+      { data: null, error: null },
+      "profile lookup"
+    ),
+    withQueryTimeout(
+      supabase.from("user_collection").select("id", { count: "exact", head: true }).eq("user_id", userId),
+      { data: null, count: 0, error: null },
+      "collection count"
+    ),
+    withQueryTimeout(
+      supabase.from("follows").select("id", { count: "exact", head: true }).eq("following_id", userId),
+      { data: null, count: 0, error: null },
+      "followers count"
+    ),
+    withQueryTimeout(
+      supabase.from("follows").select("id", { count: "exact", head: true }).eq("follower_id", userId),
+      { data: null, count: 0, error: null },
+      "following count"
+    ),
+    withQueryTimeout(
+      supabase
+        .from("user_strain_relations")
+        .select("*, strains:strain_id (*)")
+        .eq("user_id", userId)
+        .eq("is_favorite", true)
+        .order("position", { ascending: true })
+        .limit(5),
+      { data: [], error: null },
+      "favorite strains"
+    ),
+    withQueryTimeout(
+      supabase.from("user_badges").select("badge_id, unlocked_at").eq("user_id", userId),
+      { data: [], error: null },
+      "badges"
+    ),
   ]);
 
   let profileData = profileDbRes.data;
 
   // Auto-create profile for new users if it doesn't exist in Supabase
-  if (!profileData && userId) {
+  if (!profileData && !profileDbRes.error && userId) {
     const fallbackUsername = userEmail
       ? userEmail.split("@")[0] + "_" + Math.floor(Math.random() * 1000)
       : `user_${userId.slice(-6)}`;
@@ -134,11 +201,15 @@ async function fetchProfileData(userId: string, userEmail: string | null, userMe
 
   let collectionData: CollectionEntry[] | null = null;
   if (favoriteIds.length > 0) {
-    const { data } = await supabase
-      .from("user_collection")
-      .select("strain_id, user_image_url")
-      .eq("user_id", userId)
-      .in("strain_id", favoriteIds);
+    const { data } = await withQueryTimeout(
+      supabase
+        .from("user_collection")
+        .select("strain_id, user_image_url")
+        .eq("user_id", userId)
+        .in("strain_id", favoriteIds),
+      { data: [] as CollectionEntry[], error: null },
+      "favorite collection images"
+    );
     collectionData = data as CollectionEntry[] | null;
   }
 
@@ -185,11 +256,15 @@ async function fetchProfileData(userId: string, userEmail: string | null, userMe
   }).filter((b): b is ProfileBadge => b !== null);
 
   const featuredBadges: string[] = profileData?.featured_badges || [];
-  const { data: publicPreferencesData } = await supabase
-    .from("user_public_preferences")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle();
+  const { data: publicPreferencesData } = await withQueryTimeout(
+    supabase
+      .from("user_public_preferences")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle(),
+    { data: null, error: null },
+    "public profile preferences"
+  );
 
   const publicPreferences = withDefaultPublicPreferences(
     userId,

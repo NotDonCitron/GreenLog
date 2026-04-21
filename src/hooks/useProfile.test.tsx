@@ -130,4 +130,96 @@ describe("useProfile hook", () => {
     expect(result.current.data?.stats.totalStrains).toBe(10);
     expect(result.current.data?.stats.followers).toBe(5);
   });
+
+  it("should fall back instead of hanging forever when a Supabase query stalls", async () => {
+    const mockUser = {
+      id: "timeout-user-id",
+      email: "timeout@example.com",
+      user_metadata: { full_name: "Timeout User" },
+    };
+
+    (useAuth as any).mockReturnValue({
+      user: mockUser,
+      loading: false,
+      isDemoMode: false,
+    });
+
+    const mockFrom = supabase.from as any;
+    mockFrom.mockImplementation((table: string) => {
+      if (table === "profiles") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () => Promise.resolve({
+                data: { username: "timeoutuser", display_name: "Timeout User" },
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+
+      if (table === "user_collection") {
+        return {
+          select: (_columns: string, options?: { count?: string; head?: boolean }) => ({
+            eq: () => options?.head
+              ? Promise.resolve({ data: null, count: 3, error: null })
+              : {
+                  in: () => Promise.resolve({ data: [], error: null }),
+                },
+          }),
+        };
+      }
+
+      if (table === "follows") {
+        return {
+          select: () => ({
+            eq: () => Promise.resolve({ data: null, count: 0, error: null }),
+          }),
+        };
+      }
+
+      if (table === "user_strain_relations") {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                order: () => ({
+                  limit: () => new Promise(() => {}),
+                }),
+              }),
+            }),
+          }),
+        };
+      }
+
+      if (table === "user_badges") {
+        return {
+          select: () => ({
+            eq: () => Promise.resolve({ data: [], error: null }),
+          }),
+        };
+      }
+
+      if (table === "user_public_preferences") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            }),
+          }),
+        };
+      }
+
+      throw new Error(`Unexpected table mock: ${table}`);
+    });
+
+    const { result } = renderHook(() => useProfile(), { wrapper });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true), { timeout: 500 });
+
+    expect(result.current.data?.identity.username).toBe("@timeoutuser");
+    expect(result.current.data?.favorites).toEqual([]);
+    expect(result.current.data?.stats.totalStrains).toBe(3);
+  });
 });
