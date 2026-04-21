@@ -47,6 +47,8 @@ export interface OrganizationInvite {
   updated_at: string;
 }
 
+export type StrainPublicationStatus = 'draft' | 'review' | 'published' | 'rejected';
+
 export interface Strain {
   id: string;
   name: string;
@@ -62,6 +64,7 @@ export interface Strain {
   avg_thc?: number;
   avg_cbd?: number;
   image_url?: string;
+  canonical_image_path?: string;
   image_attribution?: {
     source: 'seedbank' | 'wikimedia' | 'linhacanabica' | 'none';
     author?: string;
@@ -72,6 +75,12 @@ export interface Strain {
   terpenes?: (string | Terpene)[];
   flavors?: string[];
   effects?: string[];
+  publication_status?: StrainPublicationStatus;
+  quality_score?: number;
+  primary_source?: string;
+  source_notes?: string;
+  reviewed_by?: string;
+  reviewed_at?: string;
   // Custom strain fields
   is_custom?: boolean;
   is_medical?: boolean;
