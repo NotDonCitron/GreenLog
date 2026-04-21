@@ -74,8 +74,13 @@ export async function PATCH(
     .select("id, publication_status, quality_score, reviewed_by, reviewed_at")
     .single();
 
-  if (updateError || !updated) {
-    return jsonError("Failed to update publication status", 500, updateError?.code, updateError?.message);
+  if (updateError) {
+    console.error("Publication update error:", JSON.stringify({ code: updateError.code, message: updateError.message, details: updateError.details }));
+    return jsonError("Failed to update publication status", 500, updateError.code, updateError.message);
+  }
+
+  if (!updated) {
+    return jsonError("Failed to update publication status", 500);
   }
 
   return jsonSuccess({ strain: updated, review });
