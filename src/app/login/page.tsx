@@ -5,17 +5,25 @@ import { useRouter } from "next/navigation";
 import { AgeGate, useAgeVerified } from "@/components/age-gate";
 import { Loader2 } from "lucide-react";
 
+const AGE_VERIFIED_COOKIE = "greenlog_age_verified=true";
+
+function hasVerifiedAgeCookie() {
+  if (typeof document === "undefined") return false;
+  return document.cookie.split(";").some((entry) => entry.trim() === AGE_VERIFIED_COOKIE);
+}
+
 export default function LoginPage() {
   const { verified: ageVerified } = useAgeVerified();
   const router = useRouter();
+  const isAgeVerified = ageVerified || hasVerifiedAgeCookie();
 
   useEffect(() => {
-    if (ageVerified) {
+    if (isAgeVerified) {
       router.replace("/sign-in");
     }
-  }, [ageVerified, router]);
+  }, [isAgeVerified, router]);
 
-  if (ageVerified === null) {
+  if (ageVerified === null && !isAgeVerified) {
     return (
       <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex items-center justify-center p-6">
         <div className="flex flex-col items-center gap-4">
@@ -26,7 +34,7 @@ export default function LoginPage() {
     );
   }
 
-  if (!ageVerified) {
+  if (!isAgeVerified) {
     return <AgeGate onVerified={() => {}} />;
   }
 

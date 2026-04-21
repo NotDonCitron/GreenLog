@@ -2,10 +2,11 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import SignInPage from "./page";
 
-const { pushMock, refreshMock, setSessionMock } = vi.hoisted(() => ({
+const { pushMock, refreshMock, setSessionMock, signInWithPasswordMock } = vi.hoisted(() => ({
   pushMock: vi.fn(),
   refreshMock: vi.fn(),
   setSessionMock: vi.fn(),
+  signInWithPasswordMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -19,6 +20,7 @@ vi.mock("@/lib/supabase/client", () => ({
   supabase: {
     auth: {
       setSession: setSessionMock,
+      signInWithPassword: signInWithPasswordMock,
     },
   },
 }));
@@ -28,6 +30,14 @@ vi.mock("@/components/auth/forgot-password-dialog", () => ({
 }));
 
 describe("SignInPage", () => {
+  beforeEach(() => {
+    vi.unstubAllGlobals();
+    pushMock.mockReset();
+    refreshMock.mockReset();
+    setSessionMock.mockReset();
+    signInWithPasswordMock.mockReset();
+  });
+
   it("submits credentials through the local sign-in API and applies the returned session", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -40,6 +50,7 @@ describe("SignInPage", () => {
 
     vi.stubGlobal("fetch", fetchMock);
     setSessionMock.mockResolvedValue({ error: null });
+    signInWithPasswordMock.mockResolvedValue({ data: { session: null }, error: null });
 
     render(<SignInPage />);
 
@@ -65,8 +76,42 @@ describe("SignInPage", () => {
     expect(refreshMock).toHaveBeenCalled();
   });
 
-  it("shows a friendly error when the sign-in request throws a network error", async () => {
+  it("falls back to direct Supabase auth when the local sign-in request fails", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("NetworkError when attempting to fetch resource.")));
+    signInWithPasswordMock.mockResolvedValue({
+      data: {
+        session: { access_token: "direct-access", refresh_token: "direct-refresh" },
+      },
+      error: null,
+    });
+    setSessionMock.mockResolvedValue({ error: null });
+
+    render(<SignInPage />);
+
+    fireEvent.change(screen.getByLabelText(/E-Mail/i), { target: { value: "test@example.com" } });
+    fireEvent.change(screen.getByLabelText(/Passwort/i), { target: { value: "secret123" } });
+    fireEvent.click(screen.getByRole("button", { name: /^Anmelden$/i }));
+
+    await waitFor(() => {
+      expect(signInWithPasswordMock).toHaveBeenCalledWith({
+        email: "test@example.com",
+        password: "secret123",
+      });
+    });
+
+    expect(setSessionMock).toHaveBeenCalledWith({
+      access_token: "direct-access",
+      refresh_token: "direct-refresh",
+    });
+    expect(pushMock).toHaveBeenCalledWith("/");
+  });
+
+  it("shows a friendly error when both sign-in paths fail", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("NetworkError when attempting to fetch resource.")));
+    signInWithPasswordMock.mockResolvedValue({
+      data: { session: null },
+      error: { message: "Invalid login credentials" },
+    });
 
     render(<SignInPage />);
 
@@ -78,7 +123,7 @@ describe("SignInPage", () => {
       expect(screen.getByRole("alert")).toBeTruthy();
     });
 
-    expect(screen.getByText(/anmeldung aktuell nicht erreichbar/i)).toBeTruthy();
+    expect(screen.getByText(/invalid login credentials/i)).toBeTruthy();
   });
 
   it("renders the app-styled sign-in experience", () => {

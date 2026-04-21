@@ -10,6 +10,40 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertCircle, ArrowRight, Leaf, Loader2, LockKeyhole, Sprout } from "lucide-react";
 
+const AUTH_REQUEST_TIMEOUT_MS = 12_000;
+
+function isTimeoutError(error: unknown) {
+    return error instanceof Error && error.name === "TimeoutError";
+}
+
+async function withTimeout<T>(promise: Promise<T>, label: string, timeoutMs = AUTH_REQUEST_TIMEOUT_MS): Promise<T> {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    try {
+        return await Promise.race([
+            promise,
+            new Promise<T>((_, reject) => {
+                timeoutId = setTimeout(() => {
+                    const error = new Error(`${label} timed out after ${timeoutMs}ms`);
+                    error.name = "TimeoutError";
+                    reject(error);
+                }, timeoutMs);
+            }),
+        ]);
+    } finally {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+    }
+}
+
+function getFriendlySignInError(error: unknown) {
+    if (error instanceof Error && error.message) {
+        return error.message;
+    }
+    return "Anmeldung aktuell nicht erreichbar. Bitte versuche es erneut.";
+}
+
 export default function SignInPage() {
     const router = useRouter();
     const [email, setEmail] = useState("");
@@ -24,25 +58,55 @@ export default function SignInPage() {
         setLoading(true);
 
         try {
-            const response = await fetch("/api/auth/sign-in", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, password }),
-            });
+            let session: { access_token: string; refresh_token: string } | null = null;
 
-            const payload = await response.json();
+            try {
+                const response = await withTimeout(
+                    fetch("/api/auth/sign-in", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ email, password }),
+                    }),
+                    "sign-in request"
+                );
 
-            if (!response.ok) {
-                setError(payload?.error?.message || "Anmeldung fehlgeschlagen");
-                return;
-            }
+                const payload = await response.json();
 
-            const session = payload?.data?.session;
-            if (!session?.access_token || !session?.refresh_token) {
-                setError("Anmeldung fehlgeschlagen");
-                return;
+                if (!response.ok) {
+                    if (response.status < 500) {
+                        setError(payload?.error?.message || "Anmeldung fehlgeschlagen");
+                        return;
+                    }
+                    throw new Error(payload?.error?.message || "Sign-in proxy unavailable");
+                }
+
+                const nextSession = payload?.data?.session;
+                if (!nextSession?.access_token || !nextSession?.refresh_token) {
+                    throw new Error("Anmeldung fehlgeschlagen");
+                }
+
+                session = nextSession;
+            } catch (proxyError) {
+                console.warn("[SignInPage] local sign-in proxy unavailable, falling back to direct auth", proxyError);
+
+                const { data, error: directError } = await withTimeout(
+                    supabase.auth.signInWithPassword({ email, password }),
+                    "direct sign-in"
+                );
+
+                if (directError) {
+                    setError(directError.message);
+                    return;
+                }
+
+                if (!data.session?.access_token || !data.session?.refresh_token) {
+                    setError("Anmeldung fehlgeschlagen");
+                    return;
+                }
+
+                session = data.session;
             }
 
             const { error: sessionError } = await supabase.auth.setSession({
@@ -59,7 +123,11 @@ export default function SignInPage() {
             router.refresh();
         } catch (err) {
             console.error("[SignInPage] sign-in request failed", err);
-            setError("Anmeldung aktuell nicht erreichbar. Bitte versuche es erneut.");
+            setError(
+                isTimeoutError(err)
+                    ? "Anmeldung hat zu lange gebraucht. Bitte versuche es erneut."
+                    : getFriendlySignInError(err)
+            );
         } finally {
             setLoading(false);
         }

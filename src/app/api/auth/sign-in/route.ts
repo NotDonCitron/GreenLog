@@ -2,6 +2,29 @@ import { createClient } from "@supabase/supabase-js";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
 import type { NextRequest } from "next/server";
 
+const SUPABASE_AUTH_TIMEOUT_MS = 12_000;
+
+function createTimeoutFetch(timeoutMs: number): typeof fetch {
+    return async (input, init) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+        try {
+            return await fetch(input, {
+                ...init,
+                signal: controller.signal,
+            });
+        } catch (error) {
+            if (error instanceof Error && error.name === "AbortError") {
+                throw new Error(`Supabase auth timed out after ${timeoutMs}ms`);
+            }
+            throw error;
+        } finally {
+            clearTimeout(timeoutId);
+        }
+    };
+}
+
 export async function POST(req: NextRequest) {
     try {
         const { email, password } = await req.json();
@@ -24,6 +47,9 @@ export async function POST(req: NextRequest) {
                 autoRefreshToken: false,
                 detectSessionInUrl: false,
             },
+            global: {
+                fetch: createTimeoutFetch(SUPABASE_AUTH_TIMEOUT_MS),
+            },
         });
 
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -35,6 +61,9 @@ export async function POST(req: NextRequest) {
         return jsonSuccess({ user: data.user, session: data.session });
     } catch (err) {
         console.error("[API /auth/sign-in]", err);
+        if (err instanceof Error && err.message.includes("timed out")) {
+            return jsonError("Auth service timeout", 504);
+        }
         return jsonError("Serverfehler", 500);
     }
 }
