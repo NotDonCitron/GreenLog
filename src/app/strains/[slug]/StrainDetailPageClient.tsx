@@ -22,6 +22,7 @@ import { TerpeneRadarChart } from "@/components/strains/terpene-radar-chart";
 import { ShareModal } from "@/components/social/share-modal";
 import { MatchScoreBadge } from "@/components/strains/match-score-badge";
 import { QuickLogModal, type QuickLogSaveInput } from "@/components/strains/quick-log-modal";
+import { PRIVATE_QUICK_LOG_SIDE_EFFECTS, QUICK_LOG_STATUSES } from "@/lib/quick-log";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message) {
@@ -370,6 +371,18 @@ export default function StrainDetailPageClient() {
     setIsSaving(true);
     try {
       const publicReviewText = input.isPublic ? input.publicReviewText.trim() : "";
+      const privateNote = input.privateNote.trim();
+      const settingContext = input.settingContext.trim();
+      const privateStatusLabel = input.privateStatus
+        ? QUICK_LOG_STATUSES.find((status) => status.value === input.privateStatus)?.label ?? input.privateStatus
+        : "";
+      const sideEffectLabels = input.sideEffects
+        .map((value) => PRIVATE_QUICK_LOG_SIDE_EFFECTS.find((entry) => entry.value === value)?.label)
+        .filter((value): value is string => Boolean(value));
+      const journalBatchInfo = [privateStatusLabel, settingContext].filter(Boolean).join(" · ");
+      const journalNotes = [privateNote, sideEffectLabels.length ? `Nebenwirkung: ${sideEffectLabels.join(", ")}` : ""]
+        .filter(Boolean)
+        .join(" · ");
 
       const { error: rError } = await supabase.from("ratings").upsert({
         strain_id: strain.id,
@@ -400,8 +413,8 @@ export default function StrainDetailPageClient() {
             side_effects: input.sideEffects,
             overall_rating: input.overallRating,
             private_status: input.privateStatus,
-            private_note: input.privateNote,
-            setting_context: input.settingContext,
+            private_note: privateNote || null,
+            setting_context: settingContext || null,
             subjective_notes: publicReviewText || null,
           }),
         });
@@ -416,12 +429,19 @@ export default function StrainDetailPageClient() {
 
       setShowRatingModal(false);
 
+      const nextBatchInfo = journalBatchInfo || batchInfo;
+      const nextUserNotes = journalNotes || userNotes;
+
       await collectAction(strain.id, {
+        batchInfo: nextBatchInfo || undefined,
+        userNotes: nextUserNotes || undefined,
         userImageUrl: userImageUrl || undefined,
         userThc: (strain as any).avg_thc ?? strain.thc_max ?? undefined,
         userCbd: (strain as any).avg_cbd ?? strain.cbd_max ?? undefined
       });
 
+      setBatchInfo(nextBatchInfo);
+      setUserNotes(nextUserNotes);
       setHasCollected(true);
       toastSuccess("Eintrag gespeichert", {
         label: "Teilen",
