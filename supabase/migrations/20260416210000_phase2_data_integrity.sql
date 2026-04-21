@@ -97,6 +97,39 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 2. ADD CHECK CONSTRAINTS (percentage ranges, numeric bounds)
 -- ============================================================
 
+-- Pre-clean existing strain percentage data so new constraints can be applied safely.
+UPDATE strains
+SET thc_min = GREATEST(0, LEAST(thc_min, 100))
+WHERE thc_min IS NOT NULL;
+
+UPDATE strains
+SET thc_max = GREATEST(0, LEAST(thc_max, 100))
+WHERE thc_max IS NOT NULL;
+
+UPDATE strains
+SET cbd_min = GREATEST(0, LEAST(cbd_min, 100))
+WHERE cbd_min IS NOT NULL;
+
+UPDATE strains
+SET cbd_max = GREATEST(0, LEAST(cbd_max, 100))
+WHERE cbd_max IS NOT NULL;
+
+UPDATE strains
+SET
+  thc_min = LEAST(thc_min, thc_max),
+  thc_max = GREATEST(thc_min, thc_max)
+WHERE thc_min IS NOT NULL
+  AND thc_max IS NOT NULL
+  AND thc_min > thc_max;
+
+UPDATE strains
+SET
+  cbd_min = LEAST(cbd_min, cbd_max),
+  cbd_max = GREATEST(cbd_min, cbd_max)
+WHERE cbd_min IS NOT NULL
+  AND cbd_max IS NOT NULL
+  AND cbd_min > cbd_max;
+
 -- Strains: THC/CBD percentage ranges (0-100) + min <= max
 ALTER TABLE strains ADD CONSTRAINT strains_thc_min_range
   CHECK (thc_min IS NULL OR (thc_min >= 0 AND thc_min <= 100));
@@ -123,22 +156,48 @@ ALTER TABLE user_collection ADD CONSTRAINT user_collection_cbd_range
   CHECK (user_cbd_percent IS NULL OR (user_cbd_percent >= 0 AND user_cbd_percent <= 100));
 
 -- Grow entries: measurement ranges
-ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_humidity_range
-  CHECK (humidity IS NULL OR (humidity >= 0 AND humidity <= 100));
-ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_ph_range
-  CHECK (ph_value IS NULL OR (ph_value >= 0 AND ph_value <= 14));
-ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_temp_range
-  CHECK (temperature IS NULL OR (temperature >= -50 AND temperature <= 70));
-ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_height_positive
-  CHECK (height_cm IS NULL OR height_cm >= 0);
-ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_ec_range
-  CHECK (ec_value IS NULL OR (ec_value >= 0 AND ec_value <= 50));
-ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_water_temp_range
-  CHECK (water_temperature IS NULL OR (water_temperature >= 0 AND water_temperature <= 100));
-ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_nutrient_positive
-  CHECK (nutrient_dose IS NULL OR nutrient_dose >= 0);
-ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_day_positive
-  CHECK (day_number IS NULL OR day_number >= 0);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'grow_entries' AND column_name = 'humidity') THEN
+    ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_humidity_range
+      CHECK (humidity IS NULL OR (humidity >= 0 AND humidity <= 100));
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'grow_entries' AND column_name = 'ph_value') THEN
+    ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_ph_range
+      CHECK (ph_value IS NULL OR (ph_value >= 0 AND ph_value <= 14));
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'grow_entries' AND column_name = 'temperature') THEN
+    ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_temp_range
+      CHECK (temperature IS NULL OR (temperature >= -50 AND temperature <= 70));
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'grow_entries' AND column_name = 'height_cm') THEN
+    ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_height_positive
+      CHECK (height_cm IS NULL OR height_cm >= 0);
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'grow_entries' AND column_name = 'ec_value') THEN
+    ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_ec_range
+      CHECK (ec_value IS NULL OR (ec_value >= 0 AND ec_value <= 50));
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'grow_entries' AND column_name = 'water_temperature') THEN
+    ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_water_temp_range
+      CHECK (water_temperature IS NULL OR (water_temperature >= 0 AND water_temperature <= 100));
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'grow_entries' AND column_name = 'nutrient_dose') THEN
+    ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_nutrient_positive
+      CHECK (nutrient_dose IS NULL OR nutrient_dose >= 0);
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'grow_entries' AND column_name = 'day_number') THEN
+    ALTER TABLE grow_entries ADD CONSTRAINT grow_entries_day_positive
+      CHECK (day_number IS NULL OR day_number >= 0);
+  END IF;
+END $$;
 
 -- Grows: yield positive
 ALTER TABLE grows ADD CONSTRAINT grows_yield_positive

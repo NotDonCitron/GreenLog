@@ -285,6 +285,7 @@ CREATE POLICY "Ratings are viewable by owners or consented prevention officers"
     OR can_view_prevention_data(requesting_user_id(), user_id, organization_id, 'ratings')
   );
 
+DROP POLICY IF EXISTS "Users can create own ratings" ON public.ratings;
 CREATE POLICY "Users can create own ratings"
   ON public.ratings
   FOR INSERT
@@ -296,12 +297,14 @@ CREATE POLICY "Users can create own ratings"
     )
   );
 
+DROP POLICY IF EXISTS "Users can update own ratings" ON public.ratings;
 CREATE POLICY "Users can update own ratings"
   ON public.ratings
   FOR UPDATE
   USING (requesting_user_id() = user_id)
   WITH CHECK (requesting_user_id() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete own ratings" ON public.ratings;
 CREATE POLICY "Users can delete own ratings"
   ON public.ratings
   FOR DELETE
@@ -317,7 +320,10 @@ DROP POLICY IF EXISTS "Users can insert into their own collection" ON public.use
 DROP POLICY IF EXISTS "Users can add to collection" ON public.user_collection;
 DROP POLICY IF EXISTS "Users can update their own collection" ON public.user_collection;
 DROP POLICY IF EXISTS "Users can delete from their own collection" ON public.user_collection;
+DROP POLICY IF EXISTS "Users can update own collection" ON public.user_collection;
+DROP POLICY IF EXISTS "Users can delete from own collection" ON public.user_collection;
 
+DROP POLICY IF EXISTS "User collection is viewable by owners or consented prevention officers" ON public.user_collection;
 CREATE POLICY "User collection is viewable by owners or consented prevention officers"
   ON public.user_collection
   FOR SELECT
@@ -326,6 +332,7 @@ CREATE POLICY "User collection is viewable by owners or consented prevention off
     OR can_view_prevention_data(requesting_user_id(), user_id, organization_id, 'user_collection')
   );
 
+DROP POLICY IF EXISTS "Users can add to collection" ON public.user_collection;
 CREATE POLICY "Users can add to collection"
   ON public.user_collection
   FOR INSERT
@@ -337,6 +344,7 @@ CREATE POLICY "Users can add to collection"
     )
   );
 
+DROP POLICY IF EXISTS "Users can update own collection" ON public.user_collection;
 CREATE POLICY "Users can update own collection"
   ON public.user_collection
   FOR UPDATE
@@ -349,6 +357,7 @@ CREATE POLICY "Users can update own collection"
     )
   );
 
+DROP POLICY IF EXISTS "Users can delete from own collection" ON public.user_collection;
 CREATE POLICY "Users can delete from own collection"
   ON public.user_collection
   FOR DELETE
