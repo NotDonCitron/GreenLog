@@ -25,8 +25,18 @@ dotenv.config({ path: envPath });
 dotenv.config({ path: path.join(PROJECT_ROOT, '.env.local'), override: false });
 
 const args = process.argv.slice(2);
+const SHOW_HELP = args.includes('--help') || args.includes('-h');
 const DRY_RUN = args.includes('--dry');
 const LIMIT = parseNumberArg('--limit', 0);
+
+if (SHOW_HELP) {
+  console.log(`Usage:
+  node scripts/kushy-direct-import.mjs --dry
+  node scripts/kushy-direct-import.mjs --limit 500
+  node scripts/kushy-direct-import.mjs
+`);
+  process.exit(0);
+}
 
 function parseNumberArg(name, fallback) {
   const eqArg = args.find(a => a.startsWith(`${name}=`));
@@ -230,6 +240,8 @@ function parseKushyCSV() {
       terpenes: [],
       image_url: null,
       source: 'kushy-csv',
+      publication_status: 'draft',
+      primary_source: 'kushy-csv',
       is_custom: false,
       created_by: null,
       organization_id: null,

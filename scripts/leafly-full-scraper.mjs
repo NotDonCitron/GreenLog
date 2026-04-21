@@ -36,11 +36,22 @@ dotenv.config({ path: path.join(PROJECT_ROOT, '.env.local'), override: false });
 
 // ── Args ────────────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
+const SHOW_HELP = args.includes('--help') || args.includes('-h');
 const DRY = args.includes('--dry');
 const WISHLIST = args.includes('--wishlist');
 const LIMIT = parseArg('--limit', 0);          // 0 = alle
 const CONCURRENT = parseArg('--concurrent', 3);
 const BATCH_SIZE = 20;                          // DB-Updates in Blöcken
+
+if (SHOW_HELP) {
+  console.log(`Usage:
+  node scripts/leafly-full-scraper.mjs --dry
+  node scripts/leafly-full-scraper.mjs --limit 50
+  node scripts/leafly-full-scraper.mjs --concurrent 3
+  node scripts/leafly-full-scraper.mjs --wishlist --concurrent 3
+`);
+  process.exit(0);
+}
 
 function parseArg(name, fallback) {
   const eq = args.find(a => a.startsWith(`${name}=`));
@@ -320,7 +331,7 @@ async function getWishlist() {
   while (true) {
     const { data: chunk, error } = await supabase
       .from('strains')
-      .select('id, name, slug, image_url, description, effects, flavors, avg_thc, avg_cbd, type, brand, source')
+      .select('id, name, slug, image_url, description, effects, flavors, avg_thc, avg_cbd, type, brand, source, primary_source')
       .range(page * CHUNK, (page + 1) * CHUNK - 1);
     if (error) { console.error('❌ DB Fehler:', error.message); process.exit(1); }
     if (!chunk || chunk.length === 0) break;
@@ -348,7 +359,7 @@ async function main() {
   } else {
     let { data, error } = await supabase
       .from('strains')
-      .select('id, name, slug, image_url, description, effects, flavors, avg_thc, avg_cbd, type, brand, source')
+      .select('id, name, slug, image_url, description, effects, flavors, avg_thc, avg_cbd, type, brand, source, primary_source')
       .limit(10000);
     if (error) { console.error('❌ DB Fehler:', error.message); process.exit(1); }
     target = data;
@@ -427,6 +438,9 @@ async function main() {
         }
         if (result.terpenes.length > 0) update.terpenes = result.terpenes.slice(0, 6);
         if (result.type && !strain.type) update.type = result.type;
+        if (!strain.primary_source || !String(strain.primary_source).trim()) {
+          update.primary_source = 'leafly-curation';
+        }
 
         // Bild NUR setzen wenn hochgeladen
         if (finalImageUrl) update.image_url = finalImageUrl;
