@@ -23,7 +23,6 @@ export function getStrainPublicationSnapshot(
 
   if (!strain.description?.trim()) missing.push("description");
   if (strain.thc_min == null && strain.thc_max == null) missing.push("thc");
-  if (strain.cbd_min == null && strain.cbd_max == null) missing.push("cbd");
   if ((strain.terpenes?.length ?? 0) < 2) missing.push("terpenes");
   if ((strain.flavors?.length ?? 0) < 1) missing.push("flavors");
   if ((strain.effects?.length ?? 0) < 1) missing.push("effects");
