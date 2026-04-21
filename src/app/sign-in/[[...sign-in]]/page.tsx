@@ -109,7 +109,6 @@ export default function SignInPage() {
                     const { data, error: directError } = await supabase.auth.signInWithPassword({
                         email,
                         password,
-                        options: { signal: controller.signal as AbortSignal },
                     });
 
                     if (directError) {
