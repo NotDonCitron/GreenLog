@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Sparkles, Users, Compass, Loader2, Search, Building2, Sprout } from "lucide-react";
 import { BottomNav } from "@/components/bottom-nav";
 import { ActivityFeed } from "@/components/social/activity-feed";
-import { SuggestedUsers } from "@/components/social/suggested-users";
+
 import { FollowButton } from "@/components/social/follow-button";
 import { useAuth } from "@/components/auth-provider";
 import { USER_ROLES } from "@/lib/roles";
@@ -48,10 +48,6 @@ interface CommunityOrg {
   role?: string;
 }
 
-interface FavoriteRelation {
-  user_id: string;
-  strains: StrainStub | null;
-}
 
 export default function FeedPage() {
   return (
@@ -85,7 +81,6 @@ function FeedLoading() {
 
 function FeedContent() {
   const { user, loading } = useAuth();
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   // Initialize main tab from URL searchParams (SSR/hydration) or window.location (hard refresh after replaceState)
@@ -123,8 +118,8 @@ function FeedContent() {
   const [otherCommunities, setOtherCommunities] = useState<CommunityOrg[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(false);
 
-  // Social tab toggle: feed | grows
-  const [socialTab, setSocialTab] = useState<"feed" | "grows">("feed");
+  // Social tab toggle: feed | grows (prefixed with _ to indicate unused)
+  const [_socialTab, _setSocialTab] = useState<"feed" | "grows">("feed");
 
   // Discover tab state – init from URL, default "users"
   const getInitialDiscoverTab = (): DiscoverTab => {

@@ -61,7 +61,7 @@ export default function CommunityDetailPage() {
   const params = useParams();
   const router = useRouter();
   const organizationId = params.id as string;
-  const { user, memberships, loading: authLoading, setActiveOrganizationId } = useAuth();
+  const { user, memberships, loading: _authLoading, setActiveOrganizationId } = useAuth();
 
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [stats, setStats] = useState<OrganizationStats>({ followerCount: 0, strainCount: 0 });

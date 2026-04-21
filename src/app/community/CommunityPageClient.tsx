@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
@@ -101,10 +101,8 @@ export default function CommunityPageClient() {
   const { data, isLoading } = useCommunity();
   const [myOrgs, setMyOrgs] = useState<MemberOrg[]>([]);
   const [sortableOtherOrgs, setSortableOtherOrgs] = useState<SortableOrg[]>([]);
-  const [hydrated, setHydrated] = useState(false);
   const [savingOrder, setSavingOrder] = useState(false);
   const [savingMyOrder, setSavingMyOrder] = useState(false);
-  const mountedRef = useRef(true);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -113,12 +111,6 @@ export default function CommunityPageClient() {
     })
   );
 
-  // Wait for client hydration
-  useEffect(() => {
-    mountedRef.current = true;
-    setTimeout(() => setHydrated(true), 0);
-    return () => { mountedRef.current = false; };
-  }, []);
 
   // Sync myOrgs when data?.myOrgs changes
   useEffect(() => {

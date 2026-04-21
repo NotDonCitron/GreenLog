@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { USER_ROLES } from "@/lib/roles";
 import {

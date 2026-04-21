@@ -6,7 +6,7 @@ import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Search, Sprout, Calendar, Leaf, Filter } from "lucide-react";
+import { Loader2, Search, Sprout, Calendar, Leaf } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -138,7 +138,7 @@ export default function ExploreGrowsPage() {
     }
 
     fetchGrows();
-  }, [page, growTypeFilter, isDemoMode]);
+  }, [page, growTypeFilter, isDemoMode, searchQuery]);
 
   // Reset page when filters change
   useEffect(() => {

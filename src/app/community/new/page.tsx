@@ -30,7 +30,7 @@ export default function NewCommunityPage() {
   useEffect(() => {
     setIsRefreshing(true);
     refreshMemberships().finally(() => setIsRefreshing(false));
-  }, []);
+  }, [refreshMemberships]);
 
   const isAlreadyGründer = false; // memberships.some((m) => m.role === USER_ROLES.GRUENDER);
 

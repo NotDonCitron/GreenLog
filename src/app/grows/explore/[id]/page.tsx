@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
 import { BottomNav } from "@/components/bottom-nav";
@@ -44,7 +44,6 @@ function groupEntriesByType(entries: GrowEntry[]): Record<string, GrowEntry[]> {
 export default function ExploreGrowDetailPage() {
     const { id } = useParams();
     const { user, isDemoMode } = useAuth();
-    const router = useRouter();
 
     const [grow, setGrow] = useState<Grow | null>(null);
     const [plants, setPlants] = useState<Plant[]>([]);
