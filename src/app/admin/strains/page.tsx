@@ -31,7 +31,6 @@ type Completeness = {
   type: boolean;
   description: boolean;
   thc: boolean;
-  cbd: boolean;
   terpenes: boolean;
   flavors: boolean;
   effects: boolean;
@@ -47,7 +46,6 @@ const COMPLETENESS_KEYS: Array<keyof Completeness> = [
   'type',
   'description',
   'thc',
-  'cbd',
   'terpenes',
   'flavors',
   'effects',
@@ -61,7 +59,6 @@ const COMPLETENESS_LABELS: Record<keyof Completeness, string> = {
   type: 'Type',
   description: 'Description',
   thc: 'THC',
-  cbd: 'CBD',
   terpenes: 'Terpenes',
   flavors: 'Flavors',
   effects: 'Effects',
@@ -92,11 +89,10 @@ function getCompleteness(strain: Strain): Completeness {
     type: !!strain.type,
     description: !!strain.description?.trim(),
     thc: strain.thc_min !== null || strain.thc_max !== null,
-    cbd: strain.cbd_min !== null || strain.cbd_max !== null,
     terpenes: Array.isArray(strain.terpenes) && strain.terpenes.length >= 2,
     flavors: Array.isArray(strain.flavors) && strain.flavors.length >= 1,
     effects: Array.isArray(strain.effects) && strain.effects.length >= 1,
-    image: !!strain.image_url,
+    image: !!strain.image_url || !!(strain as any).canonical_image_path,
     source: !!strain.primary_source?.trim(),
   };
 }
@@ -107,7 +103,7 @@ function evaluateStrain(strain: Strain, completeness: Completeness) {
 
   const goodReasons: string[] = [];
   if (completeness.name && completeness.slug) goodReasons.push('Identität eindeutig');
-  if (completeness.thc || completeness.cbd) goodReasons.push('Cannabinoid-Werte vorhanden');
+  if (completeness.thc) goodReasons.push('Cannabinoid-Werte vorhanden');
   if (completeness.description && completeness.effects) goodReasons.push('Wirkung ist dokumentiert');
   if (completeness.image) goodReasons.push('Bild vorhanden');
   if (completeness.source) goodReasons.push('Quelle dokumentiert');
@@ -115,7 +111,7 @@ function evaluateStrain(strain: Strain, completeness: Completeness) {
   const badReasons = missing.slice(0, 4).map((key) => `Fehlt: ${COMPLETENESS_LABELS[key]}`);
 
   let recommendation: Recommendation = 'needs_review';
-  if (completeCount >= 10 && completeness.image && completeness.source && completeness.description) {
+  if (completeCount >= 9 && completeness.image && completeness.source && completeness.description) {
     recommendation = 'publish_ready';
   } else if (!completeness.name || !completeness.slug || !completeness.source || completeCount <= 6) {
     recommendation = 'weak_candidate';

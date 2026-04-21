@@ -29,7 +29,7 @@ export function getStrainPublicationSnapshot(
   if (!strain.image_url?.trim() && !strain.canonical_image_path?.trim()) missing.push("image");
   if (!strain.primary_source?.trim()) missing.push("source");
 
-  const totalChecks = 8;
+  const totalChecks = 7;
   const completedChecks = totalChecks - missing.length;
 
   return {
