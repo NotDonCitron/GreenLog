@@ -67,6 +67,7 @@ const imgSrc = [
   "https://*.greenlog.app",
   "https://green-log-two.vercel.app",
   "https://*.vercel.app",
+  "https://storage.cannalog.fun",
   siteOrigin,
   vercelOrigin,
   minioOrigin,
@@ -142,6 +143,12 @@ const nextConfig: NextConfig = {
         protocol: 'http',
         hostname: '31.97.77.89',
         port: '9000',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'storage.cannalog.fun',
+        port: '',
         pathname: '/**',
       }
     ],
