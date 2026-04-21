@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
+import { GoogleAuthButton } from "@/components/auth/google-auth-button";
 
 export default function SignUpPage() {
     const router = useRouter();
@@ -63,6 +64,17 @@ export default function SignUpPage() {
                         {loading ? "Registrierung..." : "Konto erstellen"}
                     </button>
                 </form>
+
+                <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-white/10"></span>
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-[var(--card)] px-2 text-[var(--muted-foreground)]">Oder</span>
+                    </div>
+                </div>
+
+                <GoogleAuthButton />
 
                 <p className="text-center text-sm text-[var(--muted-foreground)]">
                     Bereits ein Konto? <Link href="/sign-in" className="text-[var(--primary)] hover:underline">Anmelden</Link>

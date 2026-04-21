@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { ForgotPasswordDialog } from "@/components/auth/forgot-password-dialog";
+import { GoogleAuthButton } from "@/components/auth/google-auth-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertCircle, ArrowRight, Leaf, Loader2, LockKeyhole, Sprout } from "lucide-react";
@@ -174,6 +175,17 @@ export default function SignInPage() {
                                     )}
                                 </Button>
                             </form>
+
+                            <div className="relative my-6">
+                                <div className="absolute inset-0 flex items-center">
+                                    <span className="w-full border-t border-[var(--border)]/60"></span>
+                                </div>
+                                <div className="relative flex justify-center text-[10px] font-black uppercase tracking-[0.2em]">
+                                    <span className="bg-[var(--card)] px-3 text-[var(--muted-foreground)]">Oder</span>
+                                </div>
+                            </div>
+
+                            <GoogleAuthButton />
 
                             <div className="mt-6 border-t border-[var(--border)]/60 pt-5 text-center text-sm text-[var(--muted-foreground)]">
                                 Noch kein Konto?{" "}
