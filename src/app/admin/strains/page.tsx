@@ -35,6 +35,7 @@ interface Strain {
   flavors: string[];
   effects: string[];
   image_url: string | null;
+  canonical_image_path: string | null;
   publication_status: 'draft' | 'review' | 'published' | 'rejected' | string;
   primary_source: string;
   source_notes: string | null;
@@ -85,7 +86,7 @@ function getCompleteness(strain: Strain): Completeness {
     terpenes: Array.isArray(strain.terpenes) && strain.terpenes.length >= 2,
     flavors: Array.isArray(strain.flavors) && strain.flavors.length >= 1,
     effects: Array.isArray(strain.effects) && strain.effects.length >= 1,
-    image: !!strain.image_url || !!(strain as any).canonical_image_path,
+    image: !!strain.image_url || !!strain.canonical_image_path,
     source: !!strain.primary_source?.trim(),
   };
 }
@@ -165,6 +166,32 @@ function RecommendationPill({ recommendation }: { recommendation: Recommendation
     <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-400">
       Needs Review
     </span>
+  );
+}
+
+function StrainImage({ imageUrl, canonicalPath, name }: { imageUrl: string | null; canonicalPath: string | null; name: string }) {
+  const [broken, setBroken] = useState(false);
+  const url = imageUrl || canonicalPath;
+
+  if (!url || broken) {
+    return (
+      <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-[var(--border)]/50 text-[10px] text-[var(--muted-foreground)]">
+        Kein Bild
+      </div>
+    );
+  }
+
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" className="block">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={url}
+        alt={name}
+        className="h-16 w-16 rounded-lg border border-[var(--border)]/50 object-cover"
+        referrerPolicy="no-referrer"
+        onError={() => setBroken(true)}
+      />
+    </a>
   );
 }
 
@@ -486,21 +513,7 @@ export default function AdminStrainsPage() {
                 <div className="flex items-start gap-4 p-4">
                   {/* Image */}
                   <div className="hidden shrink-0 sm:block">
-                    {strain.image_url ? (
-                      <a href={strain.image_url} target="_blank" rel="noopener noreferrer" className="block">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={strain.image_url}
-                          alt={strain.name}
-                          className="h-16 w-16 rounded-lg border border-[var(--border)]/50 object-cover"
-                          referrerPolicy="no-referrer"
-                        />
-                      </a>
-                    ) : (
-                      <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-[var(--border)]/50 text-[10px] text-[var(--muted-foreground)]">
-                        Kein Bild
-                      </div>
-                    )}
+                    <StrainImage imageUrl={strain.image_url} canonicalPath={strain.canonical_image_path} name={strain.name} />
                   </div>
 
                   {/* Content */}

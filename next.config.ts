@@ -16,6 +16,73 @@ const withSentryConfig: SentryWrapper = (() => {
   return (config: NextConfig) => config;
 })();
 
+function parseOrigin(raw?: string): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  try {
+    return new URL(trimmed).origin;
+  } catch {
+    try {
+      return new URL(`https://${trimmed}`).origin;
+    } catch {
+      return null;
+    }
+  }
+}
+
+const siteOrigin = parseOrigin(process.env.NEXT_PUBLIC_SITE_URL);
+const vercelOrigin = parseOrigin(process.env.VERCEL_URL);
+const minioOrigin = parseOrigin(process.env.MINIO_ENDPOINT);
+
+const connectSrc = [
+  "'self'",
+  "https://clerk.greenlog-prod.app",
+  "https://clerk.greenlog.app",
+  "https://*.clerk.accounts.dev",
+  "https://uwjyvvvykyueuxtdkscs.supabase.co",
+  "https://*.ingest.sentry.io",
+  "https://*.ingest.us.sentry.io",
+  "https://greenlog.app",
+  "https://*.greenlog.app",
+  "https://green-log-two.vercel.app",
+  "https://*.vercel.app",
+  siteOrigin,
+  vercelOrigin,
+  minioOrigin,
+].filter(Boolean);
+
+const imgSrc = [
+  "'self'",
+  "data:",
+  "blob:",
+  "https://*.clerk.com",
+  "https://uwjyvvvykyueuxtdkscs.supabase.co",
+  "https://www.leafly.com",
+  "https://images.leafly.com",
+  "https://leafly-public.imgix.net",
+  "https://pollinations.ai",
+  "https://greenlog.app",
+  "https://*.greenlog.app",
+  "https://green-log-two.vercel.app",
+  "https://*.vercel.app",
+  siteOrigin,
+  vercelOrigin,
+  minioOrigin,
+].filter(Boolean);
+
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.greenlog-prod.app https://clerk.greenlog.app https://*.clerk.accounts.dev",
+  `connect-src ${connectSrc.join(" ")}`,
+  `img-src ${imgSrc.join(" ")}`,
+  "worker-src 'self' blob:",
+  "frame-src https://*.clerk.com https://clerk.greenlog-prod.app",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+].join("; ");
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
@@ -24,7 +91,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.greenlog-prod.app https://clerk.greenlog.app https://*.clerk.accounts.dev; connect-src 'self' https://clerk.greenlog-prod.app https://clerk.greenlog.app https://*.clerk.accounts.dev https://uwjyvvvykyueuxtdkscs.supabase.co https://*.ingest.sentry.io https://*.ingest.us.sentry.io http://31.97.77.89:9000; img-src 'self' data: blob: https://*.clerk.com https://uwjyvvvykyueuxtdkscs.supabase.co https://www.leafly.com https://images.leafly.com https://leafly-public.imgix.net https://pollinations.ai http://31.97.77.89:9000; worker-src 'self' blob:; frame-src https://*.clerk.com https://clerk.greenlog-prod.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;",
+            value: contentSecurityPolicy,
           },
         ],
       },
