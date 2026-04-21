@@ -1,4 +1,7 @@
-export const IMAGE_PUBLIC_BASE_PATH = process.env.IMAGE_PUBLIC_BASE_PATH || "/media";
+function readImagePublicBasePath(): string {
+  const value = process.env.IMAGE_PUBLIC_BASE_PATH?.trim();
+  return value && value.length > 0 ? value : "/media";
+}
 
 export const PUBLIC_MEDIA_BUCKETS = [
   "strains",
@@ -31,9 +34,8 @@ export function sanitizeObjectKey(key: string): string {
 }
 
 function normalizedBasePath(): string {
-  const path = IMAGE_PUBLIC_BASE_PATH.startsWith("/")
-    ? IMAGE_PUBLIC_BASE_PATH
-    : `/${IMAGE_PUBLIC_BASE_PATH}`;
+  const basePath = readImagePublicBasePath();
+  const path = basePath.startsWith("/") ? basePath : `/${basePath}`;
   return path.replace(/\/+$/, "") || "/media";
 }
 

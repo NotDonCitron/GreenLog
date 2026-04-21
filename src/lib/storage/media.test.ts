@@ -31,4 +31,19 @@ describe("media storage paths", () => {
     expect(storagePathFromMediaUrl("https://example.com/media/strains/id.webp")).toBe("strains/id.webp");
     expect(storagePathFromMediaUrl("https://cdn.example.com/strains/id.webp")).toBeNull();
   });
+
+  it("trims IMAGE_PUBLIC_BASE_PATH before building URLs", () => {
+    const previous = process.env.IMAGE_PUBLIC_BASE_PATH;
+    process.env.IMAGE_PUBLIC_BASE_PATH = " /media \n";
+    try {
+      expect(buildMediaUrl("strains", "abc.webp")).toBe("/media/strains/abc.webp");
+      expect(storagePathFromMediaUrl("/media/strains/abc.webp")).toBe("strains/abc.webp");
+    } finally {
+      if (previous === undefined) {
+        delete process.env.IMAGE_PUBLIC_BASE_PATH;
+      } else {
+        process.env.IMAGE_PUBLIC_BASE_PATH = previous;
+      }
+    }
+  });
 });
