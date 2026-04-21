@@ -9,8 +9,10 @@ import { createClient } from '@supabase/supabase-js';
 const args = new Set(process.argv.slice(2));
 const apply = args.has('--apply');
 const limitArg = process.argv.find((arg) => arg.startsWith('--limit='));
+const offsetArg = process.argv.find((arg) => arg.startsWith('--offset='));
 const tableArg = process.argv.find((arg) => arg.startsWith('--table='));
 const limit = limitArg ? Number(limitArg.split('=')[1]) : 50;
+const offset = offsetArg ? Number(offsetArg.split('=')[1]) : 0;
 const onlyTable = tableArg?.split('=')[1] || null;
 
 const PUBLIC_BASE_PATH = (process.env.IMAGE_PUBLIC_BASE_PATH || '/media').replace(/\/+$/, '') || '/media';
@@ -161,11 +163,14 @@ async function uploadImage(s3, bucket, key, bytes, contentType) {
 }
 
 async function loadCandidates(supabase, target) {
+  const rangeFrom = Math.max(0, offset);
+  const rangeTo = rangeFrom + Math.max(1, limit) - 1;
   const { data, error } = await supabase
     .from(target.table)
     .select(target.select)
     .not(target.urlColumn, 'is', null)
-    .limit(limit);
+    .order('id', { ascending: true })
+    .range(rangeFrom, rangeTo);
 
   if (error) throw new Error(`${target.table}.${target.urlColumn}: ${error.message}`);
   return (data || []).filter((row) => isDownloadableUrl(row[target.urlColumn]));
@@ -223,6 +228,7 @@ async function main() {
     generatedAt: new Date().toISOString(),
     mode: apply ? 'apply' : 'dry-run',
     limit,
+    offset,
     onlyTable,
     records: [],
   };
