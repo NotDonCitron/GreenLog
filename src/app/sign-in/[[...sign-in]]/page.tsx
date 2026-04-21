@@ -109,6 +109,11 @@ export default function SignInPage() {
                 session = data.session;
             }
 
+            if (!session) {
+                setError("Anmeldung fehlgeschlagen");
+                return;
+            }
+
             const { error: sessionError } = await supabase.auth.setSession({
                 access_token: session.access_token,
                 refresh_token: session.refresh_token,
