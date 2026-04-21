@@ -307,7 +307,8 @@ function StrainsPageContent() {
     // Build query with server-side filters
     let strainsQuery = supabase
       .from('strains')
-      .select('*', { count: 'exact' });
+      .select('*', { count: 'exact' })
+      .eq('publication_status', 'published');
 
     // Tab filter (catalog vs org)
     if (activeTab === 'catalog') {

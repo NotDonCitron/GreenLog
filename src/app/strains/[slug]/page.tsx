@@ -13,6 +13,7 @@ export async function generateMetadata({ params }: PageProps) {
     .from('strains')
     .select('name, description, thc_max, farmer')
     .eq('slug', slug)
+    .eq('publication_status', 'published')
     .single()
 
   if (error) {

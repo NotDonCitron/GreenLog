@@ -8,6 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { data: strains, error } = await supabase
     .from('strains')
     .select('slug, created_at')
+    .eq('publication_status', 'published')
     .limit(1000)
 
   const strainUrls = (strains || []).map((strain) => ({

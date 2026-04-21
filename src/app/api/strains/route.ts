@@ -15,6 +15,7 @@ export async function GET(request: Request) {
     let query = supabase
         .from("strains")
         .select("id, name, slug, type, farmer, thc_min, thc_max, cbd_min, cbd_max, image_url, effects, flavors, description, terpenes, created_at")
+        .eq("publication_status", "published")
         .range(offset, offset + limit - 1)
         .order("name", { ascending: true });
 
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
         organization_id,
         is_custom,
         source,
+        primary_source,
     } = body;
 
     if (!name || !slug || !type) {
@@ -61,6 +63,13 @@ export async function POST(request: Request) {
             400
         );
     }
+
+    const resolvedPrimarySource =
+        typeof primary_source === "string" && primary_source.trim().length > 0
+            ? primary_source.trim()
+            : typeof source === "string" && source.trim().length > 0
+              ? source.trim()
+              : "manual-user";
 
     const { data: strain, error: strainError } = await supabase
         .from("strains")
@@ -78,6 +87,8 @@ export async function POST(request: Request) {
             organization_id: organization_id ?? null,
             is_custom: is_custom ?? false,
             source: source ?? 'pharmacy',
+            publication_status: "draft",
+            primary_source: resolvedPrimarySource,
             created_by: user.id,
         })
         .select()

@@ -19,21 +19,23 @@ describe("strain detail metadata", () => {
       from: () => ({
         select: (columns: string) => ({
           eq: () => ({
-            single: async () => {
-              if (columns.includes("breeder") || columns.includes("thc_level")) {
-                return { data: null, error: { message: "column does not exist" } };
-              }
+            eq: () => ({
+              single: async () => {
+                if (columns.includes("breeder") || columns.includes("thc_level")) {
+                  return { data: null, error: { message: "column does not exist" } };
+                }
 
-              return {
-                data: {
-                  name: "Apple Fritter",
-                  description: "Sweet hybrid strain",
-                  thc_max: 24,
-                  farmer: "LUMPY",
-                },
-                error: null,
-              };
-            },
+                return {
+                  data: {
+                    name: "Apple Fritter",
+                    description: "Sweet hybrid strain",
+                    thc_max: 24,
+                    farmer: "LUMPY",
+                  },
+                  error: null,
+                };
+              },
+            }),
           }),
         }),
       }),
@@ -44,5 +46,61 @@ describe("strain detail metadata", () => {
     });
 
     expect(metadata.title).toBe("Apple Fritter");
+  });
+
+  it("does not generate public metadata for unpublished strains", async () => {
+    const eqCalls: Array<[string, string]> = [];
+
+    createServerSupabaseClientMock.mockResolvedValue({
+      from: () => ({
+        select: () => ({
+          eq: (column: string, value: string) => {
+            eqCalls.push([column, value]);
+            if (column === "slug" && value === "hidden-dream") {
+              return {
+                eq: (publicationColumn: string, publicationValue: string) => {
+                  eqCalls.push([publicationColumn, publicationValue]);
+                  if (publicationColumn === "publication_status" && publicationValue === "published") {
+                    return {
+                      single: async () => ({
+                        data: null,
+                        error: { message: "No rows" },
+                      }),
+                    };
+                  }
+                  return {
+                    single: async () => ({
+                      data: {
+                        name: "Should Not Resolve",
+                        description: "Unpublished",
+                        thc_max: 20,
+                        farmer: "Private",
+                      },
+                      error: null,
+                    }),
+                  };
+                },
+              };
+            }
+
+            return {
+              eq: () => ({
+                single: async () => ({
+                  data: null,
+                  error: { message: "Unexpected query path" },
+                }),
+              }),
+            };
+          },
+        }),
+      }),
+    });
+
+    const metadata = await generateMetadata({
+      params: Promise.resolve({ slug: "hidden-dream" }),
+    });
+
+    expect(metadata.title).toBe("Strain nicht gefunden | CannaLog");
+    expect(eqCalls).toContainEqual(["publication_status", "published"]);
   });
 });

@@ -88,7 +88,7 @@ export default function StrainDetailPageClient() {
         slug,
         organization_type
       )
-    `).eq("slug", slug).single();
+    `).eq("slug", slug).eq("publication_status", "published").single();
 
     // If not found and slug looks like a UUID, try fetching by id
     if (error && !isDemoMode && slug && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug as string)) {
@@ -100,7 +100,7 @@ export default function StrainDetailPageClient() {
           slug,
           organization_type
         )
-      `).eq("id", slug).single();
+      `).eq("id", slug).eq("publication_status", "published").single();
 
       if (!idError && idData) {
         data = idData;
