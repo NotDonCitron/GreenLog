@@ -91,14 +91,16 @@ function createSupabase() {
 }
 
 function createS3() {
+  const region = process.env.MINIO_REGION?.trim() || 'eu-central-1';
+  const forcePathStyleRaw = process.env.MINIO_FORCE_PATH_STYLE?.trim();
   return new S3Client({
     endpoint: requiredEnv('MINIO_ENDPOINT'),
-    region: process.env.MINIO_REGION || 'eu-central-1',
+    region,
     credentials: {
       accessKeyId: requiredEnv('MINIO_ACCESS_KEY'),
       secretAccessKey: requiredEnv('MINIO_SECRET_KEY'),
     },
-    forcePathStyle: process.env.MINIO_FORCE_PATH_STYLE !== 'false',
+    forcePathStyle: forcePathStyleRaw !== 'false',
   });
 }
 
