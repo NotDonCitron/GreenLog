@@ -26,3 +26,7 @@ Pre-deployment verification against a structured checklist.
 Triggers: "deploy", "ship", "release", "go live"
 Constraints: all tests passing, no unresolved TODOs in diff,
 requires human approval for production.
+
+## ssh-connect
+Open an interactive SSH session to a remote server.
+Triggers: "ssh", "connect to server", "remote connection"
