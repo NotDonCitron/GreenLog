@@ -104,6 +104,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // CannaLOG media route → network only. These URLs can be replaced by admin/user uploads
+  // while keeping the same path, so the service worker must not pin stale images.
+  if (url.origin === self.location.origin && url.pathname.startsWith('/media/')) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
   // Let the browser handle external image requests for imgix and Supabase Storage natively.
   // Rebuilding the Request in the SW can change fetch metadata in ways those CDNs reject.
   if (shouldBypassExternalImageRequest(request, url)) {

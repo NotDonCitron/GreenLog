@@ -80,4 +80,16 @@ describe("service worker external image routing", () => {
 
     expect(respondWith).toHaveBeenCalledOnce();
   });
+  it("does not cache same-origin media route responses", () => {
+    const fetchHandler = loadFetchHandler();
+    const respondWith = vi.fn();
+    const request = new Request("https://greenlog.app/media/strains/strain-1.webp", {
+      method: "GET",
+    });
+
+    fetchHandler({ request, respondWith });
+
+    expect(respondWith).toHaveBeenCalledOnce();
+  });
+
 });

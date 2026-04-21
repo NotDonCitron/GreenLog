@@ -1,87 +1,167 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import "server-only";
 
-const MINIO_ENDPOINT = process.env.MINIO_ENDPOINT || 'http://31.97.77.89:9000';
-const MINIO_ACCESS_KEY = process.env.MINIO_ACCESS_KEY || 'greenlog';
-const MINIO_SECRET_KEY = process.env.MINIO_SECRET_KEY || 'GreenLog2026Secure!';
-const MINIO_REGION = process.env.MINIO_REGION || 'eu-central-1';
-const MINIO_PUBLIC_URL = process.env.MINIO_PUBLIC_URL || 'http://31.97.77.89:9000/strains';
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const minioClient = new S3Client({
-  endpoint: MINIO_ENDPOINT,
-  region: MINIO_REGION,
-  credentials: {
-    accessKeyId: MINIO_ACCESS_KEY,
-    secretAccessKey: MINIO_SECRET_KEY,
-  },
-  forcePathStyle: true,
-});
+import { getMinioConfigFromEnv } from "@/lib/storage/minio-config";
+import { buildMediaUrl, isPublicMediaBucket, sanitizeObjectKey } from "@/lib/storage/media";
+
+let minioClient: S3Client | null = null;
+
+function getMinioClient(): S3Client {
+  if (minioClient) return minioClient;
+
+  const config = getMinioConfigFromEnv();
+  minioClient = new S3Client({
+    endpoint: config.endpoint,
+    region: config.region,
+    credentials: {
+      accessKeyId: config.accessKeyId,
+      secretAccessKey: config.secretAccessKey,
+    },
+    forcePathStyle: config.forcePathStyle,
+  });
+
+  return minioClient;
+}
 
 export interface UploadResult {
+  bucket: string;
+  key: string;
   path: string;
-  publicUrl: string;
+  publicUrl: string | null;
+}
+
+export interface MinioObjectResult {
+  body: Uint8Array;
+  contentType: string;
+  cacheControl: string;
+  contentLength?: number;
+  etag?: string;
+}
+
+async function bodyToUint8Array(body: unknown): Promise<Uint8Array> {
+  if (!body) return new Uint8Array();
+
+  if (body instanceof Uint8Array) return body;
+
+  if (typeof Blob !== "undefined" && body instanceof Blob) {
+    return new Uint8Array(await body.arrayBuffer());
+  }
+
+  if (typeof (body as { transformToByteArray?: unknown }).transformToByteArray === "function") {
+    return (body as { transformToByteArray: () => Promise<Uint8Array> }).transformToByteArray();
+  }
+
+  const stream = body as AsyncIterable<Uint8Array>;
+  const chunks: Uint8Array[] = [];
+  for await (const chunk of stream) {
+    chunks.push(chunk);
+  }
+
+  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const result = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    result.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  return result;
 }
 
 export async function uploadToMinio(
   bucket: string,
   filename: string,
   file: Buffer | Uint8Array | Blob,
-  contentType: string = 'application/octet-stream',
+  contentType = "application/octet-stream",
   options: { upsert?: boolean; cacheControl?: string } = {}
 ): Promise<UploadResult> {
-  const key = bucket + '/' + filename;
-  
+  const key = sanitizeObjectKey(filename);
+  const client = getMinioClient();
+
   try {
-    if (options.upsert) {
+    if (!options.upsert) {
       try {
-        await minioClient.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
-        await minioClient.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
-      } catch {
-        // File does not exist - that is fine
+        await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+        throw new Error("Object already exists");
+      } catch (error) {
+        if (error instanceof Error && error.message === "Object already exists") throw error;
       }
     }
 
-    await minioClient.send(
+    await client.send(
       new PutObjectCommand({
         Bucket: bucket,
         Key: key,
         Body: file,
         ContentType: contentType,
-        CacheControl: options.cacheControl || '3600',
+        CacheControl: options.cacheControl || "public, max-age=31536000, immutable",
       })
     );
 
-    const publicUrl = MINIO_PUBLIC_URL + '/' + bucket + '/' + filename;
-    return { path: key, publicUrl };
+    const publicUrl = isPublicMediaBucket(bucket) ? buildMediaUrl(bucket, key) : null;
+    return { bucket, key, path: `${bucket}/${key}`, publicUrl };
   } catch (error) {
-    console.error('[MinIO] Upload failed:', error);
+    console.error("[MinIO] Upload failed:", error);
     throw error;
   }
 }
 
-export function getMinioPublicUrl(bucket: string, filename: string): string {
-  return MINIO_PUBLIC_URL + '/' + bucket + '/' + filename;
+export function getMinioPublicUrl(bucket: string, filename: string): string | null {
+  const key = sanitizeObjectKey(filename);
+  return isPublicMediaBucket(bucket) ? buildMediaUrl(bucket, key) : null;
 }
 
 export async function getSignedMinioUrl(
   bucket: string,
   filename: string,
-  expiresIn: number = 3600
+  expiresIn = 3600
 ): Promise<string> {
   const command = new GetObjectCommand({
     Bucket: bucket,
-    Key: bucket + '/' + filename,
+    Key: sanitizeObjectKey(filename),
   });
-  return getSignedUrl(minioClient, command, { expiresIn });
+  return getSignedUrl(getMinioClient(), command, { expiresIn });
+}
+
+export async function getObjectFromMinio(bucket: string, filename: string): Promise<MinioObjectResult | null> {
+  try {
+    const response = await getMinioClient().send(
+      new GetObjectCommand({ Bucket: bucket, Key: sanitizeObjectKey(filename) })
+    );
+
+    return {
+      body: await bodyToUint8Array(response.Body),
+      contentType: response.ContentType || "application/octet-stream",
+      cacheControl: response.CacheControl || "public, max-age=31536000, immutable",
+      contentLength: response.ContentLength,
+      etag: response.ETag,
+    };
+  } catch (error) {
+    const maybeError = error as { name?: string; $metadata?: { httpStatusCode?: number } };
+    if (maybeError.name === "NoSuchKey" || maybeError.$metadata?.httpStatusCode === 404) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 export async function deleteFromMinio(bucket: string, filename: string): Promise<void> {
-  await minioClient.send(
+  await getMinioClient().send(
     new DeleteObjectCommand({
       Bucket: bucket,
-      Key: bucket + '/' + filename,
+      Key: sanitizeObjectKey(filename),
     })
   );
 }
 
-export { minioClient };
+export function __resetMinioClientForTests() {
+  minioClient = null;
+}
