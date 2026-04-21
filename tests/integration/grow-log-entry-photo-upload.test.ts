@@ -1,9 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 import { POST } from '@/app/api/grows/log-entry/photo/route';
 import { getAuthenticatedClient } from '@/lib/supabase/client';
+import * as minioStorage from '@/lib/minio-storage';
 
+vi.mock('server-only', () => ({}));
 vi.mock('@/lib/supabase/client', () => ({
   getAuthenticatedClient: vi.fn(),
+}));
+vi.mock('@/lib/minio-storage', () => ({
+  uploadToMinio: vi.fn(async () => ({ path: 'user-1/grow-1/entry-photo.webp' })),
+  deleteFromMinio: vi.fn(async () => undefined),
+  getSignedMinioUrl: vi.fn(async () => 'https://example.supabase.co/storage/v1/object/sign/grow-entry-photos/photo.webp?token=signed'),
 }));
 
 function makeImageFile(type = 'image/jpeg') {
@@ -101,11 +108,12 @@ describe('API: POST /api/grows/log-entry/photo', () => {
     }));
 
     expect(res.status).toBe(200);
-    expect(supabase.storage.from).toHaveBeenCalledWith('grow-entry-photos');
-    expect(upload).toHaveBeenCalledWith(
+    expect(minioStorage.uploadToMinio).toHaveBeenCalledWith(
+      'grow-entry-photos',
       expect.stringMatching(/^user-1\/grow-1\/.+\.webp$/),
       expect.any(Buffer),
-      expect.objectContaining({ contentType: 'image/webp', upsert: false })
+      'image/webp',
+      expect.objectContaining({ upsert: false })
     );
     expect(insertedPayloads[0]).toMatchObject({
       grow_id: 'grow-1',

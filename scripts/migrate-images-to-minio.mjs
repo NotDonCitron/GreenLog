@@ -130,28 +130,39 @@ function extFromContentType(contentType, sourceUrl) {
   return ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext) ? (ext === 'jpeg' ? 'jpg' : ext) : 'jpg';
 }
 
-async function downloadImage(url) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  try {
-    const response = await fetch(url, { signal: controller.signal, redirect: 'follow' });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+async function downloadImage(url, retries = 3) {
+  let lastError;
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+      const response = await fetch(url, { signal: controller.signal, redirect: 'follow' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-    const contentType = response.headers.get('content-type') || 'application/octet-stream';
-    if (!contentType.toLowerCase().startsWith('image/')) {
-      throw new Error(`Unexpected content-type: ${contentType}`);
+      const contentType = response.headers.get('content-type') || 'application/octet-stream';
+      if (!contentType.toLowerCase().startsWith('image/')) {
+        throw new Error(`Unexpected content-type: ${contentType}`);
+      }
+
+      const contentLength = Number(response.headers.get('content-length') || 0);
+      if (contentLength > MAX_BYTES) throw new Error(`Image too large: ${contentLength} bytes`);
+
+      const bytes = Buffer.from(await response.arrayBuffer());
+      if (bytes.length > MAX_BYTES) throw new Error(`Image too large: ${bytes.length} bytes`);
+
+      return { bytes, contentType };
+    } catch (error) {
+      lastError = error;
+      if (attempt < retries) {
+        const backoff = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+        console.error(`Download attempt ${attempt} failed for ${url}: ${error.message}. Retrying in ${backoff}ms...`);
+        await new Promise(resolve => setTimeout(resolve, backoff));
+      }
+    } finally {
+      clearTimeout(timeout);
     }
-
-    const contentLength = Number(response.headers.get('content-length') || 0);
-    if (contentLength > MAX_BYTES) throw new Error(`Image too large: ${contentLength} bytes`);
-
-    const bytes = Buffer.from(await response.arrayBuffer());
-    if (bytes.length > MAX_BYTES) throw new Error(`Image too large: ${bytes.length} bytes`);
-
-    return { bytes, contentType };
-  } finally {
-    clearTimeout(timeout);
   }
+  throw lastError;
 }
 
 function publicUrl(bucket, key) {
@@ -191,7 +202,7 @@ async function migrateTarget(supabase, s3, target) {
     const baseRecord = { table: target.table, id: row.id, column: target.urlColumn, oldUrl, status: 'pending' };
 
     try {
-      const downloaded = await downloadImage(oldUrl);
+      const downloaded = await downloadImage(oldUrl, 3);
       const ext = extFromContentType(downloaded.contentType, oldUrl);
       const key = target.keyFor(row, ext);
       const newUrl = publicUrl(target.bucket, key);

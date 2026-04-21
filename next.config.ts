@@ -70,6 +70,12 @@ const nextConfig: NextConfig = {
         hostname: 'greenlog.app',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: '31.97.77.89',
+        port: '9000',
+        pathname: '/**',
       }
     ],
     formats: ['image/avif', 'image/webp'],
