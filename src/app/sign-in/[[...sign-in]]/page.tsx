@@ -23,16 +23,46 @@ export default function SignInPage() {
         setError(null);
         setLoading(true);
 
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        setLoading(false);
+        try {
+            const response = await fetch("/api/auth/sign-in", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, password }),
+            });
 
-        if (error) {
-            setError(error.message);
-            return;
+            const payload = await response.json();
+
+            if (!response.ok) {
+                setError(payload?.error?.message || "Anmeldung fehlgeschlagen");
+                return;
+            }
+
+            const session = payload?.data?.session;
+            if (!session?.access_token || !session?.refresh_token) {
+                setError("Anmeldung fehlgeschlagen");
+                return;
+            }
+
+            const { error: sessionError } = await supabase.auth.setSession({
+                access_token: session.access_token,
+                refresh_token: session.refresh_token,
+            });
+
+            if (sessionError) {
+                setError(sessionError.message);
+                return;
+            }
+
+            router.push("/");
+            router.refresh();
+        } catch (err) {
+            console.error("[SignInPage] sign-in request failed", err);
+            setError("Anmeldung aktuell nicht erreichbar. Bitte versuche es erneut.");
+        } finally {
+            setLoading(false);
         }
-
-        router.push("/");
-        router.refresh();
     };
 
     return (
