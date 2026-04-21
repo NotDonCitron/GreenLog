@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Camera, Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/components/toast-provider";
+import { uploadToMinio } from "@/lib/minio-storage";
 import { supabase } from "@/lib/supabase/client";
 
 interface OrgLogoUploadProps {
@@ -45,19 +46,16 @@ export function OrgLogoUpload({
         setIsUploading(true);
         try {
             const ext = file.name.split(".").pop();
-            const filename = `org-logos/${organizationId}/${Date.now()}.${ext}`;
+            const filename = `${organizationId}/${Date.now()}.${ext}`;
 
-            const { data, error: uploadError } = await supabase.storage
-                .from("org-logos")
-                .upload(filename, file, { cacheControl: "3600", upsert: true });
-
-            if (uploadError) throw uploadError;
-
-            const { data: urlData } = supabase.storage
-                .from("org-logos")
-                .getPublicUrl(filename);
-
-            const logoUrl = urlData.publicUrl;
+            // Upload to MinIO Storage
+            const { publicUrl: logoUrl } = await uploadToMinio(
+                "org-logos",
+                filename,
+                file,
+                file.type || "image/jpeg",
+                { upsert: true, cacheControl: "3600" }
+            );
 
             const { error: updateError } = await supabase
                 .from("organizations")

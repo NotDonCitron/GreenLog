@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/components/toast-provider";
+import { uploadToMinio } from "@/lib/minio-storage";
 import { supabase } from "@/lib/supabase";
 
 interface AvatarUploadProps {
@@ -82,25 +83,19 @@ export function AvatarUpload({
             const ext = file.name.split(".").pop();
             const filename = `${user.id}/${Date.now()}.${ext}`;
 
-            // Upload to Supabase Storage
-            const { data, error: uploadError } = await supabase.storage
-                .from("avatars")
-                .upload(filename, file, {
-                    cacheControl: "3600",
-                    upsert: true,
-                });
-
-            if (uploadError) throw uploadError;
-
-            // Get public URL
-            const { data: urlData } = supabase.storage
-                .from("avatars")
-                .getPublicUrl(filename);
+            // Upload to MinIO Storage
+            const { publicUrl } = await uploadToMinio(
+                "avatars",
+                filename,
+                file,
+                file.type || "image/jpeg",
+                { upsert: true, cacheControl: "3600" }
+            );
 
             // Update profile
             const { error: updateError } = await supabase
                 .from("profiles")
-                .update({ avatar_url: urlData.publicUrl })
+                .update({ avatar_url: publicUrl })
                 .eq("id", user.id);
 
             if (updateError) throw updateError;
