@@ -7,6 +7,7 @@ import { AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Loader2, Search, XCi
 
 interface Strain {
   id: string;
+  organization_id: string | null;
   name: string;
   slug: string;
   type: string;
@@ -151,12 +152,13 @@ function recommendationUi(recommendation: Recommendation) {
 }
 
 export default function AdminStrainsPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, session, loading: authLoading } = useAuth();
   const [strains, setStrains] = useState<Strain[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'review'>('all');
   const [recommendationFilter, setRecommendationFilter] = useState<'all' | Recommendation>('all');
@@ -191,24 +193,50 @@ export default function AdminStrainsPage() {
     setLoading(false);
   };
 
-  const updateStatus = async (id: string, status: 'review' | 'published' | 'rejected') => {
-    setIsUpdating(id);
-
-    const { error: err } = await supabase
-      .from('strains')
-      .update({
-        publication_status: status,
-        reviewed_at: new Date().toISOString(),
-      })
-      .eq('id', id);
-
-    if (err) {
-      console.error('Error updating status:', err);
-      setError(err.message);
-    } else {
-      await fetchStrains();
+  const updateStatus = async (strain: Strain, status: 'review' | 'published' | 'rejected') => {
+    if (!session?.access_token) {
+      setError('Session fehlt. Bitte neu einloggen.');
+      return;
     }
 
+    setIsUpdating(strain.id);
+    setActionMessage(null);
+    setError(null);
+
+    const response = await fetch(`/api/admin/strains/${strain.id}/publication`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ publication_status: status }),
+    });
+
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      const missingFields = Array.isArray(payload?.error?.details?.missing)
+        ? payload.error.details.missing.join(', ')
+        : null;
+      const baseMessage = payload?.error?.message || 'Status-Update fehlgeschlagen.';
+      setError(missingFields ? `${baseMessage} Fehlend: ${missingFields}` : baseMessage);
+      setIsUpdating(null);
+      return;
+    }
+
+    if (status === 'published') {
+      setActionMessage(
+        strain.organization_id
+          ? 'Publiziert: Org-Strain. Sichtbar im Org-Tab von /strains (für Mitglieder).'
+          : 'Publiziert: Sichtbar im Catalog-Tab von /strains.'
+      );
+    } else if (status === 'review') {
+      setActionMessage('Sorte wurde auf Review gesetzt.');
+    } else {
+      setActionMessage('Sorte wurde abgelehnt.');
+    }
+
+    await fetchStrains();
     setIsUpdating(null);
   };
 
@@ -394,6 +422,12 @@ export default function AdminStrainsPage() {
             ))}
           </div>
         </div>
+
+        {actionMessage && (
+          <div className="mt-3 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-200">
+            {actionMessage}
+          </div>
+        )}
       </div>
 
       {filtered.length === 0 ? (
@@ -505,14 +539,14 @@ export default function AdminStrainsPage() {
                     {isExpanded ? 'Weniger' : 'Details'}
                   </button>
                   <button
-                    onClick={() => void updateStatus(strain.id, 'review')}
+                    onClick={() => void updateStatus(strain, 'review')}
                     disabled={isRowUpdating || strain.publication_status === 'review'}
                     className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/20 disabled:opacity-50"
                   >
                     To Review
                   </button>
                   <button
-                    onClick={() => void updateStatus(strain.id, 'published')}
+                    onClick={() => void updateStatus(strain, 'published')}
                     disabled={isRowUpdating || recommendation !== 'publish_ready'}
                     className="rounded-lg border border-green-500/40 bg-green-500/10 px-3 py-2 text-xs font-semibold text-green-200 hover:bg-green-500/20 disabled:opacity-50"
                     title={recommendation !== 'publish_ready' ? 'Zuerst Datenqualität verbessern' : 'Publish'}
@@ -520,7 +554,7 @@ export default function AdminStrainsPage() {
                     Publish
                   </button>
                   <button
-                    onClick={() => void updateStatus(strain.id, 'rejected')}
+                    onClick={() => void updateStatus(strain, 'rejected')}
                     disabled={isRowUpdating}
                     className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
                   >
