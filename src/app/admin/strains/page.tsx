@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/components/auth-provider';
-import { AlertCircle, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Loader2, Search, XCircle } from 'lucide-react';
 
 interface Strain {
   id: string;
@@ -19,18 +19,83 @@ interface Strain {
   flavors: string[];
   effects: string[];
   image_url: string | null;
-  publication_status: string;
+  publication_status: 'draft' | 'review' | 'published' | 'rejected' | string;
   primary_source: string;
   source_notes: string | null;
 }
 
+type Completeness = {
+  name: boolean;
+  slug: boolean;
+  type: boolean;
+  description: boolean;
+  thc: boolean;
+  cbd: boolean;
+  terpenes: boolean;
+  flavors: boolean;
+  effects: boolean;
+  image: boolean;
+  source: boolean;
+};
+
+const COMPLETENESS_KEYS: Array<keyof Completeness> = [
+  'name',
+  'slug',
+  'type',
+  'description',
+  'thc',
+  'cbd',
+  'terpenes',
+  'flavors',
+  'effects',
+  'image',
+  'source',
+];
+
+const COMPLETENESS_LABELS: Record<keyof Completeness, string> = {
+  name: 'Name',
+  slug: 'Slug',
+  type: 'Type',
+  description: 'Description',
+  thc: 'THC',
+  cbd: 'CBD',
+  terpenes: 'Terpenes (2+)',
+  flavors: 'Flavors (1+)',
+  effects: 'Effects (1+)',
+  image: 'Image',
+  source: 'Source',
+};
+
 function FieldRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex gap-2">
-      <span className="font-medium text-gray-600 min-w-[100px]">{label}:</span>
-      <span className="text-gray-900">{value}</span>
+    <div className="grid grid-cols-[110px_1fr] gap-2 text-xs">
+      <span className="text-[var(--muted-foreground)] font-semibold uppercase tracking-wide">{label}</span>
+      <span className="text-[var(--foreground)] break-words">{value}</span>
     </div>
   );
+}
+
+function formatRange(min: number | null, max: number | null) {
+  if (min !== null && max !== null) return `${min}–${max}%`;
+  if (min !== null) return `min ${min}%`;
+  if (max !== null) return `max ${max}%`;
+  return '—';
+}
+
+function getCompleteness(strain: Strain): Completeness {
+  return {
+    name: !!strain.name,
+    slug: !!strain.slug,
+    type: !!strain.type,
+    description: !!strain.description,
+    thc: strain.thc_min !== null || strain.thc_max !== null,
+    cbd: strain.cbd_min !== null || strain.cbd_max !== null,
+    terpenes: Array.isArray(strain.terpenes) && strain.terpenes.length >= 2,
+    flavors: Array.isArray(strain.flavors) && strain.flavors.length >= 1,
+    effects: Array.isArray(strain.effects) && strain.effects.length >= 1,
+    image: !!strain.image_url,
+    source: !!strain.primary_source,
+  };
 }
 
 export default function AdminStrainsPage() {
@@ -39,35 +104,43 @@ export default function AdminStrainsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'review'>('all');
 
-  const ADMIN_IDS = (process.env.NEXT_PUBLIC_APP_ADMIN_IDS || '').split(',').filter(Boolean);
+  const ADMIN_IDS = (process.env.NEXT_PUBLIC_APP_ADMIN_IDS || '').split(',').map((id) => id.trim()).filter(Boolean);
   const isAdmin = user && ADMIN_IDS.includes(user.id);
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!isAdmin) return;
-    fetchStrains();
+    if (authLoading || !isAdmin) return;
+    void fetchStrains();
   }, [authLoading, isAdmin]);
 
   const fetchStrains = async () => {
     setLoading(true);
     setError(null);
+
     const { data, error: err } = await supabase
       .from('strains')
       .select('*')
       .in('publication_status', ['draft', 'review'])
-      .order('name');
+      .order('publication_status', { ascending: true })
+      .order('name', { ascending: true });
 
     if (err) {
       console.error('Error fetching strains:', err);
       setError(err.message);
+      setStrains([]);
     } else {
-      setStrains(data || []);
+      setStrains((data as Strain[]) || []);
     }
+
     setLoading(false);
   };
 
-  const updateStatus = async (id: string, status: string) => {
+  const updateStatus = async (id: string, status: 'review' | 'published' | 'rejected') => {
+    setIsUpdating(id);
+
     const { error: err } = await supabase
       .from('strains')
       .update({
@@ -76,42 +149,71 @@ export default function AdminStrainsPage() {
       })
       .eq('id', id);
 
-    if (err) console.error('Error updating status:', err);
-    else fetchStrains();
+    if (err) {
+      console.error('Error updating status:', err);
+      setError(err.message);
+    } else {
+      await fetchStrains();
+    }
+
+    setIsUpdating(null);
   };
 
-  const checkCompleteness = (strain: Strain) => {
-    const checks = {
-      name: !!strain.name,
-      slug: !!strain.slug,
-      type: !!strain.type,
-      description: !!strain.description,
-      thc: strain.thc_min !== null || strain.thc_max !== null,
-      cbd: strain.cbd_min !== null || strain.cbd_max !== null,
-      terpenes: Array.isArray(strain.terpenes) && strain.terpenes.length >= 2,
-      flavors: Array.isArray(strain.flavors) && strain.flavors.length >= 1,
-      effects: Array.isArray(strain.effects) && strain.effects.length >= 1,
-      image: !!strain.image_url,
-      source: !!strain.primary_source,
+  const enriched = useMemo(() => {
+    return strains.map((strain) => {
+      const completeness = getCompleteness(strain);
+      const completeCount = COMPLETENESS_KEYS.filter((key) => completeness[key]).length;
+      const isComplete = completeCount === COMPLETENESS_KEYS.length;
+      const missing = COMPLETENESS_KEYS.filter((key) => !completeness[key]);
+      return { strain, completeness, completeCount, isComplete, missing };
+    });
+  }, [strains]);
+
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+
+    return enriched.filter(({ strain }) => {
+      const matchesStatus = statusFilter === 'all' || strain.publication_status === statusFilter;
+      if (!matchesStatus) return false;
+
+      if (!needle) return true;
+
+      return (
+        strain.name.toLowerCase().includes(needle) ||
+        strain.slug.toLowerCase().includes(needle) ||
+        (strain.primary_source || '').toLowerCase().includes(needle)
+      );
+    });
+  }, [enriched, query, statusFilter]);
+
+  const stats = useMemo(() => {
+    const draft = enriched.filter((item) => item.strain.publication_status === 'draft').length;
+    const review = enriched.filter((item) => item.strain.publication_status === 'review').length;
+    const ready = enriched.filter((item) => item.isComplete).length;
+
+    return {
+      total: enriched.length,
+      draft,
+      review,
+      ready,
     };
-    return checks;
-  };
+  }, [enriched]);
 
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin" size={32} />
+        <Loader2 className="animate-spin text-[var(--muted-foreground)]" size={28} />
       </div>
     );
   }
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-8">
-        <div className="max-w-md w-full p-10 border border-red-500/20 rounded-lg bg-white shadow-2xl text-center">
-          <AlertCircle className="text-red-500 mx-auto mb-4" size={64} />
-          <h1 className="text-xl font-bold text-red-500 uppercase tracking-tight">Access Denied</h1>
-          <p className="text-gray-500 text-sm mt-2">Admin access required for this page.</p>
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="max-w-md w-full rounded-2xl border border-red-500/30 bg-red-500/5 p-8 text-center">
+          <AlertCircle className="mx-auto mb-3 text-red-400" size={44} />
+          <h1 className="text-lg font-bold uppercase tracking-wide text-red-300">Access denied</h1>
+          <p className="mt-2 text-sm text-red-200/80">Admin-Zugriff erforderlich.</p>
         </div>
       </div>
     );
@@ -120,18 +222,21 @@ export default function AdminStrainsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin" size={32} />
+        <Loader2 className="animate-spin text-[var(--muted-foreground)]" size={28} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-8">
-        <div className="text-red-500 text-center">
-          <AlertCircle size={48} className="mx-auto mb-2" />
-          <p>Error: {error}</p>
-          <button onClick={fetchStrains} className="mt-4 px-4 py-2 bg-red-500 text-white rounded">
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="max-w-md w-full rounded-2xl border border-red-500/30 bg-red-500/5 p-8 text-center">
+          <AlertCircle className="mx-auto mb-3 text-red-400" size={44} />
+          <p className="text-sm text-red-200">{error}</p>
+          <button
+            onClick={() => void fetchStrains()}
+            className="mt-4 rounded-lg border border-red-400/30 bg-red-400/10 px-4 py-2 text-sm font-semibold text-red-200 hover:bg-red-400/20"
+          >
             Retry
           </button>
         </div>
@@ -140,118 +245,204 @@ export default function AdminStrainsPage() {
   }
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Strain Review Queue ({strains.length})</h1>
+    <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8 space-y-5">
+      <div className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/60 p-4 sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black uppercase tracking-wide text-[var(--foreground)]">Admin Strain Queue</h1>
+            <p className="text-xs sm:text-sm text-[var(--muted-foreground)] mt-1">Draft und Review-Kandidaten mit Publish-Readiness</p>
+          </div>
+          <button
+            onClick={() => void fetchStrains()}
+            className="self-start rounded-lg border border-[var(--border)]/70 bg-[var(--background)]/40 px-3 py-2 text-xs font-semibold text-[var(--foreground)] hover:bg-[var(--background)]/60"
+          >
+            Aktualisieren
+          </button>
+        </div>
 
-      {strains.length === 0 ? (
-        <p className="text-gray-500">No strains in draft or review status.</p>
+        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="rounded-xl border border-[var(--border)]/60 bg-[var(--background)]/40 px-3 py-3">
+            <p className="text-[10px] uppercase tracking-wide text-[var(--muted-foreground)]">Total</p>
+            <p className="mt-1 text-xl font-black text-[var(--foreground)]">{stats.total}</p>
+          </div>
+          <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-3">
+            <p className="text-[10px] uppercase tracking-wide text-yellow-300">Draft</p>
+            <p className="mt-1 text-xl font-black text-yellow-200">{stats.draft}</p>
+          </div>
+          <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-3">
+            <p className="text-[10px] uppercase tracking-wide text-cyan-300">Review</p>
+            <p className="mt-1 text-xl font-black text-cyan-200">{stats.review}</p>
+          </div>
+          <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-3 py-3">
+            <p className="text-[10px] uppercase tracking-wide text-green-300">Publish Ready</p>
+            <p className="mt-1 text-xl font-black text-green-200">{stats.ready}</p>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-col gap-2 md:flex-row md:items-center">
+          <div className="relative flex-1">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Suche nach Name, Slug, Source"
+              className="w-full rounded-lg border border-[var(--border)]/70 bg-[var(--background)]/40 py-2 pl-9 pr-3 text-sm text-[var(--foreground)] outline-none focus:border-[#2FF801]/50"
+            />
+          </div>
+          <div className="flex gap-2">
+            {(['all', 'draft', 'review'] as const).map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-wide ${
+                  statusFilter === status
+                    ? 'border-[#2FF801]/60 bg-[#2FF801]/15 text-[#2FF801]'
+                    : 'border-[var(--border)]/70 bg-[var(--background)]/40 text-[var(--muted-foreground)]'
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/60 p-8 text-center text-sm text-[var(--muted-foreground)]">
+          Keine passenden Strains in der Queue.
+        </div>
       ) : (
-        <div className="space-y-4">
-          {strains.map((strain) => {
-            const completeness = checkCompleteness(strain);
-            const completeCount = Object.values(completeness).filter(Boolean).length;
-            const isComplete = completeCount === Object.keys(completeness).length;
-
+        <div className="space-y-3">
+          {filtered.map(({ strain, completeness, completeCount, isComplete, missing }) => {
             const isExpanded = expandedId === strain.id;
+            const isRowUpdating = isUpdating === strain.id;
 
             return (
-              <div key={strain.id} className="border rounded-lg p-4 bg-white shadow">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="text-xl font-semibold">{strain.name}</h2>
-                    <p className="text-gray-600">{strain.type} • {strain.primary_source}</p>
-                    <p className="text-sm text-gray-500">Completeness: {completeCount}/11</p>
+              <div key={strain.id} className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/60 p-4 sm:p-5">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-lg font-bold text-[var(--foreground)] truncate">{strain.name}</h2>
+                      <span className={`rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                        strain.publication_status === 'review'
+                          ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30'
+                          : 'bg-yellow-500/15 text-yellow-300 border border-yellow-500/30'
+                      }`}>
+                        {strain.publication_status}
+                      </span>
+                      <span className={`rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wide border ${
+                        isComplete
+                          ? 'bg-green-500/15 text-green-300 border-green-500/30'
+                          : 'bg-red-500/15 text-red-300 border-red-500/30'
+                      }`}>
+                        {completeCount}/{COMPLETENESS_KEYS.length}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                      {strain.slug} · {strain.type || '—'} · {strain.primary_source || 'no source'}
+                    </p>
+                    {!isComplete && (
+                      <p className="mt-2 text-xs text-red-300">
+                        Missing: {missing.map((key) => COMPLETENESS_LABELS[key]).join(', ')}
+                      </p>
+                    )}
                   </div>
-                  <div className="flex gap-2 items-center">
+
+                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : strain.id)}
-                      className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 flex items-center gap-1"
+                      className="rounded-lg border border-[var(--border)]/70 bg-[var(--background)]/40 px-3 py-2 text-xs font-semibold text-[var(--foreground)] hover:bg-[var(--background)]/60 flex items-center gap-1"
                     >
-                      {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                      {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                       {isExpanded ? 'Weniger' : 'Details'}
                     </button>
                     <button
-                      onClick={() => updateStatus(strain.id, 'review')}
-                      className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50"
-                      disabled={strain.publication_status === 'review'}
+                      onClick={() => void updateStatus(strain.id, 'review')}
+                      disabled={isRowUpdating || strain.publication_status === 'review'}
+                      className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/20 disabled:opacity-50"
                     >
                       To Review
                     </button>
                     <button
-                      onClick={() => updateStatus(strain.id, 'published')}
-                      className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
-                      disabled={!isComplete}
-                      title={!isComplete ? 'Needs all 11 completeness checks' : 'Publish'}
+                      onClick={() => void updateStatus(strain.id, 'published')}
+                      disabled={isRowUpdating || !isComplete}
+                      className="rounded-lg border border-green-500/40 bg-green-500/10 px-3 py-2 text-xs font-semibold text-green-200 hover:bg-green-500/20 disabled:opacity-50"
+                      title={!isComplete ? 'Needs all completeness checks' : 'Publish'}
                     >
                       Publish
                     </button>
                     <button
-                      onClick={() => updateStatus(strain.id, 'rejected')}
-                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                      onClick={() => void updateStatus(strain.id, 'rejected')}
+                      disabled={isRowUpdating}
+                      className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
                     >
                       Reject
                     </button>
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
-                  <div className={completeness.name ? 'text-green-600' : 'text-red-600'}>✓ Name</div>
-                  <div className={completeness.slug ? 'text-green-600' : 'text-red-600'}>✓ Slug</div>
-                  <div className={completeness.type ? 'text-green-600' : 'text-red-600'}>✓ Type</div>
-                  <div className={completeness.description ? 'text-green-600' : 'text-red-600'}>✓ Description</div>
-                  <div className={completeness.thc ? 'text-green-600' : 'text-red-600'}>✓ THC</div>
-                  <div className={completeness.cbd ? 'text-green-600' : 'text-red-600'}>✓ CBD</div>
-                  <div className={completeness.terpenes ? 'text-green-600' : 'text-red-600'}>✓ Terpenes (2+)</div>
-                  <div className={completeness.flavors ? 'text-green-600' : 'text-red-600'}>✓ Flavors (1+)</div>
-                  <div className={completeness.effects ? 'text-green-600' : 'text-red-600'}>✓ Effects (1+)</div>
-                  <div className={completeness.image ? 'text-green-600' : 'text-red-600'}>✓ Image</div>
-                  <div className={completeness.source ? 'text-green-600' : 'text-red-600'}>✓ Source</div>
+                <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                  {COMPLETENESS_KEYS.map((key) => {
+                    const ok = completeness[key];
+                    return (
+                      <div
+                        key={key}
+                        className={`rounded-lg border px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide flex items-center gap-1 ${
+                          ok
+                            ? 'border-green-500/30 bg-green-500/10 text-green-300'
+                            : 'border-red-500/30 bg-red-500/10 text-red-300'
+                        }`}
+                      >
+                        {ok ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
+                        {COMPLETENESS_LABELS[key]}
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {isExpanded && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 space-y-2 text-sm">
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-                      <FieldRow label="Name" value={strain.name} />
-                      <FieldRow label="Slug" value={strain.slug} />
-                      <FieldRow label="Type" value={strain.type} />
-                      <FieldRow label="Source" value={strain.primary_source} />
-                      <FieldRow label="THC" value={
-                        strain.thc_min !== null && strain.thc_max !== null
-                          ? `${strain.thc_min}–${strain.thc_max}%`
-                          : strain.thc_min !== null ? `min ${strain.thc_min}%`
-                          : strain.thc_max !== null ? `max ${strain.thc_max}%`
-                          : '—'
-                      } />
-                      <FieldRow label="CBD" value={
-                        strain.cbd_min !== null && strain.cbd_max !== null
-                          ? `${strain.cbd_min}–${strain.cbd_max}%`
-                          : strain.cbd_min !== null ? `min ${strain.cbd_min}%`
-                          : strain.cbd_max !== null ? `max ${strain.cbd_max}%`
-                          : '—'
-                      } />
-                      <FieldRow label="Terpenes" value={Array.isArray(strain.terpenes) ? strain.terpenes.join(', ') : '—'} />
-                      <FieldRow label="Flavors" value={Array.isArray(strain.flavors) ? strain.flavors.join(', ') : '—'} />
-                      <FieldRow label="Effects" value={Array.isArray(strain.effects) ? strain.effects.join(', ') : '—'} />
+                  <div className="mt-4 border-t border-[var(--border)]/60 pt-4 grid gap-4 lg:grid-cols-[1.3fr_0.8fr]">
+                    <div className="space-y-3">
+                      <div className="rounded-xl border border-[var(--border)]/60 bg-[var(--background)]/30 p-3 space-y-2">
+                        <FieldRow label="Name" value={strain.name || '—'} />
+                        <FieldRow label="Slug" value={strain.slug || '—'} />
+                        <FieldRow label="Type" value={strain.type || '—'} />
+                        <FieldRow label="Source" value={strain.primary_source || '—'} />
+                        <FieldRow label="THC" value={formatRange(strain.thc_min, strain.thc_max)} />
+                        <FieldRow label="CBD" value={formatRange(strain.cbd_min, strain.cbd_max)} />
+                        <FieldRow label="Terpenes" value={Array.isArray(strain.terpenes) && strain.terpenes.length > 0 ? strain.terpenes.join(', ') : '—'} />
+                        <FieldRow label="Flavors" value={Array.isArray(strain.flavors) && strain.flavors.length > 0 ? strain.flavors.join(', ') : '—'} />
+                        <FieldRow label="Effects" value={Array.isArray(strain.effects) && strain.effects.length > 0 ? strain.effects.join(', ') : '—'} />
+                      </div>
+
+                      <div className="rounded-xl border border-[var(--border)]/60 bg-[var(--background)]/30 p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)] mb-1">Description</p>
+                        <p className="text-xs text-[var(--foreground)] whitespace-pre-wrap">{strain.description || '—'}</p>
+                      </div>
+
+                      <div className="rounded-xl border border-[var(--border)]/60 bg-[var(--background)]/30 p-3">
+                        <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)] mb-1">Source Notes</p>
+                        <p className="text-xs text-[var(--foreground)] whitespace-pre-wrap">{strain.source_notes || '—'}</p>
+                      </div>
                     </div>
-                    <div className="mt-3 pt-3 border-t border-gray-100">
-                      <p className="font-medium text-gray-700 mb-1">Description:</p>
-                      <p className="text-gray-600 whitespace-pre-wrap">{strain.description || '—'}</p>
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-gray-100">
-                      <p className="font-medium text-gray-700 mb-1">Source Notes:</p>
-                      <p className="text-gray-600 whitespace-pre-wrap">{strain.source_notes || '—'}</p>
-                    </div>
-                    {strain.image_url && (
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <p className="font-medium text-gray-700 mb-2">Image:</p>
+
+                    <div className="rounded-xl border border-[var(--border)]/60 bg-[var(--background)]/30 p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)] mb-2">Image Preview</p>
+                      {strain.image_url ? (
+                        // Intentional raw img tag for external source preview in moderation UI.
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={strain.image_url}
                           alt={strain.name}
-                          className="w-48 h-48 object-cover rounded border"
+                          className="w-full rounded-lg border border-[var(--border)]/60 object-cover aspect-square"
                           referrerPolicy="no-referrer"
                         />
-                      </div>
-                    )}
+                      ) : (
+                        <div className="aspect-square rounded-lg border border-dashed border-[var(--border)]/60 grid place-items-center text-xs text-[var(--muted-foreground)]">
+                          Kein Bild
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

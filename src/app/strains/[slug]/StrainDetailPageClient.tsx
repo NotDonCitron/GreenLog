@@ -378,7 +378,7 @@ export default function StrainDetailPageClient() {
         : "";
       const sideEffectLabels = input.sideEffects
         .map((value) => PRIVATE_QUICK_LOG_SIDE_EFFECTS.find((entry) => entry.value === value)?.label)
-        .filter((value): value is string => Boolean(value));
+        .filter(Boolean);
       const journalBatchInfo = [privateStatusLabel, settingContext].filter(Boolean).join(" · ");
       const journalNotes = [privateNote, sideEffectLabels.length ? `Nebenwirkung: ${sideEffectLabels.join(", ")}` : ""]
         .filter(Boolean)
