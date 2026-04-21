@@ -1,29 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
 import { jsonError, jsonSuccess } from "@/lib/api-response";
 import type { NextRequest } from "next/server";
 
 const SUPABASE_AUTH_TIMEOUT_MS = 12_000;
-
-function createTimeoutFetch(timeoutMs: number): typeof fetch {
-    return async (input, init) => {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-        try {
-            return await fetch(input, {
-                ...init,
-                signal: controller.signal,
-            });
-        } catch (error) {
-            if (error instanceof Error && error.name === "AbortError") {
-                throw new Error(`Supabase auth timed out after ${timeoutMs}ms`);
-            }
-            throw error;
-        } finally {
-            clearTimeout(timeoutId);
-        }
-    };
-}
 
 export async function POST(req: NextRequest) {
     try {
@@ -39,29 +17,62 @@ export async function POST(req: NextRequest) {
             return jsonError("Supabase-Konfiguration fehlt", 500);
         }
 
-        // Use a fresh stateless client for password sign-in.
-        // Reusing the cookie-aware server client can stall auth requests locally.
-        const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-            auth: {
-                persistSession: false,
-                autoRefreshToken: false,
-                detectSessionInUrl: false,
-            },
-            global: {
-                fetch: createTimeoutFetch(SUPABASE_AUTH_TIMEOUT_MS),
-            },
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), SUPABASE_AUTH_TIMEOUT_MS);
 
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        try {
+            const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+                method: "POST",
+                headers: {
+                    apikey: supabaseAnonKey,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, password }),
+                cache: "no-store",
+                signal: controller.signal,
+            });
 
-        if (error) {
-            return jsonError(error.message, 401);
+            const payload = await response.json().catch(() => null) as {
+                access_token?: string;
+                refresh_token?: string;
+                expires_in?: number;
+                expires_at?: number;
+                token_type?: string;
+                user?: Record<string, unknown> | null;
+                error_description?: string;
+                msg?: string;
+            } | null;
+
+            if (!response.ok) {
+                const message =
+                    payload?.error_description ||
+                    payload?.msg ||
+                    "Anmeldung fehlgeschlagen";
+                const status = response.status === 400 ? 401 : response.status;
+                return jsonError(message, status);
+            }
+
+            if (!payload?.access_token || !payload?.refresh_token) {
+                return jsonError("Ungültige Auth-Antwort", 502);
+            }
+
+            return jsonSuccess({
+                user: payload.user ?? null,
+                session: {
+                    access_token: payload.access_token,
+                    refresh_token: payload.refresh_token,
+                    expires_in: payload.expires_in,
+                    expires_at: payload.expires_at,
+                    token_type: payload.token_type,
+                    user: payload.user ?? null,
+                },
+            });
+        } finally {
+            clearTimeout(timeoutId);
         }
-
-        return jsonSuccess({ user: data.user, session: data.session });
     } catch (err) {
         console.error("[API /auth/sign-in]", err);
-        if (err instanceof Error && err.message.includes("timed out")) {
+        if (err instanceof Error && err.name === "AbortError") {
             return jsonError("Auth service timeout", 504);
         }
         return jsonError("Serverfehler", 500);
