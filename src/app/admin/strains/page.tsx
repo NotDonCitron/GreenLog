@@ -397,6 +397,20 @@ export default function AdminStrainsPage() {
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
             {stats.total} Sorten in der Warteschlange · {stats.ready} bereit zum Veröffentlichen
           </p>
+          <div className="mt-3 flex flex-wrap gap-3 text-xs text-[var(--muted-foreground)]">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-amber-400" />
+              <strong className="text-amber-400">Draft</strong> — Neu importiert, noch nicht geprüft
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-sky-400" />
+              <strong className="text-sky-400">Review</strong> — Markiert zur genaueren Prüfung
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              <strong className="text-emerald-400">Bereit</strong> — Alle Felder vollständig, kann veröffentlicht werden
+            </span>
+          </div>
         </div>
         <button
           onClick={() => void fetchStrains()}
@@ -448,24 +462,30 @@ export default function AdminStrainsPage() {
           />
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {(['all', 'draft', 'review'] as const).map((status) => (
+          <span className="flex items-center text-[10px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Status:</span>
+          {([
+            { key: 'all' as const, label: 'Alle' },
+            { key: 'draft' as const, label: 'Neu (Draft)' },
+            { key: 'review' as const, label: 'Zur Prüfung (Review)' },
+          ]).map((item) => (
             <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
+              key={item.key}
+              onClick={() => setStatusFilter(item.key)}
               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                statusFilter === status
+                statusFilter === item.key
                   ? 'bg-[var(--primary)]/15 text-[var(--primary)]'
                   : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]'
               }`}
             >
-              {status === 'all' ? 'Alle' : status === 'draft' ? 'Draft' : 'Review'}
+              {item.label}
             </button>
           ))}
           <div className="mx-1 hidden w-px bg-[var(--border)]/50 sm:block" />
+          <span className="flex items-center text-[10px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Empfehlung:</span>
           {([
             { key: 'all' as const, label: 'Alle' },
             { key: 'publish_ready' as const, label: 'Bereit' },
-            { key: 'needs_review' as const, label: 'Review' },
+            { key: 'needs_review' as const, label: 'Prüfen' },
             { key: 'weak_candidate' as const, label: 'Schwach' },
           ]).map((item) => (
             <button
@@ -550,6 +570,7 @@ export default function AdminStrainsPage() {
                       <button
                         onClick={() => setExpandedId(isExpanded ? null : strain.id)}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)]/50 px-3 py-1.5 text-xs font-medium text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+                        title="Alle Felder und Beschreibung anzeigen"
                       >
                         {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                         {isExpanded ? 'Weniger' : 'Details'}
@@ -560,9 +581,10 @@ export default function AdminStrainsPage() {
                           onClick={() => void updateStatus(strain, 'review')}
                           disabled={isRowUpdating || strain.publication_status === 'review'}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-xs font-medium text-sky-300 transition-colors hover:bg-sky-500/20 disabled:opacity-40"
+                          title="Markiert die Sorte zur genaueren Prüfung"
                         >
                           <Eye size={12} />
-                          Review
+                          Zur Prüfung
                         </button>
                         <button
                           onClick={() => void updateStatus(strain, 'published')}
@@ -571,15 +593,16 @@ export default function AdminStrainsPage() {
                           title={recommendation !== 'publish_ready' ? 'Zuerst Datenqualität verbessern' : 'Veröffentlichen'}
                         >
                           <Check size={12} />
-                          Publish
+                          Veröffentlichen
                         </button>
                         <button
                           onClick={() => void updateStatus(strain, 'rejected')}
                           disabled={isRowUpdating}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/20 disabled:opacity-40"
+                          title="Sorte ablehnen und aus der Warteschlange entfernen"
                         >
                           <X size={12} />
-                          Reject
+                          Ablehnen
                         </button>
                       </div>
                     </div>
