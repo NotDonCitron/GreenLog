@@ -16,6 +16,17 @@ function isTimeoutError(error: unknown) {
     return error instanceof Error && error.name === "TimeoutError";
 }
 
+function isAbortError(error: unknown): boolean {
+    return (
+        error instanceof Error
+            ? error.name === "AbortError"
+            : typeof error === "object" &&
+              error !== null &&
+              "name" in error &&
+              (error as { name?: string }).name === "AbortError"
+    );
+}
+
 async function withTimeout<T>(promise: Promise<T>, label: string, timeoutMs = AUTH_REQUEST_TIMEOUT_MS): Promise<T> {
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
@@ -91,22 +102,30 @@ export default function SignInPage() {
             } catch (proxyError) {
                 console.warn("[SignInPage] local sign-in proxy unavailable, falling back to direct auth", proxyError);
 
-                const { data, error: directError } = await withTimeout(
-                    supabase.auth.signInWithPassword({ email, password }),
-                    "direct sign-in"
-                );
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), AUTH_REQUEST_TIMEOUT_MS);
 
-                if (directError) {
-                    setError(directError.message);
-                    return;
+                try {
+                    const { data, error: directError } = await supabase.auth.signInWithPassword({
+                        email,
+                        password,
+                        options: { signal: controller.signal as AbortSignal },
+                    });
+
+                    if (directError) {
+                        setError(directError.message);
+                        return;
+                    }
+
+                    if (!data.session?.access_token || !data.session?.refresh_token) {
+                        setError("Anmeldung fehlgeschlagen");
+                        return;
+                    }
+
+                    session = data.session;
+                } finally {
+                    clearTimeout(timeoutId);
                 }
-
-                if (!data.session?.access_token || !data.session?.refresh_token) {
-                    setError("Anmeldung fehlgeschlagen");
-                    return;
-                }
-
-                session = data.session;
             }
 
             if (!session) {
@@ -129,7 +148,7 @@ export default function SignInPage() {
         } catch (err) {
             console.error("[SignInPage] sign-in request failed", err);
             setError(
-                isTimeoutError(err)
+                isTimeoutError(err) || isAbortError(err)
                     ? "Anmeldung hat zu lange gebraucht. Bitte versuche es erneut."
                     : getFriendlySignInError(err)
             );

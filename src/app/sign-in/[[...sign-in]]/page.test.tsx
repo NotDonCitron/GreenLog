@@ -96,6 +96,7 @@ describe("SignInPage", () => {
       expect(signInWithPasswordMock).toHaveBeenCalledWith({
         email: "test@example.com",
         password: "secret123",
+        options: expect.objectContaining({ signal: expect.any(AbortSignal) }),
       });
     });
 
