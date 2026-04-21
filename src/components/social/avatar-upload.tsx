@@ -9,6 +9,7 @@ import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/components/toast-provider";
 import { uploadToMinio } from "@/lib/minio-storage";
 import { supabase } from "@/lib/supabase";
+import { minioBucket } from "@/lib/minio-storage";
 
 interface AvatarUploadProps {
     currentAvatarUrl?: string | null;

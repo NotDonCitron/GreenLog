@@ -646,16 +646,27 @@ export default function StrainDetailPageClient() {
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                   <div className="absolute bottom-2 left-2 border bg-black/70 backdrop-blur-md uppercase text-[9px] px-2 py-1 rounded-sm font-bold" style={{ borderColor: themeColor, color: themeColor }}>{strain.type || 'HYBRID'}</div>
+                  {strain.image_attribution && strain.image_attribution.source !== 'none' && (
+                    <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-sm text-[8px] text-white/65 px-2 py-1 rounded-sm">
+                      {strain.image_attribution?.url ? (
+                        <a
+                          href={strain.image_attribution.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-white/85 transition-colors"
+                          title={`Foto: ${strain.image_attribution?.author || "Unbekannt"}${strain.image_attribution?.license ? ` · ${strain.image_attribution.license}` : ""}`}
+                        >
+                          Quelle
+                        </a>
+                      ) : (
+                        <span title={`Foto: ${strain.image_attribution?.author || "Unbekannt"}${strain.image_attribution?.license ? ` · ${strain.image_attribution.license}` : ""}`}>
+                          Quelle
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
-              {strain.image_attribution && strain.image_attribution.source !== 'none' && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Foto: {strain.image_attribution?.author} · {strain.image_attribution?.license}
-                  {strain.image_attribution?.url && (
-                    <> · <a href={strain.image_attribution?.url} target="_blank" rel="noopener noreferrer" className="underline">Quelle</a></>
-                  )}
-                </p>
-              )}
               <div className="px-5 mt-5 w-full mb-5">
                 <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-xl p-4">
                   {/* Row 1: THC & Geschmack */}

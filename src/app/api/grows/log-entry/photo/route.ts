@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedClient } from '@/lib/supabase/client';
+import { minioBucket } from '@/lib/minio-storage';
 
-const BUCKET_NAME = 'grow-entry-photos';
+const MINIO_BUCKET = 'grow-entry-photos';
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
@@ -147,13 +148,11 @@ export async function POST(request: Request) {
     const photoPath = `${user.id}/${growId}/${crypto.randomUUID()}.${extension}`;
     const buffer = Buffer.from(await image.arrayBuffer());
 
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET_NAME)
-      .upload(photoPath, buffer, { contentType: image.type, upsert: false });
+    const uploadResult = await minioBucket(MINIO_BUCKET).upload(photoPath, buffer, { contentType: image.type, upsert: false });
 
-    if (uploadError) {
-      console.error('[POST /api/grows/log-entry/photo] Storage upload failed:', serializeErrorDetails(uploadError));
-      return jsonError('Failed to upload image', 500, serializeErrorDetails(uploadError));
+    if (uploadResult.error) {
+      console.error('[POST /api/grows/log-entry/photo] Storage upload failed:', serializeErrorDetails(uploadResult.error));
+      return jsonError('Failed to upload image', 500, serializeErrorDetails(uploadResult.error));
     }
 
     const entryDate = typeof entryDateValue === 'string' && entryDateValue.length > 0
@@ -181,13 +180,11 @@ export async function POST(request: Request) {
       .single();
 
     if (entryError) {
-      await supabase.storage.from(BUCKET_NAME).remove([photoPath]);
+      await minioBucket(MINIO_BUCKET).remove([photoPath]);
       return jsonError('Failed to add log entry', 500, serializeErrorDetails(entryError));
     }
 
-    const { data: signedPhoto } = await supabase.storage
-      .from(BUCKET_NAME)
-      .createSignedUrl(photoPath, 60 * 60);
+    const signedPhoto = await minioBucket(MINIO_BUCKET).createSignedUrl(photoPath, 60 * 60);
 
     return NextResponse.json({
       data: {
@@ -195,7 +192,7 @@ export async function POST(request: Request) {
           ...entry,
           content: {
             ...entry.content,
-            ...(signedPhoto?.signedUrl ? { signed_photo_url: signedPhoto.signedUrl } : {}),
+            ...(signedPhoto.data?.signedUrl ? { signed_photo_url: signedPhoto.data.signedUrl } : {}),
           },
         },
       },

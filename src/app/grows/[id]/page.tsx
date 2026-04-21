@@ -3,18 +3,17 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { GrowDetailClient } from '@/components/grows/grow-detail-client';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { minioCreateSignedUrl } from '@/lib/minio-storage';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-async function createSignedGrowPhotoUrl(supabase: SupabaseClient, photoPath: string): Promise<string | null> {
-  const { data } = await supabase.storage
-    .from('grow-entry-photos')
-    .createSignedUrl(photoPath, 60 * 60);
+async function createSignedGrowPhotoUrl(photoPath: string): Promise<string | null> {
+  const result = await minioCreateSignedUrl('grow-entry-photos', photoPath, 60 * 60);
 
-  if (data?.signedUrl) return data.signedUrl;
+  if (result.data?.signedUrl) return result.data.signedUrl;
 
   try {
     const admin = getSupabaseAdmin();
@@ -29,7 +28,7 @@ async function createSignedGrowPhotoUrl(supabase: SupabaseClient, photoPath: str
   }
 }
 
-async function attachSignedPhotoUrls(supabase: SupabaseClient, entries: any[]) {
+async function attachSignedPhotoUrls(entries: any[]) {
   const entriesWithPhotoPaths = entries.filter(entry => (
     typeof entry.content?.photo_path === 'string'
     && entry.content.photo_path.length > 0
@@ -41,7 +40,7 @@ async function attachSignedPhotoUrls(supabase: SupabaseClient, entries: any[]) {
     const photoPath = entry.content?.photo_path;
     if (typeof photoPath !== 'string' || photoPath.length === 0) return entry;
 
-    const signedUrl = await createSignedGrowPhotoUrl(supabase, photoPath);
+    const signedUrl = await createSignedGrowPhotoUrl(photoPath);
     if (!signedUrl) return entry;
 
     return {
@@ -113,7 +112,7 @@ export default async function GrowDetailPage({ params }: PageProps) {
       .select("*")
       .eq("grow_id", id)
       .order("created_at", { ascending: false });
-    entries = await attachSignedPhotoUrls(supabase, entriesData || []);
+    entries = await attachSignedPhotoUrls(entriesData || []);
 
     // Fetch milestones
     const { data: milestonesData } = await supabase
