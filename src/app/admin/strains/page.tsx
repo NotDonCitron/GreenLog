@@ -3,7 +3,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/components/auth-provider';
-import { AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Loader2, Search, XCircle } from 'lucide-react';
+import {
+  AlertCircle,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  Loader2,
+  RefreshCw,
+  Search,
+  X,
+  XCircle,
+  ArrowRight,
+  Flag,
+  ThumbsDown,
+} from 'lucide-react';
 
 interface Strain {
   id: string;
@@ -53,28 +68,6 @@ const COMPLETENESS_KEYS: Array<keyof Completeness> = [
   'source',
 ];
 
-const COMPLETENESS_LABELS: Record<keyof Completeness, string> = {
-  name: 'Name',
-  slug: 'Slug',
-  type: 'Type',
-  description: 'Description',
-  thc: 'THC',
-  terpenes: 'Terpenes',
-  flavors: 'Flavors',
-  effects: 'Effects',
-  image: 'Image',
-  source: 'Source',
-};
-
-function FieldRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="grid grid-cols-[95px_1fr] gap-2 text-xs">
-      <span className="text-[var(--muted-foreground)] font-semibold uppercase tracking-wide">{label}</span>
-      <span className="text-[var(--foreground)] break-words">{value}</span>
-    </div>
-  );
-}
-
 function formatRange(min: number | null, max: number | null) {
   if (min !== null && max !== null) return `${min}–${max}%`;
   if (min !== null) return `min ${min}%`;
@@ -104,11 +97,18 @@ function evaluateStrain(strain: Strain, completeness: Completeness) {
   const goodReasons: string[] = [];
   if (completeness.name && completeness.slug) goodReasons.push('Identität eindeutig');
   if (completeness.thc) goodReasons.push('Cannabinoid-Werte vorhanden');
-  if (completeness.description && completeness.effects) goodReasons.push('Wirkung ist dokumentiert');
+  if (completeness.description && completeness.effects) goodReasons.push('Wirkung dokumentiert');
   if (completeness.image) goodReasons.push('Bild vorhanden');
   if (completeness.source) goodReasons.push('Quelle dokumentiert');
 
-  const badReasons = missing.slice(0, 4).map((key) => `Fehlt: ${COMPLETENESS_LABELS[key]}`);
+  const badReasons = missing.slice(0, 4).map((key) => {
+    const labels: Record<string, string> = {
+      name: 'Name', slug: 'Slug', type: 'Type', description: 'Beschreibung',
+      thc: 'THC', terpenes: 'Terpene', flavors: 'Aromen', effects: 'Effekte',
+      image: 'Bild', source: 'Quelle',
+    };
+    return labels[key] || key;
+  });
 
   let recommendation: Recommendation = 'needs_review';
   if (completeCount >= 9 && completeness.image && completeness.source && completeness.description) {
@@ -117,34 +117,64 @@ function evaluateStrain(strain: Strain, completeness: Completeness) {
     recommendation = 'weak_candidate';
   }
 
-  return {
-    completeCount,
-    missing,
-    goodReasons,
-    badReasons,
-    recommendation,
-  };
+  return { completeCount, missing, goodReasons, badReasons, recommendation };
 }
 
-function recommendationUi(recommendation: Recommendation) {
+function ScoreBadge({ score, total }: { score: number; total: number }) {
+  const pct = Math.round((score / total) * 100);
+  const color = pct >= 90 ? 'text-emerald-400' : pct >= 70 ? 'text-amber-400' : 'text-red-400';
+  const bg = pct >= 90 ? 'bg-emerald-400/10' : pct >= 70 ? 'bg-amber-400/10' : 'bg-red-400/10';
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold ${bg} ${color}`}>
+      {score}/{total}
+    </span>
+  );
+}
+
+function StatusPill({ status }: { status: string }) {
+  if (status === 'review') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-md bg-sky-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-400">
+        <Eye size={10} /> Review
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-400">
+      Draft
+    </span>
+  );
+}
+
+function RecommendationPill({ recommendation }: { recommendation: Recommendation }) {
   if (recommendation === 'publish_ready') {
-    return {
-      label: 'Publish Ready',
-      className: 'border-green-500/40 bg-green-500/15 text-green-300',
-    };
+    return (
+      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
+        <CheckCircle2 size={10} /> Publish Ready
+      </span>
+    );
   }
-
   if (recommendation === 'weak_candidate') {
-    return {
-      label: 'Schwach / Nacharbeiten',
-      className: 'border-red-500/40 bg-red-500/15 text-red-300',
-    };
+    return (
+      <span className="inline-flex items-center gap-1 rounded-md bg-red-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-400">
+        <XCircle size={10} /> Schwach
+      </span>
+    );
   }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-400">
+      Needs Review
+    </span>
+  );
+}
 
-  return {
-    label: 'Needs Review',
-    className: 'border-yellow-500/40 bg-yellow-500/15 text-yellow-300',
-  };
+function FieldRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex gap-3 text-xs">
+      <span className="w-20 shrink-0 font-medium text-[var(--muted-foreground)]">{label}</span>
+      <span className="text-[var(--foreground)] break-words">{value}</span>
+    </div>
+  );
 }
 
 export default function AdminStrainsPage() {
@@ -240,11 +270,7 @@ export default function AdminStrainsPage() {
     const rows = strains.map((strain) => {
       const completeness = getCompleteness(strain);
       const evaluation = evaluateStrain(strain, completeness);
-      return {
-        strain,
-        completeness,
-        ...evaluation,
-      };
+      return { strain, completeness, ...evaluation };
     });
 
     const priority: Record<Recommendation, number> = {
@@ -292,19 +318,19 @@ export default function AdminStrainsPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin text-[var(--muted-foreground)]" size={28} />
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="animate-spin text-[var(--muted-foreground)]" size={24} />
       </div>
     );
   }
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="max-w-md w-full rounded-2xl border border-red-500/30 bg-red-500/5 p-8 text-center">
-          <AlertCircle className="mx-auto mb-3 text-red-400" size={44} />
-          <h1 className="text-lg font-bold uppercase tracking-wide text-red-300">Access denied</h1>
-          <p className="mt-2 text-sm text-red-200/80">Admin-Zugriff erforderlich.</p>
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-8 text-center">
+          <AlertCircle className="mx-auto mb-3 text-red-400" size={36} />
+          <h1 className="text-lg font-bold text-red-300">Zugriff verweigert</h1>
+          <p className="mt-1 text-sm text-red-200/60">Admin-Berechtigung erforderlich.</p>
         </div>
       </div>
     );
@@ -312,23 +338,23 @@ export default function AdminStrainsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin text-[var(--muted-foreground)]" size={28} />
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="animate-spin text-[var(--muted-foreground)]" size={24} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="max-w-md w-full rounded-2xl border border-red-500/30 bg-red-500/5 p-8 text-center">
-          <AlertCircle className="mx-auto mb-3 text-red-400" size={44} />
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-8 text-center">
+          <AlertCircle className="mx-auto mb-3 text-red-400" size={36} />
           <p className="text-sm text-red-200">{error}</p>
           <button
             onClick={() => void fetchStrains()}
-            className="mt-4 rounded-lg border border-red-400/30 bg-red-400/10 px-4 py-2 text-sm font-semibold text-red-200 hover:bg-red-400/20"
+            className="mt-4 rounded-lg border border-red-400/30 bg-red-400/10 px-4 py-2 text-sm font-medium text-red-200 hover:bg-red-400/20"
           >
-            Retry
+            Erneut versuchen
           </button>
         </div>
       </div>
@@ -336,250 +362,267 @@ export default function AdminStrainsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8 space-y-5">
-      <div className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/60 p-4 sm:p-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-xl sm:text-2xl font-black uppercase tracking-wide text-[var(--foreground)]">Strain Moderation</h1>
-            <p className="text-xs sm:text-sm text-[var(--muted-foreground)] mt-1">Klarer Entscheidungs-Feed mit Gründen und sofort sichtbarem Bild</p>
-          </div>
-          <button
-            onClick={() => void fetchStrains()}
-            className="self-start rounded-lg border border-[var(--border)]/70 bg-[var(--background)]/40 px-3 py-2 text-xs font-semibold text-[var(--foreground)] hover:bg-[var(--background)]/60"
-          >
-            Aktualisieren
-          </button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--foreground)]">Strain Moderation</h1>
+          <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+            {stats.total} Sorten in der Warteschlange · {stats.ready} bereit zum Veröffentlichen
+          </p>
         </div>
-
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-2">
-          <div className="rounded-xl border border-[var(--border)]/60 bg-[var(--background)]/40 px-3 py-3">
-            <p className="text-[10px] uppercase tracking-wide text-[var(--muted-foreground)]">Total</p>
-            <p className="mt-1 text-xl font-black text-[var(--foreground)]">{stats.total}</p>
-          </div>
-          <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 px-3 py-3">
-            <p className="text-[10px] uppercase tracking-wide text-yellow-300">Draft</p>
-            <p className="mt-1 text-xl font-black text-yellow-200">{stats.draft}</p>
-          </div>
-          <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-3">
-            <p className="text-[10px] uppercase tracking-wide text-cyan-300">Review</p>
-            <p className="mt-1 text-xl font-black text-cyan-200">{stats.review}</p>
-          </div>
-          <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-3 py-3">
-            <p className="text-[10px] uppercase tracking-wide text-green-300">Ready</p>
-            <p className="mt-1 text-xl font-black text-green-200">{stats.ready}</p>
-          </div>
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-3">
-            <p className="text-[10px] uppercase tracking-wide text-red-300">Schwach</p>
-            <p className="mt-1 text-xl font-black text-red-200">{stats.weak}</p>
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-col gap-2">
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Suche nach Name, Slug, Source"
-              className="w-full rounded-lg border border-[var(--border)]/70 bg-[var(--background)]/40 py-2 pl-9 pr-3 text-sm text-[var(--foreground)] outline-none focus:border-[#2FF801]/50"
-            />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {(['all', 'draft', 'review'] as const).map((status) => (
-              <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
-                className={`rounded-lg border px-3 py-2 text-xs font-semibold uppercase tracking-wide ${
-                  statusFilter === status
-                    ? 'border-[#2FF801]/60 bg-[#2FF801]/15 text-[#2FF801]'
-                    : 'border-[var(--border)]/70 bg-[var(--background)]/40 text-[var(--muted-foreground)]'
-                }`}
-              >
-                {status}
-              </button>
-            ))}
-            {([
-              { key: 'all', label: 'Alle Empfehlungen' },
-              { key: 'publish_ready', label: 'Publish Ready' },
-              { key: 'needs_review', label: 'Needs Review' },
-              { key: 'weak_candidate', label: 'Schwach' },
-            ] as const).map((item) => (
-              <button
-                key={item.key}
-                onClick={() => setRecommendationFilter(item.key)}
-                className={`rounded-lg border px-3 py-2 text-xs font-semibold ${
-                  recommendationFilter === item.key
-                    ? 'border-cyan-400/60 bg-cyan-400/15 text-cyan-200'
-                    : 'border-[var(--border)]/70 bg-[var(--background)]/40 text-[var(--muted-foreground)]'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {actionMessage && (
-          <div className="mt-3 rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-xs text-cyan-200">
-            {actionMessage}
-          </div>
-        )}
+        <button
+          onClick={() => void fetchStrains()}
+          className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)]/50 bg-[var(--card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--muted)]"
+        >
+          <RefreshCw size={14} />
+          Aktualisieren
+        </button>
       </div>
 
+      {/* Stats bar */}
+      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-[var(--border)]/50 bg-[var(--card)]/50 px-4 py-3">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-[var(--muted-foreground)]">Gesamt</span>
+          <span className="text-sm font-bold text-[var(--foreground)]">{stats.total}</span>
+        </div>
+        <div className="h-4 w-px bg-[var(--border)]/50" />
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-amber-400" />
+          <span className="text-xs text-[var(--muted-foreground)]">Draft</span>
+          <span className="text-sm font-bold text-amber-400">{stats.draft}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-sky-400" />
+          <span className="text-xs text-[var(--muted-foreground)]">Review</span>
+          <span className="text-sm font-bold text-sky-400">{stats.review}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          <span className="text-xs text-[var(--muted-foreground)]">Bereit</span>
+          <span className="text-sm font-bold text-emerald-400">{stats.ready}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-red-400" />
+          <span className="text-xs text-[var(--muted-foreground)]">Schwach</span>
+          <span className="text-sm font-bold text-red-400">{stats.weak}</span>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Suche nach Name, Slug, Quelle..."
+            className="w-full rounded-lg border border-[var(--border)]/50 bg-[var(--card)] py-2 pl-9 pr-3 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)] focus:border-[var(--primary)]/50"
+          />
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {(['all', 'draft', 'review'] as const).map((status) => (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                statusFilter === status
+                  ? 'bg-[var(--primary)]/15 text-[var(--primary)]'
+                  : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]'
+              }`}
+            >
+              {status === 'all' ? 'Alle' : status === 'draft' ? 'Draft' : 'Review'}
+            </button>
+          ))}
+          <div className="mx-1 hidden w-px bg-[var(--border)]/50 sm:block" />
+          {([
+            { key: 'all' as const, label: 'Alle' },
+            { key: 'publish_ready' as const, label: 'Bereit' },
+            { key: 'needs_review' as const, label: 'Review' },
+            { key: 'weak_candidate' as const, label: 'Schwach' },
+          ]).map((item) => (
+            <button
+              key={item.key}
+              onClick={() => setRecommendationFilter(item.key)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                recommendationFilter === item.key
+                  ? 'bg-[var(--primary)]/15 text-[var(--primary)]'
+                  : 'text-[var(--muted-foreground)] hover:bg-[var(--muted)] hover:text-[var(--foreground)]'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Action message */}
+      {actionMessage && (
+        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-4 py-2.5 text-sm text-emerald-300">
+          {actionMessage}
+        </div>
+      )}
+
+      {/* Strain list */}
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/60 p-8 text-center text-sm text-[var(--muted-foreground)]">
-          Keine passenden Strains in der Queue.
+        <div className="rounded-xl border border-[var(--border)]/50 bg-[var(--card)]/50 p-12 text-center">
+          <p className="text-sm text-[var(--muted-foreground)]">Keine passenden Strains gefunden.</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {filtered.map((row) => {
-            const {
-              strain,
-              completeness,
-              completeCount,
-              missing,
-              recommendation,
-              goodReasons,
-              badReasons,
-            } = row;
+            const { strain, completeness, completeCount, missing, recommendation, goodReasons, badReasons } = row;
             const isExpanded = expandedId === strain.id;
             const isRowUpdating = isUpdating === strain.id;
-            const recommendationStyle = recommendationUi(recommendation);
 
             return (
-              <div key={strain.id} className="rounded-2xl border border-[var(--border)]/60 bg-[var(--card)]/60 p-4 sm:p-5">
-                <div className="grid gap-3 lg:grid-cols-[1fr_140px]">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-lg font-bold text-[var(--foreground)] truncate">{strain.name}</h2>
-                      <span className={`rounded-md border px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${recommendationStyle.className}`}>
-                        {recommendationStyle.label}
-                      </span>
-                      <span className={`rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${
-                        strain.publication_status === 'review'
-                          ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30'
-                          : 'bg-yellow-500/15 text-yellow-300 border border-yellow-500/30'
-                      }`}>
-                        {strain.publication_status}
-                      </span>
-                    </div>
-
-                    <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                      {strain.slug} · {strain.type || '—'} · {strain.primary_source || 'no source'} · {completeCount}/{COMPLETENESS_KEYS.length}
-                    </p>
-
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                      <div className="rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2">
-                        <p className="text-[10px] font-bold uppercase tracking-wide text-green-300 mb-1">Warum gut</p>
-                        <p className="text-xs text-green-200">{goodReasons.length > 0 ? goodReasons.join(' · ') : 'Noch keine klaren Pluspunkte.'}</p>
-                      </div>
-                      <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2">
-                        <p className="text-[10px] font-bold uppercase tracking-wide text-red-300 mb-1">Warum problematisch</p>
-                        <p className="text-xs text-red-200">{badReasons.length > 0 ? badReasons.join(' · ') : 'Keine kritischen Lücken erkannt.'}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-[var(--border)]/60 bg-[var(--background)]/30 p-2 h-fit">
+              <div
+                key={strain.id}
+                className={`group rounded-xl border bg-[var(--card)]/50 transition-colors hover:bg-[var(--card)] ${
+                  isExpanded ? 'border-[var(--primary)]/30' : 'border-[var(--border)]/50'
+                }`}
+              >
+                {/* Main row */}
+                <div className="flex items-start gap-4 p-4">
+                  {/* Image */}
+                  <div className="hidden shrink-0 sm:block">
                     {strain.image_url ? (
                       <a href={strain.image_url} target="_blank" rel="noopener noreferrer" className="block">
-                        {/* Intentional raw img tag for external moderation preview */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={strain.image_url}
                           alt={strain.name}
-                          className="w-full rounded-lg border border-[var(--border)]/60 object-cover aspect-square"
+                          className="h-16 w-16 rounded-lg border border-[var(--border)]/50 object-cover"
                           referrerPolicy="no-referrer"
                         />
                       </a>
                     ) : (
-                      <div className="aspect-square rounded-lg border border-dashed border-[var(--border)]/60 grid place-items-center text-xs text-[var(--muted-foreground)]">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-[var(--border)]/50 text-[10px] text-[var(--muted-foreground)]">
                         Kein Bild
                       </div>
                     )}
-                    <p className="mt-2 text-[10px] text-[var(--muted-foreground)] text-center">Bild (click zum Öffnen)</p>
+                  </div>
+
+                  {/* Content */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-base font-semibold text-[var(--foreground)]">{strain.name}</h2>
+                      <StatusPill status={strain.publication_status} />
+                      <RecommendationPill recommendation={recommendation} />
+                      <ScoreBadge score={completeCount} total={COMPLETENESS_KEYS.length} />
+                    </div>
+
+                    <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                      {strain.slug}
+                      {strain.type && ` · ${strain.type}`}
+                      {strain.primary_source && ` · ${strain.primary_source}`}
+                    </p>
+
+                    {/* Quick issues */}
+                    {badReasons.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {badReasons.map((reason) => (
+                          <span
+                            key={reason}
+                            className="inline-flex items-center gap-1 rounded-md bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-400"
+                          >
+                            <X size={10} /> {reason}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Action buttons */}
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <button
+                        onClick={() => setExpandedId(isExpanded ? null : strain.id)}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)]/50 px-3 py-1.5 text-xs font-medium text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+                      >
+                        {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                        {isExpanded ? 'Weniger' : 'Details'}
+                      </button>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => void updateStatus(strain, 'review')}
+                          disabled={isRowUpdating || strain.publication_status === 'review'}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-xs font-medium text-sky-300 transition-colors hover:bg-sky-500/20 disabled:opacity-40"
+                        >
+                          <Eye size={12} />
+                          Review
+                        </button>
+                        <button
+                          onClick={() => void updateStatus(strain, 'published')}
+                          disabled={isRowUpdating || recommendation !== 'publish_ready'}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20 disabled:opacity-40"
+                          title={recommendation !== 'publish_ready' ? 'Zuerst Datenqualität verbessern' : 'Veröffentlichen'}
+                        >
+                          <Check size={12} />
+                          Publish
+                        </button>
+                        <button
+                          onClick={() => void updateStatus(strain, 'rejected')}
+                          disabled={isRowUpdating}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/20 disabled:opacity-40"
+                        >
+                          <X size={12} />
+                          Reject
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-                  {COMPLETENESS_KEYS.map((key) => {
-                    const ok = completeness[key];
-                    return (
-                      <div
-                        key={key}
-                        className={`rounded-lg border px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide flex items-center gap-1 ${
-                          ok
-                            ? 'border-green-500/30 bg-green-500/10 text-green-300'
-                            : 'border-red-500/30 bg-red-500/10 text-red-300'
-                        }`}
-                      >
-                        {ok ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
-                        {COMPLETENESS_LABELS[key]}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {missing.length > 0 && (
-                  <p className="mt-2 text-xs text-red-300">
-                    Fehlt aktuell: {missing.map((key) => COMPLETENESS_LABELS[key]).join(', ')}
-                  </p>
-                )}
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setExpandedId(isExpanded ? null : strain.id)}
-                    className="rounded-lg border border-[var(--border)]/70 bg-[var(--background)]/40 px-3 py-2 text-xs font-semibold text-[var(--foreground)] hover:bg-[var(--background)]/60 flex items-center gap-1"
-                  >
-                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                    {isExpanded ? 'Weniger' : 'Details'}
-                  </button>
-                  <button
-                    onClick={() => void updateStatus(strain, 'review')}
-                    disabled={isRowUpdating || strain.publication_status === 'review'}
-                    className="rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/20 disabled:opacity-50"
-                  >
-                    To Review
-                  </button>
-                  <button
-                    onClick={() => void updateStatus(strain, 'published')}
-                    disabled={isRowUpdating || recommendation !== 'publish_ready'}
-                    className="rounded-lg border border-green-500/40 bg-green-500/10 px-3 py-2 text-xs font-semibold text-green-200 hover:bg-green-500/20 disabled:opacity-50"
-                    title={recommendation !== 'publish_ready' ? 'Zuerst Datenqualität verbessern' : 'Publish'}
-                  >
-                    Publish
-                  </button>
-                  <button
-                    onClick={() => void updateStatus(strain, 'rejected')}
-                    disabled={isRowUpdating}
-                    className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
-                  >
-                    Reject
-                  </button>
-                </div>
-
+                {/* Expanded details */}
                 {isExpanded && (
-                  <div className="mt-4 border-t border-[var(--border)]/60 pt-4 grid gap-4 lg:grid-cols-2">
-                    <div className="rounded-xl border border-[var(--border)]/60 bg-[var(--background)]/30 p-3 space-y-2">
-                      <FieldRow label="Name" value={strain.name || '—'} />
-                      <FieldRow label="Slug" value={strain.slug || '—'} />
-                      <FieldRow label="Type" value={strain.type || '—'} />
-                      <FieldRow label="Source" value={strain.primary_source || '—'} />
-                      <FieldRow label="THC" value={formatRange(strain.thc_min, strain.thc_max)} />
-                      <FieldRow label="CBD" value={formatRange(strain.cbd_min, strain.cbd_max)} />
-                      <FieldRow label="Terpenes" value={Array.isArray(strain.terpenes) && strain.terpenes.length > 0 ? strain.terpenes.join(', ') : '—'} />
-                      <FieldRow label="Flavors" value={Array.isArray(strain.flavors) && strain.flavors.length > 0 ? strain.flavors.join(', ') : '—'} />
-                      <FieldRow label="Effects" value={Array.isArray(strain.effects) && strain.effects.length > 0 ? strain.effects.join(', ') : '—'} />
+                  <div className="border-t border-[var(--border)]/50 px-4 pb-4 pt-3">
+                    {/* Completeness grid */}
+                    <div className="mb-4 grid grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-5">
+                      {COMPLETENESS_KEYS.map((key) => {
+                        const labels: Record<string, string> = {
+                          name: 'Name', slug: 'Slug', type: 'Type', description: 'Beschreibung',
+                          thc: 'THC', terpenes: 'Terpene', flavors: 'Aromen', effects: 'Effekte',
+                          image: 'Bild', source: 'Quelle',
+                        };
+                        const ok = completeness[key];
+                        return (
+                          <div key={key} className="flex items-center gap-1.5 text-xs">
+                            {ok ? (
+                              <Check size={12} className="text-emerald-400" />
+                            ) : (
+                              <X size={12} className="text-red-400" />
+                            )}
+                            <span className={ok ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]'}>
+                              {labels[key]}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="rounded-xl border border-[var(--border)]/60 bg-[var(--background)]/30 p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)] mb-1">Description</p>
-                        <p className="text-xs text-[var(--foreground)] whitespace-pre-wrap">{strain.description || '—'}</p>
+                    {/* Details grid */}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <FieldRow label="Name" value={strain.name || '—'} />
+                        <FieldRow label="Slug" value={strain.slug || '—'} />
+                        <FieldRow label="Typ" value={strain.type || '—'} />
+                        <FieldRow label="Quelle" value={strain.primary_source || '—'} />
+                        <FieldRow label="THC" value={formatRange(strain.thc_min, strain.thc_max)} />
+                        <FieldRow label="CBD" value={formatRange(strain.cbd_min, strain.cbd_max)} />
+                        <FieldRow label="Terpene" value={Array.isArray(strain.terpenes) && strain.terpenes.length > 0 ? strain.terpenes.join(', ') : '—'} />
+                        <FieldRow label="Aromen" value={Array.isArray(strain.flavors) && strain.flavors.length > 0 ? strain.flavors.join(', ') : '—'} />
+                        <FieldRow label="Effekte" value={Array.isArray(strain.effects) && strain.effects.length > 0 ? strain.effects.join(', ') : '—'} />
                       </div>
-                      <div className="rounded-xl border border-[var(--border)]/60 bg-[var(--background)]/30 p-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wide text-[var(--muted-foreground)] mb-1">Source Notes</p>
-                        <p className="text-xs text-[var(--foreground)] whitespace-pre-wrap">{strain.source_notes || '—'}</p>
+
+                      <div className="space-y-3">
+                        <div>
+                          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Beschreibung</p>
+                          <p className="text-xs leading-relaxed text-[var(--foreground)]">{strain.description || '—'}</p>
+                        </div>
+                        <div>
+                          <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Quellennotizen</p>
+                          <p className="text-xs leading-relaxed text-[var(--foreground)]">{strain.source_notes || '—'}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
