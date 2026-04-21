@@ -19,7 +19,7 @@ const limit = limitArg ? Number(limitArg.split('=')[1]) : 50;
 const offset = offsetArg ? Number(offsetArg.split('=')[1]) : 0;
 const onlyTable = tableArg?.split('=')[1] || null;
 
-const PUBLIC_BASE_PATH = (process.env.IMAGE_PUBLIC_BASE_PATH || '/media').replace(/\/+$/, '') || '/media';
+const PUBLIC_BASE_PATH = (process.env.IMAGE_PUBLIC_BASE_PATH || '/media').trim().replace(/\/+$/, '') || '/media';
 const MAX_BYTES = Number(process.env.IMAGE_DOWNLOAD_MAX_BYTES || 10 * 1024 * 1024);
 const REQUEST_TIMEOUT_MS = Number(process.env.REQUEST_TIMEOUT_MS || 20_000);
 const REPORT_DIR = path.resolve('scripts/image-migration-reports');
