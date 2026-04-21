@@ -15,9 +15,6 @@ import {
   Search,
   X,
   XCircle,
-  ArrowRight,
-  Flag,
-  ThumbsDown,
   Undo2,
   ChevronLeft,
   ChevronRight,
@@ -26,7 +23,6 @@ import {
   ArrowDown,
   CheckSquare,
   Square,
-  Zap,
   Trash2,
   Send,
 } from 'lucide-react';
@@ -439,48 +435,46 @@ export default function AdminStrainsPage() {
     setError(null);
 
     const ids = Array.from(selectedIds);
-    let failCount = 0;
+    const prevMap = new Map<string, { name: string; status: string }>();
+    strains.forEach((s) => {
+      if (selectedIds.has(s.id)) prevMap.set(s.id, { name: s.name, status: s.publication_status });
+    });
 
-    const results = await Promise.allSettled(
-      ids.map(async (id) => {
-        const strain = strains.find((s) => s.id === id);
-        if (!strain) return;
+    try {
+      const response = await fetch('/api/admin/strains/bulk', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ ids, publication_status: status }),
+      });
 
-        if (status === 'published') {
-          const completeness = getCompleteness(strain);
-          const evaluation = evaluateStrain(strain, completeness);
-          if (evaluation.recommendation !== 'publish_ready') {
-            failCount++;
-            return;
-          }
-        }
+      const payload = await response.json().catch(() => null);
 
-        const previousStatus = strain.publication_status;
-        const response = await fetch(`/api/admin/strains/${id}/publication`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ publication_status: status }),
-        });
+      if (!response.ok) {
+        setError(payload?.error?.message || 'Bulk-Update fehlgeschlagen.');
+        setBulkLoading(false);
+        return;
+      }
 
-        if (!response.ok) {
-          failCount++;
-          return;
-        }
+      const { updated, failed } = payload.data ?? payload;
 
-        addUndo(id, strain.name, previousStatus, status);
-      })
-    );
+      ids.forEach((id) => {
+        const prev = prevMap.get(id);
+        if (prev) addUndo(id, prev.name, prev.status, status);
+      });
+
+      if (failed > 0) {
+        setError(`${failed} von ${ids.length} Sorten konnten nicht aktualisiert werden.`);
+      }
+    } catch {
+      setError('Bulk-Update fehlgeschlagen. Netzwerkfehler.');
+    }
 
     setSelectedIds(new Set());
     await fetchStrains();
     setBulkLoading(false);
-
-    if (failCount > 0) {
-      setError(`${failCount} von ${ids.length} Sorten konnten nicht aktualisiert werden.`);
-    }
   };
 
   const enriched = useMemo(() => {
