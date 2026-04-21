@@ -3,6 +3,17 @@ import type { NextRequest } from "next/server";
 
 const SUPABASE_AUTH_TIMEOUT_MS = 12_000;
 
+function isAbortError(error: unknown) {
+    return (
+        error instanceof Error
+            ? error.name === "AbortError"
+            : typeof error === "object" &&
+              error !== null &&
+              "name" in error &&
+              error.name === "AbortError"
+    );
+}
+
 export async function POST(req: NextRequest) {
     try {
         const { email, password } = await req.json();
@@ -72,7 +83,7 @@ export async function POST(req: NextRequest) {
         }
     } catch (err) {
         console.error("[API /auth/sign-in]", err);
-        if (err instanceof Error && err.name === "AbortError") {
+        if (isAbortError(err)) {
             return jsonError("Auth service timeout", 504);
         }
         return jsonError("Serverfehler", 500);
