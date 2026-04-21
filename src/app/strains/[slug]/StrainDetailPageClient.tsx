@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
@@ -10,7 +10,7 @@ import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/components/toast-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, RefreshCw, Star, Loader2, Heart, CheckCircle2, Upload, Database, Trash2, Pencil, Lock, AlertCircle, Share2 } from "lucide-react";
+import { ChevronLeft, RefreshCw, Loader2, Heart, CheckCircle2, Upload, Database, Trash2, Pencil, Lock, AlertCircle, Share2 } from "lucide-react";
 import { Strain } from "@/lib/types";
 import { escapeRegExp } from '@/lib/string-utils';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeCollectionSource, normalizeTerpeneList } from "@/lib/strain-display";
@@ -21,6 +21,7 @@ import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { TerpeneRadarChart } from "@/components/strains/terpene-radar-chart";
 import { ShareModal } from "@/components/social/share-modal";
 import { MatchScoreBadge } from "@/components/strains/match-score-badge";
+import { QuickLogModal, type QuickLogSaveInput } from "@/components/strains/quick-log-modal";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message) {
@@ -41,7 +42,7 @@ export default function StrainDetailPageClient() {
   const { user, session, isDemoMode, activeOrganization } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { collectedIds, toggleCollect, collectAction } = useCollection();
+  const { collectedIds, collectAction } = useCollection();
   const { error: toastError, success: toastSuccess } = useToast();
 
   const [strain, setStrain] = useState<Strain & { organization?: { id: string; name: string; slug: string; organization_type: string } } | null>(null);
@@ -62,22 +63,6 @@ export default function StrainDetailPageClient() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [batchInfo, setBatchInfo] = useState("");
   const [userNotes, setUserNotes] = useState("");
-
-  const [ratings, setRatings] = useState({
-    taste: 4.5,
-    effect: 4.5,
-    look: 4.5
-  });
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleStarClick = (key: keyof typeof ratings, value: number) => {
-    setRatings(prev => ({
-      ...prev,
-      [key]: prev[key] === value ? value - 0.5 : value
-    }));
-  };
-
   async function fetchStrainDetail() {
     // Try to fetch by slug first, then by id (in case slug is actually an id)
     let { data, error } = await supabase.from("strains").select(`
@@ -380,34 +365,58 @@ export default function StrainDetailPageClient() {
     }
   };
 
-  const saveRating = async () => {
+  const saveQuickLog = async (input: QuickLogSaveInput) => {
     if (!user || !strain || isDemoMode) return;
     setIsSaving(true);
     try {
-      // 1. Save the rating itself
+      const publicReviewText = input.isPublic ? input.publicReviewText.trim() : "";
+
       const { error: rError } = await supabase.from("ratings").upsert({
         strain_id: strain.id,
         user_id: user.id,
-        overall_rating: (ratings.taste + ratings.effect + ratings.look) / 3,
-        taste_rating: ratings.taste,
-        effect_rating: ratings.effect,
-        look_rating: ratings.look,
+        overall_rating: input.overallRating,
+        taste_rating: input.overallRating,
+        effect_rating: input.overallRating,
+        look_rating: input.overallRating,
+        public_review_text: publicReviewText || null,
         organization_id: isOrgStrain ? strain.organization_id : null,
       }, { onConflict: 'strain_id,user_id' });
 
       if (rError) throw rError;
 
-      // 2. Invalidate strain detail cache so ratings reflect immediately
+      const accessToken = session?.access_token;
+      if (accessToken) {
+        const quickLogResponse = await fetch("/api/consumption", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            strain_id: strain.id,
+            consumption_method: "vaporizer",
+            consumed_at: new Date().toISOString(),
+            effect_chips: input.effectChips,
+            side_effects: input.sideEffects,
+            overall_rating: input.overallRating,
+            private_status: input.privateStatus,
+            private_note: input.privateNote,
+            setting_context: input.settingContext,
+            subjective_notes: publicReviewText || null,
+          }),
+        });
+
+        if (!quickLogResponse.ok) {
+          const quickLogError = await quickLogResponse.json().catch(() => null);
+          throw new Error(quickLogError?.error?.message || quickLogError?.error || "Quick Log konnte nicht gespeichert werden.");
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: strainKeys.detail(slug as string) });
 
-      // 3. Close modal immediately after rating success to ensure UI responsiveness
       setShowRatingModal(false);
 
-      // 3. Add to collection using the mutation from useCollection
-      // This handles: user_collection upsert, cache invalidation, and badge checks
       await collectAction(strain.id, {
-        batchInfo,
-        userNotes,
         userImageUrl: userImageUrl || undefined,
         userThc: (strain as any).avg_thc ?? strain.thc_max ?? undefined,
         userCbd: (strain as any).avg_cbd ?? strain.cbd_max ?? undefined
@@ -422,7 +431,7 @@ export default function StrainDetailPageClient() {
     } catch (error: any) {
       const errorDetails = error?.message ? error.message : JSON.stringify(error, Object.getOwnPropertyNames(error), 2);
       console.error("Save rating error details:", errorDetails, error);
-      toastError("Error: " + getErrorMessage(error, "Bewertung konnte nicht gespeichert werden."));
+      toastError("Error: " + getErrorMessage(error, "Quick Log konnte nicht gespeichert werden."));
     } finally {
       setIsSaving(false);
     }
@@ -744,50 +753,19 @@ export default function StrainDetailPageClient() {
         </div>
 
         <div className="w-full max-w-[340px] mt-10">
-          <button type="button" onClick={() => !isCollected && setShowRatingModal(true)} disabled={isCollected} className={`w-full font-black py-5 rounded-2xl uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all ${isCollected ? "bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/30" : "bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black hover:opacity-90"}`}>
-            {isCollected ? <><CheckCircle2 size={24} /> In Collection</> : "Collect & Rate"}
+          <button type="button" onClick={() => setShowRatingModal(true)} className={`w-full font-black py-5 rounded-2xl uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all ${isCollected ? "bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/30 hover:bg-[#2FF801]/20" : "bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black hover:opacity-90"}`}>
+            {isCollected ? <><CheckCircle2 size={24} /> Quick Log</> : "Collect & Quick Log"}
           </button>
         </div>
       </div>
 
-      {showRatingModal && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowRatingModal(false)} />
-          <Card className="relative w-full max-w-md bg-[var(--card)] border border-[var(--border)]/50 rounded-t-3xl sm:rounded-3xl p-6 pb-12 sm:pb-8 sm:p-8 space-y-8 shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[90dvh] overflow-y-auto overscroll-contain">
-            <h2 className="text-2xl font-black italic uppercase text-[#00F5FF] text-center font-display">Tasting Log</h2>
-
-            <div className="space-y-6">
-              {(['taste', 'effect', 'look'] as const).map((key) => (
-                <div key={key} className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">{key}</span>
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        onClick={() => handleStarClick(key, star)}
-                        className="transition-transform active:scale-90"
-                      >
-                        <Star
-                          size={24}
-                          className={ratings[key] >= star ? "text-[#ffd700] fill-[#ffd700]" : "text-[#484849]"}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-4">
-              <input type="text" placeholder="Batch / Apotheke" className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-xl py-3 px-4 text-xs text-[var(--foreground)] placeholder:text-[#484849] outline-none focus:border-[#00F5FF]" value={batchInfo} onChange={(e) => setBatchInfo(e.target.value)} />
-              <textarea placeholder="Deine Notizen..." className="w-full bg-[var(--input)] border border-[var(--border)]/50 rounded-xl py-3 px-4 text-xs text-[var(--foreground)] placeholder:text-[#484849] min-h-[100px] outline-none focus:border-[#00F5FF]" value={userNotes} onChange={(e) => setUserNotes(e.target.value)} />
-            </div>
-            <button type="button" onClick={saveRating} disabled={isSaving} className="w-full h-16 bg-gradient-to-r from-[#00F5FF] to-[#00e5ee] text-black font-black uppercase rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-[#00F5FF]/20 relative z-20">
-              {isSaving ? <Loader2 className="animate-spin" /> : "SAVE LOG"}
-            </button>
-          </Card>
-        </div>
-      )}
+      <QuickLogModal
+        open={showRatingModal}
+        strainName={strain.name}
+        isSaving={isSaving}
+        onClose={() => setShowRatingModal(false)}
+        onSave={saveQuickLog}
+      />
       {!showRatingModal && <BottomNav />}
       <ShareModal
         open={showShareModal}
