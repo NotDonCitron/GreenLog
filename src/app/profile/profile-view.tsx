@@ -63,7 +63,6 @@ import { ALL_BADGES } from "@/lib/badges";
 import { buildPublicProfileBlocks, withDefaultPublicPreferences } from "@/lib/public-profile";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-bell";
-import { isAppAdmin } from "@/lib/auth";
 import type {
   ProfileBadge,
   ProfileFavorite,
@@ -192,7 +191,6 @@ export default function ProfilePage() {
   const [userBadges, setUserBadges] = useState<Array<{ badge_id: string; badges?: Partial<import("@/lib/badges").BadgeDefinition> }>>([]);
   const [isSavingPublicPreferences, setIsSavingPublicPreferences] = useState(false);
   const currentUserId = user?.id ?? "";
-  const isCannalogAdmin = !!currentUserId && isAppAdmin(currentUserId);
 
   useEffect(() => {
     if (profileData && !isEditing) {
@@ -565,16 +563,6 @@ export default function ProfilePage() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            {isCannalogAdmin && (
-              <Link
-                href="/admin"
-                aria-label="Admin Dashboard"
-                className="inline-flex h-10 items-center gap-2 rounded-xl border border-[#F39C12]/30 bg-[#F39C12]/10 px-3 text-[10px] font-black uppercase tracking-[0.18em] text-[#F39C12] transition-all hover:border-[#F39C12]/60 hover:bg-[#F39C12]/15"
-              >
-                <Shield size={14} />
-                Admin
-              </Link>
-            )}
             <NotificationBell />
             <ThemeToggle />
             <Link href="/profile/settings">
@@ -586,7 +574,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Owner Badge */}
-        {isCannalogAdmin && (
+        {(identity.username === '@fabian.gebert' || identity.username === '@lars' || identity.username === '@lars.fieber' || identity.username === '@test' || identity.username === '@pascal' || identity.username === '@hintermaier.pascal' || identity.username === '@pascal.hintermaier_81') && (
           <div className="flex justify-center mb-4">
             <span className="inline-flex items-center gap-1 rounded-full border border-[#F39C12]/30 bg-[#F39C12]/10 px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#F39C12]">
               <Shield size={12} /> CannaLog Owner

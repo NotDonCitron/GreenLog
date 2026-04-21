@@ -2,7 +2,6 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import ProfilePage from "./profile-view";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/components/auth-provider";
-import { isAppAdmin } from "@/lib/auth";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
 
@@ -20,10 +19,6 @@ vi.mock("@/hooks/useProfile", () => ({
 
 vi.mock("@/components/auth-provider", () => ({
   useAuth: vi.fn(),
-}));
-
-vi.mock("@/lib/auth", () => ({
-  isAppAdmin: vi.fn(),
 }));
 
 vi.mock("@/components/bottom-nav", () => ({
@@ -314,64 +309,4 @@ describe("ProfileView component", () => {
     expect(refetchProfile).toHaveBeenCalled();
   });
 
-  it("shows an admin dashboard link only for CannaLOG admins", () => {
-    const mockProfileData = {
-      identity: {
-        username: "@testuser",
-        displayName: "Test User",
-        initials: "TU",
-        avatarUrl: null,
-        profileVisibility: "public",
-        tagline: "",
-        bio: null,
-      },
-      stats: {
-        totalStrains: 1,
-        totalGrows: 0,
-        favoriteCount: 0,
-        unlockedBadgeCount: 0,
-        xp: 0,
-        level: 1,
-        progressToNextLevel: 0,
-        followers: 0,
-        following: 0,
-      },
-      favorites: [],
-      badges: [],
-      featuredBadgeIds: [],
-      activity: [],
-      preview: { title: "", description: "", chips: [] },
-      publicPreferences: {
-        user_id: "123",
-        show_badges: true,
-        show_favorites: false,
-        show_tried_strains: false,
-        show_reviews: false,
-        show_activity_feed: false,
-        show_follow_counts: true,
-        default_review_public: false,
-      },
-      publicBlocks: [],
-    };
-
-    (useAuth as any).mockReturnValue({
-      user: { id: "123" },
-      loading: false,
-      isDemoMode: false,
-    });
-    (useProfile as any).mockReturnValue({
-      data: mockProfileData,
-      isLoading: false,
-    });
-    (isAppAdmin as any).mockReturnValue(true);
-
-    const { rerender } = render(<ProfilePage />);
-
-    expect(screen.getByRole("link", { name: /admin dashboard/i }).getAttribute("href")).toBe("/admin");
-
-    (isAppAdmin as any).mockReturnValue(false);
-    rerender(<ProfilePage />);
-
-    expect(screen.queryByRole("link", { name: /admin dashboard/i })).toBeNull();
-  });
 });
