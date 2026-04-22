@@ -4,6 +4,7 @@ import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response"
 import { generateInviteToken, hashToken } from "@/lib/invites";
 import { USER_ROLES } from "@/lib/roles";
 import { isValidEmail } from "@/lib/validation";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 type RouteParams = { params: Promise<{ organizationId: string }> };
 
@@ -166,24 +167,6 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     const { user, supabase } = auth;
     const { organizationId } = await params;
 
-    const { data: membership, error: membershipError } = await supabase
-        .from("organization_members")
-        .select("role, membership_status")
-        .eq("organization_id", organizationId)
-        .eq("user_id", user.id)
-        .eq("membership_status", "active")
-        .single();
-
-    if (membershipError || !membership) {
-        return jsonError("Forbidden", 403);
-    }
-
-    const canManage = membership.role === USER_ROLES.GRUENDER || membership.role === USER_ROLES.ADMIN;
-
-    if (!canManage) {
-        return jsonError("Forbidden", 403);
-    }
-
     const { searchParams } = new URL(request.url);
     const inviteId = searchParams.get("id");
 
@@ -191,7 +174,36 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         return jsonError("Invite ID is required", 400);
     }
 
-    const { error: revokeError } = await supabase
+    const admin = getSupabaseAdmin();
+
+    // 1. Check if user is the invitee
+    const { data: invite } = await admin
+        .from("organization_invites")
+        .select("email, status")
+        .eq("id", inviteId)
+        .eq("organization_id", organizationId)
+        .single();
+
+    const isInvitee = invite && invite.email.toLowerCase() === user.email?.toLowerCase();
+    
+    if (!isInvitee) {
+        // 2. If not invitee, check if they are an admin/founder of the org
+        const { data: membership } = await supabase
+            .from("organization_members")
+            .select("role")
+            .eq("organization_id", organizationId)
+            .eq("user_id", user.id)
+            .eq("membership_status", "active")
+            .single();
+
+        const canManage = membership && (membership.role === USER_ROLES.GRUENDER || membership.role === USER_ROLES.ADMIN);
+
+        if (!canManage) {
+            return jsonError("Forbidden", 403);
+        }
+    }
+
+    const { error: revokeError } = await admin
         .from("organization_invites")
         .update({ status: "revoked" })
         .eq("id", inviteId)

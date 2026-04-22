@@ -1,29 +1,31 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 // GET /api/invites/pending
 export async function GET(request: Request) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
     if (!auth) return new Response("Unauthorized", { status: 401 });
     if (auth instanceof Response) return auth;
-    const { user, supabase } = auth;
+    const { user } = auth;
 
     const userEmail = user.email?.toLowerCase();
     if (!userEmail) {
         return jsonError("User email not found", 400);
     }
 
-    const { data, error: invitesError } = await supabase
+    const admin = getSupabaseAdmin();
+    const { data, error: invitesError } = await admin
         .from("organization_invites")
-        .select("*")
+        .select("*, organizations(name)")
         .eq("email", userEmail)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
 
-    const typedInvites = (data ?? []) as Array<{
-        expires_at: string;
-        [key: string]: unknown;
-    }>;
+    const typedInvites = (data ?? []).map((invite: any) => ({
+        ...invite,
+        organization_name: invite.organizations?.name
+    }));
 
     const validInvites = typedInvites.filter((invite) =>
         new Date(invite.expires_at) > new Date()

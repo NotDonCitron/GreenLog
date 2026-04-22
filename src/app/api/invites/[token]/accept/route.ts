@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { writeOrganizationActivity } from "@/lib/organization-activities";
 import { jsonSuccess, jsonError } from "@/lib/api-response";
 import { hashToken } from "@/lib/invites";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 type RouteParams = { params: Promise<{ token: string }> };
 
@@ -36,15 +37,25 @@ export async function POST(request: Request, { params }: RouteParams) {
         return jsonError("Unauthorized", 401);
     }
 
+    const admin = getSupabaseAdmin();
     const tokenHash = hashToken(token);
-    const { data: invite, error: inviteError } = await supabase
+    const query = admin
         .from("organization_invites")
         .select("*")
-        .or(`id.eq.${token},token_hash.eq.${token},token_hash.eq.${tokenHash}`)
-        .eq("status", "pending")
-        .single();
+        .eq("status", "pending");
+
+    // Only add ID filter if it's a valid UUID to avoid Postgres errors
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token);
+    if (isUuid) {
+        query.or(`id.eq.${token},token_hash.eq.${token},token_hash.eq.${tokenHash}`);
+    } else {
+        query.or(`token_hash.eq.${token},token_hash.eq.${tokenHash}`);
+    }
+
+    const { data: invite, error: inviteError } = await query.single();
 
     if (inviteError || !invite) {
+        console.error("[AcceptInvite] Invite search error:", inviteError);
         return jsonError("Invite not found or already processed", 404);
     }
 
