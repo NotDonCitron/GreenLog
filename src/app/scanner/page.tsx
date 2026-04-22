@@ -28,7 +28,7 @@ export default function ScannerPage() {
         workerRef.current = worker;
         console.log("OCR Worker bereit");
     } catch (_err) {
-        console.error("OCR Worker Fehler:", err);
+        console.error("OCR Worker Fehler:", _err);
       }
     }
     initWorker();
@@ -172,7 +172,7 @@ export default function ScannerPage() {
         workerRef.current = worker;
       }
 
-      const { data: { text } } = await worker.recognize(canvas);
+      const { data: { text } } = await (worker as any).recognize(canvas);
       console.log("Erkannter Text:", text);
 
       const { data: allStrains } = await supabase.from("strains").select("*");

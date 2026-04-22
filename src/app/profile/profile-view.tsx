@@ -136,7 +136,6 @@ function SectionHeader({ eyebrow, title, icon: Icon, iconColor }: { eyebrow?: st
 
 export default function ProfilePage() {
   const { user, session, signOut, loading, isDemoMode } = useAuth();
-  const router = useRouter();
   const { success: toastSuccess, error: toastError } = useToast();
 
   // React Query profile data
