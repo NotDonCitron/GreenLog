@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Share2, Copy, Check } from "lucide-react"
+import { PUBLIC_SITE_URL } from "@/lib/site-config"
 
 type ShareModalProps = {
   open: boolean
@@ -10,7 +11,7 @@ type ShareModalProps = {
   strainUrl: string
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://greenlog.app"
+const BASE_URL = PUBLIC_SITE_URL
 
 export function ShareModal({ open, onClose, strainName, strainUrl }: ShareModalProps) {
   const [copied, setCopied] = useState(false)

@@ -103,22 +103,21 @@ export function NotificationsPanel() {
     }
   };
 
-  const acceptInvite = async (inviteId: string, orgId: string) => {
-    const res = await fetch("/api/invites/accept", {
+  const acceptInvite = async (inviteId: string) => {
+    const res = await fetch(`/api/invites/${inviteId}/accept`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${session?.access_token}`,
       },
-      body: JSON.stringify({ invite_id: inviteId, organization_id: orgId }),
     });
     if (res.ok) {
       void fetchData();
     }
   };
 
-  const declineInvite = async (inviteId: string) => {
-    const res = await fetch(`/api/invites/${inviteId}`, {
+  const declineInvite = async (inviteId: string, orgId: string) => {
+    const res = await fetch(`/api/organizations/${orgId}/invites?id=${inviteId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${session?.access_token}` },
     });
@@ -299,13 +298,13 @@ export function NotificationsPanel() {
                         </div>
                         <div className="flex gap-2">
                           <button
-                            onClick={() => void acceptInvite(invite.id, invite.organization_id)}
+                            onClick={() => void acceptInvite(invite.id)}
                             className="p-2 bg-[#00F5FF] text-black rounded-lg hover:bg-[#00F5FF]/80"
                           >
                             <Check size={16} />
                           </button>
                           <button
-                            onClick={() => void declineInvite(invite.id)}
+                            onClick={() => void declineInvite(invite.id, invite.organization_id)}
                             className="p-2 bg-[var(--muted)] rounded-lg hover:bg-[#ff716c]/20"
                           >
                             <X size={16} />

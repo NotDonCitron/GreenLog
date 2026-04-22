@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { PRIVACY_EMAIL, PUBLIC_SITE_URL } from '@/lib/site-config'
 
 export const metadata: Metadata = {
   title: 'Datenschutzerklärung',
@@ -17,8 +18,8 @@ export default function DatenschutzPage() {
         <h2>1. Verantwortlicher</h2>
         <p>
           <strong>GreenLog</strong><br />
-          E-Mail: <a href="mailto:datenschutz@greenlog.app">datenschutz@greenlog.app</a><br />
-          Internet: <a href="https://greenlog.app">https://greenlog.app</a>
+          E-Mail: <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a><br />
+          Internet: <a href={PUBLIC_SITE_URL}>{PUBLIC_SITE_URL}</a>
         </p>
       </section>
 
@@ -245,7 +246,7 @@ export default function DatenschutzPage() {
         
         <p>
           <strong>So üben Sie Ihre Rechte aus:</strong><br />
-          E-Mail: <a href="mailto:datenschutz@greenlog.app">datenschutz@greenlog.app</a>
+          E-Mail: <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>
         </p>
         <p className="text-sm text-muted-foreground">
           Wir werden Ihre Anfrage innerhalb von 30 Tagen beantworten. 

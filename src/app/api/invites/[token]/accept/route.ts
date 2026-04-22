@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { writeOrganizationActivity } from "@/lib/organization-activities";
 import { jsonSuccess, jsonError } from "@/lib/api-response";
+import { hashToken } from "@/lib/invites";
 
 type RouteParams = { params: Promise<{ token: string }> };
 
@@ -35,10 +36,11 @@ export async function POST(request: Request, { params }: RouteParams) {
         return jsonError("Unauthorized", 401);
     }
 
+    const tokenHash = hashToken(token);
     const { data: invite, error: inviteError } = await supabase
         .from("organization_invites")
         .select("*")
-        .eq("token_hash", token)
+        .or(`id.eq.${token},token_hash.eq.${token},token_hash.eq.${tokenHash}`)
         .eq("status", "pending")
         .single();
 

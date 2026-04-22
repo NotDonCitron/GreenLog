@@ -6,6 +6,7 @@ import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import OnboardingGuide from "@/components/onboarding";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { PUBLIC_SITE_URL } from "@/lib/site-config";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -18,7 +19,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(PUBLIC_SITE_URL),
   title: {
     default: 'CannaLog',
     template: '%s | CannaLog',
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'de_DE',
-    url: 'https://greenlog.app',
+    url: PUBLIC_SITE_URL,
     siteName: 'CannaLog',
     title: 'CannaLog',
     description: 'Dokumentations- und Verwaltungssoftware für volljährige Nutzer und Organisationen',
@@ -100,7 +101,7 @@ export default function RootLayout({
               "description": "Dokumentations- und Verwaltungssoftware für volljährige Nutzer, Organisationen und medizinische Cannabis-Kontexte.",
               "applicationCategory": "LifestyleApplication",
               "operatingSystem": "Web, iOS, Android",
-              "url": "https://greenlog.app",
+              "url": PUBLIC_SITE_URL,
               "offers": {
                 "@type": "Offer",
                 "price": "0",
@@ -109,7 +110,7 @@ export default function RootLayout({
               "author": {
                 "@type": "Organization",
                 "name": "CannaLog",
-                "url": "https://greenlog.app",
+                "url": PUBLIC_SITE_URL,
               },
             }),
           }}

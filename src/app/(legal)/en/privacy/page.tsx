@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { PRIVACY_EMAIL, PUBLIC_SITE_URL } from '@/lib/site-config'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -17,8 +18,8 @@ export default function PrivacyPage() {
         <h2>1. Controller</h2>
         <p>
           <strong>GreenLog</strong><br />
-          Email: <a href="mailto:privacy@greenlog.app">privacy@greenlog.app</a><br />
-          Website: <a href="https://greenlog.app">https://greenlog.app</a>
+          Email: <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a><br />
+          Website: <a href={PUBLIC_SITE_URL}>{PUBLIC_SITE_URL}</a>
         </p>
       </section>
 
@@ -26,7 +27,7 @@ export default function PrivacyPage() {
         <h2>2. Data Protection Officer</h2>
         <p>
           For questions regarding data protection, contact us at:{' '}
-          <a href="mailto:privacy@greenlog.app">privacy@greenlog.app</a>
+          <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>
         </p>
       </section>
 
@@ -248,7 +249,7 @@ export default function PrivacyPage() {
         
         <p>
           <strong>To exercise your rights:</strong><br />
-          Email: <a href="mailto:privacy@greenlog.app">privacy@greenlog.app</a>
+          Email: <a href={`mailto:${PRIVACY_EMAIL}`}>{PRIVACY_EMAIL}</a>
         </p>
         <p className="text-sm text-muted-foreground">
           We will respond to your request within 30 days. For complex requests, 

@@ -3,6 +3,7 @@ import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response"
 import { generateInviteToken, hashToken } from "@/lib/invites";
 import { USER_ROLES } from "@/lib/roles";
 import { isValidEmail } from "@/lib/validation";
+import { PUBLIC_SITE_URL } from "@/lib/site-config";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -72,7 +73,7 @@ export async function POST(request: Request, { params }: RouteParams) {
         return jsonError("Failed to create invite", 500, inviteError.code, inviteError.message);
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://greenlog.app";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || PUBLIC_SITE_URL;
     const inviteUrl = `${baseUrl}/invite/${token}`;
 
     return jsonSuccess({ inviteUrl }, 201);

@@ -4,4 +4,4 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /studio/
 Disallow: /_next/
-Sitemap: https://greenlog.app/sitemap.xml
+Sitemap: https://green-log-two.vercel.app/sitemap.xml

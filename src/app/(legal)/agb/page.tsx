@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { SUPPORT_EMAIL } from '@/lib/site-config'
 
 export const metadata: Metadata = {
   title: 'AGB',
@@ -78,7 +79,7 @@ export default function AGBPage() {
           handeln, können Sie Ihre Vertragserklärung innerhalb von 14 Tagen ohne Angabe von
           Gründen widerrufen. Die Widerrufsfrist beginnt mit dem Tag des Vertragsschlusses.
           Um Ihr Widerrufsrecht auszuüben, genügt eine eindeutige Erklärung (z. B. per
-          E-Mail an <a href="mailto:support@greenlog.app">support@greenlog.app</a>).
+          E-Mail an <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>).
         </p>
       </section>
 
@@ -106,7 +107,7 @@ export default function AGBPage() {
         <h2>11. Kündigung und Account-Löschung</h2>
         <p>
           Sie können Ihren Account jederzeit löschen. Die Löschung kann über die
-          Account-Einstellungen oder per E-Mail an <a href="mailto:support@greenlog.app">support@greenlog.app</a> erfolgen.
+          Account-Einstellungen oder per E-Mail an <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> erfolgen.
           Nach der Löschung werden Ihre personenbezogenen Daten gemäß unserer
           Datenschutzerklärung verarbeitet und gelöscht. Laufende Premium-Abos werden
           nicht rückerstattet.

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { CONTACT_EMAIL } from '@/lib/site-config'
 
 export const metadata: Metadata = {
   title: 'Impressum',
@@ -30,7 +31,7 @@ export default function ImpressumPage() {
       <section>
         <h2>Kontakt</h2>
         <p>
-          E-Mail: <a href="mailto:info@greenlog.app">info@greenlog.app</a>
+          E-Mail: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
         </p>
       </section>
 

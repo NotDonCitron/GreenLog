@@ -21,11 +21,20 @@ function parseOrigin(raw?: string): string | null {
   const trimmed = raw.trim();
   if (!trimmed) return null;
 
+  const normalizeOrigin = (candidate: URL): string | null => {
+    const host = candidate.hostname.toLowerCase();
+    // Hard-cut legacy domain: never allow greenlog.app in runtime CSP sources.
+    if (host === "greenlog.app" || host.endsWith(".greenlog.app")) {
+      return null;
+    }
+    return candidate.origin;
+  };
+
   try {
-    return new URL(trimmed).origin;
+    return normalizeOrigin(new URL(trimmed));
   } catch {
     try {
-      return new URL(`https://${trimmed}`).origin;
+      return normalizeOrigin(new URL(`https://${trimmed}`));
     } catch {
       return null;
     }
@@ -39,13 +48,10 @@ const minioOrigin = parseOrigin(process.env.MINIO_ENDPOINT);
 const connectSrc = [
   "'self'",
   "https://clerk.greenlog-prod.app",
-  "https://clerk.greenlog.app",
   "https://*.clerk.accounts.dev",
   "https://uwjyvvvykyueuxtdkscs.supabase.co",
   "https://*.ingest.sentry.io",
   "https://*.ingest.us.sentry.io",
-  "https://greenlog.app",
-  "https://*.greenlog.app",
   "https://green-log-two.vercel.app",
   "https://*.vercel.app",
   siteOrigin,
@@ -63,8 +69,6 @@ const imgSrc = [
   "https://images.leafly.com",
   "https://leafly-public.imgix.net",
   "https://pollinations.ai",
-  "https://greenlog.app",
-  "https://*.greenlog.app",
   "https://green-log-two.vercel.app",
   "https://*.vercel.app",
   "https://storage.cannalog.fun",
@@ -75,7 +79,7 @@ const imgSrc = [
 
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.greenlog-prod.app https://clerk.greenlog.app https://*.clerk.accounts.dev",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.greenlog-prod.app https://*.clerk.accounts.dev",
   `connect-src ${connectSrc.join(" ")}`,
   `img-src ${imgSrc.join(" ")}`,
   "worker-src 'self' blob:",
@@ -130,12 +134,6 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'pollinations.ai',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'greenlog.app',
         port: '',
         pathname: '/**',
       },

@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
+import { PUBLIC_SITE_HOST, PUBLIC_SITE_URL } from '@/lib/site-config'
 
 export const runtime = 'edge'
 
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
               Laborblatt
             </div>
             <div style={{ fontSize: '16px', fontWeight: 700, color: '#16a34a' }}>
-              greenlog.app
+              {PUBLIC_SITE_HOST}
             </div>
           </div>
 
@@ -200,7 +201,7 @@ export async function GET(request: NextRequest) {
               Analytisches Profil
             </div>
             <div style={{ fontSize: '16px', fontWeight: 600, color: '#16a34a' }}>
-              greenlog.app
+              {PUBLIC_SITE_HOST}
             </div>
           </div>
 
@@ -293,7 +294,7 @@ export async function GET(request: NextRequest) {
       >
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '40px' }}>
           <img
-            src="https://greenlog.app/logo.png"
+            src={`${PUBLIC_SITE_URL}/logo.png`}
             width="100"
             height="100"
             alt="CannaLog Logo"
@@ -309,7 +310,7 @@ export async function GET(request: NextRequest) {
           </div>
         </div>
         <div style={{ position: 'absolute', bottom: '40px', right: '60px', fontSize: '18px', color: '#52525b' }}>
-          greenlog.app
+          {PUBLIC_SITE_HOST}
         </div>
       </div>
     ),

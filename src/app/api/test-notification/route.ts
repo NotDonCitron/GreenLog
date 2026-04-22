@@ -3,6 +3,7 @@ import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response"
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { sendPushToUser, getSupabaseAdmin } from "@/lib/push";
 import { isAppAdmin } from "@/lib/auth";
+import { CONTACT_EMAIL, PUBLIC_SITE_URL } from "@/lib/site-config";
 
 export async function GET(request: Request) {
     const auth = await authenticateRequest(request, getAuthenticatedClient);
@@ -119,11 +120,11 @@ if (body.subscription) {
     const webpush = require("web-push");
     const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || "";
     const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || "";
-    let VAPID_SUBJECT = process.env.NEXT_PUBLIC_SITE_URL || "mailto:admin@greenlog.app";
+    let VAPID_SUBJECT = PUBLIC_SITE_URL;
 
     // VAPID subject must be mailto: or https:
     if (!VAPID_SUBJECT.startsWith("mailto:") && !VAPID_SUBJECT.startsWith("https:")) {
-        VAPID_SUBJECT = "mailto:admin@greenlog.app";
+        VAPID_SUBJECT = `mailto:${CONTACT_EMAIL}`;
     }
 
     webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);

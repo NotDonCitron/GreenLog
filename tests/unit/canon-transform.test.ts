@@ -44,10 +44,10 @@ describe('normalizeType', () => {
         expect(normalizeType('Hybrid')).toBe('hybrid');
     });
 
-    it('defaults unknown types to hybrid', () => {
-        expect(normalizeType('ruderalis')).toBe('hybrid');
-        expect(normalizeType('')).toBe('hybrid');
-        expect(normalizeType(null)).toBe('hybrid');
+    it('returns null for unknown or empty types', () => {
+        expect(normalizeType('ruderalis')).toBeNull();
+        expect(normalizeType('')).toBeNull();
+        expect(normalizeType(null)).toBeNull();
     });
 
     it('handles indica-dominant variants', () => {
@@ -77,15 +77,16 @@ describe('transformRawStrain', () => {
 
         expect(result.name).toBe('Blue Dream');
         expect(result.slug).toBe('blue-dream');
-        expect(result.type).toBe('sativa');
-        expect(result.thc_min).toBe(17);
-        expect(result.thc_max).toBe(24);
-        expect(result.cbd_min).toBe(0.1);
-        expect(result.cbd_max).toBe(0.2);
-        expect(result.terpenes).toEqual(['myrcene', 'caryophyllene', 'pinene']);
-        expect(result.flavors).toEqual(['berry', 'sweet', 'blueberry']);
-        expect(result.effects).toEqual(['relaxed', 'creative', 'happy']);
-        expect(result.image_url).toBe('https://cdn.example.com/blue-dream.jpg');
+        expect(result.type.value).toBe('sativa');
+        expect(result.thc_min.value).toBe(17);
+        expect(result.thc_max.value).toBe(24);
+        expect(result.cbd_min.value).toBe(0.1);
+        expect(result.cbd_max.value).toBe(0.2);
+        expect(result.terpenes.value).toEqual(['myrcene', 'caryophyllene', 'pinene']);
+        expect(result.flavors.value).toEqual(['berry', 'sweet', 'blueberry']);
+        expect(result.effects.value).toEqual(['relaxed', 'creative', 'happy']);
+        expect(result.image_url.value).toBe('https://cdn.example.com/blue-dream.jpg');
+        expect(typeof result.type.confidence).toBe('number');
         expect(result.source).toBe('strain-compass');
     });
 
@@ -95,7 +96,7 @@ describe('transformRawStrain', () => {
             terpene_profile: ['Myrcene', 'myrcene', 'MYRCENE', 'Limonene'],
         };
         const result = transformRawStrain(raw, 'test');
-        expect(result.terpenes).toEqual(['myrcene', 'limonene']);
+        expect(result.terpenes.value).toEqual(['myrcene', 'limonene']);
     });
 
     it('handles missing fields gracefully', () => {
@@ -103,18 +104,18 @@ describe('transformRawStrain', () => {
         const result = transformRawStrain(raw, 'test');
         expect(result.name).toBe('Bare Minimum');
         expect(result.slug).toBe('bare-minimum');
-        expect(result.type).toBe('hybrid');
-        expect(result.thc_min).toBeNull();
-        expect(result.terpenes).toEqual([]);
-        expect(result.flavors).toEqual([]);
-        expect(result.effects).toEqual([]);
+        expect(result.type.value).toBeNull();
+        expect(result.thc_min.value).toBeNull();
+        expect(result.terpenes.value).toEqual([]);
+        expect(result.flavors.value).toEqual([]);
+        expect(result.effects.value).toEqual([]);
     });
 
     it('truncates description to 2000 chars', () => {
         const longDesc = 'A'.repeat(3000);
         const raw = { name: 'Long', description: longDesc };
         const result = transformRawStrain(raw, 'test');
-        expect(result.description.length).toBe(2000);
+        expect(result.description.value.length).toBe(2000);
     });
 
     it('extracts THC/CBD from flat values', () => {
@@ -124,9 +125,9 @@ describe('transformRawStrain', () => {
             cbd_percent: 0.5,
         };
         const result = transformRawStrain(raw, 'test');
-        expect(result.thc_min).toBe(22);
-        expect(result.thc_max).toBe(22);
-        expect(result.cbd_min).toBe(0.5);
-        expect(result.cbd_max).toBe(0.5);
+        expect(result.thc_min.value).toBe(22);
+        expect(result.thc_max.value).toBe(22);
+        expect(result.cbd_min.value).toBe(0.5);
+        expect(result.cbd_max.value).toBe(0.5);
     });
 });
