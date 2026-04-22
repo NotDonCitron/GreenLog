@@ -458,7 +458,7 @@ export default function AdminStrainsPage() {
         return;
       }
 
-      const { updated, failed } = payload.data ?? payload;
+      const { failed } = payload.data ?? payload;
 
       ids.forEach((id) => {
         const prev = prevMap.get(id);

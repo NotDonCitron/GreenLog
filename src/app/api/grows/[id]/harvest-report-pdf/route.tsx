@@ -1,31 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient as createClient } from '@/lib/supabase/server';
-import { createElement } from 'react';
-import { renderToStaticMarkup } from 'react-dom/server';
 import { jsPDF } from 'jspdf';
-
-// German labels for consumption methods
-const consumptionMethodLabels: Record<string, string> = {
-  vaporizer: 'Verdampfer (Vaporizer)',
-  joint: 'Joint',
-  bong: 'Bong',
-  pipe: 'Pfeife',
-  edible: 'Essbar (Edibles)',
-  oil: 'Öl / Konzentrat',
-  topical: 'Äußerlich (Topisch)',
-  other: 'Sonstiges'
-};
-
-const moodLabels: Record<string, string> = {
-  neutral: 'Neutral',
-  entspannt: 'Entspannt',
-  aktiv: 'Aktiv',
-  müde: 'Müde',
-  gestresst: 'Gestresst',
-  fröhlich: 'Fröhlich',
-  traurig: 'Traurig',
-  anderes: 'Anderes'
-};
 
 export async function GET(
   request: NextRequest,

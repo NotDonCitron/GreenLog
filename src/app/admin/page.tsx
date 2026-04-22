@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Sprout, BarChart3, Users, Settings } from 'lucide-react';
+import { Sprout, BarChart3 } from 'lucide-react';
 
 const CARDS = [
   {

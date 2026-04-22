@@ -1,5 +1,5 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
-import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { jsonError, authenticateRequest } from "@/lib/api-response";
 import { USER_ROLES } from "@/lib/roles";
 
 // GET /api/csc/export?organization_id=xxx&year=2025

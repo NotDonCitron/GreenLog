@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { Card } from "@/components/ui/card";
 import { ChevronLeft, Upload, Loader2, CheckCircle2, XCircle, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 

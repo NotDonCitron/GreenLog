@@ -16,8 +16,7 @@ export default function ScannerPage() {
   const [debugText, setDebugText] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [isCapacitor, setIsCapacitor] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Tesseract.js has no types
-  const workerRef = useRef<any>(null);
+  const workerRef = useRef<unknown>(null);
 
   useEffect(() => {
     // Check if running in Capacitor
@@ -28,7 +27,7 @@ export default function ScannerPage() {
         const worker = await createWorker('deu+eng');
         workerRef.current = worker;
         console.log("OCR Worker bereit");
-      } catch (err) {
+    } catch (_err) {
         console.error("OCR Worker Fehler:", err);
       }
     }
@@ -37,6 +36,7 @@ export default function ScannerPage() {
   }, []);
 
   useEffect(() => {
+    const videoEl = videoRef.current;
     async function startCamera() {
       try {
         if (isCapacitor) {
@@ -81,11 +81,11 @@ export default function ScannerPage() {
             audio: false
           });
 
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-            videoRef.current.muted = true;
-            videoRef.current.play().catch(err => {
-              console.error("Video play error:", err);
+          if (videoEl) {
+            videoEl.srcObject = stream;
+            videoEl.muted = true;
+            videoEl.play().catch(_err => {
+              console.error("Video play error:", _err);
             });
             setCameraActive(true);
           }
@@ -107,8 +107,8 @@ export default function ScannerPage() {
     }
     startCamera();
     return () => {
-      if (videoRef.current?.srcObject) {
-        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      if (videoEl?.srcObject) {
+        const tracks = (videoEl.srcObject as MediaStream).getTracks();
         tracks.forEach(track => track.stop());
       }
     };
@@ -188,7 +188,7 @@ export default function ScannerPage() {
         setDebugText(text.slice(0, 60).replace(/\n/g, ' ') + "...");
         setTimeout(() => { setStatus("idle"); setDebugText(null); }, 5000);
       }
-    } catch (err) {
+      } catch (_err) {
       setStatus("error");
       setResult("Fehler");
       setTimeout(() => setStatus("idle"), 3000);

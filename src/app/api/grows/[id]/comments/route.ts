@@ -1,8 +1,7 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { jsonSuccess, jsonError, authenticateRequest } from '@/lib/api-response';
+import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 import { getAuthenticatedClient } from '@/lib/supabase/client';
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params: _params }: { params: Promise<{ id: string }> }) {
   const auth = await authenticateRequest(request, getAuthenticatedClient);
   if (!auth) return jsonError('Unauthorized', 401) as unknown as Response;
   if (auth instanceof Response) return auth;
@@ -22,7 +21,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   return jsonSuccess({ comments }) as Response;
 }
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request, { params: _params }: { params: Promise<{ id: string }> }) {
   const auth = await authenticateRequest(request, getAuthenticatedClient);
   if (!auth) return jsonError('Unauthorized', 401) as unknown as Response;
   if (auth instanceof Response) return auth;
@@ -48,7 +47,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   return jsonSuccess({ comment: newComment }) as Response;
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params: _params }: { params: Promise<{ id: string }> }) {
   const auth = await authenticateRequest(request, getAuthenticatedClient);
   if (!auth) return jsonError('Unauthorized', 401) as unknown as Response;
   if (auth instanceof Response) return auth;

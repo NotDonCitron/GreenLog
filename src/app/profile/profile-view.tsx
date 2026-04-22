@@ -1,8 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+
 import { useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -18,7 +17,7 @@ import {
   Settings,
   Sparkles,
   Sprout,
-  Star,
+
   Trophy,
   UserRound,
   Zap,
@@ -53,10 +52,7 @@ import { lazy, Suspense } from "react";
 const BadgeShowcase = lazy(() => import("@/components/profile/badge-showcase").then(m => ({ default: m.BadgeShowcase })));
 import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { useProfile } from "@/hooks/useProfile";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { BadgeCard } from "@/components/ui/badge-card";
 import { PublicProfilePreviewCard } from "@/components/profile/public-profile-preview-card";
 import { supabase } from "@/lib/supabase/client";
 import { ALL_BADGES } from "@/lib/badges";

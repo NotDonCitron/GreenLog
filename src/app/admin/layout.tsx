@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/components/auth-provider';
-import { Leaf, LayoutDashboard, Sprout, Loader2, LogOut, Settings } from 'lucide-react';
+import { Leaf, LayoutDashboard, Sprout, Loader2, LogOut } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const NAV_ITEMS = [
@@ -17,7 +17,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

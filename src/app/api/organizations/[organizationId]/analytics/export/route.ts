@@ -1,5 +1,5 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
-import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { jsonError, authenticateRequest } from "@/lib/api-response";
 
 type RouteParams = { params: Promise<{ organizationId: string }> };
 

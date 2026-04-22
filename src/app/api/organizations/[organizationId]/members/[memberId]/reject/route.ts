@@ -62,7 +62,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     }
 
     // Update membership status to rejected and store reason
-    const { data: updated, error: updateError } = await supabase
+    const { data: _updated, error: updateError } = await supabase
         .from("organization_members")
         .update({
             membership_status: 'rejected',

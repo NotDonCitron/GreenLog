@@ -148,7 +148,7 @@ export async function POST(request: Request) {
     const photoPath = `${user.id}/${growId}/${crypto.randomUUID()}.${extension}`;
     const buffer = Buffer.from(await image.arrayBuffer());
 
-    const uploadResult = await uploadToMinio(MINIO_BUCKET, photoPath, buffer, image.type, { upsert: false });
+    await uploadToMinio(MINIO_BUCKET, photoPath, buffer, image.type, { upsert: false });
 
     const entryDate = typeof entryDateValue === 'string' && entryDateValue.length > 0
       ? entryDateValue

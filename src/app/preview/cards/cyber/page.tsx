@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Terminal, Database, Activity, Cpu, Zap, Shield } from "lucide-react";
+import { Database } from "lucide-react";
 
 const strain = {
   name: "Ghost Train Haze",

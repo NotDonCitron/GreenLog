@@ -16,17 +16,6 @@ function isTimeoutError(error: unknown) {
     return error instanceof Error && error.name === "TimeoutError";
 }
 
-function isAbortError(error: unknown): boolean {
-    return (
-        error instanceof Error
-            ? error.name === "AbortError"
-            : typeof error === "object" &&
-              error !== null &&
-              "name" in error &&
-              (error as { name?: string }).name === "AbortError"
-    );
-}
-
 async function withTimeout<T>(promise: Promise<T>, label: string, timeoutMs = AUTH_REQUEST_TIMEOUT_MS): Promise<T> {
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
 

@@ -22,7 +22,7 @@ const typeGradients = {
   hybrid: "from-blue-400 to-cyan-500",
 };
 
-const typeBgColors = {
+const _typeBgColors = {
   sativa: "bg-green-500",
   indica: "bg-purple-500",
   hybrid: "bg-blue-500",
