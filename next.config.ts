@@ -67,7 +67,7 @@ const imgSrc = [
   "https://*.greenlog.app",
   "https://green-log-two.vercel.app",
   "https://*.vercel.app",
-  "https://storage.cannalog.fun",
+  "https://storage.cannalog.fun", // TODO: remove after confirming all DB URLs migrated to /media/ paths
   siteOrigin,
   vercelOrigin,
   minioOrigin,
@@ -139,18 +139,13 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      {
-        protocol: 'http',
-        hostname: '31.97.77.89',
-        port: '9000',
-        pathname: '/**',
-      },
+      // TODO: remove storage.cannalog.fun after confirming all DB URLs migrated to /media/ paths
       {
         protocol: 'https',
         hostname: 'storage.cannalog.fun',
         port: '',
         pathname: '/**',
-      }
+      },
     ],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 31536000,
