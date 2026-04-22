@@ -100,9 +100,6 @@ function formatThcDisplay(strain: StrainForDisplay | null | undefined) {
   return `${strain.avg_thc || strain.thc_max || "—"}% THC`;
 }
 
-// Re-export types for external use if needed
-export type { FavoriteRelationData, BadgeData, CollectionEntry, UserStrainRelation };
-
 function resolveBadgeIcon(iconKey: string) {
   const normalized = iconKey.toLowerCase();
   const matchedKey = Object.keys(BADGE_ICONS).find((key) => normalized.includes(key));
