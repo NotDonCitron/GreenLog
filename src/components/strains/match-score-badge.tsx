@@ -8,7 +8,7 @@ interface MatchScoreBadgeProps {
   strainName: string;
 }
 
-export function MatchScoreBadge({ strainId, strainName }: MatchScoreBadgeProps) {
+export function MatchScoreBadge({ strainId, strainName: _strainName }: MatchScoreBadgeProps) {
   const { user, session } = useAuth();
   const [score, setScore] = useState<number | null>(null);
   const [basedOn, setBasedOn] = useState<number>(0);

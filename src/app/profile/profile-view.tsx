@@ -80,35 +80,9 @@ const BADGE_ICONS: Record<string, LucideIcon> = {
   database: Shield,
 };
 
-function getInitials(value: string) {
-  const cleaned = value.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? "").join("");
-  return cleaned || "CU";
-}
-
 type StrainForDisplay = {
   avg_thc?: number | null;
   thc_max?: number | null;
-};
-
-type FavoriteRelationData = {
-  strain_id: string;
-  strains: {
-    id: string;
-    name: string;
-    slug: string;
-    image_url: string | null;
-    type: string;
-  } | null;
-  position: number | null;
-};
-
-type BadgeData = {
-  badge_id: string;
-};
-
-type CollectionEntry = {
-  strain_id: string;
-  user_image_url: string | null;
 };
 
 type StrainForRelation = {
@@ -121,16 +95,13 @@ type StrainForRelation = {
   thc_max: number | null;
 };
 
-type UserStrainRelation = {
-  strain_id: string;
-  position: number | null;
-  strains: StrainForRelation | null;
-};
-
 function formatThcDisplay(strain: StrainForDisplay | null | undefined) {
   if (!strain) return "Keine Daten";
   return `${strain.avg_thc || strain.thc_max || "—"}% THC`;
 }
+
+// Re-export types for external use if needed
+export type { FavoriteRelationData, BadgeData, CollectionEntry, UserStrainRelation };
 
 function resolveBadgeIcon(iconKey: string) {
   const normalized = iconKey.toLowerCase();

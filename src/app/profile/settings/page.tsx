@@ -85,7 +85,7 @@ export default function SettingsPage() {
     }
     getProfile();
     getConsents();
-  }, [user]);
+  }, [user, isDemoMode, loading]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();

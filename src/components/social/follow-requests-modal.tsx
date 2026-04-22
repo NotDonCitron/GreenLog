@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Loader2, X, UserCheck, UserX } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
