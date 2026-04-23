@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { jsonError, jsonSuccess, authenticateRequest } from "@/lib/api-response";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
+import { buildDefaultSourceNotes, detectSourceWarnings } from "@/lib/strains/source-policy";
 import dns from "dns";
 
 const ADMIN_IDS = (process.env.APP_ADMIN_IDS || process.env.NEXT_PUBLIC_APP_ADMIN_IDS || "").split(",").filter(Boolean);
@@ -58,6 +59,9 @@ type LeaflyImportResponse = {
     flavors: string[];
     effects: string[];
     image_url: string | null;
+    primary_source?: string;
+    source_notes?: string | null;
+    source_warnings?: string[];
 };
 
 type LeaflyStrainData = {
@@ -243,6 +247,13 @@ export async function POST(req: NextRequest) {
 
         return jsonSuccess({
             ...scrapedData,
+            primary_source: "leafly",
+            source_notes: buildDefaultSourceNotes("leafly"),
+            source_warnings: detectSourceWarnings({
+                primarySource: "leafly",
+                imageUrl: scrapedData.image_url,
+                sourceNotes: buildDefaultSourceNotes("leafly"),
+            }),
             terpenes: uniqueNormalized(scrapedData.terpenes),
             flavors: uniqueNormalized(scrapedData.flavors),
             effects: uniqueNormalized(scrapedData.effects),

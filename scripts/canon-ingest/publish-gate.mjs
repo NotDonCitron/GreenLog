@@ -28,6 +28,7 @@ function validateFullGate(strain) {
   if (!strain.type || !VALID_TYPES.includes(strain.type)) reasons.push('Invalid type');
   if (!strain.description || strain.description.trim().length < 20) reasons.push('Description too short');
   if (strain.thc_min == null || strain.thc_max == null) reasons.push('Incomplete THC data');
+  else if (strain.thc_max > 50) reasons.push('THC max exceeds realistic ceiling (50%)');
   if (strain.cbd_min == null || strain.cbd_max == null) reasons.push('Incomplete CBD data');
   if (!Array.isArray(strain.terpenes) || strain.terpenes.length < MIN_TERPENES) reasons.push('Minimum 2 terpenes required');
   if (!Array.isArray(strain.flavors) || strain.flavors.length < MIN_FLAVORS) reasons.push('Minimum 1 flavor required');

@@ -773,7 +773,9 @@ export default function StrainDetailPageClient() {
                 )}
               </div>
               <div className="mt-auto flex justify-center items-center gap-2 text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest">
-                <RefreshCw size={12} className="animate-spin-slow" /> Tap to Flip
+                <RefreshCw size={12} className="animate-spin-slow" />
+                <span className="hidden md:inline">Klicken zum Umdrehen</span>
+                <span className="md:hidden">Tap to Flip</span>
               </div>
             </Card>
           </div>

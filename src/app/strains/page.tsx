@@ -14,6 +14,7 @@ import { Strain, StrainSource } from "@/lib/types";
 import { useCollection } from "@/hooks/useCollection";
 const CreateStrainModal = lazy(() => import("@/components/strains/create-strain-modal").then(m => ({ default: m.CreateStrainModal })));
 import { StrainCard } from "@/components/strains/strain-card";
+import { StrainsSpeedDial } from "@/components/strains/strains-speed-dial";
 const FilterPanel = lazy(() => import("@/components/strains/filter-panel").then(m => ({ default: m.FilterPanel })));
 import { ActiveFilterBadges } from "@/components/strains/active-filter-badges";
 import { THC_RANGE, CBD_RANGE, MAX_COMPARE_STRAINS } from "@/lib/constants";
@@ -95,6 +96,10 @@ function StrainsPageContent() {
   const lastScrollY = useRef(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // Compare mode state
+  const [compareMode, setCompareMode] = useState(false);
+  const [selectedCompareSlugs, setSelectedCompareSlugs] = useState<string[]>([]);
+
   // Debounce search input by 300ms to avoid excessive Supabase queries
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -102,6 +107,20 @@ function StrainsPageContent() {
   }, [search]);
 
   const toggleCompare = useCallback((slug: string) => {
+    if (compareMode) {
+      // Local compare mode selection
+      setSelectedCompareSlugs(prev => {
+        if (prev.includes(slug)) {
+          return prev.filter(s => s !== slug);
+        } else if (prev.length < MAX_COMPARE_STRAINS) {
+          return [...prev, slug];
+        }
+        return prev;
+      });
+      return;
+    }
+
+    // Legacy URL-based compare (long-press / right-click)
     const current = compareSlugs;
     let next: string[];
     if (current.includes(slug)) {
@@ -118,7 +137,30 @@ function StrainsPageContent() {
       params.set("compare", next.join(","));
     }
     void router.push(`?${params.toString()}`, { scroll: false });
-  }, [compareSlugs, searchParams, router]);
+  }, [compareMode, compareSlugs, searchParams, router]);
+
+  // Long-press state for mobile compare
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [longPressActiveId, setLongPressActiveId] = useState<string | null>(null);
+
+  const handleTouchStart = useCallback((strainId: string, slug: string) => {
+    longPressTimerRef.current = setTimeout(() => {
+      setLongPressActiveId(strainId);
+      void toggleCompare(slug);
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+      // Reset after a brief flash
+      setTimeout(() => setLongPressActiveId(null), 300);
+    }, 600);
+  }, [toggleCompare]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
 
   const clearCompare = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -580,17 +622,32 @@ function StrainsPageContent() {
             <div className="grid grid-cols-2 gap-6">
               {strains.map((strain, i) => {
                 const isCollected = collectedIds.includes(strain.id);
-                const isSelected = compareSlugs.includes(strain.slug);
+                const isLegacySelected = compareSlugs.includes(strain.slug);
+                const isCompareSelected = selectedCompareSlugs.includes(strain.slug);
                 return (
                   <div
                     key={strain.id}
-                    className="relative"
-                    onContextMenu={(e) => { e.preventDefault(); void toggleCompare(strain.slug); }}
-                    onClick={() => { if (isSelected) void toggleCompare(strain.slug); }}
-                    title={isSelected ? "Aus Vergleich entfernen (Rechtsklick)" : "Zum Vergleich (Rechtsklick)"}
+                    className={`relative transition-transform duration-150 ${longPressActiveId === strain.id ? "scale-95" : ""}`}
+                    onContextMenu={(e) => {
+                      if (compareMode) return;
+                      e.preventDefault();
+                      void toggleCompare(strain.slug);
+                    }}
+                    onTouchStart={() => {
+                      if (!compareMode) handleTouchStart(strain.id, strain.slug);
+                    }}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchMove={handleTouchEnd}
                   >
-                    <StrainCard strain={strain} index={i} isCollected={isCollected} />
-                    {isSelected && (
+                    <StrainCard
+                      strain={strain}
+                      index={i}
+                      isCollected={isCollected}
+                      selectionMode={compareMode}
+                      isSelected={isCompareSelected}
+                      onSelect={() => toggleCompare(strain.slug)}
+                    />
+                    {!compareMode && isLegacySelected && (
                       <div className="absolute top-2 right-2 z-30 w-6 h-6 bg-[#2FF801] rounded-full flex items-center justify-center shadow-lg">
                         <Scale size={12} className="text-black" />
                       </div>
@@ -631,44 +688,66 @@ function StrainsPageContent() {
         )}
       </div>
 
-      {compareSlugs.length >= 2 && (
-        <div className="fixed bottom-24 right-6 z-50">
-          <div className="bg-[#121212] border border-[#2FF801]/30 rounded-2xl p-3 shadow-lg shadow-[#2FF801]/10 backdrop-blur-md mb-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Scale size={14} className="text-[#2FF801]" />
+      {/* Compare mode bottom bar */}
+      {compareMode && (
+        <div className="fixed bottom-24 left-6 right-6 z-50">
+          <div className="bg-[#121212] border border-[#2FF801]/30 rounded-2xl p-4 shadow-lg shadow-[#2FF801]/10 backdrop-blur-md">
+            <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold text-white">
-                {compareSlugs.length} Strain{compareSlugs.length > 1 ? "s" : ""} gewählt
+                {selectedCompareSlugs.length} / {MAX_COMPARE_STRAINS} Strains ausgewählt
               </span>
-              <button onClick={clearCompare} className="ml-1 p-0.5 rounded text-white/40 hover:text-white/70 transition-colors">
-                <X size={12} />
+              <button
+                onClick={() => {
+                  setCompareMode(false);
+                  setSelectedCompareSlugs([]);
+                }}
+                className="text-[10px] font-bold text-white/40 hover:text-white/70 transition-colors uppercase tracking-wider"
+              >
+                Abbrechen
               </button>
             </div>
-            <Link
-              href={`/strains/compare?slugs=${compareSlugs.join(",")}`}
-              className="block w-full px-3 py-2 rounded-xl text-[10px] font-bold bg-gradient-to-r from-[#2FF801] to-[#2fe000] text-black hover:opacity-90 transition-all flex items-center justify-center gap-1"
-            >
-              <Scale size={10} />
-              Vergleichen
-            </Link>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setSelectedCompareSlugs([]);
+                }}
+                disabled={selectedCompareSlugs.length === 0}
+                className="flex-1 px-3 py-2.5 rounded-xl text-[10px] font-bold bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 transition-all disabled:opacity-30"
+              >
+                Zurücksetzen
+              </button>
+              <Link
+                href={`/strains/compare?slugs=${selectedCompareSlugs.join(",")}`}
+                onClick={() => setCompareMode(false)}
+                className={`flex-1 px-3 py-2.5 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1 transition-all ${
+                  selectedCompareSlugs.length >= 2
+                    ? "bg-gradient-to-r from-[#2FF801] to-[#2fe000] text-black hover:opacity-90"
+                    : "bg-[#2FF801]/20 text-[#2FF801]/50 cursor-not-allowed pointer-events-none"
+                }`}
+              >
+                <Scale size={10} />
+                Vergleichen
+              </Link>
+            </div>
           </div>
         </div>
       )}
 
-      <div className="fixed bottom-24 right-6 z-50 flex flex-col gap-4">
-        <Link href="/scanner">
-          <button aria-label="Strain-Scanner öffnen" className="w-14 h-14 bg-gradient-to-br from-[#00F5FF] to-[#00e5ee] hover:opacity-90 text-black rounded-full flex items-center justify-center shadow-lg shadow-[#00F5FF]/30 transition-transform active:scale-95">
-            <Camera size={28} />
-          </button>
-        </Link>
-        <CreateStrainModal
-          onSuccess={handleStrainCreated}
-          trigger={
-            <button aria-label="Neue Sorte erstellen" className="w-14 h-14 bg-gradient-to-br from-[#2FF801] to-[#2fe000] hover:opacity-90 text-black rounded-full flex items-center justify-center shadow-lg shadow-[#2FF801]/30 transition-transform active:scale-95">
-              <Plus size={28} />
-            </button>
-          }
-        />
-      </div>
+      {/* Speed-Dial FAB */}
+      <StrainsSpeedDial
+        compareCount={compareSlugs.length}
+        compareLink={compareSlugs.length >= 2 ? `/strains/compare?slugs=${compareSlugs.join(",")}` : undefined}
+        onClearCompare={clearCompare}
+        onStrainCreated={(strainId, slug, strainSource, usedSourceFallback) =>
+          handleStrainCreated(strainId, slug, strainSource as StrainSource, usedSourceFallback)
+        }
+        compareMode={compareMode}
+        onEnterCompareMode={() => setCompareMode(true)}
+        onExitCompareMode={() => {
+          setCompareMode(false);
+          setSelectedCompareSlugs([]);
+        }}
+      />
 
       <Suspense fallback={null}>
         <FilterPanel open={filterPanelOpen} onOpenChange={setFilterPanelOpen} />
