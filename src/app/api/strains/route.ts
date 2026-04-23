@@ -1,6 +1,7 @@
 import { getAuthenticatedClient } from "@/lib/supabase/client";
 import { writeOrganizationActivity } from "@/lib/organization-activities";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
+import { buildDefaultSourceNotes } from "@/lib/strains/source-policy";
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
         is_custom,
         source,
         primary_source,
+        source_notes,
     } = body;
 
     if (!name || !slug || !type) {
@@ -75,6 +77,10 @@ export async function POST(request: Request) {
             : typeof source === "string" && source.trim().length > 0
               ? source.trim()
               : "manual-user";
+    const resolvedSourceNotes =
+        typeof source_notes === "string" && source_notes.trim().length > 0
+            ? source_notes.trim()
+            : buildDefaultSourceNotes(resolvedPrimarySource);
 
     const { data: strain, error: strainError } = await supabase
         .from("strains")
@@ -94,6 +100,7 @@ export async function POST(request: Request) {
             source: source ?? 'pharmacy',
             publication_status: "draft",
             primary_source: resolvedPrimarySource,
+            source_notes: resolvedSourceNotes,
             created_by: user.id,
         })
         .select()

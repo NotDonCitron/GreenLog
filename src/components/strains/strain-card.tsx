@@ -1,13 +1,17 @@
 import { memo } from 'react';
 import Link from 'next/link';
+import { Check } from 'lucide-react';
 import { Strain } from '@/lib/types';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay } from '@/lib/strain-display';
+import { sanitizeDisplayText } from '@/lib/strain-display-text';
 import { escapeRegExp } from '@/lib/string-utils';
 
 function hasRealImage(strain: Strain): boolean {
   if (!strain.image_url) return false;
   const lower = strain.image_url.toLowerCase();
-  if (lower.includes('placeholder') || lower.includes('picsum') || lower.includes('dummy')) return false;
+  // Only reject generic placeholder services, not our own type-based placeholders
+  if (lower.includes('picsum') || lower.includes('dummy')) return false;
+  if (strain.image_url.startsWith('/')) return true;
   try { new URL(strain.image_url); return true; } catch { return false; }
 }
 
@@ -15,12 +19,24 @@ interface StrainCardProps {
   strain: Strain;
   index?: number;
   isCollected?: boolean;
+  selectionMode?: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
-export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollected = true }: StrainCardProps) {
+export const StrainCard = memo(function StrainCard({
+  strain,
+  index = 0,
+  isCollected = true,
+  selectionMode = false,
+  isSelected = false,
+  onSelect,
+}: StrainCardProps) {
   const { color: themeColor, className: themeClass } = getStrainTheme(strain.type);
 
-  const farmerDisplay = strain.farmer?.trim() || strain.manufacturer?.trim() || strain.brand?.trim() || 'Unbekannter Farmer';
+  const rawFarmer = strain.farmer?.trim() || strain.manufacturer?.trim() || strain.brand?.trim() || '';
+  const farmerDisplay = rawFarmer ? sanitizeDisplayText(rawFarmer) : 'Unbekannter Farmer';
+  const showFarmer = farmerDisplay && !/unknown|unbekannt/i.test(farmerDisplay);
   const thcDisplay = formatPercent(strain.avg_thc ?? strain.thc_max, '—');
   const cbdDisplay = formatPercent(strain.avg_cbd ?? strain.cbd_max, '< 1%');
   const effectDisplay = getEffectDisplay(strain);
@@ -71,16 +87,30 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
 
   const realImage = hasRealImage(strain);
 
-  return (
-    <Link
-      href={`/strains/${strain.slug}`}
-      className={`premium-card ${themeClass} group relative flex w-full min-w-0 rounded-[20px] border-2 bg-[#121212] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] overflow-hidden aspect-[4/5]`}
-      style={{
-        borderColor: themeColor,
-        animationDelay: `${index * 0.05}s`,
-        animationFillMode: 'both'
-      }}
-    >
+  const cardBaseClass = `premium-card ${themeClass} group relative flex w-full min-w-0 rounded-[20px] border-2 bg-[#121212] transition-all duration-300 overflow-hidden aspect-[4/5] ${selectionMode ? 'cursor-pointer' : 'hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]'}`;
+  const cardStyle = {
+    borderColor: isSelected ? '#2FF801' : themeColor,
+    animationDelay: `${index * 0.05}s`,
+    animationFillMode: 'both' as const,
+  };
+
+  const cardContent = (
+    <>
+      {/* Selection overlay */}
+      {selectionMode && (
+        <div className="absolute top-2 right-2 z-40">
+          <div
+            className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${
+              isSelected
+                ? 'bg-[#2FF801] border-[#2FF801]'
+                : 'bg-black/50 border-white/30'
+            }`}
+          >
+            {isSelected && <Check size={14} className="text-black" strokeWidth={3} />}
+          </div>
+        </div>
+      )}
+
       {realImage ? (
         <>
           {/* 1. REAL IMAGE fills entire card */}
@@ -92,10 +122,12 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
           />
           {/* 2. HEADER OVERLAY: Farmer + Strain Name — gradient top */}
           <div className="absolute top-0 left-0 right-0 z-10 px-3 pt-2 pb-0 min-w-0 bg-gradient-to-b from-black/80 via-black/30 to-transparent">
-            <p className="text-[7px] font-bold tracking-[0.12em] uppercase text-white/40 truncate">
-              {farmerDisplay}
-            </p>
-            <p className="title-font italic text-[12px] font-black leading-tight uppercase text-white break-words line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+            {showFarmer && (
+              <p className="text-[7px] font-bold tracking-[0.12em] uppercase text-white/40 truncate">
+                {farmerDisplay}
+              </p>
+            )}
+            <p className={`title-font italic text-[12px] font-black leading-tight uppercase text-white break-words line-clamp-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${showFarmer ? '' : 'pt-1'}`}>
               {normalizedStrainName}
             </p>
           </div>
@@ -121,10 +153,12 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
           </div>
           {/* HEADER: Farmer + Strain Name — solid background, never gradient-over-photo */}
           <div className="absolute top-0 left-0 right-0 z-10 px-3 pt-2 pb-1.5 min-w-0" style={{ backgroundColor: '#121212' }}>
-            <p className="text-[7px] font-bold tracking-[0.12em] uppercase text-white/40 truncate">
-              {farmerDisplay}
-            </p>
-            <p className="title-font italic text-[12px] font-black leading-tight uppercase text-white break-words line-clamp-2">
+            {showFarmer && (
+              <p className="text-[7px] font-bold tracking-[0.12em] uppercase text-white/40 truncate">
+                {farmerDisplay}
+              </p>
+            )}
+            <p className={`title-font italic text-[12px] font-black leading-tight uppercase text-white break-words line-clamp-2 ${showFarmer ? '' : 'pt-1'}`}>
               {normalizedStrainName}
             </p>
           </div>
@@ -179,6 +213,31 @@ export const StrainCard = memo(function StrainCard({ strain, index = 0, isCollec
           </div>
         </div>
       </div>
+    </>
+  );
+
+  if (selectionMode) {
+    return (
+      <div
+        className={cardBaseClass}
+        style={cardStyle}
+        onClick={onSelect}
+        role="checkbox"
+        aria-checked={isSelected}
+        tabIndex={0}
+      >
+        {cardContent}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={`/strains/${strain.slug}`}
+      className={cardBaseClass}
+      style={cardStyle}
+    >
+      {cardContent}
     </Link>
   );
 });

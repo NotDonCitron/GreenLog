@@ -62,6 +62,8 @@ const imgSrc = [
   "https://www.leafly.com",
   "https://images.leafly.com",
   "https://leafly-public.imgix.net",
+  "https://allbud.com",
+  "https://www.allbud.com",
   "https://pollinations.ai",
   "https://greenlog.app",
   "https://*.greenlog.app",
@@ -87,6 +89,23 @@ const contentSecurityPolicy = [
 const nextConfig: NextConfig = {
   async headers() {
     return [
+      {
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+          {
+            key: "Pragma",
+            value: "no-cache",
+          },
+          {
+            key: "Expires",
+            value: "0",
+          },
+        ],
+      },
       {
         source: '/(.*)',
         headers: [
@@ -124,6 +143,18 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'leafly-public.imgix.net',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'allbud.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.allbud.com',
         port: '',
         pathname: '/**',
       },

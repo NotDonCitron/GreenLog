@@ -436,13 +436,35 @@ export default function CollectionPageClient() {
                 />
               ))}
             </div>
+          ) : collection.length === 0 ? (
+            <div className="text-center py-16 px-6">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#2FF801]/10 border border-[#2FF801]/30 flex items-center justify-center">
+                <Leaf size={36} className="text-[#2FF801]" />
+              </div>
+              <h3 className="text-lg font-black italic uppercase tracking-tight font-display text-[var(--foreground)] mb-2">
+                Willkommen bei CannaLog!
+              </h3>
+              <p className="text-[var(--muted-foreground)] text-sm mb-8 max-w-xs mx-auto">
+                Deine Sammlung ist noch leer. Entdecke bekannte Sorten oder scanne dein erstes Etikett.
+              </p>
+              <div className="flex flex-col gap-3 max-w-xs mx-auto">
+                <Link href="/strains" className="w-full py-3.5 rounded-2xl bg-[#2FF801] text-black font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#2FF801]/90 transition-all">
+                  <Search size={16} />
+                  Strain-Katalog
+                </Link>
+                <Link href="/scanner" className="w-full py-3.5 rounded-2xl bg-[#00F5FF]/10 border border-[#00F5FF]/30 text-[#00F5FF] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#00F5FF]/20 transition-all">
+                  <Plus size={16} />
+                  Strain scannen
+                </Link>
+              </div>
+            </div>
           ) : (
             <div className="text-center py-20">
               <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-[var(--card)] border border-[var(--border)]/50 flex items-center justify-center">
-                <span className="text-4xl">🌿</span>
+                <Search size={28} className="text-[var(--muted-foreground)]" />
               </div>
               <p className="text-[var(--muted-foreground)] font-bold uppercase tracking-widest text-sm">Keine Treffer</p>
-              <p className="text-[#484849] text-xs mt-2">Füge neue Strains hinzu</p>
+              <p className="text-[#484849] text-xs mt-2">Passe deine Filter oder Suche an</p>
             </div>
           )}
         </div>

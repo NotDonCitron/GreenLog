@@ -4,6 +4,7 @@ const API_CACHE = 'greenlog-api-v2';
 const MAX_STATIC = 100;
 const MAX_API = 50;
 const IMAGE_EXTENSIONS = ['.avif', '.gif', '.jpeg', '.jpg', '.png', '.svg', '.webp'];
+const STATIC_DESTINATIONS = new Set(['audio', 'font', 'image', 'manifest', 'script', 'style', 'video']);
 const BYPASS_IMAGE_HOSTS = new Set([
   'leafly-public.imgix.net',
   'uwjyvvvykyueuxtdkscs.supabase.co',
@@ -60,6 +61,26 @@ function shouldBypassExternalImageRequest(request, url) {
     isImageRequest(request, url);
 }
 
+function isHtmlLikeRequest(request) {
+  if (request.destination === 'document') return true;
+  const accept = request.headers.get('accept') || '';
+  return accept.includes('text/html') || accept.includes('text/x-component');
+}
+
+function shouldCacheSameOriginRequest(request, url) {
+  if (url.origin !== self.location.origin) return false;
+  if (STATIC_ASSETS.includes(url.pathname)) return true;
+  return STATIC_DESTINATIONS.has(request.destination);
+}
+
+function shouldCacheResponse(response) {
+  if (!response.ok) return false;
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('text/html')) return false;
+  if (contentType.includes('text/x-component')) return false;
+  return true;
+}
+
 // Fetch: network-first for API, cache-first for static
 self.addEventListener('fetch', (event) => {
   const { request } = event;
@@ -67,6 +88,10 @@ self.addEventListener('fetch', (event) => {
 
   if (request.method !== 'GET') return;
   if (!url.protocol.startsWith('http')) return;
+  if (isHtmlLikeRequest(request)) {
+    event.respondWith(fetch(request));
+    return;
+  }
 
   // Bypass Clerk completely to avoid issues with 307 redirects and clerk-js
   if (url.hostname.includes('clerk')) return;
@@ -133,15 +158,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets → cache first, fall back to network
-  // Only cache same-origin requests to prevent accidentally caching external APIs (like Supabase) forever!
-  if (url.origin === self.location.origin) {
+  // Static assets → cache first, fall back to network.
+  // Never cache HTML/RSC shells to prevent stale chunk manifests across deploys.
+  if (shouldCacheSameOriginRequest(request, url)) {
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached;
 
         return fetch(request).then((response) => {
-          if (response.ok) {
+          if (shouldCacheResponse(response)) {
             const clone = response.clone();
             caches.open(STATIC_CACHE).then((cache) => {
               cache.put(request, clone);
@@ -152,6 +177,12 @@ self.addEventListener('fetch', (event) => {
         });
       })
     );
+    return;
+  }
+
+  // Same-origin dynamic requests we do not explicitly cache should always hit network.
+  if (url.origin === self.location.origin) {
+    event.respondWith(fetch(request));
   } else {
     // External images/CDNs (Supabase Storage, imgix, etc.) → Network only, never cache.
     //

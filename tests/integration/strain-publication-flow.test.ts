@@ -42,6 +42,7 @@ const completeStrain = {
   image_url: 'https://example.com/image.jpg',
   canonical_image_path: 'strains/test-strain.jpg',
   primary_source: 'manual-curation',
+  source_notes: 'Manuell kuratiert und geprüft.',
 };
 
 const incompleteStrain = {
@@ -53,6 +54,7 @@ const incompleteStrain = {
   terpenes: ['myrcene'],
   flavors: [],
   effects: [],
+  source_notes: null,
 };
 
 describe('API: PATCH /api/admin/strains/[id]/publication', () => {
@@ -351,5 +353,45 @@ describe('API: PATCH /api/admin/strains/[id]/publication', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.data.strain.publication_status).toBe('review');
+  });
+
+  it('blocks risky sources without manual source notes', async () => {
+    vi.mocked(authModule.isAppAdmin).mockReturnValue(true);
+
+    const supabase = {
+      auth: {
+        getUser: vi.fn(async () => ({
+          data: { user: { id: 'admin-user' } },
+          error: null,
+        })),
+      },
+      from: vi.fn((table: string) => {
+        if (table === 'strains') {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                single: vi.fn(async () => ({
+                  data: {
+                    ...completeStrain,
+                    primary_source: 'askgrowers',
+                    source_notes: '',
+                  },
+                  error: null,
+                })),
+              })),
+            })),
+          };
+        }
+        return {};
+      }),
+    };
+    (getAuthenticatedClient as ReturnType<typeof vi.fn>).mockResolvedValue(supabase);
+
+    const res = await PATCH(makeRequest({ publication_status: 'published' }), makeParams());
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error.code).toBe('publish_gate_failed');
+    expect(body.error.details.missing).toContain('source');
   });
 });

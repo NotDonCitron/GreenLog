@@ -93,4 +93,45 @@ describe("getStrainPublicationSnapshot", () => {
     expect(snapshot.canPublish).toBe(false);
     expect(snapshot.missing).toContain("image");
   });
+
+  it("requires source notes for risky review-only sources", () => {
+    const snapshot = getStrainPublicationSnapshot({
+      name: "Risky Dream",
+      slug: "risky-dream",
+      type: "hybrid",
+      description: "Looks complete but source is weak",
+      thc_max: 20,
+      cbd_max: 1,
+      terpenes: ["Myrcene", "Limonene"],
+      flavors: ["Earthy"],
+      effects: ["Calm"],
+      image_url: "https://cdn.example/risky-dream.webp",
+      canonical_image_path: "strains-images/risky-dream.webp",
+      primary_source: "askgrowers",
+    });
+
+    expect(snapshot.canPublish).toBe(false);
+    expect(snapshot.missing).toContain("source");
+  });
+
+  it("accepts risky sources after manual review notes are added", () => {
+    const snapshot = getStrainPublicationSnapshot({
+      name: "Reviewed Dream",
+      slug: "reviewed-dream",
+      type: "hybrid",
+      description: "Manually reviewed fallback image",
+      thc_max: 20,
+      cbd_max: 1,
+      terpenes: ["Myrcene", "Limonene"],
+      flavors: ["Earthy"],
+      effects: ["Calm"],
+      image_url: "https://cdn.example/reviewed-dream.webp",
+      canonical_image_path: "strains-images/reviewed-dream.webp",
+      primary_source: "askgrowers",
+      source_notes: "Manuell geprüft, kein Stockfoto-Hinweis sichtbar.",
+    });
+
+    expect(snapshot.canPublish).toBe(true);
+    expect(snapshot.missing).toEqual([]);
+  });
 });

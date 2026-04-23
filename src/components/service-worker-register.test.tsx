@@ -9,6 +9,7 @@ const unregisterMock = vi.fn();
 
 describe("ServiceWorkerRegister", () => {
   const originalEnv = process.env.NODE_ENV;
+  const originalDisableSw = process.env.NEXT_PUBLIC_DISABLE_SW;
 
   beforeEach(() => {
     registerMock.mockReset();
@@ -29,6 +30,7 @@ describe("ServiceWorkerRegister", () => {
 
   afterEach(() => {
     process.env.NODE_ENV = originalEnv;
+    process.env.NEXT_PUBLIC_DISABLE_SW = originalDisableSw;
     vi.restoreAllMocks();
   });
 
@@ -58,5 +60,19 @@ describe("ServiceWorkerRegister", () => {
     });
 
     expect(getRegistrationsMock).not.toHaveBeenCalled();
+  });
+
+  it("unregisters in production when NEXT_PUBLIC_DISABLE_SW is true", async () => {
+    process.env.NODE_ENV = "production";
+    process.env.NEXT_PUBLIC_DISABLE_SW = "true";
+
+    render(<ServiceWorkerRegister />);
+
+    await waitFor(() => {
+      expect(getRegistrationsMock).toHaveBeenCalledOnce();
+      expect(unregisterMock).toHaveBeenCalledOnce();
+    });
+
+    expect(registerMock).not.toHaveBeenCalled();
   });
 });

@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { getStrainPublicationSnapshot } from '@/lib/strains/publication';
+import type { Strain } from '@/lib/types';
 
 describe('Strain Publication Gate', () => {
-  const validStrain = {
+  const validStrain: Partial<Strain> = {
     id: 'test-id',
     name: 'Test Strain',
     slug: 'test-strain',
@@ -82,5 +83,24 @@ describe('Strain Publication Gate', () => {
       flavors: [],
     });
     expect(snapshot.qualityScore).toBe(82);
+  });
+
+  it('blocks risky review-only sources without source notes', () => {
+    const snapshot = getStrainPublicationSnapshot({
+      ...validStrain,
+      primary_source: 'askgrowers',
+      source_notes: '',
+    });
+    expect(snapshot.canPublish).toBe(false);
+    expect(snapshot.missing).toContain('source');
+  });
+
+  it('allows risky review-only sources with manual notes', () => {
+    const snapshot = getStrainPublicationSnapshot({
+      ...validStrain,
+      primary_source: 'askgrowers',
+      source_notes: 'Manuell geprüft, kein Stockfoto-Hinweis.',
+    });
+    expect(snapshot.canPublish).toBe(true);
   });
 });

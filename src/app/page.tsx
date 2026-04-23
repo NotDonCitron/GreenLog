@@ -62,27 +62,44 @@ function HomeContent() {
           return;
         }
 
+        // Use a deterministic query that selects exactly 1 strain by offset
         const dayOfYear = Math.floor(
           (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) /
           1000 / 60 / 60 / 24
         );
 
-        const { data: allStraains } = await supabase
+        // Estimate count for stable daily cycling; if no published pharmacy strains exist, fall back fast
+        const { count: pharmacyCount } = await supabase
           .from('strains')
-          .select('*')
-          .eq('source', 'pharmacy')
-          .limit(100);
+          .select('*', { count: 'exact', head: true })
+          .eq('publication_status', 'published')
+          .eq('source', 'pharmacy');
 
         if (cancelled) return;
 
-        if (allStraains && allStraains.length > 0) {
-          setStrainOfTheDay({
-            ...allStraains[dayOfYear % allStraains.length],
-            source: normalizeCollectionSource(allStraains[dayOfYear % allStraains.length].source),
-          });
-        } else {
-          setStrainOfTheDay(DEMO_SIMULATION_DATA[0]);
+        const total = pharmacyCount ?? 0;
+        if (total > 0) {
+          const offset = dayOfYear % total;
+          const { data: selected } = await supabase
+            .from('strains')
+            .select('*')
+            .eq('publication_status', 'published')
+            .eq('source', 'pharmacy')
+            .order('name')
+            .range(offset, offset)
+            .single();
+
+          if (!cancelled && selected) {
+            setStrainOfTheDay({
+              ...selected,
+              source: normalizeCollectionSource(selected.source),
+            });
+            setLoading(false);
+            return;
+          }
         }
+
+        setStrainOfTheDay(DEMO_SIMULATION_DATA[0]);
       } catch (err) {
         if (!cancelled) {
           console.error("Home data error:", err);
