@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import ProfilePage from "./profile-view";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/components/auth-provider";
+import { isAppAdmin } from "@/lib/auth";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
 
@@ -45,6 +46,10 @@ vi.mock("@/components/theme-toggle", () => ({
   ThemeToggle: () => null,
 }));
 
+vi.mock("@/lib/auth", () => ({
+  isAppAdmin: vi.fn(() => false),
+}));
+
 const upsertMock = vi.fn();
 vi.mock("@/lib/supabase/client", () => ({
   supabase: {
@@ -64,6 +69,7 @@ vi.mock("next/navigation", () => ({
 describe("ProfileView component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(isAppAdmin).mockReturnValue(false);
   });
 
   it("should show loading spinner when loading", () => {
@@ -161,6 +167,64 @@ describe("ProfileView component", () => {
     expect(screen.getByText("10")).toBeTruthy(); // Followers count
     expect(screen.getByText("20")).toBeTruthy(); // Following count
     expect(screen.getByText("Dein öffentliches Profil")).toBeTruthy();
+  });
+
+  it("shows admin entrypoint when current user is app admin", () => {
+    const mockProfileData = {
+      identity: {
+        username: "@testuser",
+        displayName: "Test User",
+        initials: "TU",
+        avatarUrl: null,
+        profileVisibility: "public",
+        tagline: "",
+        bio: "This is a test bio",
+      },
+      stats: {
+        totalStrains: 42,
+        totalGrows: 5,
+        favoriteCount: 3,
+        unlockedBadgeCount: 2,
+        xp: 100,
+        level: 2,
+        progressToNextLevel: 50,
+        followers: 10,
+        following: 20,
+      },
+      favorites: [],
+      badges: [],
+      featuredBadgeIds: [],
+      activity: [],
+      preview: { title: "", description: "", chips: [] },
+      publicPreferences: {
+        user_id: "admin-1",
+        show_badges: true,
+        show_favorites: false,
+        show_tried_strains: false,
+        show_reviews: false,
+        show_activity_feed: false,
+        show_follow_counts: true,
+        default_review_public: false,
+      },
+      publicBlocks: [
+        { key: "profile", label: "Profilinfo", state: "public", description: "Username, Avatar, Anzeigename und Bio." },
+      ],
+    };
+
+    vi.mocked(isAppAdmin).mockReturnValue(true);
+    (useAuth as any).mockReturnValue({
+      user: { id: "admin-1" },
+      loading: false,
+      isDemoMode: false,
+    });
+    (useProfile as any).mockReturnValue({
+      data: mockProfileData,
+      isLoading: false,
+    });
+
+    render(<ProfilePage />);
+    expect(screen.getByRole("link", { name: /Admin Dashboard/i })).toBeTruthy();
+    expect(screen.getByText(/CannaLog Owner/i)).toBeTruthy();
   });
 
   it("should render the selected featured badges on the profile", () => {
