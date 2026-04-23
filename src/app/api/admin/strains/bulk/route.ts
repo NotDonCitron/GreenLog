@@ -29,7 +29,7 @@ export async function PATCH(request: Request) {
 
   const { data: strains, error: loadError } = await supabase
     .from("strains")
-    .select("id, name, slug, type, description, thc_min, thc_max, cbd_min, cbd_max, terpenes, flavors, effects, image_url, canonical_image_path, primary_source")
+    .select("id, name, slug, type, description, thc_min, thc_max, cbd_min, cbd_max, terpenes, flavors, effects, image_url, canonical_image_path, primary_source, source_notes")
     .in("id", ids);
 
   if (loadError || !strains) {

@@ -54,17 +54,17 @@ export interface Strain {
   name: string;
   slug: string;
   type: 'indica' | 'sativa' | 'hybrid' | 'ruderalis';
-  farmer?: string;
-  brand?: string;
-  manufacturer?: string;
-  thc_min?: number;
-  thc_max?: number;
-  cbd_min?: number;
-  cbd_max?: number;
-  avg_thc?: number;
-  avg_cbd?: number;
-  image_url?: string;
-  canonical_image_path?: string;
+  farmer?: string | null;
+  brand?: string | null;
+  manufacturer?: string | null;
+  thc_min?: number | null;
+  thc_max?: number | null;
+  cbd_min?: number | null;
+  cbd_max?: number | null;
+  avg_thc?: number | null;
+  avg_cbd?: number | null;
+  image_url?: string | null;
+  canonical_image_path?: string | null;
   image_attribution?: {
     source: 'seedbank' | 'wikimedia' | 'linhacanabica' | 'none';
     author?: string;
@@ -77,8 +77,8 @@ export interface Strain {
   effects?: string[];
   publication_status?: StrainPublicationStatus;
   quality_score?: number;
-  primary_source?: string;
-  source_notes?: string;
+  primary_source?: string | null;
+  source_notes?: string | null;
   reviewed_by?: string;
   reviewed_at?: string;
   // Custom strain fields

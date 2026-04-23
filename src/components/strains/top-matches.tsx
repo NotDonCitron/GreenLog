@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import Link from "next/link";
 import { StrainCard } from "./strain-card";
 import { useAuth } from "@/components/auth-provider";
 import { supabase } from "@/lib/supabase/client";
@@ -23,17 +23,39 @@ export function TopMatches() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // session.access_token muss auch vorhanden sein (wird asynchron gesetzt)
-    if (!user || !session?.access_token) return;
+    if (!user) {
+      setMatches([]);
+      setStrains({});
+      setLoading(false);
+      return;
+    }
+
+    if (!session?.access_token) {
+      setLoading(true);
+      return;
+    }
+
+    let cancelled = false;
 
     async function fetchTopMatches() {
+      if (!session?.access_token) return;
+
+      setLoading(true);
+      setError(null);
+
       try {
         const res = await fetch("/api/recommendations/top?limit=4", {
           headers: {
-            Authorization: `Bearer ${session!.access_token}`
+            Authorization: `Bearer ${session.access_token}`
           }
         });
         const json = await res.json();
+
+        if (!res.ok) {
+          throw new Error(json.error?.message || "Top-Matches konnten nicht geladen werden");
+        }
+
+        if (cancelled) return;
 
         if (json.data?.matches && json.data.matches.length > 0) {
           setMatches(json.data.matches);
@@ -47,22 +69,29 @@ export function TopMatches() {
           
           if (strainData) {
             const strainMap: Record<string, Strain> = {};
-            strainData.forEach((s: any) => {
+            strainData.forEach((s: Strain) => {
               strainMap[s.id] = s as Strain;
             });
-            setStrains(strainMap);
+            if (!cancelled) setStrains(strainMap);
           }
+        } else {
+          setMatches([]);
+          setStrains({});
         }
       } catch (e) {
         console.error("Failed to fetch top matches:", e);
-        setError("Fehler beim Laden der Top-Matches");
+        if (!cancelled) setError("Fehler beim Laden der Top-Matches");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     fetchTopMatches();
-  }, [user, session]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, session?.access_token]);
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const collapseStorageKey = user
@@ -85,7 +114,11 @@ export function TopMatches() {
     });
   };
 
-  if (!user || (loading && matches.length === 0)) {
+  if (!user) {
+    return null;
+  }
+
+  if (loading && matches.length === 0) {
     return (
       <div className="mb-8 p-6 bg-[var(--card)] rounded-3xl border border-[var(--border)]/50 animate-pulse">
         <div className="h-4 w-48 bg-[var(--muted)] rounded mb-6" />
@@ -97,7 +130,7 @@ export function TopMatches() {
     );
   }
 
-  if (!loading && matches.length === 0) {
+  if (!loading && (matches.length === 0 || error)) {
     // No matches yet — user needs to rate some strains first
     return (
       <section className="mb-6 relative">
@@ -131,10 +164,12 @@ export function TopMatches() {
             <div className="text-center space-y-2">
               <div className="text-3xl">🌿</div>
               <p className="text-sm font-bold text-[var(--foreground)]">
-                Noch keine Empfehlungen
+                {error ? "Empfehlungen gerade nicht verfügbar" : "Noch keine Empfehlungen"}
               </p>
               <p className="text-xs text-[var(--muted-foreground)] leading-relaxed max-w-[240px] mx-auto">
-                Bewerte ein paar Sorten mit Sternen — dann erscheinen hier personalisierte Empfehlungen basierend auf deinem Geschmacksprofil.
+                {error
+                  ? "Bitte später erneut versuchen. Deine Sammlung bleibt davon unberührt."
+                  : "Bewerte ein paar Sorten mit Sternen — dann erscheinen hier personalisierte Empfehlungen basierend auf deinem Geschmacksprofil."}
               </p>
             </div>
           </div>
@@ -176,7 +211,25 @@ export function TopMatches() {
           <div className="grid grid-cols-2 gap-4">
             {matches.map((match, idx) => {
               const strain = strains[match.strainId];
-              if (!strain) return null;
+              if (!strain) {
+                return (
+                  <Link
+                    key={match.strainId}
+                    href={`/strains/${match.strainSlug}`}
+                    className="relative flex min-h-40 flex-col justify-between rounded-2xl border border-[#2FF801]/20 bg-[var(--card)] p-4 transition-colors hover:bg-[var(--muted)]"
+                  >
+                    <div>
+                      <p className="text-sm font-black text-[var(--foreground)]">{match.strainName}</p>
+                      <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">
+                        Empfehlung
+                      </p>
+                    </div>
+                    <div className="self-start rounded-full border border-[#2FF801]/40 bg-[#2FF80120] px-2 py-0.5 text-[10px] font-black text-[#2FF801]">
+                      {match.score}%
+                    </div>
+                  </Link>
+                );
+              }
               return (
                 <div key={match.strainId} className="relative group">
                   <StrainCard strain={strain} index={idx} isCollected={false} />

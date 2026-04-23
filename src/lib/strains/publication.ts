@@ -1,4 +1,5 @@
 import { Strain } from "@/lib/types";
+import { getStrainSourcePolicy } from "./source-policy";
 
 export type StrainPublicationRequirement =
   | "name"
@@ -34,7 +35,14 @@ export function getStrainPublicationSnapshot(
   if ((strain.flavors?.length ?? 0) < 1) missing.push("flavors");
   if ((strain.effects?.length ?? 0) < 1) missing.push("effects");
   if (!strain.image_url?.trim() || !strain.canonical_image_path?.trim()) missing.push("image");
-  if (!strain.primary_source?.trim()) missing.push("source");
+  if (!strain.primary_source?.trim()) {
+    missing.push("source");
+  } else {
+    const sourcePolicy = getStrainSourcePolicy(strain.primary_source);
+    if (sourcePolicy.requiresSourceNotes && !strain.source_notes?.trim()) {
+      missing.push("source");
+    }
+  }
 
   const totalChecks = 11;
   const completedChecks = totalChecks - missing.length;

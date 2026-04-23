@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/components/auth-provider';
+import { detectSourceWarnings, getStrainSourcePolicy } from '@/lib/strains/source-policy';
 import {
   AlertCircle,
   Check,
@@ -66,6 +67,7 @@ type Recommendation = 'publish_ready' | 'needs_review' | 'weak_candidate';
 
 type SortKey = 'name' | 'score' | 'source' | 'status' | 'created';
 type SortDir = 'asc' | 'desc';
+type StatusFilter = 'all' | 'draft' | 'review' | 'published' | 'rejected';
 
 interface UndoAction {
   id: string;
@@ -116,13 +118,21 @@ function getCompleteness(strain: Strain): Completeness {
 function evaluateStrain(strain: Strain, completeness: Completeness) {
   const completeCount = COMPLETENESS_KEYS.filter((key) => completeness[key]).length;
   const missing = COMPLETENESS_KEYS.filter((key) => !completeness[key]);
+  const sourcePolicy = getStrainSourcePolicy(strain.primary_source);
+  const sourceWarnings = detectSourceWarnings({
+    primarySource: strain.primary_source,
+    imageUrl: strain.image_url,
+    sourceNotes: strain.source_notes,
+  });
 
   const goodReasons: string[] = [];
   if (completeness.name && completeness.slug) goodReasons.push('Identität eindeutig');
   if (completeness.thc) goodReasons.push('Cannabinoid-Werte vorhanden');
   if (completeness.description && completeness.effects) goodReasons.push('Wirkung dokumentiert');
   if (completeness.image) goodReasons.push('Bild vorhanden');
-  if (completeness.source) goodReasons.push('Quelle dokumentiert');
+  if (completeness.source) {
+    goodReasons.push(sourcePolicy.tier === 'primary' ? 'Primärquelle dokumentiert' : 'Quelle dokumentiert');
+  }
 
   const badReasons = missing.slice(0, 4).map((key) => {
     const labels: Record<string, string> = {
@@ -140,7 +150,15 @@ function evaluateStrain(strain: Strain, completeness: Completeness) {
     recommendation = 'weak_candidate';
   }
 
-  return { completeCount, missing, goodReasons, badReasons, recommendation };
+  if (sourceWarnings.length > 0 && recommendation === 'publish_ready') {
+    recommendation = 'needs_review';
+  }
+
+  if (sourceWarnings.length > 1) {
+    recommendation = 'weak_candidate';
+  }
+
+  return { completeCount, missing, goodReasons, badReasons, recommendation, sourcePolicy, sourceWarnings };
 }
 
 function ScoreBadge({ score, total }: { score: number; total: number }) {
@@ -187,6 +205,22 @@ function RecommendationPill({ recommendation }: { recommendation: Recommendation
   return (
     <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-400">
       Needs Review
+    </span>
+  );
+}
+
+function SourceTierPill({ source }: { source: string }) {
+  const policy = getStrainSourcePolicy(source);
+  const style =
+    policy.tier === 'primary'
+      ? 'bg-emerald-500/10 text-emerald-400'
+      : policy.tier === 'fallback'
+        ? 'bg-amber-500/10 text-amber-300'
+        : 'bg-red-500/10 text-red-300';
+
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${style}`}>
+      {policy.label}
     </span>
   );
 }
@@ -288,7 +322,8 @@ export default function AdminStrainsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'review'>('all');
+  const [includeAllStatuses, setIncludeAllStatuses] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [recommendationFilter, setRecommendationFilter] = useState<'all' | Recommendation>('all');
   const [page, setPage] = useState(0);
   const [sortKey, setSortKey] = useState<SortKey>('score');
@@ -302,20 +337,41 @@ export default function AdminStrainsPage() {
   const isAdmin = user && ADMIN_IDS.includes(user.id);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const search = params.get('search')?.trim();
+    const scope = params.get('scope');
+
+    if (search) {
+      setQuery(search);
+      setPage(0);
+    }
+
+    if (scope === 'all') {
+      setIncludeAllStatuses(true);
+      setStatusFilter('all');
+    }
+  }, []);
+
+  useEffect(() => {
     if (authLoading || !isAdmin) return;
     void fetchStrains();
-  }, [authLoading, isAdmin]);
+  }, [authLoading, isAdmin, includeAllStatuses]);
 
   const fetchStrains = async () => {
     setLoading(true);
     setError(null);
 
-    const { data, error: err } = await supabase
+    let request = supabase
       .from('strains')
       .select('*')
-      .in('publication_status', ['draft', 'review'])
       .order('publication_status', { ascending: true })
       .order('name', { ascending: true });
+
+    if (!includeAllStatuses) {
+      request = request.in('publication_status', ['draft', 'review']);
+    }
+
+    const { data, error: err } = await request;
 
     if (err) {
       console.error('Error fetching strains:', err);
@@ -663,6 +719,10 @@ export default function AdminStrainsPage() {
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
               <strong className="text-emerald-400">Bereit</strong> — Alle Felder vollständig, kann veröffentlicht werden
             </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-amber-300" />
+              <strong className="text-amber-300">Fallback</strong> — AllBud nur nutzen, wenn Leafly kein gutes Bild hat
+            </span>
           </div>
         </div>
         <button
@@ -720,6 +780,12 @@ export default function AdminStrainsPage() {
             { key: 'all' as const, label: 'Alle' },
             { key: 'draft' as const, label: 'Neu (Draft)' },
             { key: 'review' as const, label: 'Zur Prüfung (Review)' },
+            ...(includeAllStatuses
+              ? [
+                  { key: 'published' as const, label: 'Published' },
+                  { key: 'rejected' as const, label: 'Rejected' },
+                ]
+              : []),
           ]).map((item) => (
             <button
               key={item.key}
@@ -852,7 +918,7 @@ export default function AdminStrainsPage() {
           </div>
 
           {paged.map((row) => {
-            const { strain, completeness, completeCount, missing, recommendation, goodReasons, badReasons } = row;
+            const { strain, completeness, completeCount, missing, recommendation, goodReasons, badReasons, sourcePolicy, sourceWarnings } = row;
             const isExpanded = expandedId === strain.id;
             const isRowUpdating = isUpdating.has(strain.id);
             const isSelected = selectedIds.has(strain.id);
@@ -890,12 +956,13 @@ export default function AdminStrainsPage() {
                       <StatusPill status={strain.publication_status} />
                       <RecommendationPill recommendation={recommendation} />
                       <ScoreBadge score={completeCount} total={COMPLETENESS_KEYS.length} />
+                      <SourceTierPill source={strain.primary_source || 'unknown'} />
                     </div>
 
                     <p className="mt-1 text-xs text-[var(--muted-foreground)]">
                       {strain.slug}
                       {strain.type && ` · ${strain.type}`}
-                      {strain.primary_source && ` · ${strain.primary_source}`}
+                      {strain.primary_source && ` · ${sourcePolicy.summary}`}
                     </p>
 
                     {/* Quick issues */}
@@ -907,6 +974,19 @@ export default function AdminStrainsPage() {
                             className="inline-flex items-center gap-1 rounded-md bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-400"
                           >
                             <X size={10} /> {reason}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {sourceWarnings.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {sourceWarnings.map((warning) => (
+                          <span
+                            key={warning}
+                            className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-300"
+                          >
+                            <AlertCircle size={10} /> {warning}
                           </span>
                         ))}
                       </div>
@@ -990,6 +1070,7 @@ export default function AdminStrainsPage() {
                         <FieldRow label="Slug" value={strain.slug || '—'} />
                         <FieldRow label="Typ" value={strain.type || '—'} />
                         <FieldRow label="Quelle" value={strain.primary_source || '—'} />
+                        <FieldRow label="Priorität" value={sourcePolicy.label} />
                         <FieldRow label="THC" value={formatRange(strain.thc_min, strain.thc_max)} />
                         <FieldRow label="CBD" value={formatRange(strain.cbd_min, strain.cbd_max)} />
                         <FieldRow label="Terpene" value={Array.isArray(strain.terpenes) && strain.terpenes.length > 0 ? strain.terpenes.join(', ') : '—'} />
@@ -1006,6 +1087,21 @@ export default function AdminStrainsPage() {
                           <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Quellennotizen</p>
                           <p className="text-xs leading-relaxed text-[var(--foreground)]">{strain.source_notes || '—'}</p>
                         </div>
+                        {sourceWarnings.length > 0 && (
+                          <div>
+                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">Quellenwarnungen</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {sourceWarnings.map((warning) => (
+                                <span
+                                  key={warning}
+                                  className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-300"
+                                >
+                                  <AlertCircle size={10} /> {warning}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
