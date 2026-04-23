@@ -1,4 +1,3 @@
-import { Strain } from "@/lib/types";
 import { getStrainSourcePolicy } from "./source-policy";
 
 export type StrainPublicationRequirement =
@@ -20,8 +19,27 @@ export interface StrainPublicationSnapshot {
   qualityScore: number;
 }
 
+export type StrainPublicationCandidate = {
+  [key: string]: unknown;
+  name?: string | null;
+  slug?: string | null;
+  type?: string | null;
+  description?: string | null;
+  thc_min?: number | null;
+  thc_max?: number | null;
+  cbd_min?: number | null;
+  cbd_max?: number | null;
+  terpenes?: unknown[] | null;
+  flavors?: unknown[] | null;
+  effects?: unknown[] | null;
+  image_url?: string | null;
+  canonical_image_path?: string | null;
+  primary_source?: string | null;
+  source_notes?: string | null;
+};
+
 export function getStrainPublicationSnapshot(
-  strain: Partial<Strain>
+  strain: StrainPublicationCandidate
 ): StrainPublicationSnapshot {
   const missing: StrainPublicationRequirement[] = [];
 
