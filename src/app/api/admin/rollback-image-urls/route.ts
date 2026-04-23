@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { authenticateRequest, jsonError } from "@/lib/api-response";
+import { isAppAdmin } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -30,11 +33,23 @@ interface RollbackResult {
   sample: string[];
 }
 
-export async function POST(request: Request) {
+async function authorizeMaintenanceRequest(request: Request) {
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`) return null;
+
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (auth instanceof Response) return auth;
+
+  if (!isAppAdmin(auth.user.id)) {
+    return jsonError("Forbidden", 403);
   }
+
+  return null;
+}
+
+export async function POST(request: Request) {
+  const authError = await authorizeMaintenanceRequest(request);
+  if (authError) return authError;
 
   const adminClient = getSupabaseAdmin();
 

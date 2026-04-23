@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   const { data, error } = await supabase
     .from("strains")
     .select(
-      "id, name, slug, type, description, thc_min, thc_max, cbd_min, cbd_max, terpenes, flavors, effects, image_url, canonical_image_path, primary_source, publication_status, quality_score"
+      "id, name, slug, type, description, thc_min, thc_max, cbd_min, cbd_max, terpenes, flavors, effects, image_url, canonical_image_path, primary_source, source_notes, publication_status, quality_score"
     )
     .in("publication_status", ["draft", "review"])
     .order("quality_score", { ascending: false })

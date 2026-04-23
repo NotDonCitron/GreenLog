@@ -1,9 +1,22 @@
 import { NextResponse } from "next/server";
 
+import { authenticateRequest, jsonError } from "@/lib/api-response";
+import { isAppAdmin } from "@/lib/auth";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getAuthenticatedClient } from "@/lib/supabase/client";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+
+interface CleanupResult {
+  table: string;
+  column: string;
+  checked: number;
+  cleared: number;
+  skipped: number;
+  failed: number;
+  sample: string[];
+}
 
 const SITE_ORIGIN = process.env.NEXT_PUBLIC_SITE_URL?.trim()
   || process.env.VERCEL_URL?.trim()
@@ -19,11 +32,23 @@ function resolveSiteOrigin(): string {
   }
 }
 
-export async function POST(request: Request) {
+async function authorizeMaintenanceRequest(request: Request) {
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`) return null;
+
+  const auth = await authenticateRequest(request, getAuthenticatedClient);
+  if (auth instanceof Response) return auth;
+
+  if (!isAppAdmin(auth.user.id)) {
+    return jsonError("Forbidden", 403);
   }
+
+  return null;
+}
+
+export async function POST(request: Request) {
+  const authError = await authorizeMaintenanceRequest(request);
+  if (authError) return authError;
 
   const body = await request.json().catch(() => ({}));
   const dryRun = body.dryRun === true;
@@ -37,7 +62,7 @@ export async function POST(request: Request) {
   }
 
   const adminClient = getSupabaseAdmin();
-  const results: { table: string; column: string; cleared: number; skipped: number }[] = [];
+  const results: CleanupResult[] = [];
 
   const targets = [
     { table: "profiles", column: "avatar_url" as const, bucket: "avatars" },
@@ -52,13 +77,23 @@ export async function POST(request: Request) {
       .like(t.column, `/media/${t.bucket}/%`);
 
     if (error) {
-      results.push({ table: t.table, column: t.column, cleared: -1, skipped: 0 });
+      results.push({
+        table: t.table,
+        column: t.column,
+        checked: 0,
+        cleared: 0,
+        skipped: 0,
+        failed: 1,
+        sample: [error.message],
+      });
       continue;
     }
 
     const rows = (data as { id: string; [k: string]: unknown }[]) || [];
     let cleared = 0;
     let skipped = 0;
+    let failed = 0;
+    const sample: string[] = [];
 
     for (const row of rows) {
       const url = row[t.column] as string;
@@ -98,12 +133,17 @@ export async function POST(request: Request) {
       }
 
       if (shouldClear) {
+        if (sample.length < 5) sample.push(url);
         if (!dryRun) {
           const { error: updateError } = await adminClient
             .from(t.table)
             .update({ [t.column]: null })
             .eq("id", row.id);
-          if (!updateError) cleared++;
+          if (updateError) {
+            failed++;
+          } else {
+            cleared++;
+          }
         } else {
           cleared++;
         }
@@ -112,7 +152,7 @@ export async function POST(request: Request) {
       }
     }
 
-    results.push({ table: t.table, column: t.column, cleared, skipped });
+    results.push({ table: t.table, column: t.column, checked: rows.length, cleared, skipped, failed, sample });
   }
 
   return NextResponse.json({ mode: dryRun ? "dry-run" : "apply", results });

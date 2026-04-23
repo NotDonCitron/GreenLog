@@ -3,12 +3,15 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/components/auth-provider';
-import { Leaf, LayoutDashboard, Sprout, Loader2, LogOut } from 'lucide-react';
+import { Camera, ImageOff, Leaf, LayoutDashboard, Radar, Sprout, Loader2, LogOut } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/strains', label: 'Strains', icon: Sprout },
+  { href: '/admin/media', label: 'Media', icon: ImageOff },
+  { href: '/admin/quality', label: 'Quality', icon: Radar },
+  { href: '/admin/placeholders', label: 'Images', icon: Camera },
 ];
 
 export default function AdminLayout({
