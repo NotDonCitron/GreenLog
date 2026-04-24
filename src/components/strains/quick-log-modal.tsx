@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 
 import {
@@ -33,22 +33,68 @@ interface QuickLogModalProps {
 
 const STAR_VALUES = [1, 2, 3, 4, 5] as const;
 
+const createInitialState = () => ({
+  effectChips: [] as QuickLogEffectChip[],
+  sideEffects: [] as QuickLogSideEffect[],
+  overallRating: 4,
+  privateStatus: null as QuickLogStatus | null,
+  privateNote: "",
+  settingContext: "",
+  showPrivateNote: false,
+  isPublic: false,
+  publicReviewText: "",
+});
+
 function toggleValue<T extends string>(values: T[], value: T) {
   return values.includes(value) ? values.filter((item) => item !== value) : [...values, value];
 }
 
 export function QuickLogModal({ open, strainName, isSaving, onClose, onSave }: QuickLogModalProps) {
-  const [effectChips, setEffectChips] = useState<QuickLogEffectChip[]>([]);
-  const [sideEffects, setSideEffects] = useState<QuickLogSideEffect[]>([]);
-  const [overallRating, setOverallRating] = useState(4);
-  const [privateStatus, setPrivateStatus] = useState<QuickLogStatus | null>(null);
-  const [privateNote, setPrivateNote] = useState("");
-  const [settingContext, setSettingContext] = useState("");
-  const [showPrivateNote, setShowPrivateNote] = useState(false);
-  const [isPublic, setIsPublic] = useState(false);
-  const [publicReviewText, setPublicReviewText] = useState("");
+  const [effectChips, setEffectChips] = useState<QuickLogEffectChip[]>(() => createInitialState().effectChips);
+  const [sideEffects, setSideEffects] = useState<QuickLogSideEffect[]>(() => createInitialState().sideEffects);
+  const [overallRating, setOverallRating] = useState(() => createInitialState().overallRating);
+  const [privateStatus, setPrivateStatus] = useState<QuickLogStatus | null>(() => createInitialState().privateStatus);
+  const [privateNote, setPrivateNote] = useState(() => createInitialState().privateNote);
+  const [settingContext, setSettingContext] = useState(() => createInitialState().settingContext);
+  const [showPrivateNote, setShowPrivateNote] = useState(() => createInitialState().showPrivateNote);
+  const [isPublic, setIsPublic] = useState(() => createInitialState().isPublic);
+  const [publicReviewText, setPublicReviewText] = useState(() => createInitialState().publicReviewText);
 
   const publicReviewLabelId = useMemo(() => "quick-log-public-review", []);
+
+  useEffect(() => {
+    if (open) {
+      return;
+    }
+
+    const initialState = createInitialState();
+    setEffectChips(initialState.effectChips);
+    setSideEffects(initialState.sideEffects);
+    setOverallRating(initialState.overallRating);
+    setPrivateStatus(initialState.privateStatus);
+    setPrivateNote(initialState.privateNote);
+    setSettingContext(initialState.settingContext);
+    setShowPrivateNote(initialState.showPrivateNote);
+    setIsPublic(initialState.isPublic);
+    setPublicReviewText(initialState.publicReviewText);
+  }, [open, strainName]);
+
+  useEffect(() => {
+    if (isPublic) {
+      return;
+    }
+
+    setPublicReviewText("");
+  }, [isPublic]);
+
+  useEffect(() => {
+    if (showPrivateNote) {
+      return;
+    }
+
+    setPrivateNote("");
+    setSettingContext("");
+  }, [showPrivateNote]);
 
   if (!open) {
     return null;

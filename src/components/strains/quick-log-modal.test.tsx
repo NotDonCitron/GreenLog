@@ -57,4 +57,86 @@ describe("QuickLogModal", () => {
       publicReviewText: "Abends angenehm ruhig.",
     });
   });
+
+  it("clears previous private and public inputs after closing the modal", async () => {
+    const user = userEvent.setup();
+    const view = render(
+      <QuickLogModal
+        open
+        strainName="Lime Skunk"
+        isSaving={false}
+        onClose={vi.fn()}
+        onSave={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: "Ruhe" }));
+    await user.click(screen.getByRole("button", { name: "+ Private Notiz" }));
+    await user.type(screen.getByLabelText("Private Notiz"), "Nur privat");
+    await user.type(screen.getByLabelText("Setting-Kontext"), "Sofa");
+    await user.click(screen.getByRole("button", { name: "+ Öffentlichen Kurzreview hinzufügen" }));
+    await user.type(screen.getByLabelText("Öffentlicher Kurzreview"), "Öffentlich");
+
+    view.rerender(
+      <QuickLogModal
+        open={false}
+        strainName="Lime Skunk"
+        isSaving={false}
+        onClose={vi.fn()}
+        onSave={vi.fn()}
+      />
+    );
+
+    view.rerender(
+      <QuickLogModal
+        open
+        strainName="Lime Skunk"
+        isSaving={false}
+        onClose={vi.fn()}
+        onSave={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole("button", { name: "Ruhe" }).getAttribute("class")).not.toContain("border-[#00f5ff]/70");
+    expect(screen.queryByLabelText("Private Notiz")).toBeNull();
+    expect(screen.queryByLabelText("Setting-Kontext")).toBeNull();
+    expect(screen.queryByLabelText("Öffentlicher Kurzreview")).toBeNull();
+  });
+
+  it("drops hidden draft text when optional sections are toggled off", async () => {
+    const user = userEvent.setup();
+    const onSave = vi.fn();
+
+    render(
+      <QuickLogModal
+        open
+        strainName="Lime Skunk"
+        isSaving={false}
+        onClose={vi.fn()}
+        onSave={onSave}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: "+ Private Notiz" }));
+    await user.type(screen.getByLabelText("Private Notiz"), "Nur privat");
+    await user.type(screen.getByLabelText("Setting-Kontext"), "Sofa");
+    await user.click(screen.getByRole("button", { name: "+ Private Notiz" }));
+
+    await user.click(screen.getByRole("button", { name: "+ Öffentlichen Kurzreview hinzufügen" }));
+    await user.type(screen.getByLabelText("Öffentlicher Kurzreview"), "Öffentlich");
+    await user.click(screen.getByRole("button", { name: "+ Öffentlichen Kurzreview hinzufügen" }));
+
+    await user.click(screen.getByRole("button", { name: "Save Log" }));
+
+    expect(onSave).toHaveBeenCalledWith({
+      effectChips: [],
+      sideEffects: [],
+      overallRating: 4,
+      privateStatus: null,
+      privateNote: "",
+      settingContext: "",
+      isPublic: false,
+      publicReviewText: "",
+    });
+  });
 });
