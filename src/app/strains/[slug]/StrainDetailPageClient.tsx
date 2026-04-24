@@ -367,7 +367,21 @@ export default function StrainDetailPageClient() {
   };
 
   const saveQuickLog = async (input: QuickLogSaveInput) => {
-    if (!user || !strain || isDemoMode) return;
+    if (isDemoMode) {
+      toastError("Quick Log ist im Demo-Modus deaktiviert.");
+      return;
+    }
+
+    if (!user) {
+      toastError("Du musst eingeloggt sein, um einen Quick Log zu speichern.");
+      return;
+    }
+
+    if (!strain) {
+      toastError("Sorte ist noch nicht geladen. Bitte versuche es gleich erneut.");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const publicReviewText = input.isPublic ? input.publicReviewText.trim() : "";
