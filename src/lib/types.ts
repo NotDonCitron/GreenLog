@@ -316,6 +316,7 @@ export interface PublicProfileRating {
   strain_id: string;
   strain_name: string;
   strain_slug: string;
+  strain_image_url: string | null;
   overall_rating: number;
   public_review_text: string | null;
   created_at: string;

@@ -95,7 +95,7 @@ function createFallbackViewModel(): ProfileViewModel {
 
 export const profileKeys = {
   all: ["profile"] as const,
-  detail: (userId: string) => ["profile", userId] as const,
+  detail: (userId: string, accessToken?: string | null) => ["profile", userId, accessToken ? "authed" : "anonymous"] as const,
 };
 
 function createTimeoutError(label: string) {
@@ -321,9 +321,10 @@ async function fetchProfileData(
 
 export function useProfile() {
   const { user, session, loading, isDemoMode } = useAuth();
+  const canLoadProfile = !loading && (isDemoMode || !user || Boolean(session?.access_token));
 
   return useQuery({
-    queryKey: profileKeys.detail(user?.id ?? ""),
+    queryKey: profileKeys.detail(user?.id ?? "", session?.access_token),
     queryFn: async (): Promise<ProfileViewModel> => {
       // Demo mode: return fallback
       if (isDemoMode || !user) {
@@ -331,7 +332,7 @@ export function useProfile() {
       }
       return fetchProfileData(user.id, user.email ?? null, user.user_metadata, session?.access_token);
     },
-    enabled: !loading,
+    enabled: canLoadProfile,
     staleTime: 60 * 1000,
     gcTime: 5 * 60 * 1000,
   });

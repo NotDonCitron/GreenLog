@@ -95,7 +95,12 @@ export default function SettingsPage() {
     setProfileStatus(null);
 
     try {
-      const cleanUsername = username.trim().toLowerCase().replace(/\s+/g, "_");
+      const cleanUsername = username
+        .trim()
+        .replace(/^@+/, "")
+        .toLowerCase()
+        .replace(/\s+/g, "_")
+        .replace(/[^a-z0-9._-]/g, "");
 
       if (isDemoMode) {
         localStorage.setItem("cannalog_demo_display_name", displayName.trim());
@@ -119,7 +124,7 @@ export default function SettingsPage() {
 
       // Invalidate React Query cache so Profile page is fresh
       if (user) {
-        await queryClient.invalidateQueries({ queryKey: profileKeys.detail(user.id) });
+        await queryClient.invalidateQueries({ queryKey: profileKeys.all });
       }
 
       setProfileStatus({ type: 'success', msg: "Profil erfolgreich aktualisiert." });
@@ -393,13 +398,16 @@ export default function SettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest ml-1">Benutzername (@)</Label>
+                <Label className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest ml-1">Profil-Link Name</Label>
                 <Input
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="benutzername"
+                  placeholder="pascal.hintermaier_81"
                   className="bg-[var(--background)] border-[var(--border)]/50 rounded-xl h-12 focus:border-[#2FF801] font-mono text-sm"
                 />
+                <p className="ml-1 text-[11px] leading-relaxed text-[var(--muted-foreground)]">
+                  Ohne @ eingeben. Wird nur für deinen öffentlichen Profil-Link genutzt, nicht als sichtbarer Name.
+                </p>
               </div>
 
               {profileStatus && (

@@ -35,6 +35,7 @@ describe("public profile sanitizer", () => {
       strains: {
         name: "Wedding Cake",
         slug: "wedding-cake",
+        image_url: "/media/strains/wedding-cake.jpg",
       },
     });
 
@@ -43,6 +44,7 @@ describe("public profile sanitizer", () => {
       strain_id: "strain-1",
       strain_name: "Wedding Cake",
       strain_slug: "wedding-cake",
+      strain_image_url: "/media/strains/wedding-cake.jpg",
       overall_rating: 4,
       public_review_text: "Clear taste and calm effect",
       created_at: "2026-04-20T08:00:00.000Z",
@@ -112,6 +114,7 @@ describe("public profile sanitizer", () => {
       strain_id: "strain-2",
       strain_name: "Lemon Haze",
       strain_slug: "lemon-haze",
+      strain_image_url: null,
       overall_rating: 5,
       public_review_text: "Strong and clean finish",
       created_at: "2026-04-20T09:00:00.000Z",
@@ -122,6 +125,72 @@ describe("public profile sanitizer", () => {
     expect(JSON.stringify(sanitized)).not.toContain("situativ");
     expect(JSON.stringify(sanitized)).not.toContain("Saved for evenings");
     expect(JSON.stringify(sanitized)).not.toContain("At home");
+  });
+
+  it("maps public badges through the shared badge definitions", async () => {
+    const from = vi.fn((table: string) => {
+      if (table === "profiles") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({
+            data: {
+              id: "user-1",
+              username: "greenleaf",
+              display_name: "Green Leaf",
+              avatar_url: null,
+              bio: null,
+              profile_visibility: "public",
+              created_at: "2026-04-20T08:00:00.000Z",
+            },
+          }),
+        };
+      }
+
+      if (table === "user_public_preferences") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({
+            data: {
+              user_id: "user-1",
+              show_badges: true,
+              show_favorites: false,
+              show_tried_strains: false,
+              show_reviews: false,
+              show_activity_feed: false,
+              show_follow_counts: false,
+              default_review_public: false,
+            },
+          }),
+        };
+      }
+
+      if (table === "user_badges") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockResolvedValue({
+            data: [{ badge_id: "collector-10", unlocked_at: "2026-04-20T08:00:00.000Z" }],
+          }),
+        };
+      }
+
+      return {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        limit: vi.fn().mockResolvedValue({ data: [] }),
+      };
+    });
+
+    const profile = await getPublicProfileByUsername({ from } as never, "greenleaf");
+
+    expect(profile?.badges[0]).toMatchObject({
+      id: "collector-10",
+      name: "Sammler",
+      description: "10 Strains gesammelt",
+      iconKey: "leaf",
+    });
   });
 
   it("loads favorites from is_favorite when the public favorites block is enabled", async () => {

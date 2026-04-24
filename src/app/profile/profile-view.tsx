@@ -6,8 +6,11 @@ import { useEffect, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,
+  Archive,
   ArrowRight,
   ArrowLeft,
+  Bug,
+  Building2,
   Heart,
   Leaf,
   Loader2,
@@ -15,6 +18,13 @@ import {
   LogIn,
   Shield,
   Settings,
+  Crown,
+  FileText,
+  Flame,
+  Gem,
+  Gift,
+  Home,
+  PenLine,
   Sparkles,
   Sprout,
 
@@ -65,19 +75,35 @@ import type {
   ProfileFavorite,
   ProfileStats,
   ProfileViewModel,
+  PublicProfilePreferences,
 } from "@/lib/types";
 import type { PublicProfilePreferenceToggleKey } from "@/components/profile/public-profile-preview-card";
 
 const BADGE_ICONS: Record<string, LucideIcon> = {
   starter: Sprout,
+  archive: Archive,
+  bug: Bug,
+  building: Building2,
   connoisseur: Trophy,
+  crown: Crown,
+  "file-text": FileText,
+  flame: Flame,
+  gem: Gem,
+  gift: Gift,
+  heart: Heart,
+  home: Home,
   highflyer: Zap,
   leaf: Leaf,
   dna: Sparkles,
   moon: Sparkles,
   sun: Sparkles,
+  pen: PenLine,
   flaskconical: Sparkles,
   database: Shield,
+  shield: Shield,
+  sparkles: Sparkles,
+  trophy: Trophy,
+  users: UserRound,
 };
 
 type StrainForDisplay = {
@@ -152,10 +178,15 @@ export default function ProfilePage() {
   const [showBadgeShowcase, setShowBadgeShowcase] = useState(false);
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const [userBadges, setUserBadges] = useState<Array<{ badge_id: string; badges?: Partial<import("@/lib/badges").BadgeDefinition> }>>([]);
+  const [publicPreferenceOverride, setPublicPreferenceOverride] = useState<PublicProfilePreferences | null>(null);
   const [isSavingPublicPreferences, setIsSavingPublicPreferences] = useState(false);
   const [isSavingProfileVisibility, setIsSavingProfileVisibility] = useState(false);
   const currentUserId = user?.id ?? "";
   const isCannalogAdmin = !!currentUserId && isAppAdmin(currentUserId);
+
+  useEffect(() => {
+    setPublicPreferenceOverride(null);
+  }, [currentUserId]);
 
   useEffect(() => {
     if (profileData && !isEditing) {
@@ -385,6 +416,11 @@ export default function ProfilePage() {
         throw new Error(payload?.error?.message || "Public preferences update failed");
       }
 
+      const nextPreferences = withDefaultPublicPreferences(
+        user.id,
+        (payload?.data as Partial<PublicProfilePreferences> | null | undefined) ?? null
+      );
+      setPublicPreferenceOverride(nextPreferences);
       toastSuccess("Öffentliches Profil aktualisiert");
       await refetchProfile();
     } catch (error) {
@@ -519,7 +555,14 @@ export default function ProfilePage() {
     );
   }
 
-  const { identity, stats, badges } = profileData;
+  const displayProfileData: ProfileViewModel = publicPreferenceOverride
+    ? {
+        ...profileData,
+        publicPreferences: publicPreferenceOverride,
+        publicBlocks: buildPublicProfileBlocks(publicPreferenceOverride),
+      }
+    : profileData;
+  const { identity, stats, badges } = displayProfileData;
   const unlockedBadgeById = new Map(badges.map((badge) => [badge.id, badge]));
   const displayedBadgeIds = (selectedBadges.length > 0 ? selectedBadges : badges.slice(0, 4).map((badge) => badge.id))
     .filter((badgeId, index, list) => list.indexOf(badgeId) === index && unlockedBadgeById.has(badgeId))
@@ -652,7 +695,6 @@ export default function ProfilePage() {
             ) : (
               <>
                 <h2 className="text-xl font-black uppercase tracking-tight font-display text-[var(--foreground)]">{identity.displayName}</h2>
-                <p className="text-xs text-[#2FF801] font-semibold tracking-widest">{identity.username}</p>
                 {identity.bio && <p className="text-sm text-[var(--muted-foreground)] mt-2 leading-relaxed">{identity.bio}</p>}
               </>
             )}
@@ -783,7 +825,7 @@ export default function ProfilePage() {
 
         <section className="space-y-3">
           <PublicProfilePreviewCard
-            profile={profileData}
+            profile={displayProfileData}
             disabled={isSavingPublicPreferences || isSavingProfileVisibility}
             onVisibilityChange={handlePublicVisibilityChange}
             onPreferenceChange={handlePublicPreferenceChange}

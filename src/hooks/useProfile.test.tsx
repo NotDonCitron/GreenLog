@@ -146,6 +146,28 @@ describe("useProfile hook", () => {
     );
   });
 
+  it("does not cache default public preferences while the auth token is still missing", async () => {
+    (useAuth as any).mockReturnValue({
+      user: {
+        id: "test-user-id",
+        email: "test@example.com",
+        user_metadata: { full_name: "Test User" },
+      },
+      session: null,
+      loading: false,
+      isDemoMode: false,
+    });
+
+    const mockFrom = supabase.from as any;
+
+    renderHook(() => useProfile(), { wrapper });
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(mockFrom).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("should fall back instead of hanging forever when a Supabase query stalls", async () => {
     const mockUser = {
       id: "timeout-user-id",

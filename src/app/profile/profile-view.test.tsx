@@ -176,7 +176,7 @@ describe("ProfileView component", () => {
     render(<ProfilePage />);
 
     expect(screen.getByText("Test User")).toBeTruthy();
-    expect(screen.getByText("@testuser")).toBeTruthy();
+    expect(screen.queryByText(/Nutzername testuser/i)).toBeNull();
     expect(screen.getByText("This is a test bio")).toBeTruthy();
     expect(screen.getByText("42")).toBeTruthy(); // Strains count
     expect(screen.getByText("10")).toBeTruthy(); // Followers count
@@ -389,6 +389,92 @@ describe("ProfileView component", () => {
           body: JSON.stringify({ show_favorites: true }),
         })
       );
+    });
+    expect(refetchProfile).toHaveBeenCalled();
+  });
+
+  it("updates public preference preview from the save response immediately", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        data: {
+          user_id: "123",
+          show_badges: false,
+          show_favorites: false,
+          show_tried_strains: false,
+          show_reviews: false,
+          show_activity_feed: false,
+          show_follow_counts: true,
+          default_review_public: false,
+        },
+        error: null,
+      }),
+    });
+    const refetchProfile = vi.fn().mockResolvedValue(undefined);
+    const mockProfileData = {
+      identity: {
+        username: "@testuser",
+        displayName: "Test User",
+        initials: "TU",
+        avatarUrl: null,
+        profileVisibility: "public",
+        tagline: "",
+        bio: null,
+      },
+      stats: {
+        totalStrains: 1,
+        totalGrows: 0,
+        favoriteCount: 0,
+        unlockedBadgeCount: 1,
+        xp: 0,
+        level: 1,
+        progressToNextLevel: 0,
+        followers: 0,
+        following: 0,
+      },
+      favorites: [],
+      badges: [],
+      featuredBadgeIds: [],
+      activity: [],
+      preview: { title: "", description: "", chips: [] },
+      publicPreferences: {
+        user_id: "123",
+        show_badges: true,
+        show_favorites: false,
+        show_tried_strains: false,
+        show_reviews: false,
+        show_activity_feed: false,
+        show_follow_counts: true,
+        default_review_public: false,
+      },
+      publicBlocks: [
+        { key: "profile", label: "Profilinfo", state: "public", description: "Username, Avatar, Anzeigename und Bio." },
+        { key: "badges", label: "Abzeichen", state: "public", description: "Freigeschaltete Badges ohne private Konsumdaten." },
+      ],
+    };
+
+    (useAuth as any).mockReturnValue({
+      user: { id: "123" },
+      session: { access_token: "token-123" },
+      loading: false,
+      isDemoMode: false,
+    });
+    (useProfile as any).mockReturnValue({
+      data: mockProfileData,
+      isLoading: false,
+      refetch: refetchProfile,
+    });
+
+    render(<ProfilePage />);
+    fireEvent.click(screen.getByRole("button", { name: /Details anzeigen/i }));
+
+    const badgeSwitch = screen.getByRole("switch", { name: /Abzeichen/i });
+    expect(badgeSwitch.getAttribute("aria-checked")).toBe("true");
+
+    fireEvent.click(badgeSwitch);
+
+    await waitFor(() => {
+      expect(screen.getByRole("switch", { name: /Abzeichen/i }).getAttribute("aria-checked")).toBe("false");
     });
     expect(refetchProfile).toHaveBeenCalled();
   });

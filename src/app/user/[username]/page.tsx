@@ -7,9 +7,20 @@ import {
     Loader2,
     Calendar,
     ArrowLeft,
+    Archive,
+    Bug,
+    Building2,
     Shield,
     Sprout,
     Trophy,
+    Crown,
+    FileText,
+    Flame,
+    Gem,
+    Gift,
+    Heart,
+    Home,
+    PenLine,
     Zap,
     Leaf,
     Sparkles,
@@ -25,14 +36,29 @@ import type { ProfileRow, PublicProfileRating, SanitizedPublicProfile } from "@/
 
 const BADGE_ICONS: Record<string, LucideIcon> = {
     starter: Sprout,
+    archive: Archive,
+    bug: Bug,
+    building: Building2,
     connoisseur: Trophy,
+    crown: Crown,
+    "file-text": FileText,
+    flame: Flame,
+    gem: Gem,
+    gift: Gift,
+    heart: Heart,
+    home: Home,
     highflyer: Zap,
     leaf: Leaf,
     dna: Sparkles,
     moon: Sparkles,
+    pen: PenLine,
+    shield: Shield,
     sun: Sparkles,
     grower: Leaf,
     social: Users,
+    sparkles: Sparkles,
+    trophy: Trophy,
+    users: Users,
 };
 
 type PublicProfileTab = "activity" | "favorites" | "reviews";
@@ -75,13 +101,24 @@ export default function UserProfilePage() {
 
     const profile = profileData?.profile ?? null;
     const isOwnProfile = user?.id === profile?.id;
+    const displayName = profile?.display_name || profile?.username || "";
+    const preferences = profileData?.preferences ?? null;
+    const canShowBadges = Boolean(preferences?.show_badges);
+    const canShowFavorites = Boolean(preferences?.show_favorites);
+    const canShowReviews = Boolean(preferences?.show_reviews);
+    const canShowActivity = Boolean(preferences?.show_activity_feed);
+    const hasPublicTabs = canShowActivity || canShowFavorites || canShowReviews;
     const counts = profileData?.counts ?? { followers: 0, following: 0, ratings: 0 };
-    const badges = profileData?.badges ?? [];
+    const visibleCounts = {
+        ...counts,
+        ratings: canShowReviews ? counts.ratings : 0,
+    };
+    const badges = canShowBadges ? profileData?.badges ?? [] : [];
     const visibleBadges = showAllBadges ? badges : badges.slice(0, 4);
     const hasHiddenBadges = badges.length > 4;
-    const favorites = profileData?.favorites ?? [];
-    const reviews = profileData?.reviews ?? [];
-    const activities = profileData?.activities ?? [];
+    const favorites = canShowFavorites ? profileData?.favorites ?? [] : [];
+    const reviews = canShowReviews ? profileData?.reviews ?? [] : [];
+    const activities = canShowActivity ? profileData?.activities ?? [] : [];
     const activityUser: ProfileRow | null = profile
         ? {
             ...profile,
@@ -132,6 +169,21 @@ export default function UserProfilePage() {
         };
     }, [username]);
 
+    useEffect(() => {
+        if (!profileData) return;
+        if (activeTab === "activity" && canShowActivity) return;
+        if (activeTab === "favorites" && canShowFavorites) return;
+        if (activeTab === "reviews" && canShowReviews) return;
+
+        if (canShowActivity) {
+            setActiveTab("activity");
+        } else if (canShowFavorites) {
+            setActiveTab("favorites");
+        } else if (canShowReviews) {
+            setActiveTab("reviews");
+        }
+    }, [activeTab, canShowActivity, canShowFavorites, canShowReviews, profileData]);
+
     if (authLoading || isLoading) {
         return (
             <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
@@ -145,7 +197,7 @@ export default function UserProfilePage() {
             <div className="min-h-screen bg-[var(--background)] flex flex-col items-center justify-center p-4">
                 <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">User Not Found</h1>
                 <p className="text-[var(--muted-foreground)] mb-4">
-                    The user @{username} doesn&apos;t exist or their profile is private.
+                    Der Nutzername {username} existiert nicht oder das Profil ist privat.
                 </p>
                 <Link href="/">
                     <button className="px-6 py-3 bg-[var(--card)] text-[var(--foreground)] font-semibold rounded-xl border border-[var(--border)]/50">
@@ -174,9 +226,8 @@ export default function UserProfilePage() {
                         </Link>
                         <div className="min-w-0 flex-1">
                             <h1 className="truncate text-lg font-bold text-[var(--foreground)]">
-                                {profile.display_name || profile.username}
+                                {displayName}
                             </h1>
-                            <p className="truncate text-xs text-[var(--muted-foreground)]">@{profile.username}</p>
                         </div>
                     </div>
                 </div>
@@ -212,15 +263,15 @@ export default function UserProfilePage() {
                     <div className="flex-1 pt-2">
                         <div className="grid grid-cols-3 gap-2 mb-4">
                             <div className="flex flex-col items-center justify-center bg-[var(--card)]/50 border border-[var(--border)]/30 rounded-2xl py-2 px-1 backdrop-blur-sm">
-                                <p className="text-lg font-black text-[#00F5FF] tracking-tighter font-display leading-tight">{counts.followers}</p>
+                                <p className="text-lg font-black text-[#00F5FF] tracking-tighter font-display leading-tight">{visibleCounts.followers}</p>
                                 <p className="text-[7px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">Follower</p>
                             </div>
                             <div className="flex flex-col items-center justify-center bg-[var(--card)]/50 border border-[var(--border)]/30 rounded-2xl py-2 px-1 backdrop-blur-sm">
-                                <p className="text-lg font-black text-[var(--foreground)] tracking-tighter font-display leading-tight">{counts.following}</p>
+                                <p className="text-lg font-black text-[var(--foreground)] tracking-tighter font-display leading-tight">{visibleCounts.following}</p>
                                 <p className="text-[7px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">Gefolgt</p>
                             </div>
                             <div className="flex flex-col items-center justify-center bg-[var(--card)]/50 border border-[var(--border)]/30 rounded-2xl py-2 px-1 backdrop-blur-sm">
-                                <p className="text-lg font-black text-[#2FF801] tracking-tighter font-display leading-tight">{counts.ratings}</p>
+                                <p className="text-lg font-black text-[#2FF801] tracking-tighter font-display leading-tight">{visibleCounts.ratings}</p>
                                 <p className="text-[7px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">Bewertungen</p>
                             </div>
                         </div>
@@ -237,9 +288,8 @@ export default function UserProfilePage() {
 
                 <div className="mt-6 space-y-2">
                     <h2 className="text-2xl font-black tracking-tight text-[var(--foreground)] font-display uppercase italic">
-                        {profile.display_name || profile.username}
+                        {displayName}
                     </h2>
-                    <p className="text-sm font-black text-[#2FF801] tracking-[0.2em]">@{profile.username}</p>
 
                     {profile.bio && (
                         <p className="mt-4 w-full break-words rounded-2xl border border-[var(--border)]/20 bg-[var(--card)]/30 p-4 text-sm leading-relaxed italic text-[var(--muted-foreground)] [overflow-wrap:anywhere]">
@@ -277,7 +327,9 @@ export default function UserProfilePage() {
                                         <p className="text-[11px] font-black uppercase tracking-tight leading-none text-[var(--foreground)]">
                                             {badge.name}
                                         </p>
-                                        <p className="text-[8px] font-semibold uppercase tracking-tighter text-[#2FF801]">Unlocked</p>
+                                        <p className="text-[8px] font-semibold uppercase tracking-tighter text-[#2FF801]">
+                                            {badge.description}
+                                        </p>
                                     </div>
                                 );
                             })}
@@ -297,43 +349,57 @@ export default function UserProfilePage() {
             </div>
 
             <div className="mx-auto w-full max-w-lg px-4 relative z-10">
-                <div className="w-full max-w-full overflow-x-auto border-b border-[var(--border)]/50 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    <div className="flex w-max min-w-max gap-6 pr-4">
-                        <button
-                            onClick={() => setActiveTab("activity")}
-                            className={`whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${
-                                activeTab === "activity"
-                                    ? "text-[#00F5FF] border-b-2 border-[#00F5FF]"
-                                    : "text-[var(--muted-foreground)]"
-                            }`}
-                        >
-                            Activity
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("favorites")}
-                            className={`whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${
-                                activeTab === "favorites"
-                                    ? "text-[#00F5FF] border-b-2 border-[#00F5FF]"
-                                    : "text-[var(--muted-foreground)]"
-                            }`}
-                        >
-                            Favorites
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("reviews")}
-                            className={`whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${
-                                activeTab === "reviews"
-                                    ? "text-[#00F5FF] border-b-2 border-[#00F5FF]"
-                                    : "text-[var(--muted-foreground)]"
-                            }`}
-                        >
-                            Reviews
-                        </button>
+                {hasPublicTabs && (
+                    <div className="w-full max-w-full overflow-x-auto border-b border-[var(--border)]/50 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                        <div className="flex w-max min-w-max gap-6 pr-4">
+                            {canShowActivity && (
+                                <button
+                                    onClick={() => setActiveTab("activity")}
+                                    className={`whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${
+                                        activeTab === "activity"
+                                            ? "text-[#00F5FF] border-b-2 border-[#00F5FF]"
+                                            : "text-[var(--muted-foreground)]"
+                                    }`}
+                                >
+                                    Activity
+                                </button>
+                            )}
+                            {canShowFavorites && (
+                                <button
+                                    onClick={() => setActiveTab("favorites")}
+                                    className={`whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${
+                                        activeTab === "favorites"
+                                            ? "text-[#00F5FF] border-b-2 border-[#00F5FF]"
+                                            : "text-[var(--muted-foreground)]"
+                                    }`}
+                                >
+                                    Favorites
+                                </button>
+                            )}
+                            {canShowReviews && (
+                                <button
+                                    onClick={() => setActiveTab("reviews")}
+                                    className={`whitespace-nowrap pb-3 text-sm font-semibold transition-colors ${
+                                        activeTab === "reviews"
+                                            ? "text-[#00F5FF] border-b-2 border-[#00F5FF]"
+                                            : "text-[var(--muted-foreground)]"
+                                    }`}
+                                >
+                                    Reviews
+                                </button>
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <div className="min-w-0 py-4">
-                    {activeTab === "activity" && (
+                    {!hasPublicTabs && (
+                        <div className="py-12 text-center">
+                            <p className="text-sm text-[var(--muted-foreground)]">Keine öffentlichen Inhalte freigegeben</p>
+                        </div>
+                    )}
+
+                    {canShowActivity && activeTab === "activity" && (
                         activities.length > 0 ? (
                             <div className="overflow-hidden rounded-2xl border border-[var(--border)]/50 bg-[var(--card)]">
                                 {activities.map((activity) => (
@@ -351,7 +417,7 @@ export default function UserProfilePage() {
                         )
                     )}
 
-                    {activeTab === "favorites" && (
+                    {canShowFavorites && activeTab === "favorites" && (
                         favorites.length > 0 ? (
                             <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3">
                                 {favorites.map((fav) => (
@@ -381,23 +447,39 @@ export default function UserProfilePage() {
                         )
                     )}
 
-                    {activeTab === "reviews" && (
+                    {canShowReviews && activeTab === "reviews" && (
                         reviews.length > 0 ? (
                             <div className="space-y-3">
                                 {reviews.map((review: PublicProfileRating) => (
                                     <div key={review.id} className="rounded-2xl border border-[var(--border)]/50 bg-[var(--card)] p-4">
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="min-w-0">
-                                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#00F5FF]">
-                                                    Review
-                                                </p>
-                                                <h3 className="truncate text-sm font-bold uppercase tracking-tight text-[var(--foreground)]">
-                                                    {review.strain_name}
-                                                </h3>
-                                            </div>
-                                            <div className="inline-flex items-center gap-1 rounded-full border border-[#2FF801]/30 bg-[#2FF801]/10 px-2.5 py-1 text-xs font-black text-[#2FF801]">
-                                                <Star className="h-3.5 w-3.5 fill-current" />
-                                                {getReviewLabel(review.overall_rating)}
+                                        <div className="flex items-start gap-3">
+                                            <Link
+                                                href={`/strains/${review.strain_slug}`}
+                                                className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-[var(--border)]/50 bg-[var(--background)]"
+                                            >
+                                                <img
+                                                    src={review.strain_image_url || "/strains/placeholder-1.svg"}
+                                                    alt={review.strain_name}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0f]/35 to-transparent" />
+                                            </Link>
+
+                                            <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#00F5FF]">
+                                                        Review
+                                                    </p>
+                                                    <Link href={`/strains/${review.strain_slug}`}>
+                                                        <h3 className="truncate text-sm font-bold uppercase tracking-tight text-[var(--foreground)] transition-colors hover:text-[#00F5FF]">
+                                                            {review.strain_name}
+                                                        </h3>
+                                                    </Link>
+                                                </div>
+                                                <div className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#2FF801]/30 bg-[#2FF801]/10 px-2.5 py-1 text-xs font-black text-[#2FF801]">
+                                                    <Star className="h-3.5 w-3.5 fill-current" />
+                                                    {getReviewLabel(review.overall_rating)}
+                                                </div>
                                             </div>
                                         </div>
 

@@ -7,6 +7,7 @@ import type {
   SanitizedPublicProfile,
   UserActivity,
 } from "@/lib/types";
+import { getBadgeById } from "@/lib/badges";
 
 export const DEFAULT_PUBLIC_PROFILE_PREFERENCES: PublicProfilePreferences = {
   user_id: "",
@@ -82,6 +83,7 @@ type PublicRatingSource = {
   strains?: {
     name?: string | null;
     slug?: string | null;
+    image_url?: string | null;
   } | null;
   [key: string]: unknown;
 };
@@ -92,6 +94,7 @@ export function sanitizePublicRating(rating: PublicRatingSource): PublicProfileR
     strain_id: rating.strain_id,
     strain_name: rating.strains?.name || "Unbekannter Strain",
     strain_slug: rating.strains?.slug || rating.strain_id,
+    strain_image_url: rating.strains?.image_url ?? null,
     overall_rating: rating.overall_rating,
     public_review_text: rating.public_review_text ?? null,
     created_at: rating.created_at,
@@ -172,13 +175,14 @@ function toPublicStrain(row: PublicFavoriteRow) {
 }
 
 function mapBadge(row: PublicBadgeRow): ProfileBadge {
-  const name = toTitleCase(row.badge_id);
+  const definition = getBadgeById(row.badge_id);
+  const name = definition?.name ?? toTitleCase(row.badge_id);
 
   return {
     id: row.badge_id,
     name,
-    description: "Freigeschaltet",
-    iconKey: "trophy",
+    description: definition?.description ?? "Freigeschaltet",
+    iconKey: definition?.icon ?? "trophy",
     rarity: "common",
     unlockedAt: row.unlocked_at,
   };
@@ -255,7 +259,7 @@ export async function getPublicProfileByUsername(
     preferences.show_reviews
       ? supabase
           .from("ratings")
-          .select("id, strain_id, overall_rating, public_review_text, created_at, strains:strain_id (name, slug)")
+          .select("id, strain_id, overall_rating, public_review_text, created_at, strains:strain_id (name, slug, image_url)")
           .eq("user_id", profile.id)
           .eq("is_public", true)
           .order("created_at", { ascending: false })
