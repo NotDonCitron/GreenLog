@@ -38,6 +38,10 @@ vi.mock("@/components/social/avatar-upload", () => ({
   AvatarUpload: () => <div data-testid="avatar-upload">AvatarUpload</div>,
 }));
 
+vi.mock("@/components/profile/badge-showcase", () => ({
+  BadgeShowcase: () => null,
+}));
+
 vi.mock("@/components/notifications/notification-bell", () => ({
   NotificationBell: () => null,
 }));
@@ -53,6 +57,7 @@ vi.mock("@/lib/auth", () => ({
 const upsertMock = vi.fn();
 const profileUpdateEqMock = vi.fn();
 const profileUpdateMock = vi.fn(() => ({ eq: profileUpdateEqMock }));
+const fetchMock = vi.fn();
 vi.mock("@/lib/supabase/client", () => ({
   supabase: {
     from: vi.fn(() => ({
@@ -73,11 +78,17 @@ describe("ProfileView component", () => {
     vi.clearAllMocks();
     vi.mocked(isAppAdmin).mockReturnValue(false);
     profileUpdateEqMock.mockResolvedValue({ error: null });
+    global.fetch = fetchMock;
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: {}, error: null }),
+    });
   });
 
   it("should show loading spinner when loading", () => {
     (useAuth as any).mockReturnValue({
       user: { id: "123" },
+      session: { access_token: "token-123" },
       loading: false,
       isDemoMode: false,
     });
@@ -153,6 +164,7 @@ describe("ProfileView component", () => {
 
     (useAuth as any).mockReturnValue({
       user: { id: "123" },
+      session: { access_token: "token-123" },
       loading: false,
       isDemoMode: false,
     });
@@ -290,6 +302,7 @@ describe("ProfileView component", () => {
 
     (useAuth as any).mockReturnValue({
       user: { id: "123" },
+      session: { access_token: "token-123" },
       loading: false,
       isDemoMode: false,
     });
@@ -351,6 +364,7 @@ describe("ProfileView component", () => {
 
     (useAuth as any).mockReturnValue({
       user: { id: "123" },
+      session: { access_token: "token-123" },
       loading: false,
       isDemoMode: false,
     });
@@ -365,12 +379,15 @@ describe("ProfileView component", () => {
     fireEvent.click(screen.getByRole("switch", { name: /Favoriten/i }));
 
     await waitFor(() => {
-      expect(upsertMock).toHaveBeenCalledWith(
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/profile/public-preferences",
         expect.objectContaining({
-          user_id: "123",
-          show_favorites: true,
-        }),
-        { onConflict: "user_id" }
+          method: "POST",
+          headers: expect.objectContaining({
+            Authorization: "Bearer token-123",
+          }),
+          body: JSON.stringify({ show_favorites: true }),
+        })
       );
     });
     expect(refetchProfile).toHaveBeenCalled();

@@ -65,7 +65,6 @@ import type {
   ProfileFavorite,
   ProfileStats,
   ProfileViewModel,
-  PublicProfilePreferences,
 } from "@/lib/types";
 import type { PublicProfilePreferenceToggleKey } from "@/components/profile/public-profile-preview-card";
 
@@ -368,21 +367,23 @@ export default function ProfilePage() {
     key: PublicProfilePreferenceToggleKey,
     value: boolean
   ) => {
-    if (!user || isDemoMode || isSavingPublicPreferences || !profileData) return;
+    if (!user || !session?.access_token || isDemoMode || isSavingPublicPreferences || !profileData) return;
 
     setIsSavingPublicPreferences(true);
     try {
-      const nextPreferences: PublicProfilePreferences = {
-        ...profileData.publicPreferences,
-        user_id: user.id,
-        [key]: value,
-      };
+      const response = await fetch("/api/profile/public-preferences", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ [key]: value }),
+      });
 
-      const { error } = await supabase
-        .from("user_public_preferences")
-        .upsert(nextPreferences, { onConflict: "user_id" });
-
-      if (error) throw error;
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || "Public preferences update failed");
+      }
 
       toastSuccess("Öffentliches Profil aktualisiert");
       await refetchProfile();
