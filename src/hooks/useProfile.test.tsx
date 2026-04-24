@@ -28,10 +28,16 @@ const createTestQueryClient = () =>
 
 describe("useProfile hook", () => {
   let queryClient: QueryClient;
+  const fetchMock = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
     queryClient = createTestQueryClient();
+    global.fetch = fetchMock;
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: null, error: null }),
+    });
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -62,6 +68,7 @@ describe("useProfile hook", () => {
 
     (useAuth as any).mockReturnValue({
       user: mockUser,
+      session: { access_token: "token-123" },
       loading: false,
       isDemoMode: false,
     });
@@ -129,6 +136,14 @@ describe("useProfile hook", () => {
     expect(result.current.data?.identity.username).toBe("@testuser");
     expect(result.current.data?.stats.totalStrains).toBe(10);
     expect(result.current.data?.stats.followers).toBe(5);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/profile/public-preferences",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: "Bearer token-123",
+        }),
+      })
+    );
   });
 
   it("should fall back instead of hanging forever when a Supabase query stalls", async () => {
@@ -140,6 +155,7 @@ describe("useProfile hook", () => {
 
     (useAuth as any).mockReturnValue({
       user: mockUser,
+      session: { access_token: "token-123" },
       loading: false,
       isDemoMode: false,
     });
@@ -197,16 +213,6 @@ describe("useProfile hook", () => {
         return {
           select: () => ({
             eq: () => Promise.resolve({ data: [], error: null }),
-          }),
-        };
-      }
-
-      if (table === "user_public_preferences") {
-        return {
-          select: () => ({
-            eq: () => ({
-              maybeSingle: () => Promise.resolve({ data: null, error: null }),
-            }),
           }),
         };
       }

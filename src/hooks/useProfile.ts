@@ -133,7 +133,41 @@ async function withQueryTimeout<T>(promise: PromiseLike<{ data: T; count?: numbe
   }
 }
 
-async function fetchProfileData(userId: string, userEmail: string | null, userMetadata: Record<string, unknown> | undefined): Promise<ProfileViewModel> {
+async function fetchPublicPreferences(
+  accessToken: string | null | undefined,
+  userId: string
+): Promise<PublicProfilePreferences> {
+  if (!accessToken) {
+    return withDefaultPublicPreferences(userId, null);
+  }
+
+  try {
+    const response = await fetch("/api/profile/public-preferences", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      return withDefaultPublicPreferences(userId, null);
+    }
+
+    return withDefaultPublicPreferences(
+      userId,
+      (payload?.data as Partial<PublicProfilePreferences> | null | undefined) ?? null
+    );
+  } catch {
+    return withDefaultPublicPreferences(userId, null);
+  }
+}
+
+async function fetchProfileData(
+  userId: string,
+  userEmail: string | null,
+  userMetadata: Record<string, unknown> | undefined,
+  accessToken?: string | null
+): Promise<ProfileViewModel> {
   const [profileDbRes, collCount, followersRes, followingRes, favsRes, badgesRes] = await Promise.all([
     withQueryTimeout(
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
@@ -256,20 +290,7 @@ async function fetchProfileData(userId: string, userEmail: string | null, userMe
   }).filter((b): b is ProfileBadge => b !== null);
 
   const featuredBadges: string[] = profileData?.featured_badges || [];
-  const { data: publicPreferencesData } = await withQueryTimeout(
-    supabase
-      .from("user_public_preferences")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle(),
-    { data: null, error: null },
-    "public profile preferences"
-  );
-
-  const publicPreferences = withDefaultPublicPreferences(
-    userId,
-    publicPreferencesData as Partial<PublicProfilePreferences> | null
-  );
+  const publicPreferences = await fetchPublicPreferences(accessToken, userId);
   const publicBlocks = buildPublicProfileBlocks(publicPreferences);
 
   const identity: ProfileIdentity = {
@@ -299,7 +320,7 @@ async function fetchProfileData(userId: string, userEmail: string | null, userMe
 }
 
 export function useProfile() {
-  const { user, loading, isDemoMode } = useAuth();
+  const { user, session, loading, isDemoMode } = useAuth();
 
   return useQuery({
     queryKey: profileKeys.detail(user?.id ?? ""),
@@ -308,7 +329,7 @@ export function useProfile() {
       if (isDemoMode || !user) {
         return createFallbackViewModel();
       }
-      return fetchProfileData(user.id, user.email ?? null, user.user_metadata);
+      return fetchProfileData(user.id, user.email ?? null, user.user_metadata, session?.access_token);
     },
     enabled: !loading,
     staleTime: 60 * 1000,
