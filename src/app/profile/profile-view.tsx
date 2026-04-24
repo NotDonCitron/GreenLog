@@ -154,6 +154,7 @@ export default function ProfilePage() {
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const [userBadges, setUserBadges] = useState<Array<{ badge_id: string; badges?: Partial<import("@/lib/badges").BadgeDefinition> }>>([]);
   const [isSavingPublicPreferences, setIsSavingPublicPreferences] = useState(false);
+  const [isSavingProfileVisibility, setIsSavingProfileVisibility] = useState(false);
   const currentUserId = user?.id ?? "";
   const isCannalogAdmin = !!currentUserId && isAppAdmin(currentUserId);
 
@@ -390,6 +391,28 @@ export default function ProfilePage() {
       toastError("Öffentliches Profil konnte nicht aktualisiert werden.");
     } finally {
       setIsSavingPublicPreferences(false);
+    }
+  };
+
+  const handlePublicVisibilityChange = async (value: boolean) => {
+    if (!user || isDemoMode || isSavingProfileVisibility) return;
+
+    setIsSavingProfileVisibility(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ profile_visibility: value ? "public" : "private" })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      toastSuccess(value ? "Profilseite ist jetzt öffentlich" : "Profilseite ist jetzt privat");
+      await refetchProfile();
+    } catch (error) {
+      console.error("Public visibility update error:", error);
+      toastError("Profil-Sichtbarkeit konnte nicht aktualisiert werden.");
+    } finally {
+      setIsSavingProfileVisibility(false);
     }
   };
 
@@ -760,7 +783,8 @@ export default function ProfilePage() {
         <section className="space-y-3">
           <PublicProfilePreviewCard
             profile={profileData}
-            disabled={isSavingPublicPreferences}
+            disabled={isSavingPublicPreferences || isSavingProfileVisibility}
+            onVisibilityChange={handlePublicVisibilityChange}
             onPreferenceChange={handlePublicPreferenceChange}
           />
         </section>

@@ -405,6 +405,7 @@ export default function StrainDetailPageClient() {
         taste_rating: input.overallRating,
         effect_rating: input.overallRating,
         look_rating: input.overallRating,
+        is_public: input.isPublic,
         public_review_text: publicReviewText || null,
         organization_id: isOrgStrain ? strain.organization_id : null,
       }, { onConflict: 'strain_id,user_id' });

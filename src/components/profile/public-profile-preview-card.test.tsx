@@ -39,6 +39,23 @@ describe("PublicProfilePreviewCard", () => {
     expect(screen.getByText("Öffentliche Lieblingsstrains ohne Bestand, Charge oder Apotheke.")).toBeTruthy();
   });
 
+  it("calls onVisibilityChange when the public profile switch is toggled", () => {
+    const onVisibilityChange = vi.fn();
+
+    render(
+      <PublicProfilePreviewCard
+        profile={profileFixture}
+        disabled={false}
+        onVisibilityChange={onVisibilityChange}
+        onPreferenceChange={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("switch", { name: /Profilseite/i }));
+
+    expect(onVisibilityChange).toHaveBeenCalledWith(true);
+  });
+
   it("calls onPreferenceChange when a configurable block is toggled", () => {
     const onPreferenceChange = vi.fn();
 

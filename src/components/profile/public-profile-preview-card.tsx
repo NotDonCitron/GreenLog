@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 type PublicProfilePreviewCardProps = {
   profile: Pick<ProfileViewModel, "identity" | "publicPreferences" | "publicBlocks">;
   disabled?: boolean;
+  onVisibilityChange?: (value: boolean) => void;
   onPreferenceChange?: (key: PublicProfilePreferenceToggleKey, value: boolean) => void;
 };
 
@@ -37,9 +38,10 @@ function getPreferenceValue(preferences: PublicProfilePreferences, key: PublicPr
   return Boolean(preferences[key]);
 }
 
-export function PublicProfilePreviewCard({ profile, disabled = false, onPreferenceChange }: PublicProfilePreviewCardProps) {
+export function PublicProfilePreviewCard({ profile, disabled = false, onVisibilityChange, onPreferenceChange }: PublicProfilePreviewCardProps) {
   const [showDetails, setShowDetails] = useState(false);
   const username = profile.identity.username.replace(/^@/, "");
+  const isProfilePublic = profile.identity.profileVisibility === "public";
   const publicBlocks = profile.publicBlocks;
   const displayedBlocks = showDetails
     ? publicBlocks
@@ -71,6 +73,44 @@ export function PublicProfilePreviewCard({ profile, disabled = false, onPreferen
           <p className="text-xs leading-relaxed text-[var(--muted-foreground)]">
             Versorgung, Mengen, Dosis, Charge, Apotheke und Notizen bleiben privat.
           </p>
+        </div>
+      </div>
+
+      <div className="mt-4 flex min-w-0 flex-col gap-3 rounded-lg border border-[var(--border)]/50 bg-[var(--background)] px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[var(--foreground)] sm:tracking-[0.16em]">
+            Profilseite
+          </p>
+          <p className="mt-1 text-[11px] leading-relaxed text-[var(--muted-foreground)]">
+            Muss öffentlich sein, damit dein Link sichtbar ist.
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className={cn(
+            "text-[10px] font-bold uppercase tracking-[0.1em] sm:tracking-[0.16em]",
+            isProfilePublic ? "text-[#2FF801]" : "text-[var(--muted-foreground)]"
+          )}>
+            {isProfilePublic ? "Öffentlich" : "Privat"}
+          </span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={isProfilePublic}
+            aria-label="Profilseite öffentlich anzeigen"
+            disabled={disabled || !onVisibilityChange}
+            onClick={() => onVisibilityChange?.(!isProfilePublic)}
+            className={cn(
+              "relative h-6 w-11 rounded-full border border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+              isProfilePublic ? "bg-[#2FF801]" : "bg-[var(--muted)]"
+            )}
+          >
+            <span
+              className={cn(
+                "absolute left-0 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
+                isProfilePublic ? "translate-x-5" : "translate-x-0.5"
+              )}
+            />
+          </button>
         </div>
       </div>
 

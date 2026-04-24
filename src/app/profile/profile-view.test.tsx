@@ -51,11 +51,13 @@ vi.mock("@/lib/auth", () => ({
 }));
 
 const upsertMock = vi.fn();
+const profileUpdateEqMock = vi.fn();
+const profileUpdateMock = vi.fn(() => ({ eq: profileUpdateEqMock }));
 vi.mock("@/lib/supabase/client", () => ({
   supabase: {
     from: vi.fn(() => ({
       upsert: upsertMock,
-      update: vi.fn(() => ({ eq: vi.fn() })),
+      update: profileUpdateMock,
     })),
   },
 }));
@@ -70,6 +72,7 @@ describe("ProfileView component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(isAppAdmin).mockReturnValue(false);
+    profileUpdateEqMock.mockResolvedValue({ error: null });
   });
 
   it("should show loading spinner when loading", () => {
@@ -369,6 +372,70 @@ describe("ProfileView component", () => {
         }),
         { onConflict: "user_id" }
       );
+    });
+    expect(refetchProfile).toHaveBeenCalled();
+  });
+
+  it("persists public profile visibility", async () => {
+    const refetchProfile = vi.fn().mockResolvedValue(undefined);
+    const mockProfileData = {
+      identity: {
+        username: "@testuser",
+        displayName: "Test User",
+        initials: "TU",
+        avatarUrl: null,
+        profileVisibility: "private",
+        tagline: "",
+        bio: null,
+      },
+      stats: {
+        totalStrains: 1,
+        totalGrows: 0,
+        favoriteCount: 0,
+        unlockedBadgeCount: 0,
+        xp: 0,
+        level: 1,
+        progressToNextLevel: 0,
+        followers: 0,
+        following: 0,
+      },
+      favorites: [],
+      badges: [],
+      featuredBadgeIds: [],
+      activity: [],
+      preview: { title: "", description: "", chips: [] },
+      publicPreferences: {
+        user_id: "123",
+        show_badges: true,
+        show_favorites: false,
+        show_tried_strains: false,
+        show_reviews: false,
+        show_activity_feed: false,
+        show_follow_counts: true,
+        default_review_public: false,
+      },
+      publicBlocks: [
+        { key: "profile", label: "Profilinfo", state: "public", description: "Username, Avatar, Anzeigename und Bio." },
+      ],
+    };
+
+    (useAuth as any).mockReturnValue({
+      user: { id: "123" },
+      loading: false,
+      isDemoMode: false,
+    });
+    (useProfile as any).mockReturnValue({
+      data: mockProfileData,
+      isLoading: false,
+      refetch: refetchProfile,
+    });
+
+    render(<ProfilePage />);
+    fireEvent.click(screen.getByRole("switch", { name: /Profilseite/i }));
+
+    await waitFor(() => {
+      expect(profileUpdateMock).toHaveBeenCalledWith({ profile_visibility: "public" });
+      expect(profileUpdateEqMock).toHaveBeenCalledWith("id", "123");
     });
     expect(refetchProfile).toHaveBeenCalled();
   });
