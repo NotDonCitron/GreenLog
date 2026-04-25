@@ -82,12 +82,16 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
     badges.push({ label: `${entry.temperature}°C`, color: 'text-red-400' });
   }
 
-  const photos: string[] = [];
-  if (entry.image_url) photos.push(entry.image_url);
-  const signedPhoto = (entry.content as { signed_photo_url?: string })?.signed_photo_url;
-  if (signedPhoto) photos.push(signedPhoto);
-  const contentPhoto = (entry.content as { photo_url?: string })?.photo_url;
-  if (contentPhoto) photos.push(contentPhoto);
+  // Robust content parsing
+  const content = typeof entry.content === 'string' ? JSON.parse(entry.content) : entry.content;
+
+  // CRITICAL: Prefer signed URLs for private grow photos
+  const photos: string[] = [
+    content?.signed_photo_url,
+    content?.photo_url,
+    content?.photo_path,
+    entry.image_url
+  ].filter((u): u is string => typeof u === 'string' && u.length > 0);
 
   const date = new Date(entry.created_at);
   const dateStr = date.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
@@ -171,7 +175,7 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
           <div className="px-3 pb-3 border-t border-[var(--border)]/30 pt-3 space-y-4">
             {/* Photo grid */}
             {photos.length > 0 && (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2 animate-in zoom-in duration-300">
                 {photos.map((url, i) => (
                   <button
                     key={i}
@@ -181,13 +185,14 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
                       triggerHaptic();
                       onPhotoClick?.(url); 
                     }}
-                    className="aspect-square rounded-xl overflow-hidden bg-[var(--muted)] border border-[var(--border)] hover:opacity-80 transition-opacity shadow-sm"
+                    className="aspect-video rounded-xl overflow-hidden bg-[var(--muted)] border border-[var(--border)] hover:opacity-80 transition-opacity shadow-sm"
                   >
                     <img
                       src={resolvePublicMediaUrl(url) ?? ""}
                       alt={`Foto ${i + 1}`}
                       className="w-full h-full object-cover"
                       onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      loading="lazy"
                     />
                   </button>
                 ))}

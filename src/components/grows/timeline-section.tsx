@@ -111,10 +111,6 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
   const [selectedType, setSelectedType] = useState<'all' | GrowEntryType>('all');
   const [selectedPlantId, setSelectedPlantId] = useState<string>('all');
   
-  useEffect(() => {
-    console.log(`[Timeline] Rendering with ${entries.length} entries and ${comments.length} comments`);
-  }, [entries.length, comments.length]);
-
   const plantNameById = new Map(plants.map(plant => [plant.id, plant.plant_name]));
   
   const filteredEntries = useMemo(() => entries.filter(entry => {
@@ -129,13 +125,18 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
       const entryDate = entry.entry_date ?? entry.created_at?.split('T')[0];
       const day = entry.day_number ?? calculateGrowDayNumber(growStartDate, entryDate) ?? 0;
       
+      const content = typeof entry.content === 'string' ? JSON.parse(entry.content) : entry.content;
+      
       const photoUrls = [
-        entry.image_url,
-        (entry.content as any)?.signed_photo_url,
-        (entry.content as any)?.photo_url
+        content?.signed_photo_url,
+        content?.photo_url,
+        content?.photo_path,
+        entry.image_url
       ].filter((u): u is string => typeof u === 'string' && u.length > 0);
       
-      photoUrls.forEach(url => photos.push({ url, day }));
+      if (photoUrls.length > 0) {
+        photos.push({ url: photoUrls[0], day });
+      }
     });
     return photos;
   }, [entries, growStartDate]);
@@ -144,10 +145,14 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
   const filteredComments = comments.filter(comment => comment.grow_entry_id ? filteredEntryIds.has(comment.grow_entry_id) : true);
   const days = groupByDay(filteredEntries, filteredComments, growStartDate);
 
+  useEffect(() => {
+    console.log("[Timeline] Collected Photos:", allPhotos.length, allPhotos);
+  }, [allPhotos]);
+
   if (entries.length === 0) {
     return (
       <div className="text-center py-12 space-y-3 bg-[var(--card)]/20 rounded-3xl border border-dashed border-[var(--border)]/50">
-        <div className="text-5xl animate-bounce">🌱</div>
+        <div className="text-5xl animate-pulse">🌱</div>
         <p className="text-sm font-black uppercase tracking-wider text-[var(--muted-foreground)]">
           Noch keine Einträge
         </p>
@@ -161,7 +166,7 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
     <div className="space-y-6 pb-20 opacity-100 visible">
       {/* Visual Photo Highlights (Story-like) */}
       {allPhotos.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-3 animate-in fade-in slide-in-from-top duration-700">
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
               <Camera size={14} className="text-[#00F5FF]" />
@@ -186,6 +191,7 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
                   src={resolvePublicMediaUrl(photo.url) ?? ""} 
                   alt="" 
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-1.5">
                   <span className="text-[8px] font-black text-white uppercase italic">Tag {photo.day}</span>
@@ -230,7 +236,6 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
 
       {/* Timeline entries */}
       <div className="relative pt-2">
-        {/* Vertical Line */}
         <div
           className="absolute left-4 top-0 bottom-0 w-0.5 rounded-full bg-[#2FF801]/20"
         />
@@ -251,7 +256,6 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
                   key={`${day.day_number}-${idx}`} 
                   className="relative"
                 >
-                  {/* Day Marker */}
                   <div
                     className={`
                       absolute -left-[18px] top-3 w-6 h-6 rounded-full flex items-center justify-center z-10
