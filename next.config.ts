@@ -48,6 +48,8 @@ const connectSrc = [
   "https://*.greenlog.app",
   "https://green-log-two.vercel.app",
   "https://*.vercel.app",
+  "https://storage.cannalog.fun",
+  "https://*.cannalog.fun",
   siteOrigin,
   vercelOrigin,
   minioOrigin,
@@ -69,7 +71,8 @@ const imgSrc = [
   "https://*.greenlog.app",
   "https://green-log-two.vercel.app",
   "https://*.vercel.app",
-  "https://storage.cannalog.fun", // TODO: remove after confirming all DB URLs migrated to /media/ paths
+  "https://storage.cannalog.fun",
+  "https://*.cannalog.fun",
   siteOrigin,
   vercelOrigin,
   minioOrigin,
@@ -77,14 +80,15 @@ const imgSrc = [
 
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.greenlog-prod.app https://clerk.greenlog.app https://*.clerk.accounts.dev",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.greenlog-prod.app https://clerk.greenlog.app https://*.clerk.accounts.dev https://vercel.live",
   `connect-src ${connectSrc.join(" ")}`,
   `img-src ${imgSrc.join(" ")}`,
   "worker-src 'self' blob:",
-  "frame-src https://*.clerk.com https://clerk.greenlog-prod.app",
+  "frame-src https://*.clerk.com https://clerk.greenlog-prod.app https://vercel.live",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
 ].join("; ");
+
 
 const nextConfig: NextConfig = {
   async headers() {
