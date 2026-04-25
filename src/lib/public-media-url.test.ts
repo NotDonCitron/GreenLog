@@ -29,9 +29,19 @@ describe("resolvePublicMediaUrl", () => {
     );
   });
 
-  it("falls back to the original media path without a valid public origin", () => {
+  it("falls back to production media origin without a valid public origin", () => {
     process.env.NEXT_PUBLIC_SITE_URL = "not a url";
 
-    expect(resolvePublicMediaUrl("/media/avatars/user.jpg")).toBe("/media/avatars/user.jpg");
+    expect(resolvePublicMediaUrl("/media/avatars/user.jpg")).toBe(
+      "https://green-log-two.vercel.app/media/avatars/user.jpg",
+    );
+  });
+
+  it("falls back to production media origin without a configured public origin", () => {
+    delete process.env.NEXT_PUBLIC_SITE_URL;
+
+    expect(resolvePublicMediaUrl("/media/org-logos/logo.jpg")).toBe(
+      "https://green-log-two.vercel.app/media/org-logos/logo.jpg",
+    );
   });
 });

@@ -1,13 +1,14 @@
 const PUBLIC_MEDIA_PREFIX = "/media/";
+const FALLBACK_PUBLIC_SITE_ORIGIN = "https://green-log-two.vercel.app";
 
 function readPublicSiteOrigin(): string {
   const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (!raw) return "";
+  if (!raw) return FALLBACK_PUBLIC_SITE_ORIGIN;
 
   try {
     return new URL(raw).origin;
   } catch {
-    return "";
+    return FALLBACK_PUBLIC_SITE_ORIGIN;
   }
 }
 
@@ -19,5 +20,5 @@ export function resolvePublicMediaUrl(value: string | null | undefined): string 
   if (!trimmed.startsWith(PUBLIC_MEDIA_PREFIX)) return trimmed;
 
   const origin = readPublicSiteOrigin();
-  return origin ? `${origin}${trimmed}` : trimmed;
+  return `${origin}${trimmed}`;
 }
