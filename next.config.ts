@@ -38,9 +38,6 @@ const minioOrigin = parseOrigin(process.env.MINIO_ENDPOINT);
 
 const connectSrc = [
   "'self'",
-  "https://clerk.greenlog-prod.app",
-  "https://clerk.greenlog.app",
-  "https://*.clerk.accounts.dev",
   "https://uwjyvvvykyueuxtdkscs.supabase.co",
   "https://*.ingest.sentry.io",
   "https://*.ingest.us.sentry.io",
@@ -57,7 +54,6 @@ const imgSrc = [
   "'self'",
   "data:",
   "blob:",
-  "https://*.clerk.com",
   "https://uwjyvvvykyueuxtdkscs.supabase.co",
   "https://www.leafly.com",
   "https://images.leafly.com",
@@ -77,11 +73,11 @@ const imgSrc = [
 
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.greenlog-prod.app https://clerk.greenlog.app https://*.clerk.accounts.dev",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live",
   `connect-src ${connectSrc.join(" ")}`,
   `img-src ${imgSrc.join(" ")}`,
   "worker-src 'self' blob:",
-  "frame-src https://*.clerk.com https://clerk.greenlog-prod.app",
+  "frame-src https://vercel.live",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
 ].join("; ");
@@ -180,14 +176,6 @@ const nextConfig: NextConfig = {
     ],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 31536000,
-  },
-  experimental: {
-    optimizePackageImports: [
-      'lucide-react',
-      '@supabase/supabase-js',
-      'date-fns',
-      'framer-motion',
-    ],
   },
 };
 

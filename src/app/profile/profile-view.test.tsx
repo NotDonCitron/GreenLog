@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import ProfilePage from "./profile-view";
 import { useProfile } from "@/hooks/useProfile";
+import { useAppAdmin } from "@/hooks/useAppAdmin";
 import { useAuth } from "@/components/auth-provider";
-import { isAppAdmin } from "@/lib/auth";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
 
@@ -16,6 +16,10 @@ vi.mock("@/components/toast-provider", () => ({
 
 vi.mock("@/hooks/useProfile", () => ({
   useProfile: vi.fn(),
+}));
+
+vi.mock("@/hooks/useAppAdmin", () => ({
+  useAppAdmin: vi.fn(),
 }));
 
 vi.mock("@/components/auth-provider", () => ({
@@ -46,10 +50,6 @@ vi.mock("@/components/theme-toggle", () => ({
   ThemeToggle: () => null,
 }));
 
-vi.mock("@/lib/auth", () => ({
-  isAppAdmin: vi.fn(() => false),
-}));
-
 const upsertMock = vi.fn();
 vi.mock("@/lib/supabase/client", () => ({
   supabase: {
@@ -69,7 +69,7 @@ vi.mock("next/navigation", () => ({
 describe("ProfileView component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(isAppAdmin).mockReturnValue(false);
+    vi.mocked(useAppAdmin).mockReturnValue({ isAdmin: false, loading: false });
   });
 
   it("should show loading spinner when loading", () => {
@@ -211,7 +211,7 @@ describe("ProfileView component", () => {
       ],
     };
 
-    vi.mocked(isAppAdmin).mockReturnValue(true);
+    vi.mocked(useAppAdmin).mockReturnValue({ isAdmin: true, loading: false });
     (useAuth as any).mockReturnValue({
       user: { id: "admin-1" },
       loading: false,

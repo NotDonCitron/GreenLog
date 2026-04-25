@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/components/auth-provider';
+import { useAppAdmin } from '@/hooks/useAppAdmin';
+import { resolvePublicMediaUrl } from '@/lib/public-media-url';
 import { detectSourceWarnings, getStrainSourcePolicy } from '@/lib/strains/source-policy';
 import {
   getStrainPublicationSnapshot,
@@ -226,7 +228,7 @@ function SourceTierPill({ source }: { source: string }) {
 
 function StrainImage({ imageUrl, canonicalPath, name }: { imageUrl: string | null; canonicalPath: string | null; name: string }) {
   const [broken, setBroken] = useState(false);
-  const url = imageUrl || canonicalPath;
+  const url = resolvePublicMediaUrl(imageUrl || canonicalPath);
 
   if (!url || broken) {
     return (
@@ -314,7 +316,7 @@ function SortHeader({ label, sortKey, currentKey, currentDir, onSort }: { label:
 }
 
 export default function AdminStrainsPage() {
-  const { user, session, loading: authLoading } = useAuth();
+  const { session, loading: authLoading } = useAuth();
   const [strains, setStrains] = useState<Strain[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -332,8 +334,7 @@ export default function AdminStrainsPage() {
   const [bulkLoading, setBulkLoading] = useState(false);
   const undoCounterRef = useRef(0);
 
-  const ADMIN_IDS = (process.env.NEXT_PUBLIC_APP_ADMIN_IDS || '').split(',').map((id) => id.trim()).filter(Boolean);
-  const isAdmin = user && ADMIN_IDS.includes(user.id);
+  const { isAdmin, loading: adminLoading } = useAppAdmin();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -352,9 +353,9 @@ export default function AdminStrainsPage() {
   }, []);
 
   useEffect(() => {
-    if (authLoading || !isAdmin) return;
+    if (authLoading || adminLoading || !isAdmin) return;
     void fetchStrains();
-  }, [authLoading, isAdmin, includeAllStatuses]);
+  }, [authLoading, adminLoading, isAdmin, includeAllStatuses]);
 
   const fetchStrains = async () => {
     setLoading(true);

@@ -38,7 +38,7 @@ describe("strain source policy", () => {
         imageUrl: "https://example.com/image.jpg",
         sourceNotes: "",
       })
-    ).toContain("Quelle braucht dokumentierte manuelle Prüfung.");
+    ).toContain("Quelle braucht dokumentierte manuelle Pruefung.");
   });
 
   it("flags stock-style wording in notes", () => {

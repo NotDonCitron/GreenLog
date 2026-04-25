@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '@/components/auth-provider';
+import { useAppAdmin } from '@/hooks/useAppAdmin';
 import { supabase } from '@/lib/supabase';
 import { getStrainPublicationSnapshot } from '@/lib/strains/publication';
 import { getStrainSourcePolicy } from '@/lib/strains/source-policy';
@@ -154,17 +155,12 @@ function PlaceholderCard({ strain }: { strain: PlaceholderStrain }) {
 }
 
 export default function AdminPlaceholdersPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const [strains, setStrains] = useState<PlaceholderStrain[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-
-  const adminIds = useMemo(
-    () => (process.env.NEXT_PUBLIC_APP_ADMIN_IDS || '').split(',').map((id) => id.trim()).filter(Boolean),
-    [],
-  );
-  const isAdmin = !!user && adminIds.includes(user.id);
+  const { isAdmin, loading: adminLoading } = useAppAdmin();
 
   const fetchPlaceholders = async () => {
     setLoading(true);
@@ -191,9 +187,9 @@ export default function AdminPlaceholdersPage() {
   };
 
   useEffect(() => {
-    if (authLoading || !isAdmin) return;
+    if (authLoading || adminLoading || !isAdmin) return;
     void fetchPlaceholders();
-  }, [authLoading, isAdmin]);
+  }, [authLoading, adminLoading, isAdmin]);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -219,7 +215,7 @@ export default function AdminPlaceholdersPage() {
     };
   }, [strains]);
 
-  if (authLoading || loading) {
+  if (authLoading || adminLoading || loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="animate-spin text-[var(--muted-foreground)]" size={24} />

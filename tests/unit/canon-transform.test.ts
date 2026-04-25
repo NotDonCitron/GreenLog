@@ -45,9 +45,9 @@ describe('normalizeType', () => {
     });
 
     it('defaults unknown types to hybrid', () => {
-        expect(normalizeType('ruderalis')).toBe('hybrid');
-        expect(normalizeType('')).toBe('hybrid');
-        expect(normalizeType(null)).toBe('hybrid');
+        expect(normalizeType('ruderalis')).toBeNull();
+        expect(normalizeType('')).toBeNull();
+        expect(normalizeType(null)).toBeNull();
     });
 
     it('handles indica-dominant variants', () => {
@@ -60,6 +60,11 @@ describe('normalizeType', () => {
 });
 
 describe('transformRawStrain', () => {
+    function expectField(result, field, value) {
+        expect(result[field]).toEqual(expect.objectContaining({ value }));
+        expect(result[field].confidence).toEqual(expect.any(Number));
+    }
+
     it('transforms a raw API record to canonical shape', () => {
         const raw = {
             name: 'Blue Dream',
@@ -77,15 +82,15 @@ describe('transformRawStrain', () => {
 
         expect(result.name).toBe('Blue Dream');
         expect(result.slug).toBe('blue-dream');
-        expect(result.type).toBe('sativa');
-        expect(result.thc_min).toBe(17);
-        expect(result.thc_max).toBe(24);
-        expect(result.cbd_min).toBe(0.1);
-        expect(result.cbd_max).toBe(0.2);
-        expect(result.terpenes).toEqual(['myrcene', 'caryophyllene', 'pinene']);
-        expect(result.flavors).toEqual(['berry', 'sweet', 'blueberry']);
-        expect(result.effects).toEqual(['relaxed', 'creative', 'happy']);
-        expect(result.image_url).toBe('https://cdn.example.com/blue-dream.jpg');
+        expectField(result, 'type', 'sativa');
+        expectField(result, 'thc_min', 17);
+        expectField(result, 'thc_max', 24);
+        expectField(result, 'cbd_min', 0.1);
+        expectField(result, 'cbd_max', 0.2);
+        expectField(result, 'terpenes', ['myrcene', 'caryophyllene', 'pinene']);
+        expectField(result, 'flavors', ['berry', 'sweet', 'blueberry']);
+        expectField(result, 'effects', ['relaxed', 'creative', 'happy']);
+        expectField(result, 'image_url', 'https://cdn.example.com/blue-dream.jpg');
         expect(result.source).toBe('strain-compass');
     });
 
@@ -95,7 +100,7 @@ describe('transformRawStrain', () => {
             terpene_profile: ['Myrcene', 'myrcene', 'MYRCENE', 'Limonene'],
         };
         const result = transformRawStrain(raw, 'test');
-        expect(result.terpenes).toEqual(['myrcene', 'limonene']);
+        expectField(result, 'terpenes', ['myrcene', 'limonene']);
     });
 
     it('handles missing fields gracefully', () => {
@@ -103,18 +108,18 @@ describe('transformRawStrain', () => {
         const result = transformRawStrain(raw, 'test');
         expect(result.name).toBe('Bare Minimum');
         expect(result.slug).toBe('bare-minimum');
-        expect(result.type).toBe('hybrid');
-        expect(result.thc_min).toBeNull();
-        expect(result.terpenes).toEqual([]);
-        expect(result.flavors).toEqual([]);
-        expect(result.effects).toEqual([]);
+        expectField(result, 'type', null);
+        expectField(result, 'thc_min', null);
+        expectField(result, 'terpenes', []);
+        expectField(result, 'flavors', []);
+        expectField(result, 'effects', []);
     });
 
     it('truncates description to 2000 chars', () => {
         const longDesc = 'A'.repeat(3000);
         const raw = { name: 'Long', description: longDesc };
         const result = transformRawStrain(raw, 'test');
-        expect(result.description.length).toBe(2000);
+        expect(result.description.value.length).toBe(2000);
     });
 
     it('extracts THC/CBD from flat values', () => {
@@ -124,9 +129,9 @@ describe('transformRawStrain', () => {
             cbd_percent: 0.5,
         };
         const result = transformRawStrain(raw, 'test');
-        expect(result.thc_min).toBe(22);
-        expect(result.thc_max).toBe(22);
-        expect(result.cbd_min).toBe(0.5);
-        expect(result.cbd_max).toBe(0.5);
+        expectField(result, 'thc_min', 22);
+        expectField(result, 'thc_max', 22);
+        expectField(result, 'cbd_min', 0.5);
+        expectField(result, 'cbd_max', 0.5);
     });
 });

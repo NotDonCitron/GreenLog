@@ -1,10 +1,9 @@
 import { NextRequest } from "next/server";
 import { jsonError, jsonSuccess, authenticateRequest } from "@/lib/api-response";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
+import { isAppAdmin } from "@/lib/auth";
 import { buildDefaultSourceNotes, detectSourceWarnings } from "@/lib/strains/source-policy";
 import dns from "dns";
-
-const ADMIN_IDS = (process.env.APP_ADMIN_IDS || process.env.NEXT_PUBLIC_APP_ADMIN_IDS || "").split(",").filter(Boolean);
 
 const LEAFLY_HOSTS = new Set(["leafly.com", "www.leafly.com"]);
 
@@ -130,7 +129,7 @@ export async function POST(req: NextRequest) {
         if (!auth || auth instanceof Response) return auth || jsonError("Unauthorized", 401);
         const { user } = auth;
 
-        if (!ADMIN_IDS.includes(user.id)) {
+        if (!isAppAdmin(user.id)) {
             return jsonError("Forbidden", 403);
         }
 

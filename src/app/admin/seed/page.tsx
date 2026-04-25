@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
+import { useAppAdmin } from "@/hooks/useAppAdmin";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Loader2, Database, RefreshCw, ShieldCheck, ChevronLeft, AlertCircle } from "lucide-react";
@@ -35,13 +36,11 @@ const STRAIN_DATA: Partial<Strain>[] = [
 
 export default function AdminSeedPage() {
   const { user } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAppAdmin();
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
-  const ADMIN_IDS = (process.env.NEXT_PUBLIC_APP_ADMIN_IDS || "").split(",").filter(Boolean);
-  const isAdmin = user && ADMIN_IDS.includes(user.id);
-
-  if (!isAdmin) {
+  if (adminLoading || !isAdmin) {
     return (
       <main className="min-h-screen bg-white text-black flex flex-col items-center justify-center p-6">
         <Card className="max-w-md w-full p-10 bg-[var(--card)] border-red-500/20 text-center space-y-8 shadow-2xl border-t-4 border-t-red-500">
