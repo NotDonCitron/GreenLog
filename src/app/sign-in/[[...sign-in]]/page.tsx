@@ -95,29 +95,25 @@ export default function SignInPage() {
             } catch (proxyError) {
                 console.warn("[SignInPage] local sign-in proxy unavailable, falling back to direct auth", proxyError);
 
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), AUTH_REQUEST_TIMEOUT_MS);
-
-                try {
-                    const { data, error: directError } = await supabase.auth.signInWithPassword({
+                const { data, error: directError } = await withTimeout(
+                    supabase.auth.signInWithPassword({
                         email,
                         password,
-                    });
+                    }),
+                    "direct sign-in"
+                );
 
-                    if (directError) {
-                        setError(directError.message);
-                        return;
-                    }
-
-                    if (!data.session?.access_token || !data.session?.refresh_token) {
-                        setError("Anmeldung fehlgeschlagen");
-                        return;
-                    }
-
-                    session = data.session;
-                } finally {
-                    clearTimeout(timeoutId);
+                if (directError) {
+                    setError(directError.message);
+                    return;
                 }
+
+                if (!data.session?.access_token || !data.session?.refresh_token) {
+                    setError("Anmeldung fehlgeschlagen");
+                    return;
+                }
+
+                session = data.session;
             }
 
             if (!session) {

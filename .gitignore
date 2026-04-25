@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+playwright-report/
+test-results/
 
 # next.js
 /.next/
@@ -25,10 +27,13 @@
 *.pem
 
 # debug
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+smoke-preview.html
+smoke_snapshot.txt
 
 # env files (can opt-in for committing if needed)
 .env*
@@ -43,6 +48,8 @@ next-env.d.ts
 .worktrees/
 
 # temp / scraped data
+.venv/
+**/.venv/
 scripts/.tmp-images/
 scripts/.tmp-leafly-images/
 scripts/output/
@@ -50,6 +57,9 @@ scripts/*.log
 scripts/*.txt
 scripts/*.jsonl
 scripts/*.bak
+scripts/.secondary-image-lock.json
+scripts/.tmp-*/
+scripts/tmp/
 scripts/.farmer-pipeline-lock.json
 scripts/.fill-missing-images-lock.json
 scripts/.image-pipeline-lock.json
@@ -67,15 +77,10 @@ android/
 out/
 
 # generated test/browser artifacts
-playwright-report/
-test-results/
 tmp/
 
 # dev docs
 docs/strains-missing-images.md
-
-# migration files (can be re-created)
-supabase/migrations/*.sql
 
 # helper scripts
 scripts/check-*.mjs

@@ -1,5 +1,7 @@
 # GreenLog Projektstand — April 2026
 
+> Outdated snapshot: This document is historical and contains stale stack notes such as Next.js 16/Pages Router. Use `README.md`, `docs/APP-ANALYSIS.md`, `docs/RELEASE.md`, and `docs/launch/FINAL-LAUNCH-REPORT.md` for the current launch-readiness state.
+
 ## Was ist GreenLog?
 B2B-Mandantenfähige Plattform für Clubs (CSCs) und Apotheken zur Verwaltung von Cannabis-Strains, Collections und Organisationen.
 

@@ -1,177 +1,80 @@
-# Supabase CLI
+# GreenLog / CannaLog
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=develop)](https://coveralls.io/github/supabase/cli?branch=develop) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+GreenLog, also referred to as CannaLog in parts of the product copy, is an 18+ PWA for cannabis strain tracking, grow diary workflows, community and organization features, and compliance-adjacent documentation. The app does not sell, broker, deliver, or facilitate cannabis transactions.
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+## Tech Stack
 
-This repository contains all the functionality for Supabase CLI.
+- Next.js 15 App Router
+- React 19
+- TypeScript
+- Supabase Auth, Postgres, RLS, and Storage/edge infrastructure
+- Tailwind CSS 4
+- Capacitor for the later Android packaging path
+- Vitest and Playwright
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
-
-## Getting started
-
-### Install the CLI
-
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+## Setup
 
 ```bash
-npm i supabase --save-dev
+npm install
+cp .env.example .env.local
 ```
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+Fill `.env.local` with project-specific values. Never commit real secrets.
 
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
+Required for normal app runtime:
 
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
+- `NEXT_PUBLIC_SUPABASE_URL` - public Supabase project URL.
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - public browser anon key.
+- `SUPABASE_SERVICE_ROLE_KEY` - server-only Supabase service role key for trusted API routes.
+- `APP_ADMIN_IDS` - comma-separated Supabase user IDs that should pass server-side admin checks.
+- `NEXT_PUBLIC_SITE_URL` - canonical public site URL used by links, metadata, and notification flows.
 
-<details>
-  <summary><b>macOS</b></summary>
+Required when the related feature is enabled:
 
-  Available via [Homebrew](https://brew.sh). To install:
+- `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` for push notifications.
+- `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_REGION`, `MINIO_FORCE_PATH_STYLE`, `MINIO_PUBLIC_MODE`, and `IMAGE_PUBLIC_BASE_PATH` for GreenLog-owned media storage.
+- `SENTRY_*` and `NEXT_PUBLIC_SENTRY_DSN` for Sentry.
+- `TURNSTILE_TEST_KEY` and `TURNSTILE_TEST_SECRET` for local E2E bypass keys.
+- `MINIMAX_API_KEY` for optional AI-assisted feedback refinement.
 
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
+## Development
 
 ```bash
-supabase bootstrap
+npm run dev
 ```
 
-Or using npx:
+The local app runs on `http://localhost:3000` by default.
+
+## Tests
 
 ```bash
-npx supabase bootstrap
+npm run lint
+npm run test
+npm run test:e2e
 ```
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+Playwright is configured to start the dev server automatically when no local server is already running.
 
-## Docs
+## Build
 
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
-
-## Breaking changes
-
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
-
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
-
-## Developing
-
-To run from source:
-
-```sh
-# Go >= 1.22
-go run . help
+```bash
+npm run build
+npm run start
 ```
+
+`npm run build` produces the Next.js production build. `npm run start` serves the generated build locally for smoke testing.
+
+## Deployment
+
+The launch path is PWA on Vercel first. Android packaging through Capacitor comes later, after the PWA beta is stable, policy copy is final, and Play Store assets/review requirements are prepared.
+
+Before public launch, verify:
+
+- Vercel deployment is green.
+- Supabase migrations are applied to the target project.
+- Required legal pages are reachable.
+- No `.env.local`, service keys, logs, or virtual environments are committed.
+
+## Legal Notice
+
+GreenLog/CannaLog is only for adult users. The product does not sell cannabis, arrange sales, broker purchases, provide delivery, or connect buyers and sellers. Users are responsible for following applicable local laws and regulations.

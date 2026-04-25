@@ -1,183 +1,49 @@
 # GreenLog App Analysis
 
+Status: launch-readiness snapshot from 2026-04-25. Older notes in this file mentioned Next.js 16 and several missing MVP features that no longer match the repository.
+
 ## Overview
-**Project:** GreenLog - Medical Cannabis Collection & Grow Tracker  
-**Tech Stack:** Next.js 16, React 19, TypeScript, Supabase, Tailwind CSS, Tesseract.js OCR
 
----
+GreenLog/CannaLog is a Next.js 15 PWA for adult cannabis strain tracking, grow diary workflows, private consumption logging, community/organization surfaces, and compliance-adjacent documentation.
 
-## ✅ What's Working Well
+## Current Stack
 
-### 1. Solid Technical Foundation
-- Modern stack with latest versions (Next.js 16, React 19)
-- TypeScript for type safety
-- Supabase for auth + database with proper RLS policies
-- Clean component architecture with shadcn/ui
+- Next.js 15.5.x App Router
+- React 19
+- TypeScript
+- Supabase Auth, Postgres, RLS, and server-side service-role API paths
+- Tailwind CSS 4
+- Capacitor scaffolding for later Android packaging
+- Vitest unit/component tests
+- Playwright E2E tests
 
-### 2. Beautiful UI/UX
-- **Dark forest green theme** (#355E3B) with cyan (#00F5FF) and neon green (#2FF801) accents
-- Mobile-first design with bottom navigation
-- **Swipeable card interface** on home screen
-- Smooth animations with CSS/Framer Motion patterns
-- Responsive touch gestures
+## Implemented Product Areas
 
-### 3. Strain Database
-- 200+ medical cannabis strains with high-quality images
-- Rich data: THC/CBD ranges, terpenes, effects, flavors
-- Slug-based routing for SEO
-- Brand/manufacturer information
-- Medical indications tracked
+| Area | Current status |
+| --- | --- |
+| Public PWA shell | Implemented with manifest and service worker |
+| Age gate | Implemented, must be smoke-tested on production |
+| Supabase Auth | Active auth path; Clerk is not used by product code |
+| Strain catalog | Published strain list/detail pages with image quality gates |
+| Private collection and quick log | Implemented through user-scoped data |
+| Grow diary | Implemented with grow timelines, entries, media, and owner controls |
+| Community and organizations | Implemented with membership/invite surfaces and feed/activity features |
+| Profile privacy | Implemented with public-profile visibility flags |
+| Admin review surfaces | Implemented behind server-side admin checks |
+| Push notifications | Implemented, requires valid VAPID environment before launch |
 
-### 4. Core Features Implemented
-| Feature | Status |
-|---------|--------|
-| User authentication | ✅ |
-| Strain browsing/search | ✅ |
-| Card-based collection view | ✅ |
-| Ratings system (1-5 stars) | ✅ |
-| Grow journal/tracker | ✅ |
-| Grow entries with environment data | ✅ |
-| Profile page | ✅ |
-| OCR label scanner | ✅ |
-| Demo mode | ✅ |
+## Launch-Relevant Findings
 
-### 5. Gamification
-- XP and level system
-- Badge achievements
-- Progress tracking
-- Visual feedback on collection progress
+- Build stability has been restored for the current code path; the production build succeeds when run outside the restricted sandbox.
+- Client-side admin ID exposure has been removed from app code. Admin checks now use `APP_ADMIN_IDS` server-side, and client UI consumes `/api/admin/me` for a boolean result.
+- Clerk dependencies/imports are not used in product code. Remaining Clerk mentions are historical docs/log context or defensive service-worker bypass text.
+- Supabase RLS has a new launch hardening migration for notifications, community feed writes, organization member mutation, and invite mutation.
+- Several storage/API validation risks remain open and are documented in `docs/audits/LAUNCH-SECURITY-STATUS.md`.
 
-### 6. Security
-- Supabase Row Level Security (RLS) properly configured
-- Users can only modify their own data
-- Public/private grow visibility options
+## Launch Risks To Track
 
----
-
-## ❌ Issues & Missing Features
-
-### Critical (Broken/Missing)
-
-#### 1. **User Collection Table Mismatch**
-```sql
--- App code references: user_collection
--- Actual schema has: ratings (used as collection)
-```
-- Home page tries to query `user_collection` table which doesn't exist
-- Falls back to demo data or fails silently
-
-#### 2. **Terpene Data Structure Inconsistent**
-```sql
--- Current: TEXT[] (simple array)
-terpenes TEXT[] DEFAULT '{}'
-
--- Should be: JSONB (structured objects with percentages)
--- {name: "Myrcene", percent: 0.5}
-```
-
-#### 3. **Favorites/Wishlist Not Implemented**
-- Heart button exists on strain cards
-- No backend logic to save favorites
-- No `user_strain_relations` table
-
-#### 4. **Public/Private Profile Mode Incomplete**
-- TypeScript has `profile_visibility` field
-- Supabase schema lacks `profile_visibility` column
-- No API filtering for public vs private profiles
-
-#### 5. **Badge System UI-Only**
-- Badges display in profile
-- No trigger logic in backend
-- Missing badge definitions table updates
-
-### Medium Priority
-
-#### 6. **THC/CBD Field Naming Inconsistency**
-```typescript
-// Types expect:
-avg_thc?: number;
-avg_cbd?: number;
-
-// Schema has:
-thc_min DECIMAL(4,1);
-thc_max DECIMAL(4,1);
-cbd_min DECIMAL(4,1);
-cbd_max DECIMAL(4,1);
-```
-
-#### 7. **Missing Strain Types**
-- Enum only: `('indica', 'sativa', 'hybrid')`
-- Missing: `ruderalis`
-
-### Minor
-
-#### 8. **Code Duplication**
-- Similar API calls repeated across pages
-- Missing shared hooks for data fetching
-
-#### 9. **No Image Upload**
-- User images for ratings are referenced but upload not implemented
-
----
-
-## 📊 Architecture Diagram
-
-```mermaid
-graph TB
-    subgraph "Frontend Pages"
-        Home[Home - Card Swipe]
-        Strains[Strain Browser]
-        StrainDetail[Strain Detail]
-        Profile[Profile/Badges]
-        Grows[Grow Tracker]
-        Scanner[OCR Scanner]
-    end
-
-    subgraph "Supabase Tables"
-        Profiles[profiles]
-        Strains[strains]
-        Ratings[ratings]
-        Grows[grows]
-        GrowEntries[grow_entries]
-    end
-
-    subgraph "Missing Tables"
-        UserCollection[❌ user_collection]
-        UserStrainRelations[❌ user_strain_relations]
-        Badges[⚠️ badges - incomplete]
-    end
-
-    Home --> |queries| UserCollection
-    Strains --> Ratings
-    Profile --> Badges
-    Ratings --> Strains
-    Grows --> Strains
-    Grows --> GrowEntries
-```
-
----
-
-## 🎯 Recommended Priority
-
-### Phase 1: Fix Broken Features
-1. Create `user_collection` table or fix Home page to use `ratings`
-2. Fix terpene data structure in schema and migrations
-3. Add `profile_visibility` to profiles table
-
-### Phase 2: Complete MVP
-4. Implement favorites/wishlist with `user_strain_relations` table
-5. Add badge trigger functions
-6. Fix THC/CBD field consistency
-
-### Phase 3: Polish
-7. Add image upload functionality
-8. Create shared data hooks
-9. Performance optimization
-
----
-
-## Questions for Planning
-
-1. Should `user_collection` be a separate table or continue using `ratings`?
-2. Is the current rating system (1-5 stars) sufficient or need detailed reviews?
-3. Which missing feature matters most to you?
+- Apply and verify Supabase migrations in the real target project before public beta.
+- Re-check live RLS policy state after migration, because historical migrations still contain older `auth.uid()` and broad storage policy definitions.
+- Add magic-byte image validation before accepting broad public uploads at scale.
+- Finish Vercel production smoke checks after deployment.
+- Keep Android/Play Store work behind the PWA launch until policy, screenshots, store listing, and native build workflow are ready.

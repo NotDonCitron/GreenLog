@@ -87,7 +87,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Bypass Clerk completely to avoid issues with 307 redirects and clerk-js
+  // Bypass external auth/vendor scripts so redirects and opaque responses stay out of the app cache.
   if (url.hostname.includes('clerk')) return;
 
   // API routes → network first, fall back to cache

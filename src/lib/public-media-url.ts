@@ -35,14 +35,22 @@ export function resolvePublicMediaUrl(value: string | null | undefined): string 
     return resolvePublicMediaPath(trimmed);
   }
 
-  // Check if it starts with one of our known buckets (with or without leading slash)
-  const pathToCheck = trimmed.startsWith("/") ? trimmed.slice(1) : trimmed;
-  const startsWithBucket = KNOWN_BUCKETS.some(bucket => pathToCheck.startsWith(`${bucket}/`));
+  // Bucket paths without a leading slash are storage keys. Leading-slash paths
+  // are app routes/assets unless they use the explicit /media proxy prefix.
+  const startsWithBucket = !trimmed.startsWith("/") && KNOWN_BUCKETS.some(bucket => trimmed.startsWith(`${bucket}/`));
 
   if (startsWithBucket) {
     return resolvePublicMediaPath(trimmed);
   }
 
-  // Fallback: if it's a relative path that looks like it belongs to us, try to resolve it anyway
+  // S3 object keys from grow-entry-photos: user_id/grow_id/file.ext (no bucket prefix)
+  // These are MinIO keys that need the grow-entry-photos bucket prepended
+  if (!trimmed.startsWith("/") && !trimmed.startsWith("http") && trimmed.includes("/")) {
+    const segments = trimmed.split("/");
+    if (segments.length >= 3 && /^[0-9a-f]{8}-/i.test(segments[0])) {
+      return resolvePublicMediaPath(`grow-entry-photos/${trimmed}`);
+    }
+  }
+
   return trimmed;
 }

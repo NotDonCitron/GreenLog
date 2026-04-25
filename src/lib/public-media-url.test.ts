@@ -44,4 +44,14 @@ describe("resolvePublicMediaUrl", () => {
       "https://storage.cannalog.fun/org-logos/logo.jpg",
     );
   });
+
+  it("resolves S3 object keys from grow-entry-photos (user_id/grow_id/file.ext)", () => {
+    expect(resolvePublicMediaUrl("a7a6b350-b35c-4c67-9abb-ea73f0f05b50/3d9e473a-fa25-42f5-a3cd-67a45321bd89/5bd3c3f9-06a2-4355-bd90-cb15421e1547.png")).toBe(
+      "https://storage.cannalog.fun/grow-entry-photos/a7a6b350-b35c-4c67-9abb-ea73f0f05b50/3d9e473a-fa25-42f5-a3cd-67a45321bd89/5bd3c3f9-06a2-4355-bd90-cb15421e1547.png",
+    );
+  });
+
+  it("does not misdetect short non-UUID paths as S3 keys", () => {
+    expect(resolvePublicMediaUrl("some/random/path")).toBe("some/random/path");
+  });
 });

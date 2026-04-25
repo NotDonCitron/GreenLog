@@ -25,6 +25,7 @@ import { ShareModal } from "@/components/social/share-modal";
 import { MatchScoreBadge } from "@/components/strains/match-score-badge";
 import { QuickLogModal, type QuickLogSaveInput } from "@/components/strains/quick-log-modal";
 import { PRIVATE_QUICK_LOG_SIDE_EFFECTS, QUICK_LOG_STATUSES } from "@/lib/quick-log";
+import { useAppAdmin } from "@/hooks/useAppAdmin";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message) {
@@ -33,13 +34,6 @@ const getErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
-const APP_ADMIN_IDS = process.env.NEXT_PUBLIC_APP_ADMIN_IDS || "";
-
-function isAppAdmin(userId: string): boolean {
-  if (!APP_ADMIN_IDS || !userId) return false;
-  return APP_ADMIN_IDS.split(",").map(id => id.trim()).filter(Boolean).includes(userId);
-}
-
 export default function StrainDetailPageClient() {
   const { slug } = useParams();
   const { user, session, isDemoMode, activeOrganization } = useAuth();
@@ -47,6 +41,7 @@ export default function StrainDetailPageClient() {
   const queryClient = useQueryClient();
   const { collectedIds, collectAction } = useCollection();
   const { error: toastError, success: toastSuccess } = useToast();
+  const { isAdmin } = useAppAdmin();
 
   const [strain, setStrain] = useState<Strain & { organization?: { id: string; name: string; slug: string; organization_type: string } } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -657,7 +652,7 @@ export default function StrainDetailPageClient() {
               <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
             </label>
           )}
-          {user && isAppAdmin(user.id) && (
+          {user && isAdmin && (
             <>
               <label className="p-2 rounded-full bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/20 hover:bg-[#2FF801]/20 transition-all cursor-pointer" title="Admin: Globales Strain-Bild">
                 {isAdminUploading ? <Loader2 size={20} className="animate-spin" /> : <Upload size={20} />}

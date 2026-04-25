@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '@/components/auth-provider';
+import { useAppAdmin } from '@/hooks/useAppAdmin';
 import { supabase } from '@/lib/supabase';
 import { getStrainPublicationSnapshot } from '@/lib/strains/publication';
 import { getStrainSourcePolicy, type StrainSourceTier } from '@/lib/strains/source-policy';
@@ -274,19 +275,14 @@ function CountPill({ label, value }: { label: string; value: number }) {
 }
 
 export default function AdminCommandCenterPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const [strains, setStrains] = useState<AdminStrain[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const adminIds = useMemo(
-    () => (process.env.NEXT_PUBLIC_APP_ADMIN_IDS || '').split(',').map((id) => id.trim()).filter(Boolean),
-    [],
-  );
-  const isAdmin = !!user && adminIds.includes(user.id);
+  const { isAdmin, loading: adminLoading } = useAppAdmin();
 
   useEffect(() => {
-    if (authLoading || !isAdmin) return;
+    if (authLoading || adminLoading || !isAdmin) return;
 
     async function load() {
       setLoading(true);
@@ -311,7 +307,7 @@ export default function AdminCommandCenterPage() {
     }
 
     void load();
-  }, [authLoading, isAdmin]);
+  }, [authLoading, adminLoading, isAdmin]);
 
   const enriched = useMemo<EnrichedStrain[]>(() => {
     return strains.map((strain) => {
