@@ -12,11 +12,11 @@ afterEach(() => {
 });
 
 describe("resolvePublicMediaUrl", () => {
-  it("resolves public media paths against the configured public site origin", () => {
+  it("resolves public media paths against the public storage origin", () => {
     process.env.NEXT_PUBLIC_SITE_URL = "https://green-log-two.vercel.app/app";
 
     expect(resolvePublicMediaUrl("/media/strains/blue-dream.jpg")).toBe(
-      "https://green-log-two.vercel.app/media/strains/blue-dream.jpg",
+      "https://storage.cannalog.fun/strains/blue-dream.jpg",
     );
   });
 
@@ -29,19 +29,19 @@ describe("resolvePublicMediaUrl", () => {
     );
   });
 
-  it("falls back to production media origin without a valid public origin", () => {
+  it("does not depend on a valid public site origin", () => {
     process.env.NEXT_PUBLIC_SITE_URL = "not a url";
 
     expect(resolvePublicMediaUrl("/media/avatars/user.jpg")).toBe(
-      "https://green-log-two.vercel.app/media/avatars/user.jpg",
+      "https://storage.cannalog.fun/avatars/user.jpg",
     );
   });
 
-  it("falls back to production media origin without a configured public origin", () => {
+  it("does not depend on a configured public site origin", () => {
     delete process.env.NEXT_PUBLIC_SITE_URL;
 
     expect(resolvePublicMediaUrl("/media/org-logos/logo.jpg")).toBe(
-      "https://green-log-two.vercel.app/media/org-logos/logo.jpg",
+      "https://storage.cannalog.fun/org-logos/logo.jpg",
     );
   });
 });

@@ -1,15 +1,9 @@
 const PUBLIC_MEDIA_PREFIX = "/media/";
-const FALLBACK_PUBLIC_SITE_ORIGIN = "https://green-log-two.vercel.app";
+const PUBLIC_MEDIA_STORAGE_ORIGIN = "https://storage.cannalog.fun";
 
-function readPublicSiteOrigin(): string {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (!raw) return FALLBACK_PUBLIC_SITE_ORIGIN;
-
-  try {
-    return new URL(raw).origin;
-  } catch {
-    return FALLBACK_PUBLIC_SITE_ORIGIN;
-  }
+function resolvePublicMediaPath(path: string): string {
+  const storagePath = path.slice(PUBLIC_MEDIA_PREFIX.length);
+  return `${PUBLIC_MEDIA_STORAGE_ORIGIN}/${storagePath}`;
 }
 
 export function resolvePublicMediaUrl(value: string | null | undefined): string | null {
@@ -19,6 +13,5 @@ export function resolvePublicMediaUrl(value: string | null | undefined): string 
   if (!trimmed) return null;
   if (!trimmed.startsWith(PUBLIC_MEDIA_PREFIX)) return trimmed;
 
-  const origin = readPublicSiteOrigin();
-  return `${origin}${trimmed}`;
+  return resolvePublicMediaPath(trimmed);
 }
