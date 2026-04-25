@@ -147,7 +147,7 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
   if (entries.length === 0) {
     return (
       <div className="text-center py-12 space-y-3 bg-[var(--card)]/20 rounded-3xl border border-dashed border-[var(--border)]/50">
-        <div className="text-5xl">🌱</div>
+        <div className="text-5xl animate-bounce">🌱</div>
         <p className="text-sm font-black uppercase tracking-wider text-[var(--muted-foreground)]">
           Noch keine Einträge
         </p>
@@ -175,6 +175,7 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
             {allPhotos.map((photo, i) => (
               <button
                 key={`${photo.url}-${i}`}
+                type="button"
                 onClick={() => {
                   triggerHaptic();
                   onPhotoClick?.(photo.url);
@@ -195,8 +196,8 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
         </div>
       )}
 
-      {/* Filters (Simplified, non-sticky for debug) */}
-      <div className="space-y-3 bg-[var(--card)]/40 p-4 rounded-2xl border border-[var(--border)]/30">
+      {/* Filters */}
+      <div className="space-y-3 bg-[var(--card)]/40 p-4 rounded-2xl border border-[var(--border)]/30 relative z-30">
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {TYPE_FILTERS.map(filter => (
             <FilterChip
@@ -240,7 +241,7 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
             <p className="text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-widest">Keine Einträge für Filter</p>
           </div>
         ) : (
-          <div className="space-y-10 ml-4">
+          <div className="space-y-10 ml-4 relative z-10">
             {days.map((day, idx) => {
               const isToday = day.date?.split('T')[0] === todayStr;
               const isFirst = idx === 0;

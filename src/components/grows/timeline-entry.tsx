@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import type { GrowEntry, GrowComment } from '@/lib/types';
 import { resolvePublicMediaUrl } from '@/lib/public-media-url';
 import { triggerHaptic } from '@/lib/haptics';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const ENTRY_TYPE_CONFIG: Record<string, { icon: typeof Droplets; color: string; borderColor: string; emoji: string }> = {
   watering: { icon: Droplets, color: 'text-blue-400', borderColor: 'border-l-blue-400', emoji: '💧' },
@@ -101,10 +100,8 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
   }
 
   return (
-    <div className="relative">
-      <motion.div
-        layout
-        initial={false}
+    <div className="relative opacity-100 visible">
+      <div
         className={`
           ml-4 bg-[var(--card)] border border-[var(--border)]/50 rounded-xl overflow-hidden
           border-l-4 ${config.borderColor}
@@ -170,130 +167,122 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
         </div>
 
         {/* ── Expanded content ── */}
-        <AnimatePresence>
-          {expanded && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="px-3 pb-3 border-t border-[var(--border)]/30 pt-3 space-y-4">
-                {/* Photo grid */}
-                {photos.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2">
-                    {photos.map((url, i) => (
-                      <button
-                        key={i}
-                        onClick={(e) => { 
-                          e.stopPropagation(); 
-                          triggerHaptic();
-                          onPhotoClick?.(url); 
-                        }}
-                        className="aspect-square rounded-xl overflow-hidden bg-[var(--muted)] border border-[var(--border)] hover:opacity-80 transition-opacity shadow-sm"
-                      >
-                        <img
-                          src={resolvePublicMediaUrl(url) ?? ""}
-                          alt={`Foto ${i + 1}`}
-                          className="w-full h-full object-cover"
-                          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* All value badges */}
-                {badges.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {badges.map((b, i) => (
-                      <Badge
-                        key={i}
-                        variant="outline"
-                        className={`text-[10px] py-1 px-2 font-black ${b.color} border-current/20 bg-current/5 rounded-lg`}
-                      >
-                        {b.label}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-
-                {/* Notes text */}
-                {entry.notes && (
-                  <div className="bg-[var(--muted)]/30 p-3 rounded-xl border-l-2 border-[#2FF801]/40">
-                    <p className="text-xs text-[var(--foreground)] leading-relaxed">
-                      {entry.notes}
-                    </p>
-                  </div>
-                )}
-
-                {/* ── Inline flat comments ── */}
-                <div className="pt-3 border-t border-[var(--border)]/30 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)] flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#00F5FF]" />
-                      {comments.length} Kommentar{comments.length !== 1 ? 'e' : ''}
-                    </p>
-                  </div>
-
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="flex gap-3">
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00F5FF]/20 to-[#2FF801]/20 flex items-center justify-center flex-shrink-0 overflow-hidden border border-[var(--border)]">
-                        {(comment.profiles as any)?.avatar_url ? (
-                          <img
-                            src={resolvePublicMediaUrl((comment.profiles as any).avatar_url) ?? ""}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-[10px] font-black text-[#00F5FF]">
-                            {(comment.profiles as any)?.username?.[0]?.toUpperCase() ?? (comment.profiles as any)?.display_name?.[0]?.toUpperCase() ?? '?'}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-[11px] font-black text-[var(--foreground)]">
-                            {(comment.profiles as any)?.display_name ?? (comment.profiles as any)?.username ?? 'Unbekannt'}
-                          </span>
-                          <span className="text-[9px] text-[var(--muted-foreground)] font-bold">
-                            {new Date(comment.created_at).toLocaleDateString('de-DE', {
-                              day: '2-digit', month: 'short',
-                            })}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-[var(--muted-foreground)] leading-snug">
-                          {comment.comment}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Add comment form */}
-                  {onAddComment && (
-                    <form onSubmit={handleCommentSubmit} className="flex gap-2 mt-2" onClick={e => e.stopPropagation()}>
-                      <input
-                        value={commentText}
-                        onChange={e => setCommentText(e.target.value)}
-                        placeholder="Kommentar schreiben..."
-                        className="flex-1 bg-[var(--input)] border border-[var(--border)]/50 rounded-xl px-4 py-2 text-[11px] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-[#2FF801]/50 transition-all"
-                      />
-                      <button
-                        type="submit"
-                        disabled={!commentText.trim()}
-                        className="px-4 py-2 bg-[#2FF801] text-black text-[11px] font-black rounded-xl disabled:opacity-40 hover:bg-[#2FF801]/90 transition-all active:scale-95 shadow-lg shadow-[#2FF801]/20"
-                      >
-                        Senden
-                      </button>
-                    </form>
-                  )}
-                </div>
+        {expanded && (
+          <div className="px-3 pb-3 border-t border-[var(--border)]/30 pt-3 space-y-4">
+            {/* Photo grid */}
+            {photos.length > 0 && (
+              <div className="grid grid-cols-3 gap-2">
+                {photos.map((url, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      triggerHaptic();
+                      onPhotoClick?.(url); 
+                    }}
+                    className="aspect-square rounded-xl overflow-hidden bg-[var(--muted)] border border-[var(--border)] hover:opacity-80 transition-opacity shadow-sm"
+                  >
+                    <img
+                      src={resolvePublicMediaUrl(url) ?? ""}
+                      alt={`Foto ${i + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  </button>
+                ))}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+            )}
+
+            {/* All value badges */}
+            {badges.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {badges.map((b, i) => (
+                  <Badge
+                    key={i}
+                    variant="outline"
+                    className={`text-[10px] py-1 px-2 font-black ${b.color} border-current/20 bg-current/5 rounded-lg`}
+                  >
+                    {b.label}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {/* Notes text */}
+            {entry.notes && (
+              <div className="bg-[var(--muted)]/30 p-3 rounded-xl border-l-2 border-[#2FF801]/40">
+                <p className="text-xs text-[var(--foreground)] leading-relaxed">
+                  {entry.notes}
+                </p>
+              </div>
+            )}
+
+            {/* ── Inline flat comments ── */}
+            <div className="pt-3 border-t border-[var(--border)]/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)] flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#00F5FF]" />
+                  {comments.length} Kommentar{comments.length !== 1 ? 'e' : ''}
+                </p>
+              </div>
+
+              {comments.map((comment) => (
+                <div key={comment.id} className="flex gap-3">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00F5FF]/20 to-[#2FF801]/20 flex items-center justify-center flex-shrink-0 overflow-hidden border border-[var(--border)]">
+                    {(comment.profiles as any)?.avatar_url ? (
+                      <img
+                        src={resolvePublicMediaUrl((comment.profiles as any).avatar_url) ?? ""}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[10px] font-black text-[#00F5FF]">
+                        {(comment.profiles as any)?.username?.[0]?.toUpperCase() ?? (comment.profiles as any)?.display_name?.[0]?.toUpperCase() ?? '?'}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[11px] font-black text-[var(--foreground)]">
+                        {(comment.profiles as any)?.display_name ?? (comment.profiles as any)?.username ?? 'Unbekannt'}
+                      </span>
+                      <span className="text-[9px] text-[var(--muted-foreground)] font-bold">
+                        {new Date(comment.created_at).toLocaleDateString('de-DE', {
+                          day: '2-digit', month: 'short',
+                        })}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[var(--muted-foreground)] leading-snug">
+                      {comment.comment}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              {/* Add comment form */}
+              {onAddComment && (
+                <form onSubmit={handleCommentSubmit} className="flex gap-2 mt-2" onClick={e => e.stopPropagation()}>
+                  <input
+                    value={commentText}
+                    onChange={e => setCommentText(e.target.value)}
+                    placeholder="Kommentar schreiben..."
+                    className="flex-1 bg-[var(--input)] border border-[var(--border)]/50 rounded-xl px-4 py-2 text-[11px] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-[#2FF801]/50 transition-all"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!commentText.trim()}
+                    className="px-4 py-2 bg-[#2FF801] text-black text-[11px] font-black rounded-xl disabled:opacity-40 hover:bg-[#2FF801]/90 transition-all active:scale-95 shadow-lg shadow-[#2FF801]/20"
+                  >
+                    Senden
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
