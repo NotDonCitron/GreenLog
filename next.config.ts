@@ -50,10 +50,12 @@ const connectSrc = [
   "https://*.vercel.app",
   "https://storage.cannalog.fun",
   "https://*.cannalog.fun",
+  "https://vercel.live",
   siteOrigin,
   vercelOrigin,
   minioOrigin,
 ].filter(Boolean);
+
 
 const imgSrc = [
   "'self'",

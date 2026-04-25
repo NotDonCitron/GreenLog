@@ -1,9 +1,8 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { TimelineEntry } from './timeline-entry';
-import { Camera, LayoutGrid, List, Info } from 'lucide-react';
+import { Camera, Info } from 'lucide-react';
 import type { GrowEntry, GrowComment, GrowEntryType, Plant } from '@/lib/types';
 import { resolvePublicMediaUrl } from '@/lib/public-media-url';
 import { triggerHaptic } from '@/lib/haptics';
@@ -148,12 +147,9 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
   if (entries.length === 0) {
     return (
       <div className="text-center py-12 space-y-3 bg-[var(--card)]/20 rounded-3xl border border-dashed border-[var(--border)]/50">
-        <div className="text-5xl animate-bounce">🌱</div>
+        <div className="text-5xl">🌱</div>
         <p className="text-sm font-black uppercase tracking-wider text-[var(--muted-foreground)]">
           Noch keine Einträge
-        </p>
-        <p className="text-[10px] text-[var(--muted-foreground)]/60 px-8">
-          Nutze die Buttons oben, um deinen Grow zu dokumentieren.
         </p>
       </div>
     );
@@ -162,7 +158,7 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
   const todayStr = new Date().toISOString().split('T')[0];
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-20 opacity-100 visible">
       {/* Visual Photo Highlights (Story-like) */}
       {allPhotos.length > 0 && (
         <div className="space-y-3">
@@ -177,15 +173,13 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide px-1">
             {allPhotos.map((photo, i) => (
-              <motion.button
+              <button
                 key={`${photo.url}-${i}`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   triggerHaptic();
                   onPhotoClick?.(photo.url);
                 }}
-                className="relative shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-2 border-[#2FF801]/20 bg-[var(--card)] shadow-lg shadow-black/20"
+                className="relative shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-2 border-[#2FF801]/20 bg-[var(--card)] shadow-lg shadow-black/20 transition-transform active:scale-95"
               >
                 <img 
                   src={resolvePublicMediaUrl(photo.url) ?? ""} 
@@ -195,14 +189,14 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-1.5">
                   <span className="text-[8px] font-black text-white uppercase italic">Tag {photo.day}</span>
                 </div>
-              </motion.button>
+              </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* Filters */}
-      <div className="space-y-3 sticky top-[70px] z-20 bg-[var(--background)]/90 backdrop-blur-xl py-4 -mx-6 px-6 border-b border-[var(--border)]/30 shadow-xl shadow-black/10">
+      {/* Filters (Simplified, non-sticky for debug) */}
+      <div className="space-y-3 bg-[var(--card)]/40 p-4 rounded-2xl border border-[var(--border)]/30">
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {TYPE_FILTERS.map(filter => (
             <FilterChip
@@ -235,12 +229,9 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
 
       {/* Timeline entries */}
       <div className="relative pt-2">
-        {/* Vertical Line with Gradient */}
+        {/* Vertical Line */}
         <div
-          className="absolute left-4 top-0 bottom-0 w-0.5 rounded-full"
-          style={{
-            background: 'linear-gradient(to bottom, #2FF801 0%, #2FF801 20%, rgba(47,248,1,0.2) 60%, transparent 100%)',
-          }}
+          className="absolute left-4 top-0 bottom-0 w-0.5 rounded-full bg-[#2FF801]/20"
         />
 
         {filteredEntries.length === 0 ? (
@@ -250,58 +241,53 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
           </div>
         ) : (
           <div className="space-y-10 ml-4">
-            <AnimatePresence mode="popLayout">
-              {days.map((day, idx) => {
-                const isToday = day.date?.split('T')[0] === todayStr;
-                const isFirst = idx === 0;
+            {days.map((day, idx) => {
+              const isToday = day.date?.split('T')[0] === todayStr;
+              const isFirst = idx === 0;
 
-                return (
-                  <motion.div 
-                    key={`${day.day_number}-${idx}`} 
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: idx * 0.05 }}
-                    className="relative"
+              return (
+                <div 
+                  key={`${day.day_number}-${idx}`} 
+                  className="relative"
+                >
+                  {/* Day Marker */}
+                  <div
+                    className={`
+                      absolute -left-[18px] top-3 w-6 h-6 rounded-full flex items-center justify-center z-10
+                      border shadow-lg transition-all
+                      ${isToday
+                        ? 'bg-[#2FF801] text-black border-[#2FF801] shadow-[#2FF801]/30 scale-110'
+                        : isFirst
+                        ? 'bg-[#355E3B] text-white border-[#2FF801]/30'
+                        : 'bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)]'
+                      }
+                    `}
                   >
-                    {/* Day Marker Bubble */}
-                    <div
-                      className={`
-                        absolute -left-[18px] top-3 w-6 h-6 rounded-full flex items-center justify-center z-10
-                        border shadow-lg transition-all duration-500
-                        ${isToday
-                          ? 'bg-[#2FF801] text-black border-[#2FF801] shadow-[#2FF801]/30 scale-110'
-                          : isFirst
-                          ? 'bg-[#355E3B] text-white border-[#2FF801]/30'
-                          : 'bg-[var(--card)] border-[var(--border)] text-[var(--muted-foreground)]'
-                        }
-                      `}
-                    >
-                      {isFirst ? (
-                        <span className="text-[10px]">🌱</span>
-                      ) : (
-                        <span className="text-[9px] font-black">{day.day_number}</span>
-                      )}
-                    </div>
+                    {isFirst ? (
+                      <span className="text-[10px]">🌱</span>
+                    ) : (
+                      <span className="text-[9px] font-black">{day.day_number}</span>
+                    )}
+                  </div>
 
-                    <div className="space-y-4 pt-1">
-                      {day.entries.map((entry) => (
-                        <TimelineEntry
-                          key={entry.id}
-                          entry={entry}
-                          comments={day.comments.filter(c => c.grow_entry_id === entry.id)}
-                          isToday={isToday}
-                          dayNumber={day.day_number}
-                          affectedPlantNames={getAffectedPlantIds(entry).map(id => plantNameById.get(id)).filter((name): name is string => Boolean(name))}
-                          onPhotoClick={onPhotoClick}
-                          onAddComment={onAddComment}
-                          onDeleteEntry={onDeleteEntry}
-                        />
-                      ))}
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+                  <div className="space-y-4 pt-1">
+                    {day.entries.map((entry) => (
+                      <TimelineEntry
+                        key={entry.id}
+                        entry={entry}
+                        comments={day.comments.filter(c => c.grow_entry_id === entry.id)}
+                        isToday={isToday}
+                        dayNumber={day.day_number}
+                        affectedPlantNames={getAffectedPlantIds(entry).map(id => plantNameById.get(id)).filter((name): name is string => Boolean(name))}
+                        onPhotoClick={onPhotoClick}
+                        onAddComment={onAddComment}
+                        onDeleteEntry={onDeleteEntry}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
