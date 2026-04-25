@@ -1,9 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TimelineEntry } from './timeline-entry';
-import { Camera, LayoutGrid, List } from 'lucide-react';
+import { Camera, LayoutGrid, List, Info } from 'lucide-react';
 import type { GrowEntry, GrowComment, GrowEntryType, Plant } from '@/lib/types';
 import { resolvePublicMediaUrl } from '@/lib/public-media-url';
 import { triggerHaptic } from '@/lib/haptics';
@@ -22,12 +22,9 @@ function dateOnlyToUtcTimestamp(date: string): number {
 
 function calculateGrowDayNumber(startDate: string | undefined, entryDate: string | undefined): number | null {
   if (!startDate || !entryDate) return null;
-
   const startTime = dateOnlyToUtcTimestamp(startDate);
   const entryTime = dateOnlyToUtcTimestamp(entryDate);
-
   if (Number.isNaN(startTime) || Number.isNaN(entryTime)) return null;
-
   const diffDays = Math.floor((entryTime - startTime) / (1000 * 60 * 60 * 24));
   return Math.max(1, diffDays + 1);
 }
@@ -115,6 +112,10 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
   const [selectedType, setSelectedType] = useState<'all' | GrowEntryType>('all');
   const [selectedPlantId, setSelectedPlantId] = useState<string>('all');
   
+  useEffect(() => {
+    console.log(`[Timeline] Rendering with ${entries.length} entries and ${comments.length} comments`);
+  }, [entries.length, comments.length]);
+
   const plantNameById = new Map(plants.map(plant => [plant.id, plant.plant_name]));
   
   const filteredEntries = useMemo(() => entries.filter(entry => {
@@ -146,14 +147,13 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
 
   if (entries.length === 0) {
     return (
-      <div className="text-center py-12 space-y-3">
-        <motion.div 
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="text-5xl"
-        >🌱</motion.div>
+      <div className="text-center py-12 space-y-3 bg-[var(--card)]/20 rounded-3xl border border-dashed border-[var(--border)]/50">
+        <div className="text-5xl animate-bounce">🌱</div>
         <p className="text-sm font-black uppercase tracking-wider text-[var(--muted-foreground)]">
           Noch keine Einträge
+        </p>
+        <p className="text-[10px] text-[var(--muted-foreground)]/60 px-8">
+          Nutze die Buttons oben, um deinen Grow zu dokumentieren.
         </p>
       </div>
     );
@@ -162,15 +162,18 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
   const todayStr = new Date().toISOString().split('T')[0];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20">
       {/* Visual Photo Highlights (Story-like) */}
       {allPhotos.length > 0 && (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 px-1">
-            <Camera size={12} className="text-[#00F5FF]" />
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">
-              Foto-Highlights
-            </h3>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <Camera size={14} className="text-[#00F5FF]" />
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">
+                Foto-Highlights
+              </h3>
+            </div>
+            <span className="text-[9px] font-bold text-[var(--muted-foreground)]/50">{allPhotos.length} Fotos</span>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide px-1">
             {allPhotos.map((photo, i) => (
@@ -182,15 +185,15 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
                   triggerHaptic();
                   onPhotoClick?.(photo.url);
                 }}
-                className="relative shrink-0 w-20 h-20 rounded-2xl overflow-hidden border-2 border-[#2FF801]/20 bg-[var(--card)]"
+                className="relative shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-2 border-[#2FF801]/20 bg-[var(--card)] shadow-lg shadow-black/20"
               >
                 <img 
                   src={resolvePublicMediaUrl(photo.url) ?? ""} 
                   alt="" 
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1">
-                  <span className="text-[8px] font-black text-white">TAG {photo.day}</span>
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-1.5">
+                  <span className="text-[8px] font-black text-white uppercase italic">Tag {photo.day}</span>
                 </div>
               </motion.button>
             ))}
@@ -199,7 +202,7 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
       )}
 
       {/* Filters */}
-      <div className="space-y-3 sticky top-0 z-20 bg-[var(--background)]/80 backdrop-blur-md py-2 -mx-2 px-2 border-b border-[var(--border)]/30">
+      <div className="space-y-3 sticky top-[70px] z-20 bg-[var(--background)]/90 backdrop-blur-xl py-4 -mx-6 px-6 border-b border-[var(--border)]/30 shadow-xl shadow-black/10">
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {TYPE_FILTERS.map(filter => (
             <FilterChip
@@ -231,66 +234,76 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
       </div>
 
       {/* Timeline entries */}
-      <div className="relative">
+      <div className="relative pt-2">
+        {/* Vertical Line with Gradient */}
         <div
-          className="absolute left-4 top-0 bottom-0 w-0.5"
+          className="absolute left-4 top-0 bottom-0 w-0.5 rounded-full"
           style={{
-            background: 'linear-gradient(to bottom, #2FF801 0%, #2FF801 20%, rgba(47,248,1,0.3) 50%, var(--border) 100%)',
+            background: 'linear-gradient(to bottom, #2FF801 0%, #2FF801 20%, rgba(47,248,1,0.2) 60%, transparent 100%)',
           }}
         />
 
-        <div className="space-y-8 ml-4">
-          <AnimatePresence mode="popLayout">
-            {days.map((day, idx) => {
-              const isToday = day.date?.split('T')[0] === todayStr;
-              const isFirst = idx === 0;
+        {filteredEntries.length === 0 ? (
+          <div className="ml-10 py-10 text-center bg-[var(--card)]/30 rounded-2xl border border-[var(--border)]/50">
+            <Info size={24} className="mx-auto mb-2 text-[var(--muted-foreground)] opacity-30" />
+            <p className="text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-widest">Keine Einträge für Filter</p>
+          </div>
+        ) : (
+          <div className="space-y-10 ml-4">
+            <AnimatePresence mode="popLayout">
+              {days.map((day, idx) => {
+                const isToday = day.date?.split('T')[0] === todayStr;
+                const isFirst = idx === 0;
 
-              return (
-                <motion.div 
-                  key={`${day.day_number}-${idx}`} 
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  className="relative"
-                >
-                  <div
-                    className={`
-                      absolute -left-[18px] top-3 w-6 h-6 rounded-full flex items-center justify-center z-10
-                      ${isToday
-                        ? 'bg-[#2FF801] text-black shadow-lg shadow-[#2FF801]/30'
-                        : isFirst
-                        ? 'bg-[#355E3B] text-white'
-                        : 'bg-[var(--card)] border border-[var(--border)] text-[var(--muted-foreground)]'
-                      }
-                    `}
+                return (
+                  <motion.div 
+                    key={`${day.day_number}-${idx}`} 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: idx * 0.05 }}
+                    className="relative"
                   >
-                    {isFirst ? (
-                      <span className="text-[10px]">🌱</span>
-                    ) : (
-                      <span className="text-[9px] font-black">{day.day_number}</span>
-                    )}
-                  </div>
+                    {/* Day Marker Bubble */}
+                    <div
+                      className={`
+                        absolute -left-[18px] top-3 w-6 h-6 rounded-full flex items-center justify-center z-10
+                        border shadow-lg transition-all duration-500
+                        ${isToday
+                          ? 'bg-[#2FF801] text-black border-[#2FF801] shadow-[#2FF801]/30 scale-110'
+                          : isFirst
+                          ? 'bg-[#355E3B] text-white border-[#2FF801]/30'
+                          : 'bg-[var(--card)] border-[var(--border)] text-[var(--muted-foreground)]'
+                        }
+                      `}
+                    >
+                      {isFirst ? (
+                        <span className="text-[10px]">🌱</span>
+                      ) : (
+                        <span className="text-[9px] font-black">{day.day_number}</span>
+                      )}
+                    </div>
 
-                  <div className="space-y-3">
-                    {day.entries.map((entry) => (
-                      <TimelineEntry
-                        key={entry.id}
-                        entry={entry}
-                        comments={day.comments.filter(c => c.grow_entry_id === entry.id)}
-                        isToday={isToday}
-                        dayNumber={day.day_number}
-                        affectedPlantNames={getAffectedPlantIds(entry).map(id => plantNameById.get(id)).filter((name): name is string => Boolean(name))}
-                        onPhotoClick={onPhotoClick}
-                        onAddComment={onAddComment}
-                        onDeleteEntry={onDeleteEntry}
-                      />
-                    ))}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
+                    <div className="space-y-4 pt-1">
+                      {day.entries.map((entry) => (
+                        <TimelineEntry
+                          key={entry.id}
+                          entry={entry}
+                          comments={day.comments.filter(c => c.grow_entry_id === entry.id)}
+                          isToday={isToday}
+                          dayNumber={day.day_number}
+                          affectedPlantNames={getAffectedPlantIds(entry).map(id => plantNameById.get(id)).filter((name): name is string => Boolean(name))}
+                          onPhotoClick={onPhotoClick}
+                          onAddComment={onAddComment}
+                          onDeleteEntry={onDeleteEntry}
+                        />
+                      ))}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
     </div>
   );
