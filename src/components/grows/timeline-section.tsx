@@ -159,7 +159,7 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
     );
   }
 
-  const mostRecentDay = days[0]?.day_number ?? 0;
+  const todayStr = new Date().toISOString().split('T')[0];
 
   return (
     <div className="space-y-6">
@@ -242,7 +242,7 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
         <div className="space-y-8 ml-4">
           <AnimatePresence mode="popLayout">
             {days.map((day, idx) => {
-              const isToday = day.day_number === mostRecentDay;
+              const isToday = day.date?.split('T')[0] === todayStr;
               const isFirst = idx === 0;
 
               return (
