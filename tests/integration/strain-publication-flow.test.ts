@@ -251,6 +251,7 @@ describe('API: PATCH /api/admin/strains/[id]/publication', () => {
       quality_score: 100,
       reviewed_by: 'admin-user',
     });
+    expect(updatePayloads[0]).not.toHaveProperty('source_notes');
   });
 
   it('allows setting strain to draft', async () => {
@@ -307,6 +308,7 @@ describe('API: PATCH /api/admin/strains/[id]/publication', () => {
   it('allows setting strain to review without full publish gate', async () => {
     vi.mocked(authModule.isAppAdmin).mockReturnValue(true);
 
+    const updatePayloads: any[] = [];
     const supabase = {
       auth: {
         getUser: vi.fn(async () => ({
@@ -325,22 +327,25 @@ describe('API: PATCH /api/admin/strains/[id]/publication', () => {
                 })),
               })),
             })),
-            update: vi.fn(() => ({
-              eq: vi.fn(() => ({
-                select: vi.fn(() => ({
-                  single: vi.fn(async () => ({
-                    data: {
-                      id: 'strain-1',
-                      publication_status: 'review',
-                      quality_score: 14,
-                      reviewed_by: 'admin-user',
-                      reviewed_at: new Date().toISOString(),
-                    },
-                    error: null,
+            update: vi.fn((payload: any) => {
+              updatePayloads.push(payload);
+              return {
+                eq: vi.fn(() => ({
+                  select: vi.fn(() => ({
+                    single: vi.fn(async () => ({
+                      data: {
+                        id: 'strain-1',
+                        publication_status: 'review',
+                        quality_score: 14,
+                        reviewed_by: 'admin-user',
+                        reviewed_at: new Date().toISOString(),
+                      },
+                      error: null,
+                    })),
                   })),
                 })),
-              })),
-            })),
+              };
+            }),
           };
         }
         return {};
@@ -353,6 +358,67 @@ describe('API: PATCH /api/admin/strains/[id]/publication', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.data.strain.publication_status).toBe('review');
+    expect(updatePayloads[0]).not.toHaveProperty('source_notes');
+  });
+
+  it('updates source notes only when explicitly provided', async () => {
+    vi.mocked(authModule.isAppAdmin).mockReturnValue(true);
+
+    const updatePayloads: any[] = [];
+    const supabase = {
+      auth: {
+        getUser: vi.fn(async () => ({
+          data: { user: { id: 'admin-user' } },
+          error: null,
+        })),
+      },
+      from: vi.fn((table: string) => {
+        if (table === 'strains') {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                single: vi.fn(async () => ({
+                  data: completeStrain,
+                  error: null,
+                })),
+              })),
+            })),
+            update: vi.fn((payload: any) => {
+              updatePayloads.push(payload);
+              return {
+                eq: vi.fn(() => ({
+                  select: vi.fn(() => ({
+                    single: vi.fn(async () => ({
+                      data: {
+                        id: 'strain-1',
+                        publication_status: 'review',
+                        quality_score: 100,
+                        reviewed_by: 'admin-user',
+                        reviewed_at: new Date().toISOString(),
+                      },
+                      error: null,
+                    })),
+                  })),
+                })),
+              };
+            }),
+          };
+        }
+        return {};
+      }),
+    };
+    (getAuthenticatedClient as ReturnType<typeof vi.fn>).mockResolvedValue(supabase);
+
+    const res = await PATCH(
+      makeRequest({ publication_status: 'review', source_notes: 'Zur Review zurückgestellt.' }),
+      makeParams()
+    );
+
+    expect(res.status).toBe(200);
+    expect(updatePayloads[0]).toMatchObject({
+      publication_status: 'review',
+      source_notes: 'Zur Review zurückgestellt.',
+    });
   });
 
   it('blocks risky sources without manual source notes', async () => {
