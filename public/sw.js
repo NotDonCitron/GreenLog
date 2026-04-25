@@ -5,11 +5,6 @@ const MAX_STATIC = 100;
 const MAX_API = 50;
 const IMAGE_EXTENSIONS = ['.avif', '.gif', '.jpeg', '.jpg', '.png', '.svg', '.webp'];
 const STATIC_DESTINATIONS = new Set(['audio', 'font', 'image', 'manifest', 'script', 'style', 'video']);
-const BYPASS_IMAGE_HOSTS = new Set([
-  'leafly-public.imgix.net',
-  'uwjyvvvykyueuxtdkscs.supabase.co',
-]);
-
 const STATIC_ASSETS = [
   '/manifest.json',
   '/icon-192.png',
@@ -57,7 +52,6 @@ function isImageRequest(request, url) {
 
 function shouldBypassExternalImageRequest(request, url) {
   return url.origin !== self.location.origin &&
-    BYPASS_IMAGE_HOSTS.has(url.hostname) &&
     isImageRequest(request, url);
 }
 
