@@ -334,11 +334,11 @@ export default function StrainDetailPageClient() {
     }
   };
 
-  const handleUnpublishToDraft = async () => {
+  const handleSendToReview = async () => {
     if (!strain || !user || isDemoMode) return;
 
     const confirmed = window.confirm(
-      `Möchtest du „${strain.name}“ wirklich aus dem Live-Betrieb nehmen und zurück in die Drafts verschieben?`
+      `Möchtest du „${strain.name}“ wirklich aus dem Live-Katalog nehmen und zur Admin-Prüfung sammeln?`
     );
     if (!confirmed) return;
 
@@ -357,8 +357,8 @@ export default function StrainDetailPageClient() {
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          publication_status: "draft",
-          source_notes: "Zurückgezogen durch Admin aus Detailseite",
+          publication_status: "review",
+          source_notes: "Zur Review zurückgestellt durch Admin aus Detailseite.",
         }),
       });
 
@@ -367,7 +367,7 @@ export default function StrainDetailPageClient() {
         throw new Error(json.error?.message || "Zurückziehen fehlgeschlagen");
       }
 
-      toastSuccess(`„${strain.name}“ wurde zurück in die Drafts verschoben.`);
+      toastSuccess(`„${strain.name}“ wurde zur Admin-Prüfung gesammelt.`);
       router.push("/strains");
     } catch (err: unknown) {
       console.error("Unpublish error:", err);
@@ -669,10 +669,10 @@ export default function StrainDetailPageClient() {
                 <input type="file" className="hidden" accept="image/*" onChange={handleAdminImageUpload} disabled={isAdminUploading} />
               </label>
               <button
-                onClick={handleUnpublishToDraft}
+                onClick={handleSendToReview}
                 disabled={isUnpublishing}
                 className="p-2 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20 hover:bg-orange-500/20 transition-all"
-                title="Zurück in Drafts verschieben"
+                title="Zur Admin-Prüfung sammeln"
               >
                 {isUnpublishing ? <Loader2 size={20} className="animate-spin" /> : <Archive size={20} />}
               </button>

@@ -33,6 +33,7 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json().catch(() => null);
   const publicationStatus = body?.publication_status;
+  const hasSourceNotes = body && Object.hasOwn(body, "source_notes");
   const sourceNotes = body?.source_notes;
 
   if (!isValidPublicationStatus(publicationStatus)) {
@@ -61,15 +62,26 @@ export async function PATCH(
     });
   }
 
+  const updatePayload: {
+    publication_status: StrainPublicationStatus;
+    source_notes?: string | null;
+    quality_score: number;
+    reviewed_by: string;
+    reviewed_at: string;
+  } = {
+    publication_status: publicationStatus,
+    quality_score: review.qualityScore,
+    reviewed_by: user.id,
+    reviewed_at: new Date().toISOString(),
+  };
+
+  if (hasSourceNotes) {
+    updatePayload.source_notes = typeof sourceNotes === "string" && sourceNotes.trim() ? sourceNotes : null;
+  }
+
   const { data: updated, error: updateError } = await supabase
     .from("strains")
-    .update({
-      publication_status: publicationStatus,
-      source_notes: typeof sourceNotes === "string" && sourceNotes.trim() ? sourceNotes : null,
-      quality_score: review.qualityScore,
-      reviewed_by: user.id,
-      reviewed_at: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq("id", id)
     .select("id, publication_status, quality_score, reviewed_by, reviewed_at")
     .single();
