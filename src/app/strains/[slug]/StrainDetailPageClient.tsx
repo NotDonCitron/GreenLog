@@ -18,6 +18,7 @@ import { sanitizeDisplayText } from "@/lib/strain-display-text";
 import { checkAndUnlockBadges } from "@/lib/badges";
 import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 import { useCollection } from "@/hooks/useCollection";
+import { triggerSuccessHaptic } from "@/lib/haptics";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { TerpeneRadarChart } from "@/components/strains/terpene-radar-chart";
 import { ShareModal } from "@/components/social/share-modal";
@@ -484,6 +485,8 @@ export default function StrainDetailPageClient() {
         userThc: (strain as any).avg_thc ?? strain.thc_max ?? undefined,
         userCbd: (strain as any).avg_cbd ?? strain.cbd_max ?? undefined
       });
+
+      triggerSuccessHaptic();
 
       setBatchInfo(nextBatchInfo);
       setUserNotes(nextUserNotes);
