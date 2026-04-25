@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Droplets, Leaf, Activity, Camera, Sun, Flag, FileText, ChevronDown, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { GrowEntry, GrowComment } from '@/lib/types';
+import { resolvePublicMediaUrl } from '@/lib/public-media-url';
 
 const ENTRY_TYPE_CONFIG: Record<string, { icon: typeof Droplets; color: string; borderColor: string; emoji: string }> = {
   watering: { icon: Droplets, color: 'text-blue-400', borderColor: 'border-l-blue-400', emoji: '💧' },
@@ -181,7 +182,7 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
                     className="aspect-square rounded-lg overflow-hidden bg-[var(--muted)] hover:opacity-80 transition-opacity"
                   >
                     <img
-                      src={url}
+                      src={resolvePublicMediaUrl(url) ?? ""}
                       alt={`Foto ${i + 1}`}
                       className="w-full h-full object-cover"
                       onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
@@ -230,7 +231,7 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
                   <div className="w-6 h-6 rounded-full bg-[var(--muted)] flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {(comment.profiles as any)?.avatar_url ? (
                       <img
-                        src={(comment.profiles as any).avatar_url}
+                        src={resolvePublicMediaUrl((comment.profiles as any).avatar_url) ?? ""}
                         alt=""
                         className="w-full h-full object-cover"
                       />

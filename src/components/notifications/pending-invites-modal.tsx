@@ -6,6 +6,7 @@ import { X, Loader2, Building2, CheckCircle2, Shield } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { USER_ROLES } from "@/lib/roles";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 
 interface PendingInvite {
   id: string;
@@ -171,7 +172,7 @@ export function PendingInvitesModal({ onClose, onInviteAccepted }: PendingInvite
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-full bg-[var(--card)] border border-[var(--border)] flex items-center justify-center shrink-0 overflow-hidden">
                     {invite.organization?.logo_url ? (
-                      <Image src={invite.organization.logo_url} alt={invite.organization.name} width={40} height={40} className="w-full h-full object-cover" />
+                      <Image src={resolvePublicMediaUrl(invite.organization.logo_url) ?? ""} alt={invite.organization.name} width={40} height={40} className="w-full h-full object-cover" />
                     ) : (
                       <Building2 size={18} className="text-[#2FF801]" />
                     )}

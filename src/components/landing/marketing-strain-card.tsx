@@ -4,6 +4,7 @@ import { memo } from 'react';
 import Link from 'next/link';
 import { Strain } from '@/lib/types';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay } from '@/lib/strain-display';
+import { resolvePublicMediaUrl } from '@/lib/public-media-url';
 import { escapeRegExp } from '@/lib/string-utils';
 
 interface MarketingStrainCardProps {
@@ -17,6 +18,7 @@ export const MarketingStrainCard = memo(function MarketingStrainCard({ strain }:
   const thcDisplay = formatPercent(strain.avg_thc ?? strain.thc_max, '—');
   const tasteDisplay = getTasteDisplay(strain);
   const effectDisplay = getEffectDisplay(strain);
+  const imageUrl = resolvePublicMediaUrl(strain.image_url) ?? "/strains/placeholder-1.svg";
 
   // Strip farmer prefix from strain name
   const normalizedStrainName = (() => {
@@ -58,7 +60,7 @@ export const MarketingStrainCard = memo(function MarketingStrainCard({ strain }:
       {/* Image with gradient overlay — using img tag to bypass Vercel image optimization limit */}
       <div className="relative aspect-[4/3] overflow-hidden">
         <img
-          src={strain.image_url || "/strains/placeholder-1.svg"}
+          src={imageUrl}
           alt={strain.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"

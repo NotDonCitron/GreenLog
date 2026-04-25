@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { USER_ROLES } from "@/lib/roles";
 import type { OrganizationMembership, ProfileRow } from "@/lib/types";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 
 interface AdminWithProfile extends OrganizationMembership {
   profile?: ProfileRow;
@@ -125,7 +126,7 @@ export function AdminListModal({ organizationId, onClose, onSuccess, onInvite }:
                   <div className="w-10 h-10 rounded-full bg-[var(--card)] border border-[var(--border)] flex items-center justify-center shrink-0 overflow-hidden">
                     {admin.profile?.avatar_url ? (
                       <Image
-                        src={admin.profile.avatar_url}
+                        src={resolvePublicMediaUrl(admin.profile.avatar_url) ?? ""}
                         alt={admin.profile.display_name || admin.profile.username || "Admin"}
                         width={40}
                         height={40}

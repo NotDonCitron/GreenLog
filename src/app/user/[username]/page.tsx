@@ -22,6 +22,7 @@ import { FollowButton } from "@/components/social/follow-button";
 import { ActivityItem } from "@/components/social/activity-item";
 import { useAuth } from "@/components/auth-provider";
 import type { ProfileRow, PublicProfileRating, SanitizedPublicProfile } from "@/lib/types";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 
 const BADGE_ICONS: Record<string, LucideIcon> = {
     starter: Sprout,
@@ -197,7 +198,7 @@ export default function UserProfilePage() {
                             <div className="absolute inset-0 bg-gradient-to-br from-[#00F5FF]/10 via-transparent to-[#2FF801]/10" />
                             {profile.avatar_url ? (
                                 <img
-                                    src={profile.avatar_url}
+                                    src={resolvePublicMediaUrl(profile.avatar_url) ?? ""}
                                     alt={profile.display_name ?? profile.username ?? ""}
                                     className="relative z-10 h-full w-full object-cover"
                                 />
@@ -359,7 +360,7 @@ export default function UserProfilePage() {
                                         <div className="relative aspect-square overflow-hidden rounded-xl border border-[var(--border)]/50 bg-[var(--card)]">
                                             {fav.image_url && (
                                                 <img
-                                                    src={fav.image_url}
+                                                    src={resolvePublicMediaUrl(fav.image_url) ?? ""}
                                                     alt={fav.name}
                                                     className="absolute inset-0 h-full w-full object-cover"
                                                 />

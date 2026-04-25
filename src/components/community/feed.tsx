@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase/client";
 import { Strain } from "@/lib/types";
 import { formatPercent, getEffectDisplay, getTasteDisplay, getStrainTheme } from "@/lib/strain-display";
 import { formatRelativeTime } from "@/lib/relative-time";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 
 const TYPE_COLORS: Record<string, string> = {
   indica: "#8B5CF6",
@@ -216,7 +217,7 @@ const FeedItemCard = memo(function FeedItemCard({
             {strain?.image_url && !imgError ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={strain.image_url}
+                src={resolvePublicMediaUrl(strain.image_url) ?? ""}
                 alt={strain.name}
                 className="w-full h-full object-contain"
                 onError={() => setImgError(true)}
@@ -288,7 +289,7 @@ const FeedItemCard = memo(function FeedItemCard({
         {/* Org logo — top right */}
         <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-[#2FF801]/10 border border-[#2FF801]/30 flex items-center justify-center overflow-hidden z-20">
           {orgLogoUrl ? (
-            <img src={orgLogoUrl} alt="Community Logo" className="w-full h-full object-cover" />
+            <img src={resolvePublicMediaUrl(orgLogoUrl) ?? ""} alt="Community Logo" className="w-full h-full object-cover" />
           ) : (
             <Building2 size={12} className="text-[#2FF801]/60" />
           )}
@@ -313,7 +314,7 @@ const FeedItemCard = memo(function FeedItemCard({
         {/* Avatar */}
         <div className="w-10 h-10 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center shrink-0 overflow-hidden">
           {avatarUrl ? (
-            <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+            <img src={resolvePublicMediaUrl(avatarUrl) ?? ""} alt={displayName} className="w-full h-full object-cover" />
           ) : (
             <span className="text-[#00F5FF] text-sm font-bold">
               {displayName.charAt(0).toUpperCase()}

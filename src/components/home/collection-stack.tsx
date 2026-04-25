@@ -5,6 +5,7 @@ import { Strain } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { RefreshCw } from "lucide-react";
 import { extractDisplayName, formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeTerpeneList } from "@/lib/strain-display";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 
 interface CollectionStackProps {
   strains: (Strain & {
@@ -76,7 +77,7 @@ export function CollectionStack({
             <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-white/10 shadow-lg">
               {/* Using img tag to bypass Vercel image optimization limit */}
               <img
-                src={currentStrain.image_url || "/strains/placeholder-1.svg"}
+                src={resolvePublicMediaUrl(currentStrain.image_url) ?? "/strains/placeholder-1.svg"}
                 alt={currentStrain.name}
                 className="absolute inset-0 w-full h-full object-cover"
                 loading="eager"

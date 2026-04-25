@@ -6,6 +6,7 @@ import { Star, Trophy, Heart, Loader2 } from "lucide-react";
 import type { UserActivity, ProfileRow } from "@/lib/types";
 import { supabase } from "@/lib/supabase/client";
 import { formatRelativeTime } from "@/lib/relative-time";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 
 interface ActivityItemProps {
     activity: UserActivity;
@@ -112,7 +113,7 @@ export const ActivityItem = memo(function ActivityItem({ activity, user, classNa
                 <div className="relative w-11 h-11 rounded-full overflow-hidden bg-[var(--muted)] flex items-center justify-center ring-2 ring-[var(--border)]">
                     {user.avatar_url ? (
                         <img
-                            src={user.avatar_url}
+                            src={resolvePublicMediaUrl(user.avatar_url) ?? ""}
                             alt={user.display_name ?? user.username ?? ""}
                             className="w-full h-full object-cover"
                         />
@@ -159,7 +160,7 @@ export const ActivityItem = memo(function ActivityItem({ activity, user, classNa
                     <Link href={`/strains/${strainSlug}`} className="block mt-3">
                         <div className="relative h-20 w-20 rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--muted)]">
                             <img
-                                src={activity.target_image_url}
+                                src={resolvePublicMediaUrl(activity.target_image_url) ?? ""}
                                 alt={activity.target_name ?? ""}
                                 onError={(event) => {
                                     const image = event.currentTarget;

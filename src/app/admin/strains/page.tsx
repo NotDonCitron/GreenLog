@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/components/auth-provider';
+import { resolvePublicMediaUrl } from '@/lib/public-media-url';
 import { detectSourceWarnings, getStrainSourcePolicy } from '@/lib/strains/source-policy';
 import {
   getStrainPublicationSnapshot,
@@ -226,7 +227,7 @@ function SourceTierPill({ source }: { source: string }) {
 
 function StrainImage({ imageUrl, canonicalPath, name }: { imageUrl: string | null; canonicalPath: string | null; name: string }) {
   const [broken, setBroken] = useState(false);
-  const url = imageUrl || canonicalPath;
+  const url = resolvePublicMediaUrl(imageUrl || canonicalPath);
 
   // Reset broken state when the URL changes (prevents stale state from React reuse)
   useEffect(() => {

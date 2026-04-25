@@ -7,6 +7,7 @@ import { FollowButton } from "./follow-button";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import type { SuggestedUser } from "@/lib/types";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 
 export interface SuggestedCommunity {
     id: string;
@@ -317,7 +318,7 @@ export function SuggestedUsers({
                                 <div className="absolute inset-[3px] rounded-full bg-[#355E3B] flex items-center justify-center overflow-hidden">
                                     {suggestedUser.avatar_url ? (
                                         <img
-                                            src={suggestedUser.avatar_url}
+                                            src={resolvePublicMediaUrl(suggestedUser.avatar_url) ?? ""}
                                             alt={suggestedUser.username}
                                             className="w-full h-full object-cover"
                                         />
@@ -385,7 +386,7 @@ export function SuggestedUsers({
                                 <div className="absolute inset-[3px] rounded-full bg-[#355E3B] flex items-center justify-center overflow-hidden">
                                     {community.logo_url ? (
                                         <img
-                                            src={community.logo_url}
+                                            src={resolvePublicMediaUrl(community.logo_url) ?? ""}
                                             alt={community.name}
                                             className="w-full h-full object-cover"
                                         />

@@ -2,6 +2,7 @@
 
 import { Strain } from "@/lib/types";
 import { formatPercent, getEffectDisplay, getStrainTheme, normalizeTerpeneList } from "@/lib/strain-display";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 import { TerpeneRadarChart } from "@/components/strains/terpene-radar-chart";
 
 interface StrainCompareCardProps {
@@ -29,7 +30,7 @@ export function StrainCompareCard({ strain }: StrainCompareCardProps) {
       {/* Header: Image + Name — using img tag to bypass Vercel image optimization limit */}
       <div className="relative aspect-[4/3] bg-[#252525]">
         <img
-          src={strain.image_url || "/strains/placeholder-1.svg"}
+          src={resolvePublicMediaUrl(strain.image_url) ?? "/strains/placeholder-1.svg"}
           alt={strain.name}
           className="absolute inset-0 w-full h-full object-cover"
         />

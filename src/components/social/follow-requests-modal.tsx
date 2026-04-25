@@ -5,6 +5,7 @@ import { Loader2, X, UserCheck, UserX } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 
 interface FollowRequestUser {
     id: string;
@@ -144,7 +145,7 @@ export function FollowRequestsModal({ isOpen, onClose }: { isOpen: boolean; onCl
                                 <div key={request.id} className="p-4 flex items-center gap-3">
                                     <Link href={`/user/${request.requester.username}`} onClick={onClose}>
                                         <Avatar className="h-12 w-12">
-                                            <AvatarImage src={request.requester.avatar_url || undefined} />
+                                            <AvatarImage src={resolvePublicMediaUrl(request.requester.avatar_url) || undefined} />
                                             <AvatarFallback>
                                                 {getInitials(request.requester.display_name, request.requester.username)}
                                             </AvatarFallback>

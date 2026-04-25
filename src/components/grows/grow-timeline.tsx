@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Droplets, Leaf, Camera, Sun, Activity, Droplet, Thermometer, Clock } from 'lucide-react';
 import type { GrowEntry } from '@/lib/types';
+import { resolvePublicMediaUrl } from '@/lib/public-media-url';
 
 interface TimelineEntry {
   day_number: number;
@@ -174,7 +175,7 @@ export function GrowTimeline({ entries, onPhotoClick }: GrowTimelineProps) {
                         className="aspect-square rounded-lg overflow-hidden bg-[var(--muted)] hover:opacity-80 transition-opacity"
                       >
                         <img
-                          src={url}
+                          src={resolvePublicMediaUrl(url) ?? ""}
                           alt={`Tag ${day.day_number}`}
                           className="w-full h-full object-cover"
                           onError={e => {

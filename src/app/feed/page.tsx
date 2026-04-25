@@ -11,6 +11,7 @@ import { useAuth } from "@/components/auth-provider";
 import { USER_ROLES } from "@/lib/roles";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 import { useEffect, useCallback } from "react";
 
 type FeedTab = "foryou" | "following" | "discover" | "grows";
@@ -443,7 +444,7 @@ function FeedContent() {
                       >
                         <div className="relative w-12 h-12 rounded-full bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center overflow-hidden">
                           {org.logo_url ? (
-                            <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
+                            <img src={resolvePublicMediaUrl(org.logo_url) ?? ""} alt={org.name} className="w-full h-full object-cover" />
                           ) : (
                             <span className="text-[#2FF801] font-bold text-lg">{org.name.charAt(0)}</span>
                           )}
@@ -559,7 +560,7 @@ function FeedContent() {
                                 <div className="flex items-center gap-4 min-w-0">
                                   <div className="relative w-16 h-16 rounded-full overflow-hidden bg-[var(--muted)] border-2 border-[var(--border)] flex-shrink-0 flex items-center justify-center">
                                     {friend.avatar_url ? (
-                                      <img src={friend.avatar_url} alt={friend.username || "User"} className="w-full h-full object-cover" />
+                                      <img src={resolvePublicMediaUrl(friend.avatar_url) ?? ""} alt={friend.username || "User"} className="w-full h-full object-cover" />
                                     ) : (
                                       <span className="text-xl font-black text-[#00F5FF]">{(friend.username || "U")[0].toUpperCase()}</span>
                                     )}
@@ -583,7 +584,7 @@ function FeedContent() {
                                     <div key={idx} className="flex flex-col items-center gap-1.5 w-14 flex-shrink-0">
                                       <div className="w-10 h-10 rounded-lg overflow-hidden border border-[var(--border)]/50 bg-[var(--card)]">
                                         <img
-                                          src={s.image_url || "/strains/placeholder-1.svg"}
+                                          src={resolvePublicMediaUrl(s.image_url) ?? "/strains/placeholder-1.svg"}
                                           alt={s.name || "Strain"}
                                           className="w-full h-full object-cover opacity-80"
                                         />
@@ -617,7 +618,7 @@ function FeedContent() {
                             <Link href={`/user/${profile.username}`} className="flex items-center gap-4 min-w-0">
                               <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-[var(--border)] bg-[var(--muted)] flex items-center justify-center flex-shrink-0">
                                 {profile.avatar_url ? (
-                                  <img src={profile.avatar_url} alt={profile.username || "User"} className="w-full h-full object-cover" />
+                                  <img src={resolvePublicMediaUrl(profile.avatar_url) ?? ""} alt={profile.username || "User"} className="w-full h-full object-cover" />
                                 ) : (
                                   <span className="text-lg font-black text-[#00F5FF]">{profile.username?.[0]?.toUpperCase()}</span>
                                 )}
@@ -675,7 +676,7 @@ function FeedContent() {
                             <Link href={`/user/${profile.username}`} className="flex flex-col items-center gap-2">
                               <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--border)] bg-[var(--muted)] flex items-center justify-center">
                                 {profile.avatar_url ? (
-                                  <img src={profile.avatar_url} alt={profile.username || "User"} className="w-full h-full object-cover" />
+                                  <img src={resolvePublicMediaUrl(profile.avatar_url) ?? ""} alt={profile.username || "User"} className="w-full h-full object-cover" />
                                 ) : (
                                   <span className="text-xl font-black text-[#00F5FF]">{profile.username?.[0]?.toUpperCase()}</span>
                                 )}
@@ -738,7 +739,7 @@ function FeedContent() {
                               <div className="flex items-center gap-4 min-w-0">
                                 <div className="relative w-14 h-14 rounded-full overflow-hidden bg-[var(--muted)] border-2 border-[var(--border)] flex-shrink-0 flex items-center justify-center">
                                   {comm.logo_url ? (
-                                    <img src={comm.logo_url} alt={comm.name} className="w-full h-full object-cover" />
+                                    <img src={resolvePublicMediaUrl(comm.logo_url) ?? ""} alt={comm.name} className="w-full h-full object-cover" />
                                   ) : (
                                     <Building2 size={22} className="text-[#00F5FF]" />
                                   )}
@@ -785,7 +786,7 @@ function FeedContent() {
                               <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-4 flex items-center gap-4 hover:border-[#00F5FF]/50 transition-all">
                                 <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">
                                   {org.logo_url ? (
-                                    <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
+                                    <img src={resolvePublicMediaUrl(org.logo_url) ?? ""} alt={org.name} className="w-full h-full object-cover" />
                                   ) : (
                                     <Building2 size={18} className="text-[#00F5FF]" />
                                   )}
@@ -819,7 +820,7 @@ function FeedContent() {
                           <div className="bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl p-4 flex items-center gap-4 hover:border-[#00F5FF]/50 transition-all">
                             <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[var(--muted)] border border-[var(--border)] flex items-center justify-center flex-shrink-0">
                               {org.logo_url ? (
-                                <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
+                                <img src={resolvePublicMediaUrl(org.logo_url) ?? ""} alt={org.name} className="w-full h-full object-cover" />
                               ) : (
                                 <Building2 size={18} className="text-[#00F5FF]" />
                               )}

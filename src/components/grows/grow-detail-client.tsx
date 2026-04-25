@@ -15,6 +15,7 @@ import { GrowEditDialog } from './grow-edit-dialog';
 import { BottomNav } from '@/components/bottom-nav';
 import { PlantLimitWarning } from './plant-limit-warning';
 import type { Grow, Plant, GrowEntry, GrowEntryType, GrowMilestone, PlantStatus } from '@/lib/types';
+import { resolvePublicMediaUrl } from '@/lib/public-media-url';
 
 const ACTIVE_STATUSES: PlantStatus[] = ['seedling', 'vegetative', 'flowering', 'flushing'];
 
@@ -383,7 +384,7 @@ export function GrowDetailClient({
             ×
           </button>
           <img
-            src={lightboxUrl}
+            src={resolvePublicMediaUrl(lightboxUrl) ?? ""}
             alt=""
             className="max-w-full max-h-full object-contain rounded-lg"
             onClick={e => e.stopPropagation()}

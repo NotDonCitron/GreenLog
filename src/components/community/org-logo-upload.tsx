@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { Camera, Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/components/toast-provider";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 
 interface OrgLogoUploadProps {
     currentLogoUrl?: string | null;
@@ -83,7 +84,7 @@ export function OrgLogoUpload({
                 {displayUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                        src={displayUrl}
+                        src={resolvePublicMediaUrl(displayUrl) ?? ""}
                         alt="Community Logo"
                         className="w-full h-full object-cover"
                     />
