@@ -88,6 +88,7 @@ const COMPLETENESS_KEYS: StrainPublicationRequirement[] = [
 ];
 
 const PAGE_SIZE = 50;
+const FETCH_PAGE_SIZE = 1000;
 const DETAIL_REVIEW_MARKER = 'Zur Review zurückgestellt durch Admin aus Detailseite.';
 
 function isReturnedFromDetail(strain: Strain) {
@@ -355,26 +356,42 @@ export default function AdminStrainsPage() {
     setLoading(true);
     setError(null);
 
-    let request = supabase
-      .from('strains')
-      .select('*')
-      .order('publication_status', { ascending: true })
-      .order('name', { ascending: true });
+    const allStrains: Strain[] = [];
+    let from = 0;
 
-    if (!includeAllStatuses) {
-      request = request.in('publication_status', ['draft', 'review']);
+    while (true) {
+      let request = supabase
+        .from('strains')
+        .select('*')
+        .order('publication_status', { ascending: false })
+        .order('name', { ascending: true })
+        .range(from, from + FETCH_PAGE_SIZE - 1);
+
+      if (!includeAllStatuses) {
+        request = request.in('publication_status', ['draft', 'review']);
+      }
+
+      const { data, error: err } = await request;
+
+      if (err) {
+        console.error('Error fetching strains:', err);
+        setError(err.message);
+        setStrains([]);
+        setLoading(false);
+        return;
+      }
+
+      const rows = (data as Strain[]) || [];
+      allStrains.push(...rows);
+
+      if (rows.length < FETCH_PAGE_SIZE) {
+        break;
+      }
+
+      from += FETCH_PAGE_SIZE;
     }
 
-    const { data, error: err } = await request;
-
-    if (err) {
-      console.error('Error fetching strains:', err);
-      setError(err.message);
-      setStrains([]);
-    } else {
-      setStrains((data as Strain[]) || []);
-    }
-
+    setStrains(allStrains);
     setLoading(false);
   };
 
