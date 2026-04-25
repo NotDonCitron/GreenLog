@@ -57,7 +57,7 @@ export function ComparePageContent() {
       </div>
 
       {/* Header */}
-      <div className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50 px-6 pt-12 pb-4">
+      <div className="glass-surface border-b border-[var(--border)]/50 px-6 pt-12 pb-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Link

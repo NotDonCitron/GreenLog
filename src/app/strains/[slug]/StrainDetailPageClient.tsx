@@ -10,7 +10,7 @@ import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/components/toast-provider";
 import { BottomNav } from "@/components/bottom-nav";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, RefreshCw, Loader2, Heart, CheckCircle2, Upload, Database, Trash2, Pencil, Lock, AlertCircle, Share2 } from "lucide-react";
+import { ChevronLeft, RefreshCw, Loader2, Heart, CheckCircle2, Upload, Database, Trash2, Pencil, Lock, AlertCircle, Share2, Archive } from "lucide-react";
 import { Strain } from "@/lib/types";
 import { escapeRegExp } from '@/lib/string-utils';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeCollectionSource, normalizeTerpeneList } from "@/lib/strain-display";
@@ -52,6 +52,7 @@ export default function StrainDetailPageClient() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isAdminUploading, setIsAdminUploading] = useState(false);
+  const [isUnpublishing, setIsUnpublishing] = useState(false);
   const [globalImageRefresh, setGlobalImageRefresh] = useState(0);
   const [isFavorited, setIsFavorite] = useState(false);
   const [hasCollected, setHasCollected] = useState(false);
@@ -333,6 +334,49 @@ export default function StrainDetailPageClient() {
     }
   };
 
+  const handleUnpublishToDraft = async () => {
+    if (!strain || !user || isDemoMode) return;
+
+    const confirmed = window.confirm(
+      `Möchtest du „${strain.name}“ wirklich aus dem Live-Betrieb nehmen und zurück in die Drafts verschieben?`
+    );
+    if (!confirmed) return;
+
+    setIsUnpublishing(true);
+    try {
+      const accessToken = session?.access_token;
+      if (!accessToken) {
+        toastError("Du musst eingeloggt sein.");
+        return;
+      }
+
+      const res = await fetch(`/api/admin/strains/${strain.id}/publication`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          publication_status: "draft",
+          source_notes: "Zurückgezogen durch Admin aus Detailseite",
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error?.message || "Zurückziehen fehlgeschlagen");
+      }
+
+      toastSuccess(`„${strain.name}“ wurde zurück in die Drafts verschoben.`);
+      router.push("/strains");
+    } catch (err: unknown) {
+      console.error("Unpublish error:", err);
+      toastError(getErrorMessage(err, "Sorte konnte nicht zurückgezogen werden."));
+    } finally {
+      setIsUnpublishing(false);
+    }
+  };
+
   const toggleFavorite = async () => {
     if (!user || !strain || isDemoMode) {
       if (isDemoMode) setIsFavorite(!isFavorited);
@@ -526,7 +570,7 @@ export default function StrainDetailPageClient() {
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#2FF801]/5 blur-[80px] rounded-full" />
       </div>
-      <div className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50 px-6 py-4 flex justify-between items-center">
+      <div className="relative glass-surface border-b border-[var(--border)]/50 px-6 py-4 flex justify-between items-center">
         <div className="w-10 h-10 rounded-full bg-[var(--card)] animate-pulse" />
         <div className="flex gap-2">
           <div className="w-10 h-10 rounded-full bg-[var(--card)] animate-pulse" />
@@ -548,7 +592,7 @@ export default function StrainDetailPageClient() {
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#2FF801]/5 blur-[80px] rounded-full" />
       </div>
-      <div className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50 px-6 py-4">
+      <div className="relative glass-surface border-b border-[var(--border)]/50 px-6 py-4">
         <button onClick={() => router.back()} className="p-2 rounded-full bg-[var(--card)] border border-[var(--border)]/50 hover:border-[#00F5FF]/50 transition-all">
           <ChevronLeft size={24} className="text-[var(--foreground)]" />
         </button>
@@ -567,14 +611,13 @@ export default function StrainDetailPageClient() {
       </div>
     </main>
   );
-
   if (!detailData?.strain || !strain) return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#00F5FF]/5 blur-[100px] rounded-full" />
         <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-[#2FF801]/5 blur-[80px] rounded-full" />
       </div>
-      <div className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50 px-6 py-4">
+      <div className="relative glass-surface border-b border-[var(--border)]/50 px-6 py-4">
         <button onClick={() => router.back()} className="p-2 rounded-full bg-[var(--card)] border border-[var(--border)]/50 hover:border-[#00F5FF]/50 transition-all">
           <ChevronLeft size={24} className="text-[var(--foreground)]" />
         </button>
@@ -608,7 +651,7 @@ export default function StrainDetailPageClient() {
         </div>
       )}
 
-      <div className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50 px-6 py-4 flex justify-between items-center">
+      <div className="relative glass-surface border-b border-[var(--border)]/50 px-6 py-4 flex justify-between items-center">
         <button onClick={() => router.back()} className="p-2 rounded-full bg-[var(--card)] border border-[var(--border)]/50 hover:border-[#00F5FF]/50 transition-all">
           <ChevronLeft size={24} className="text-[var(--foreground)]" />
         </button>
@@ -620,10 +663,20 @@ export default function StrainDetailPageClient() {
             </label>
           )}
           {user && isAppAdmin(user.id) && (
-            <label className="p-2 rounded-full bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/20 hover:bg-[#2FF801]/20 transition-all cursor-pointer" title="Admin: Globales Strain-Bild">
-              {isAdminUploading ? <Loader2 size={20} className="animate-spin" /> : <Upload size={20} />}
-              <input type="file" className="hidden" accept="image/*" onChange={handleAdminImageUpload} disabled={isAdminUploading} />
-            </label>
+            <>
+              <label className="p-2 rounded-full bg-[#2FF801]/10 text-[#2FF801] border border-[#2FF801]/20 hover:bg-[#2FF801]/20 transition-all cursor-pointer" title="Admin: Globales Strain-Bild">
+                {isAdminUploading ? <Loader2 size={20} className="animate-spin" /> : <Upload size={20} />}
+                <input type="file" className="hidden" accept="image/*" onChange={handleAdminImageUpload} disabled={isAdminUploading} />
+              </label>
+              <button
+                onClick={handleUnpublishToDraft}
+                disabled={isUnpublishing}
+                className="p-2 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20 hover:bg-orange-500/20 transition-all"
+                title="Zurück in Drafts verschieben"
+              >
+                {isUnpublishing ? <Loader2 size={20} className="animate-spin" /> : <Archive size={20} />}
+              </button>
+            </>
           )}
           <button onClick={toggleFavorite} className={`p-2 rounded-full border transition-all ${isFavorited ? 'bg-red-500/20 border-red-500/40 text-red-500' : 'bg-[var(--card)] border-[var(--border)]/50 text-[var(--muted-foreground)] hover:border-red-500/50'}`}>
             <Heart size={20} fill={isFavorited ? "currentColor" : "none"} />

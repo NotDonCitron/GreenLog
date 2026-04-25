@@ -466,7 +466,10 @@ function StrainsPageContent() {
   }, []);
 
   return (
-    <main ref={scrollContainerRef} className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32 overflow-y-auto">
+    <div
+      ref={scrollContainerRef}
+      className="h-full min-h-0 overflow-y-auto overscroll-contain bg-[var(--background)] pb-32 text-[var(--foreground)] [-webkit-overflow-scrolling:touch]"
+    >
       {/* Ambient glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#2FF801]/5 blur-[100px] rounded-full" />
@@ -483,7 +486,7 @@ function StrainsPageContent() {
         />
       </Suspense>
 
-      <header className="sticky top-0 z-50 glass-surface border-b border-[var(--border)]/50">
+      <header className="glass-surface border-b border-[var(--border)]/50">
         <div className="px-6 pt-12 pb-2">
           <div className="flex justify-between items-end">
             <div>
@@ -754,6 +757,6 @@ function StrainsPageContent() {
       </Suspense>
 
       <BottomNav />
-    </main>
+    </div>
   );
 }
