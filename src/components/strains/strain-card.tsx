@@ -1,4 +1,6 @@
-import { memo } from 'react';
+'use client';
+
+import { memo, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Check } from 'lucide-react';
 import { Strain } from '@/lib/types';
@@ -41,6 +43,11 @@ export const StrainCard = memo(function StrainCard({
   const cbdDisplay = formatPercent(strain.avg_cbd ?? strain.cbd_max, '< 1%');
   const effectDisplay = getEffectDisplay(strain);
   const tasteDisplay = getTasteDisplay(strain);
+  const [hasImageError, setHasImageError] = useState(false);
+
+  useEffect(() => {
+    setHasImageError(false);
+  }, [strain.image_url]);
 
   // Strip farmer prefix from strain name — handles "420 Pharma: Natural Gorilla Glue" -> "Natural Gorilla Glue"
   // and "420 Natural Gorilla Glue" (farmer="420 Pharma") -> "420 Natural Gorilla Glue" (keep embedded farmer name)
@@ -85,7 +92,7 @@ export const StrainCard = memo(function StrainCard({
     return rawName;
   })();
 
-  const realImage = hasRealImage(strain);
+  const realImage = hasRealImage(strain) && !hasImageError;
 
   const cardBaseClass = `premium-card ${themeClass} group relative flex w-full min-w-0 rounded-[20px] border-2 bg-[#121212] transition-all duration-300 overflow-hidden aspect-[4/5] ${selectionMode ? 'cursor-pointer' : 'hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]'}`;
   const cardStyle = {
@@ -119,6 +126,7 @@ export const StrainCard = memo(function StrainCard({
             alt={strain.name}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             loading="lazy"
+            onError={() => setHasImageError(true)}
           />
           {/* 2. HEADER OVERLAY: Farmer + Strain Name — gradient top */}
           <div className="absolute top-0 left-0 right-0 z-10 px-3 pt-2 pb-0 min-w-0 bg-gradient-to-b from-black/80 via-black/30 to-transparent">
