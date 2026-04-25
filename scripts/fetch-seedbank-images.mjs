@@ -28,9 +28,14 @@ const HASH_LOG = 'scripts/.seedbank-image-hashes.json';
 
 const args = new Set(process.argv.slice(2));
 const DRY_RUN = args.has('--dry-run');
+const RETRY_NO_MATCH = args.has('--retry-no-match');
 const LIMIT = (() => {
   const a = process.argv.find(x => x.startsWith('--limit='));
   return a ? parseInt(a.split('=')[1], 10) : 0;
+})();
+const STATUS = (() => {
+  const a = process.argv.find(x => x.startsWith('--status='));
+  return a ? a.split('=')[1] : null;
 })();
 
 const supabase = createClient(
@@ -119,8 +124,9 @@ async function main() {
   let page = 0;
   while (true) {
     let query = supabase.from('strains')
-      .select('id, slug, name, type, canonical_image_path')
+      .select('id, slug, name, type, image_url, canonical_image_path, publication_status')
       .range(page * 1000, (page + 1) * 1000 - 1);
+    if (STATUS) query = query.eq('publication_status', STATUS);
     const { data: batch, error } = await query;
     if (error) {
       console.error('DB error:', error.message);
@@ -129,8 +135,10 @@ async function main() {
     if (!batch || batch.length === 0) break;
     // Filter: only strains with placeholder images
     const placeholderBatch = batch.filter(s => {
-      const path = s.canonical_image_path || '';
-      return path.includes('placeholder') || path.includes('weedmaps') || path.includes('avatar');
+      const imageUrl = String(s.image_url || '').toLowerCase();
+      const canonicalPath = String(s.canonical_image_path || '').toLowerCase();
+      const value = `${imageUrl} ${canonicalPath}`;
+      return value.includes('placeholder') || value.includes('weedmaps') || value.includes('avatar') || value.includes('/defaults/generic/') || value.includes('generic');
     });
     allStrains.push(...placeholderBatch);
     if (batch.length < 1000) break;
@@ -146,7 +154,11 @@ async function main() {
     const strain = strains[i];
     const progress = `[${i + 1}/${strains.length}]`;
 
-    if (processed[strain.id] && !(processed[strain.id].status === 'dry_run' && !DRY_RUN)) {
+    if (
+      processed[strain.id] &&
+      !(processed[strain.id].status === 'dry_run' && !DRY_RUN) &&
+      !(RETRY_NO_MATCH && processed[strain.id].status === 'no_match')
+    ) {
       stats.skipped++;
       continue;
     }
