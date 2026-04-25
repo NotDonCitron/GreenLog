@@ -5,6 +5,7 @@ import { Loader2, X } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import type { ProfileRow } from "@/lib/types";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 import Link from "next/link";
 
 interface FollowersListModalProps {
@@ -110,7 +111,7 @@ export function FollowersListModal({
                                     <div className="w-12 h-12 rounded-full overflow-hidden bg-white/10 flex items-center justify-center border border-white/10">
                                         {profile.avatar_url ? (
                                             <img
-                                                src={profile.avatar_url}
+                                                src={resolvePublicMediaUrl(profile.avatar_url) ?? ""}
                                                 alt={profile.display_name ?? profile.username ?? ""}
                                                 className="w-full h-full object-cover"
                                             />

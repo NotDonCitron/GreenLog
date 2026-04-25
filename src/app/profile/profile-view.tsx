@@ -60,6 +60,7 @@ import { buildPublicProfileBlocks, withDefaultPublicPreferences } from "@/lib/pu
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { isAppAdmin } from "@/lib/auth";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 import type {
   ProfileBadge,
   ProfileFavorite,
@@ -303,7 +304,7 @@ export default function ProfilePage() {
             >
               <div className="relative h-36 w-full">
                 <img
-                  src={favorite.imageUrl || "/strains/placeholder-1.svg"}
+                  src={resolvePublicMediaUrl(favorite.imageUrl) ?? "/strains/placeholder-1.svg"}
                   alt={favorite.name}
                   className="w-full h-full object-cover"
                 />

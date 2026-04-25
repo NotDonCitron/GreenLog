@@ -23,6 +23,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 import { supabase } from "@/lib/supabase/client";
 
 interface PendingMemberUser {
@@ -282,7 +283,7 @@ export default function PendingMembersPage() {
                     <div className="w-10 h-10 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center shrink-0 overflow-hidden">
                       {member.user?.avatar_url ? (
                         <img
-                          src={member.user.avatar_url}
+                          src={resolvePublicMediaUrl(member.user.avatar_url) ?? ""}
                           alt=""
                           className="w-full h-full rounded-full object-cover"
                         />

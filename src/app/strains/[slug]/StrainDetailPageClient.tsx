@@ -16,7 +16,9 @@ import { escapeRegExp } from '@/lib/string-utils';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay, normalizeCollectionSource, normalizeTerpeneList } from "@/lib/strain-display";
 import { sanitizeDisplayText } from "@/lib/strain-display-text";
 import { checkAndUnlockBadges } from "@/lib/badges";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 import { useCollection } from "@/hooks/useCollection";
+import { triggerSuccessHaptic } from "@/lib/haptics";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
 import { TerpeneRadarChart } from "@/components/strains/terpene-radar-chart";
 import { ShareModal } from "@/components/social/share-modal";
@@ -484,6 +486,8 @@ export default function StrainDetailPageClient() {
         userCbd: (strain as any).avg_cbd ?? strain.cbd_max ?? undefined
       });
 
+      triggerSuccessHaptic();
+
       setBatchInfo(nextBatchInfo);
       setUserNotes(nextUserNotes);
       setHasCollected(true);
@@ -621,6 +625,11 @@ export default function StrainDetailPageClient() {
     </main>
   );
 
+  const baseImageUrl = resolvePublicMediaUrl(userImageUrl || strain.image_url);
+  const displayImageUrl = baseImageUrl
+    ? `${baseImageUrl}${globalImageRefresh ? `${baseImageUrl.includes("?") ? "&" : "?"}v=${globalImageRefresh}` : ""}`
+    : "/strains/placeholder-1.svg";
+
   return (
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] pb-32">
       {/* Ambient glow */}
@@ -715,7 +724,7 @@ export default function StrainDetailPageClient() {
               <div className="px-5 w-full">
                 <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-[var(--border)]/50">
                   <img
-                    src={userImageUrl || (strain.image_url ? strain.image_url + (globalImageRefresh ? `?v=${globalImageRefresh}` : '') : "/strains/placeholder-1.svg")}
+                    src={displayImageUrl}
                     alt={strain.name}
                     className="absolute inset-0 w-full h-full object-cover"
                   />

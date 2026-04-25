@@ -8,6 +8,7 @@ import { Leaf, Building2, Loader2, Plus, GripVertical } from "lucide-react";
 import { useCommunity } from "@/hooks/useCommunity";
 import type { MemberOrg } from "@/hooks/useCommunity";
 import { USER_ROLES } from "@/lib/roles";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 import {
   DndContext,
   closestCenter,
@@ -70,7 +71,7 @@ function SortableCommunityCard({ org, role }: { org: SortableOrg; role?: string 
             </div>
             <div className="w-12 h-12 rounded-full bg-[var(--muted)] border border-[var(--border)]/50 flex items-center justify-center shrink-0 overflow-hidden">
               {org.logo_url ? (
-                <img src={org.logo_url} alt={org.name} className="w-full h-full object-cover" />
+                <img src={resolvePublicMediaUrl(org.logo_url) ?? ""} alt={org.name} className="w-full h-full object-cover" />
               ) : (
                 <Leaf size={20} className="text-[#2FF801]" />
               )}

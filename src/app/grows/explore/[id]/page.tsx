@@ -17,6 +17,7 @@ import Link from "next/link";
 import { PhaseBadge } from "@/components/grows";
 import type { Grow, Plant, GrowEntry, GrowMilestone, GrowComment, PlantStatus } from "@/lib/types";
 import { KCanGDisclaimer } from "@/components/grows/kcan-g-disclaimer";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 
 const ACTIVE_STATUSES: PlantStatus[] = ['seedling', 'vegetative', 'flowering', 'flushing'];
 
@@ -295,7 +296,7 @@ export default function ExploreGrowDetailPage() {
                             <div className="flex items-center gap-3 pt-2 border-t border-[var(--border)]/50">
                                 <div className="w-8 h-8 rounded-full bg-[var(--muted)] flex items-center justify-center overflow-hidden">
                                     {grow.profiles.avatar_url ? (
-                                        <img src={grow.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                                        <img src={resolvePublicMediaUrl(grow.profiles.avatar_url) ?? ""} alt="" className="w-full h-full object-cover" />
                                     ) : (
                                         <span className="text-xs font-bold text-[#00F5FF]">
                                             {grow.profiles.username?.[0]?.toUpperCase() || '?'}
@@ -401,7 +402,7 @@ export default function ExploreGrowDetailPage() {
                                             {entry.image_url && (
                                                 <div className="-mx-4 mb-3 overflow-hidden bg-[#0a0a0b] flex items-center justify-center" style={{ height: '160px' }}>
                                                     <img
-                                                        src={entry.image_url}
+                                                        src={resolvePublicMediaUrl(entry.image_url) ?? ""}
                                                         alt={`Tag ${entry.day_number}`}
                                                         className="max-w-full max-h-full object-contain"
                                                     />
@@ -463,7 +464,7 @@ export default function ExploreGrowDetailPage() {
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="w-8 h-8 rounded-full bg-[var(--muted)] flex items-center justify-center overflow-hidden">
                                             {comment.profiles?.avatar_url ? (
-                                                <img src={comment.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                <img src={resolvePublicMediaUrl(comment.profiles.avatar_url) ?? ""} alt="" className="w-full h-full object-cover" />
                                             ) : (
                                                 <span className="text-xs font-bold text-[#00F5FF]">
                                                     {comment.profiles?.username?.[0]?.toUpperCase() || '?'}

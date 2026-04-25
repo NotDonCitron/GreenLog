@@ -6,6 +6,7 @@ import { Camera, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/components/toast-provider";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 
 interface AvatarUploadProps {
     currentAvatarUrl?: string | null;
@@ -111,7 +112,7 @@ export function AvatarUpload({
     return (
         <div className={`relative inline-block ${className}`}>
             <Avatar className={`${sizeClasses[size]} cursor-pointer`} onClick={() => user && fileInputRef.current?.click()}>
-                <AvatarImage src={displayUrl || undefined} alt={displayName ?? username} />
+                <AvatarImage src={resolvePublicMediaUrl(displayUrl) || undefined} alt={displayName ?? username} />
                 <AvatarFallback className="text-lg">{getInitials(displayName ?? username)}</AvatarFallback>
             </Avatar>
 

@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { KCanGDisclaimer } from "@/components/grows/kcan-g-disclaimer";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 
 interface Grow {
   id: string;
@@ -245,7 +246,7 @@ export default function ExploreGrowsPage() {
                           <div className="flex items-center gap-2">
                             <div className="w-6 h-6 rounded-full bg-[var(--muted)] flex items-center justify-center overflow-hidden">
                               {grow.profiles.avatar_url ? (
-                                <img src={grow.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                                <img src={resolvePublicMediaUrl(grow.profiles.avatar_url) ?? ""} alt="" className="w-full h-full object-cover" />
                               ) : (
                                 <span className="text-[8px] font-bold text-[#00F5FF]">
                                   {grow.profiles.username?.[0]?.toUpperCase() || '?'}

@@ -16,6 +16,7 @@ import { useAuth } from "@/components/auth-provider";
 import { Leaf, Building2, Users, Sprout, ArrowLeft, Plus, Settings, type LucideIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { USER_ROLES } from "@/lib/roles";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 
 interface Organization {
   id: string;
@@ -221,7 +222,7 @@ export default function CommunityDetailPage() {
         <div className="flex items-center gap-4">
           {organization.logo_url ? (
             <div className="w-14 h-14 rounded-full overflow-hidden bg-[var(--card)] border border-[var(--border)] flex-shrink-0">
-              <img src={organization.logo_url} alt={organization.name} className="w-full h-full object-cover" />
+              <img src={resolvePublicMediaUrl(organization.logo_url) ?? ""} alt={organization.name} className="w-full h-full object-cover" />
             </div>
           ) : (
             <div className="w-14 h-14 rounded-full bg-[#2FF801]/10 border border-[#2FF801]/30 flex items-center justify-center flex-shrink-0">

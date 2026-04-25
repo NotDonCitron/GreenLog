@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { resolvePublicMediaUrl } from "@/lib/public-media-url";
 
 interface Member {
   id: string;
@@ -206,7 +207,7 @@ export default function MembersPage() {
                       <div className="w-10 h-10 rounded-full bg-[#00F5FF]/10 border border-[#00F5FF]/20 flex items-center justify-center shrink-0 overflow-hidden">
                         {member.user?.avatar_url ? (
                           <img
-                            src={member.user.avatar_url}
+                            src={resolvePublicMediaUrl(member.user.avatar_url) ?? ""}
                             alt=""
                             className="w-full h-full rounded-full object-cover"
                           />
@@ -249,4 +250,3 @@ export default function MembersPage() {
     </main>
   );
 }
-

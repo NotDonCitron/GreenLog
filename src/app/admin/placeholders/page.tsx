@@ -17,6 +17,7 @@ import {
 
 import { useAuth } from '@/components/auth-provider';
 import { supabase } from '@/lib/supabase';
+import { resolvePublicMediaUrl } from '@/lib/public-media-url';
 import { getStrainPublicationSnapshot } from '@/lib/strains/publication';
 import { getStrainSourcePolicy } from '@/lib/strains/source-policy';
 import type { Strain } from '@/lib/types';
@@ -48,7 +49,7 @@ function isPlaceholder(strain: PlaceholderStrain) {
 }
 
 function getImageUrl(strain: PlaceholderStrain) {
-  return strain.image_url || (strain.canonical_image_path?.startsWith('/') ? strain.canonical_image_path : null);
+  return resolvePublicMediaUrl(strain.image_url || (strain.canonical_image_path?.startsWith('/') ? strain.canonical_image_path : null));
 }
 
 function getPriority(strain: PlaceholderStrain) {

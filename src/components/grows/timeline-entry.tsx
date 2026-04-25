@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Droplets, Leaf, Activity, Camera, Sun, Flag, FileText, ChevronDown, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { GrowEntry, GrowComment } from '@/lib/types';
+import { resolvePublicMediaUrl } from '@/lib/public-media-url';
+import { triggerHaptic } from '@/lib/haptics';
 
 const ENTRY_TYPE_CONFIG: Record<string, { icon: typeof Droplets; color: string; borderColor: string; emoji: string }> = {
   watering: { icon: Droplets, color: 'text-blue-400', borderColor: 'border-l-blue-400', emoji: '💧' },
@@ -80,13 +82,16 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
     badges.push({ label: `${entry.temperature}°C`, color: 'text-red-400' });
   }
 
-  // Collect photos
-  const photos: string[] = [];
-  if (entry.image_url) photos.push(entry.image_url);
-  const signedPhoto = (entry.content as { signed_photo_url?: string })?.signed_photo_url;
-  if (signedPhoto) photos.push(signedPhoto);
-  const contentPhoto = (entry.content as { photo_url?: string })?.photo_url;
-  if (contentPhoto) photos.push(contentPhoto);
+  // Robust content parsing
+  const content = typeof entry.content === 'string' ? JSON.parse(entry.content) : entry.content;
+
+  // CRITICAL: Prefer signed URLs for private grow photos
+  const photos: string[] = [
+    content?.signed_photo_url,
+    content?.photo_url,
+    content?.photo_path,
+    entry.image_url
+  ].filter((u): u is string => typeof u === 'string' && u.length > 0);
 
   const date = new Date(entry.created_at);
   const dateStr = date.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
@@ -99,16 +104,18 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
   }
 
   return (
-    <div className="relative">
-      {/* Entry card with colored left border */}
+    <div className="relative opacity-100 visible">
       <div
         className={`
           ml-4 bg-[var(--card)] border border-[var(--border)]/50 rounded-xl overflow-hidden
           border-l-4 ${config.borderColor}
-          transition-all duration-300 cursor-pointer
-          ${expanded ? 'border-[#2FF801]/30 shadow-lg shadow-[#2FF801]/5' : ''}
+          transition-all duration-300 cursor-pointer active:scale-[0.98]
+          ${expanded ? 'border-[#2FF801]/30 shadow-lg shadow-[#2FF801]/10' : ''}
         `}
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => {
+          triggerHaptic();
+          setExpanded(!expanded);
+        }}
       >
         {/* ── Collapsed header ── */}
         <div className="p-3">
@@ -123,10 +130,8 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
             </div>
 
             <div className="flex items-center gap-1.5">
-              {/* Type emoji */}
               <span className={config.color}>{config.emoji}</span>
 
-              {/* Compact badges when collapsed (max 2) */}
               {!expanded && badges.length > 0 && (
                 <div className="flex gap-1 mr-1">
                   {badges.slice(0, 2).map((b, i) => (
@@ -135,12 +140,10 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
                 </div>
               )}
 
-              {/* Expand chevron */}
               <ChevronDown
                 size={12}
                 className={`text-[var(--muted-foreground)] transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`}
               />
-              {/* Delete button — only when expanded */}
               {expanded && onDeleteEntry && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onDeleteEntry(entry.id); }}
@@ -153,9 +156,8 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
             </div>
           </div>
 
-          {/* Summary line — only when collapsed */}
           {!expanded && (
-            <p className="text-xs text-[var(--muted-foreground)] truncate pr-2">
+            <p className="text-xs text-[var(--muted-foreground)] truncate pr-2 font-medium">
               {formatEntrySummary(entry)}
             </p>
           )}
@@ -170,40 +172,41 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
 
         {/* ── Expanded content ── */}
         {expanded && (
-          <div className="px-3 pb-3 border-t border-[var(--border)]/30 pt-2 space-y-3">
+          <div className="px-3 pb-3 border-t border-[var(--border)]/30 pt-3 space-y-4">
             {/* Photo grid */}
             {photos.length > 0 && (
-              <div className="grid grid-cols-3 gap-1.5">
-                {photos.slice(0, 3).map((url, i) => (
+              <div className="grid grid-cols-2 gap-2 animate-in zoom-in duration-300">
+                {photos.map((url, i) => (
                   <button
                     key={i}
-                    onClick={(e) => { e.stopPropagation(); onPhotoClick?.(url); }}
-                    className="aspect-square rounded-lg overflow-hidden bg-[var(--muted)] hover:opacity-80 transition-opacity"
+                    type="button"
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      triggerHaptic();
+                      onPhotoClick?.(url); 
+                    }}
+                    className="aspect-video rounded-xl overflow-hidden bg-[var(--muted)] border border-[var(--border)] hover:opacity-80 transition-opacity shadow-sm"
                   >
                     <img
-                      src={url}
+                      src={resolvePublicMediaUrl(url) ?? ""}
                       alt={`Foto ${i + 1}`}
                       className="w-full h-full object-cover"
                       onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      loading="lazy"
                     />
                   </button>
                 ))}
-                {photos.length > 3 && (
-                  <div className="aspect-square rounded-lg bg-[var(--muted)] flex items-center justify-center text-[10px] text-[var(--muted-foreground)] font-bold">
-                    +{photos.length - 3}
-                  </div>
-                )}
               </div>
             )}
 
             {/* All value badges */}
             {badges.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {badges.map((b, i) => (
                   <Badge
                     key={i}
                     variant="outline"
-                    className={`text-[10px] ${b.color} border-current/30 bg-current/5`}
+                    className={`text-[10px] py-1 px-2 font-black ${b.color} border-current/20 bg-current/5 rounded-lg`}
                   >
                     {b.label}
                   </Badge>
@@ -213,47 +216,50 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
 
             {/* Notes text */}
             {entry.notes && (
-              <p className="text-xs text-[var(--muted-foreground)] italic leading-relaxed pl-3 border-l-2 border-[var(--border)]">
-                {entry.notes}
-              </p>
+              <div className="bg-[var(--muted)]/30 p-3 rounded-xl border-l-2 border-[#2FF801]/40">
+                <p className="text-xs text-[var(--foreground)] leading-relaxed">
+                  {entry.notes}
+                </p>
+              </div>
             )}
 
             {/* ── Inline flat comments ── */}
-            <div className="pt-2 border-t border-[var(--border)]/30 space-y-2">
-              <p className="text-[9px] font-black uppercase tracking-widest text-[var(--muted-foreground)] flex items-center gap-1">
-                💬 {comments.length} Kommentar{comments.length !== 1 ? 'e' : ''}
-              </p>
+            <div className="pt-3 border-t border-[var(--border)]/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)] flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#00F5FF]" />
+                  {comments.length} Kommentar{comments.length !== 1 ? 'e' : ''}
+                </p>
+              </div>
 
               {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-2.5">
-                  {/* Avatar */}
-                  <div className="w-6 h-6 rounded-full bg-[var(--muted)] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div key={comment.id} className="flex gap-3">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00F5FF]/20 to-[#2FF801]/20 flex items-center justify-center flex-shrink-0 overflow-hidden border border-[var(--border)]">
                     {(comment.profiles as any)?.avatar_url ? (
                       <img
-                        src={(comment.profiles as any).avatar_url}
+                        src={resolvePublicMediaUrl((comment.profiles as any).avatar_url) ?? ""}
                         alt=""
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-[9px] font-black text-[#00F5FF]">
+                      <span className="text-[10px] font-black text-[#00F5FF]">
                         {(comment.profiles as any)?.username?.[0]?.toUpperCase() ?? (comment.profiles as any)?.display_name?.[0]?.toUpperCase() ?? '?'}
                       </span>
                     )}
                   </div>
 
-                  {/* Comment content */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] font-bold">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[11px] font-black text-[var(--foreground)]">
                         {(comment.profiles as any)?.display_name ?? (comment.profiles as any)?.username ?? 'Unbekannt'}
                       </span>
-                      <span className="text-[9px] text-[var(--muted-foreground)]">
+                      <span className="text-[9px] text-[var(--muted-foreground)] font-bold">
                         {new Date(comment.created_at).toLocaleDateString('de-DE', {
-                          day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+                          day: '2-digit', month: 'short',
                         })}
                       </span>
                     </div>
-                    <p className="text-[11px] text-[var(--foreground)] leading-snug mt-0.5">
+                    <p className="text-[11px] text-[var(--muted-foreground)] leading-snug">
                       {comment.comment}
                     </p>
                   </div>
@@ -262,17 +268,17 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
 
               {/* Add comment form */}
               {onAddComment && (
-                <form onSubmit={handleCommentSubmit} className="flex gap-2 mt-1" onClick={e => e.stopPropagation()}>
+                <form onSubmit={handleCommentSubmit} className="flex gap-2 mt-2" onClick={e => e.stopPropagation()}>
                   <input
                     value={commentText}
                     onChange={e => setCommentText(e.target.value)}
                     placeholder="Kommentar schreiben..."
-                    className="flex-1 bg-[var(--input)] border border-[var(--border)]/50 rounded-lg px-3 py-1.5 text-[11px] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-[#2FF801]/50"
+                    className="flex-1 bg-[var(--input)] border border-[var(--border)]/50 rounded-xl px-4 py-2 text-[11px] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-[#2FF801]/50 transition-all"
                   />
                   <button
                     type="submit"
                     disabled={!commentText.trim()}
-                    className="px-3 py-1.5 bg-[#2FF801] text-black text-[10px] font-black rounded-lg disabled:opacity-40 hover:bg-[#2FF801]/90 transition-colors"
+                    className="px-4 py-2 bg-[#2FF801] text-black text-[11px] font-black rounded-xl disabled:opacity-40 hover:bg-[#2FF801]/90 transition-all active:scale-95 shadow-lg shadow-[#2FF801]/20"
                   >
                     Senden
                   </button>
