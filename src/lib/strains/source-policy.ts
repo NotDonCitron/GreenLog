@@ -15,6 +15,9 @@ const SOURCE_ALIASES: Record<string, string> = {
   "allbud-curation": "allbud",
   askgrowers: "askgrowers",
   "askgrowers-review": "askgrowers",
+  straindb: "straindb",
+  "strain-database": "straindb",
+  "strain-database.com": "straindb",
   "manual-curation": "manual-curation",
   "manual-user": "manual-curation",
 };
@@ -40,6 +43,13 @@ const SOURCE_POLICIES: Record<string, StrainSourcePolicy> = {
     tier: "review",
     requiresSourceNotes: true,
     summary: "Nur nach manueller Prüfung verwenden; Stock- oder Similar-Image-Risiko.",
+  },
+  straindb: {
+    key: "straindb",
+    label: "Strain Database",
+    tier: "review",
+    requiresSourceNotes: true,
+    summary: "Breite Datenquelle; Import vor Veröffentlichung in der Admin-Queue prüfen.",
   },
   "manual-curation": {
     key: "manual-curation",
@@ -86,6 +96,8 @@ export function buildDefaultSourceNotes(value?: string | null): string | null {
       return "AllBud nur als Fallback nutzen, wenn Leafly kein brauchbares Bild liefert; Bild vor Veröffentlichung selbst hosten.";
     case "askgrowers":
       return "AskGrowers nur nach manueller Prüfung verwenden; stock/similar Hinweise ausschließen und Bild vor Veröffentlichung selbst hosten.";
+    case "straindb":
+      return "Strain Database Import prüfen, Quellenhinweise dokumentieren und Bild vor Veröffentlichung selbst hosten.";
     case "manual-curation":
       return "Manuell kuratiert und für GreenLog freigegeben; Bild vor Veröffentlichung selbst hosten.";
     default:

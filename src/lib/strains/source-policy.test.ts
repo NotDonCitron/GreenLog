@@ -18,9 +18,17 @@ describe("strain source policy", () => {
     expect(policy.label).toBe("AllBud");
   });
 
+  it("treats Strain Database as a review source", () => {
+    const policy = getStrainSourcePolicy("strain-database.com");
+    expect(policy.key).toBe("straindb");
+    expect(policy.tier).toBe("review");
+    expect(policy.requiresSourceNotes).toBe(true);
+  });
+
   it("generates default notes for primary and fallback sources", () => {
     expect(buildDefaultSourceNotes("leafly")).toContain("Leafly priorisieren");
     expect(buildDefaultSourceNotes("allbud")).toContain("Fallback");
+    expect(buildDefaultSourceNotes("straindb")).toContain("Strain Database");
   });
 
   it("flags weak review-only sources without notes", () => {
