@@ -4,8 +4,14 @@ import { useEffect, useState } from "react";
 import { parsePercentValue } from "@/lib/display/utils";
 
 interface Terpene {
-    name: string;
+    name?: string;
+    Name?: string;
     percent?: number | string;
+    Percent?: number | string;
+    percentageMax?: number | string;
+    percentageMin?: number | string;
+    percentage?: number | string;
+    value?: number | string;
 }
 
 interface TerpeneRadarChartProps {
@@ -24,15 +30,26 @@ function formatPercentLabel(percent: number): string {
     return Number.isInteger(percent) ? String(percent) : percent.toFixed(2).replace(/\.?0+$/, "");
 }
 
+function getTerpenePercent(obj: Record<string, unknown>): number | undefined {
+    return parsePercentValue(
+        obj.percent ??
+        obj.Percent ??
+        obj.percentageMax ??
+        obj.percentageMin ??
+        obj.percentage ??
+        obj.value
+    );
+}
+
 export function parseTerpenes(raw: (string | Terpene)[]): ParsedTerpene[] {
     const parsed = raw
         .map((t) => {
             if (typeof t === "string") return { name: t.trim(), percent: undefined };
             if (t && typeof t === "object") {
-                // Support both "name"/"Name" and "percent"/"Percent" keys from Supabase
+                // Support current and legacy terpene shapes from import pipelines.
                 const obj = t as unknown as Record<string, unknown>;
                 const name = obj.name || obj.Name;
-                const percent = parsePercentValue(obj.percent ?? obj.Percent);
+                const percent = getTerpenePercent(obj);
                 if (name) return { name: String(name).trim(), percent };
                 return null;
             }
@@ -48,8 +65,10 @@ export function parseTerpenes(raw: (string | Terpene)[]): ParsedTerpene[] {
     );
 
     if (!hasAnyPercent) {
-        // No percent data → equal distribution at 70%
-        return parsed.map((t) => ({ name: t.name, value: 0.7 }));
+        return parsed.map((t, index) => ({
+            name: t.name,
+            value: Math.max(0.35, 1 - index * 0.18),
+        }));
     }
 
     const maxPercent = Math.max(

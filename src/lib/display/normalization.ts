@@ -17,14 +17,26 @@ export function normalizeTerpeneList(values: unknown): string[] {
             if (typeof value === "string") return value.trim();
             if (!value || typeof value !== "object") return null;
 
-            const terpene = value as Terpene;
-            if (!terpene.name?.trim()) return null;
+            const terpene = value as Terpene & Record<string, unknown>;
+            const name = typeof terpene.name === "string"
+                ? terpene.name
+                : typeof terpene.Name === "string"
+                    ? terpene.Name
+                    : null;
+            if (!name?.trim()) return null;
 
-            const percent = parsePercentValue(terpene.percent);
+            const percent = parsePercentValue(
+                terpene.percent ??
+                terpene.Percent ??
+                terpene.percentageMax ??
+                terpene.percentageMin ??
+                terpene.percentage ??
+                terpene.value
+            );
 
             return typeof percent === "number"
-                ? `${terpene.name.trim()} (${percent}%)`
-                : terpene.name.trim();
+                ? `${name.trim()} (${percent}%)`
+                : name.trim();
         })
         .filter((value): value is string => Boolean(value));
 }
