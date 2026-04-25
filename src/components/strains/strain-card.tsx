@@ -5,6 +5,7 @@ import { Strain } from '@/lib/types';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay } from '@/lib/strain-display';
 import { sanitizeDisplayText } from '@/lib/strain-display-text';
 import { escapeRegExp } from '@/lib/string-utils';
+import { resolvePublicMediaUrl } from '@/lib/public-media-url';
 
 function hasRealImage(strain: Strain): boolean {
   if (!strain.image_url) return false;
@@ -86,6 +87,7 @@ export const StrainCard = memo(function StrainCard({
   })();
 
   const realImage = hasRealImage(strain);
+  const imageUrl = resolvePublicMediaUrl(strain.image_url);
 
   const cardBaseClass = `premium-card ${themeClass} group relative flex w-full min-w-0 rounded-[20px] border-2 bg-[#121212] transition-all duration-300 overflow-hidden aspect-[4/5] ${selectionMode ? 'cursor-pointer' : 'hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]'}`;
   const cardStyle = {
@@ -115,7 +117,7 @@ export const StrainCard = memo(function StrainCard({
         <>
           {/* 1. REAL IMAGE fills entire card */}
           <img
-            src={strain.image_url!}
+            src={imageUrl!}
             alt={strain.name}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             loading="lazy"
