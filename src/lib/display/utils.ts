@@ -28,3 +28,17 @@ export function safeParsePercent(value: string) {
     const parsedValue = Number.parseFloat(trimmedValue);
     return Number.isFinite(parsedValue) ? parsedValue : null;
 }
+
+export function parsePercentValue(value: unknown): number | undefined {
+    if (typeof value === "number") {
+        return Number.isFinite(value) ? value : undefined;
+    }
+
+    if (typeof value !== "string") return undefined;
+
+    const normalizedValue = value.trim().replace("%", "").replace(",", ".");
+    if (!normalizedValue) return undefined;
+
+    const parsedValue = Number.parseFloat(normalizedValue);
+    return Number.isFinite(parsedValue) ? parsedValue : undefined;
+}

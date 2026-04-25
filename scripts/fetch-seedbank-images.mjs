@@ -17,6 +17,7 @@ import fs from 'fs';
 import path from 'path';
 import { searchAll } from './lib/seedbank-adapters/index.mjs';
 import { validateImage } from './lib/image-validator.mjs';
+import { getSearchCandidates } from './lib/strain-aliases.mjs';
 
 dotenv.config({ path: '.env.local' });
 
@@ -51,6 +52,16 @@ function createS3() {
 
 async function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
+}
+
+async function searchWithAliases(strainName) {
+  const candidates = getSearchCandidates(strainName);
+  for (const candidate of candidates) {
+    const results = await searchAll(candidate);
+    await sleep(RATE_LIMIT_MS);
+    if (results.length > 0) return { query: candidate, results };
+  }
+  return { query: strainName, results: [] };
 }
 
 async function downloadImage(url) {
@@ -135,7 +146,7 @@ async function main() {
     const strain = strains[i];
     const progress = `[${i + 1}/${strains.length}]`;
 
-    if (processed[strain.id]) {
+    if (processed[strain.id] && !(processed[strain.id].status === 'dry_run' && !DRY_RUN)) {
       stats.skipped++;
       continue;
     }
@@ -143,24 +154,28 @@ async function main() {
     console.log(`${progress} ${strain.name}`);
 
     // Search seedbanks
-    const results = await searchAll(strain.name);
-    await sleep(RATE_LIMIT_MS);
+    const search = await searchWithAliases(strain.name);
+    const results = search.results;
 
     if (results.length === 0) {
       console.log(`  ❌ No seedbank match`);
-      processed[strain.id] = { status: 'no_match', name: strain.name };
-      fs.writeFileSync(LOCK_FILE, JSON.stringify(processed, null, 2));
+      if (!DRY_RUN) {
+        processed[strain.id] = { status: 'no_match', name: strain.name };
+        fs.writeFileSync(LOCK_FILE, JSON.stringify(processed, null, 2));
+      }
       stats.no_match++;
       continue;
     }
 
     const best = results[0];
+    if (search.query !== strain.name) {
+      console.log(`  ↪ Search alias: ${search.query}`);
+    }
     console.log(`  ✅ ${best.adapter}: "${best.name}" (score: ${best.score.toFixed(2)})`);
     console.log(`     ${best.imageUrl.substring(0, 80)}...`);
 
     if (DRY_RUN) {
-      processed[strain.id] = { status: 'dry_run', url: best.imageUrl, adapter: best.adapter };
-      fs.writeFileSync(LOCK_FILE, JSON.stringify(processed, null, 2));
+      console.log(`  🔎 Dry run: would use ${best.adapter}`);
       continue;
     }
 

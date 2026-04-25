@@ -201,7 +201,22 @@ export function getBadgeById(id: string): BadgeDefinition | undefined {
 // In-memory lock to prevent concurrent badge checks for the same user in the same session
 const activeChecks = new Map<string, Promise<string[]>>();
 
-export async function checkAndUnlockBadges(userId: string, supabase: SupabaseClient) {
+/**
+ * Check and unlock badges server-side (triggers push notifications).
+ * This is the preferred method — it calls the secure API endpoint which:
+ * 1. Validates criteria server-side
+ * 2. Inserts badges with service role (bypasses RLS)
+ * 3. Creates in-app notifications
+ * 4. Sends push notifications
+ */
+export async function checkAndUnlockBadges(userId: string, supabase: SupabaseClient): Promise<string[]> {
+  // Get the current session for the auth header
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    console.warn("[checkAndUnlockBadges] No session available, skipping badge check");
+    return [];
+  }
+
   // If a check is already running for this user, return the existing promise
   if (activeChecks.has(userId)) {
     return activeChecks.get(userId)!;
@@ -209,54 +224,73 @@ export async function checkAndUnlockBadges(userId: string, supabase: SupabaseCli
 
   const checkPromise = (async () => {
     try {
-      const { data: unlockedBadges } = await supabase
-        .from('user_badges')
-        .select('badge_id')
-        .eq('user_id', userId);
-
-      const unlockedSet = new Set(unlockedBadges?.map(b => b.badge_id) || []);
-      const newlyUnlocked: string[] = [];
-
-      for (const badge of ALL_BADGES) {
-        if (unlockedSet.has(badge.id)) continue;
-
-        const criteriaFn = BADGE_CRITERIA[badge.criteriaKey];
-        if (!criteriaFn) continue;
-
-        try {
-          const qualifies = await criteriaFn({ supabase, userId });
-          if (qualifies) {
-            // Explicit check before insert to avoid 409 Conflict errors.
-            // Some Supabase environments/versions still return 409 on upsert even with ignoreDuplicates.
-            const { data: existing } = await supabase
-              .from('user_badges')
-              .select('id')
-              .eq('user_id', userId)
-              .eq('badge_id', badge.id)
-              .maybeSingle();
-
-            if (!existing) {
-              const { error: insertError } = await supabase
-                .from('user_badges')
-                .insert({ user_id: userId, badge_id: badge.id });
-              
-              if (!insertError) {
-                newlyUnlocked.push(badge.id);
-              }
-            }
-          }
-        } catch (err) {
-          // Silent fail - individual badge check should not block others
+      const res = await fetch("/api/badges/check", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`
         }
+      });
+
+      if (!res.ok) {
+        console.error("[checkAndUnlockBadges] API error:", res.status, await res.text());
+        return [];
       }
 
-      return newlyUnlocked;
+      const result = await res.json();
+      return (result.data?.newlyUnlocked || []) as string[];
     } finally {
-      // Always clear the lock when finished
       activeChecks.delete(userId);
     }
   })();
 
   activeChecks.set(userId, checkPromise);
   return checkPromise;
+}
+
+/**
+ * Legacy client-side badge check (does NOT trigger push notifications).
+ * Kept for backward compatibility where auth context may not be available.
+ */
+export async function checkAndUnlockBadgesClient(userId: string, supabase: SupabaseClient) {
+  const { data: unlockedBadges } = await supabase
+    .from('user_badges')
+    .select('badge_id')
+    .eq('user_id', userId);
+
+  const unlockedSet = new Set(unlockedBadges?.map(b => b.badge_id) || []);
+  const newlyUnlocked: string[] = [];
+
+  for (const badge of ALL_BADGES) {
+    if (unlockedSet.has(badge.id)) continue;
+
+    const criteriaFn = BADGE_CRITERIA[badge.criteriaKey];
+    if (!criteriaFn) continue;
+
+    try {
+      const qualifies = await criteriaFn({ supabase, userId });
+      if (qualifies) {
+        const { data: existing } = await supabase
+          .from('user_badges')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('badge_id', badge.id)
+          .maybeSingle();
+
+        if (!existing) {
+          const { error: insertError } = await supabase
+            .from('user_badges')
+            .insert({ user_id: userId, badge_id: badge.id });
+          
+          if (!insertError) {
+            newlyUnlocked.push(badge.id);
+          }
+        }
+      }
+    } catch (err) {
+      // Silent fail
+    }
+  }
+
+  return newlyUnlocked;
 }

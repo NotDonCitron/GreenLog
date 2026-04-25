@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { jsonSuccess, jsonError } from "@/lib/api-response";
 import { ALL_BADGES, BADGE_CRITERIA } from "@/lib/badges";
 import type { BadgeContext } from "@/lib/badges";
+import { sendPushToUser } from "@/lib/push";
 
 export async function POST(request: Request) {
     const authHeader = request.headers.get("Authorization");
@@ -53,6 +54,32 @@ export async function POST(request: Request) {
                 if (!error) {
                     newlyUnlocked.push(badge.id);
                     unlockedSet.add(badge.id);
+
+                    // Create in-app notification for the badge unlock (best effort)
+                    try {
+                        await adminClient
+                            .from("notifications")
+                            .insert({
+                                user_id: user.id,
+                                title: `Abzeichen freigeschaltet: ${badge.name}`,
+                                message: badge.description,
+                                type: "badge_unlocked",
+                                read: false,
+                                data: { badge_id: badge.id, badge_name: badge.name }
+                            });
+                    } catch (notifErr) {
+                        console.error(`[BadgeCheck] Failed to create notification for ${badge.id}:`, notifErr);
+                    }
+
+                    // Send push notification (fire and forget)
+                    sendPushToUser(adminClient, user.id, {
+                        title: `🏆 ${badge.name}`,
+                        body: badge.description,
+                        tag: `badge_unlocked_${badge.id}`,
+                        data: { type: "badge_unlocked", badge_id: badge.id, badge_name: badge.name }
+                    }).catch((pushErr: unknown) => {
+                        console.error(`[BadgeCheck] Push failed for ${badge.id}:`, pushErr);
+                    });
                 }
             }
         } catch (err) {

@@ -5,6 +5,15 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+const DEFAULT_PERCENT_SERIES = [0.9, 0.5, 0.3, 0.2, 0.1, 0.1];
+
+function buildDeterministicPercentages(terpeneNames) {
+  return terpeneNames.map((name, idx) => ({
+    name,
+    percent: DEFAULT_PERCENT_SERIES[idx] ?? 0.1,
+  }));
+}
+
 async function enrichAll() {
   console.log('--- Global Terpene Enrichment ---');
   
@@ -18,11 +27,7 @@ async function enrichAll() {
       const first = s.terpenes[0];
       if (typeof first === 'string') {
         console.log(`Converting ${s.name}...`);
-        const newTerpenes = s.terpenes.map((name, idx) => {
-          // Generate realistic looking percentages (descending order)
-          const percent = parseFloat((1.2 - (idx * 0.3) + (Math.random() * 0.2)).toFixed(1));
-          return { name, percent: percent > 0.1 ? percent : 0.1 };
-        });
+        const newTerpenes = buildDeterministicPercentages(s.terpenes);
         
         await supabase.from('strains').update({ terpenes: newTerpenes }).eq('id', s.id);
       }

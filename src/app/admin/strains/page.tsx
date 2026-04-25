@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/components/auth-provider';
+import {
+  getStrainPublicationSnapshot,
+  type StrainPublicationCandidate,
+  type StrainPublicationRequirement,
+} from '@/lib/strains/publication';
 import { detectSourceWarnings, getStrainSourcePolicy } from '@/lib/strains/source-policy';
 import {
   AlertCircle,
@@ -28,7 +33,7 @@ import {
   Send,
 } from 'lucide-react';
 
-interface Strain {
+interface Strain extends StrainPublicationCandidate {
   id: string;
   organization_id: string | null;
   name: string;
@@ -50,18 +55,7 @@ interface Strain {
   created_at?: string;
 }
 
-type Completeness = {
-  name: boolean;
-  slug: boolean;
-  type: boolean;
-  description: boolean;
-  thc: boolean;
-  terpenes: boolean;
-  flavors: boolean;
-  effects: boolean;
-  image: boolean;
-  source: boolean;
-};
+type Completeness = Record<StrainPublicationRequirement, boolean>;
 
 type Recommendation = 'publish_ready' | 'needs_review' | 'weak_candidate';
 
@@ -78,12 +72,13 @@ interface UndoAction {
   timer: ReturnType<typeof setTimeout>;
 }
 
-const COMPLETENESS_KEYS: Array<keyof Completeness> = [
+const COMPLETENESS_KEYS: StrainPublicationRequirement[] = [
   'name',
   'slug',
   'type',
   'description',
   'thc',
+  'cbd',
   'terpenes',
   'flavors',
   'effects',
@@ -101,23 +96,16 @@ function formatRange(min: number | null, max: number | null) {
 }
 
 function getCompleteness(strain: Strain): Completeness {
-  return {
-    name: !!strain.name,
-    slug: !!strain.slug,
-    type: !!strain.type,
-    description: !!strain.description?.trim(),
-    thc: strain.thc_min !== null || strain.thc_max !== null,
-    terpenes: Array.isArray(strain.terpenes) && strain.terpenes.length >= 2,
-    flavors: Array.isArray(strain.flavors) && strain.flavors.length >= 1,
-    effects: Array.isArray(strain.effects) && strain.effects.length >= 1,
-    image: !!strain.image_url || !!strain.canonical_image_path,
-    source: !!strain.primary_source?.trim(),
-  };
+  const snapshot = getStrainPublicationSnapshot(strain);
+  return Object.fromEntries(
+    COMPLETENESS_KEYS.map((key) => [key, !snapshot.missing.includes(key)])
+  ) as Completeness;
 }
 
 function evaluateStrain(strain: Strain, completeness: Completeness) {
-  const completeCount = COMPLETENESS_KEYS.filter((key) => completeness[key]).length;
-  const missing = COMPLETENESS_KEYS.filter((key) => !completeness[key]);
+  const publication = getStrainPublicationSnapshot(strain);
+  const completeCount = COMPLETENESS_KEYS.length - publication.missing.length;
+  const missing = publication.missing;
   const sourcePolicy = getStrainSourcePolicy(strain.primary_source);
   const sourceWarnings = detectSourceWarnings({
     primarySource: strain.primary_source,
@@ -137,24 +125,20 @@ function evaluateStrain(strain: Strain, completeness: Completeness) {
   const badReasons = missing.slice(0, 4).map((key) => {
     const labels: Record<string, string> = {
       name: 'Name', slug: 'Slug', type: 'Type', description: 'Beschreibung',
-      thc: 'THC', terpenes: 'Terpene', flavors: 'Aromen', effects: 'Effekte',
+      thc: 'THC', cbd: 'CBD', terpenes: 'Terpene', flavors: 'Aromen', effects: 'Effekte',
       image: 'Bild', source: 'Quelle',
     };
     return labels[key] || key;
   });
 
   let recommendation: Recommendation = 'needs_review';
-  if (completeCount >= 9 && completeness.image && completeness.source && completeness.description) {
+  if (publication.canPublish) {
     recommendation = 'publish_ready';
   } else if (!completeness.name || !completeness.slug || !completeness.source || completeCount <= 6) {
     recommendation = 'weak_candidate';
   }
 
-  if (sourceWarnings.length > 0 && recommendation === 'publish_ready') {
-    recommendation = 'needs_review';
-  }
-
-  if (sourceWarnings.length > 1) {
+  if (!publication.canPublish && sourceWarnings.length > 1) {
     recommendation = 'weak_candidate';
   }
 
@@ -918,7 +902,7 @@ export default function AdminStrainsPage() {
           </div>
 
           {paged.map((row) => {
-            const { strain, completeness, completeCount, missing, recommendation, goodReasons, badReasons, sourcePolicy, sourceWarnings } = row;
+            const { strain, completeness, completeCount, recommendation, badReasons, sourcePolicy, sourceWarnings } = row;
             const isExpanded = expandedId === strain.id;
             const isRowUpdating = isUpdating.has(strain.id);
             const isSelected = selectedIds.has(strain.id);
@@ -1044,7 +1028,7 @@ export default function AdminStrainsPage() {
                       {COMPLETENESS_KEYS.map((key) => {
                         const labels: Record<string, string> = {
                           name: 'Name', slug: 'Slug', type: 'Type', description: 'Beschreibung',
-                          thc: 'THC', terpenes: 'Terpene', flavors: 'Aromen', effects: 'Effekte',
+                          thc: 'THC', cbd: 'CBD', terpenes: 'Terpene', flavors: 'Aromen', effects: 'Effekte',
                           image: 'Bild', source: 'Quelle',
                         };
                         const ok = completeness[key];

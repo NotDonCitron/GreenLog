@@ -85,9 +85,9 @@ function scrape(url) {
     const textLower = html.toLowerCase();
     const effects = [...new Set(effectKeywords.filter(e => textLower.includes(e)))].slice(0, 6);
     
-    // Flavors
-    const flavorKeywords = ['sweet', 'sour', 'citrus', 'pine', 'earthy', 'woody', 'spicy', 'cheese', 'fruity', 'berry', 'tropical', 'lemon', 'lime', 'chocolate', 'coffee', 'mint', 'pepper', 'skunky', 'pungent', 'floral', 'berry', 'grape'];
-    const flavors = [...new Set(flavorKeywords.filter(f => textLower.includes(f)))].slice(0, 6);
+    // Do not infer aromas from full-page keyword matches. It over-labels strains
+    // with generic values like "earthy"; use explicit source flavor fields only.
+    const flavors = [];
     
     return { imageUrl, thc_min, thc_max, cbd, effects, flavors };
   } catch {

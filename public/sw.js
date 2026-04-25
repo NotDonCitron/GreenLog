@@ -1,5 +1,5 @@
-const STATIC_CACHE = 'greenlog-static-v2';
-const API_CACHE = 'greenlog-api-v2';
+const STATIC_CACHE = 'greenlog-static-v3';
+const API_CACHE = 'greenlog-api-v3';
 
 const MAX_STATIC = 100;
 const MAX_API = 50;
@@ -248,15 +248,104 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Background sync – placeholder for post-launch offline action queue
+// ==========================================
+// IndexedDB helpers for offline action queue
+// ==========================================
+const DB_NAME = 'greenlog-offline';
+const DB_VERSION = 1;
+const STORE_NAME = 'action-queue';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onerror = () => reject(req.error);
+    req.onsuccess = () => resolve(req.result);
+    req.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+      }
+    };
+  });
+}
+
+async function enqueueAction(action) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.add({ ...action, createdAt: Date.now() });
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function getQueuedActions() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function removeAction(id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// ==========================================
+// Background sync – flush offline queue
+// ==========================================
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-notifications') {
-    event.waitUntil(syncNotifications());
+  if (event.tag === 'greenlog-sync') {
+    event.waitUntil(flushOfflineQueue());
   }
 });
 
-async function syncNotifications() {
-  // TODO (post-launch): Implement IndexedDB queue for offline notification actions.
-  // When the browser comes back online, flush queued actions to the server.
-  console.log('[SW] Background sync triggered – not yet implemented');
+async function flushOfflineQueue() {
+  console.log('[SW] Background sync triggered – flushing offline queue');
+  const actions = await getQueuedActions();
+  if (!actions.length) return;
+
+  for (const action of actions) {
+    try {
+      const res = await fetch(action.url, {
+        method: action.method || 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...action.headers
+        },
+        body: JSON.stringify(action.body)
+      });
+
+      if (res.ok || res.status === 409) {
+        // Success or duplicate – remove from queue
+        await removeAction(action.id);
+        console.log(`[SW] Flushed action ${action.id} (${action.type})`);
+      } else {
+        console.warn(`[SW] Action ${action.id} failed with ${res.status}, will retry`);
+      }
+    } catch (err) {
+      console.error(`[SW] Action ${action.id} network error:`, err);
+      // Keep in queue for next sync
+    }
+  }
 }
+
+// ==========================================
+// Message handler from main thread
+// ==========================================
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SYNC_OFFLINE_QUEUE') {
+    event.waitUntil(flushOfflineQueue());
+  }
+});

@@ -114,9 +114,9 @@ async function scrapeCannabisNetStrain(url, browser) {
       const effectKeywords = ['euphoric', 'relaxed', 'happy', 'uplifted', 'creative', 'energetic', 'focused', 'sleepy', 'hungry', 'aroused', 'talkative'];
       const effects = effectKeywords.filter(e => typeText.includes(e)).slice(0, 6);
 
-      // Flavors
-      const flavorKeywords = ['sweet', 'sour', 'citrus', 'pine', 'earthy', 'woody', 'spicy', 'cheese', 'fruity', 'berry', 'tropical', 'lemon', 'lime', 'chocolate', 'coffee', 'mint', 'pepper', 'skunky', 'pungent', 'floral'];
-      const flavors = flavorKeywords.filter(f => typeText.includes(f)).slice(0, 6);
+      // Do not infer aromas from full-page keyword matches. It over-labels strains
+      // with generic values like "earthy"; use explicit source flavor fields only.
+      const flavors = [];
 
       // Genetics (from cross names)
       const geneticsMatch = bodyText.match(/cross(?:es|ing)?[\s:]+([^,\n]{3,50})/i) ||

@@ -122,6 +122,15 @@ function findKeywords(html: string, keywords: string[]): string[] {
   return keywords.filter((keyword) => lower.includes(keyword));
 }
 
+function extractExplicitFlavors(html: string): string[] {
+  const matches = [...html.matchAll(/(?:flavor|taste|aroma)[^>]*>\s*([^<]{3,40})</gi)];
+  const values = matches
+    .map((match) => stripTags(match[1]))
+    .filter((value) => FLAVOR_KEYWORDS.includes(value.toLowerCase()));
+
+  return uniqueNormalized(values);
+}
+
 function parseNumericRange(html: string, label: string): number | null {
   const pattern = new RegExp(`${label}[^\\d]*(\\d+(?:\\.\\d+)?)`, "i");
   const match = html.match(pattern);
@@ -186,7 +195,7 @@ export async function POST(req: NextRequest) {
       thc: parseNumericRange(html, "THC"),
       cbd: parseNumericRange(html, "CBD"),
       terpenes: [],
-      flavors: uniqueNormalized(findKeywords(`${description} ${html}`, FLAVOR_KEYWORDS)),
+      flavors: extractExplicitFlavors(html),
       effects: uniqueNormalized(findKeywords(`${description} ${html}`, EFFECT_KEYWORDS)),
       image_url: imageMatch ? decodeHtml(imageMatch[1]) : null,
       primary_source: "allbud",

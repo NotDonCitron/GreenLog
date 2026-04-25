@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { parsePercentValue } from "@/lib/display/utils";
 
 interface Terpene {
     name: string;
-    percent?: number;
+    percent?: number | string;
 }
 
 interface TerpeneRadarChartProps {
@@ -19,7 +20,11 @@ interface ParsedTerpene {
     originalPercent?: number; // actual percent from DB, if available
 }
 
-function parseTerpenes(raw: (string | Terpene)[]): ParsedTerpene[] {
+function formatPercentLabel(percent: number): string {
+    return Number.isInteger(percent) ? String(percent) : percent.toFixed(2).replace(/\.?0+$/, "");
+}
+
+export function parseTerpenes(raw: (string | Terpene)[]): ParsedTerpene[] {
     const parsed = raw
         .map((t) => {
             if (typeof t === "string") return { name: t.trim(), percent: undefined };
@@ -27,8 +32,8 @@ function parseTerpenes(raw: (string | Terpene)[]): ParsedTerpene[] {
                 // Support both "name"/"Name" and "percent"/"Percent" keys from Supabase
                 const obj = t as unknown as Record<string, unknown>;
                 const name = obj.name || obj.Name;
-                const percent = obj.percent ?? obj.Percent;
-                if (name) return { name: String(name).trim(), percent: typeof percent === "number" ? percent : undefined };
+                const percent = parsePercentValue(obj.percent ?? obj.Percent);
+                if (name) return { name: String(name).trim(), percent };
                 return null;
             }
             return null;
@@ -221,7 +226,7 @@ export function TerpeneRadarChart({
                     }
 
                     const labelText = typeof t.originalPercent === "number"
-                        ? `${t.name} ${t.originalPercent}%`
+                        ? `${t.name} ${formatPercentLabel(t.originalPercent)}%`
                         : t.name;
 
                     return (

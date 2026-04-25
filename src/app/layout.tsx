@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
+import { OfflineIndicator } from "@/components/offline-indicator";
 import OnboardingGuide from "@/components/onboarding";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { PUBLIC_SITE_URL } from "@/lib/site-config";
@@ -118,6 +119,7 @@ export default function RootLayout({
       </head>
       <body className="h-full bg-[var(--background)] text-[var(--foreground)] overflow-x-hidden font-body">
         <ServiceWorkerRegister />
+        <OfflineIndicator />
         <Providers>
           <ErrorBoundary name="app">
             <div className="flex h-full flex-col">

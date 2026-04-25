@@ -1,5 +1,5 @@
 import { StrainSource, Terpene } from "@/lib/types";
-import { DisplayableValue, extractDisplayName } from "./utils";
+import { DisplayableValue, extractDisplayName, parsePercentValue } from "./utils";
 
 export function normalizeDisplayList(values: unknown): string[] {
     if (!Array.isArray(values)) return [];
@@ -20,8 +20,10 @@ export function normalizeTerpeneList(values: unknown): string[] {
             const terpene = value as Terpene;
             if (!terpene.name?.trim()) return null;
 
-            return typeof terpene.percent === "number"
-                ? `${terpene.name.trim()} (${terpene.percent}%)`
+            const percent = parsePercentValue(terpene.percent);
+
+            return typeof percent === "number"
+                ? `${terpene.name.trim()} (${percent}%)`
                 : terpene.name.trim();
         })
         .filter((value): value is string => Boolean(value));
