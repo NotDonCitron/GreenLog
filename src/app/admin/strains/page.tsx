@@ -228,6 +228,11 @@ function StrainImage({ imageUrl, canonicalPath, name }: { imageUrl: string | nul
   const [broken, setBroken] = useState(false);
   const url = imageUrl || canonicalPath;
 
+  // Reset broken state when the URL changes (prevents stale state from React reuse)
+  useEffect(() => {
+    setBroken(false);
+  }, [url]);
+
   if (!url || broken) {
     return (
       <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-[var(--border)]/50 text-[10px] text-[var(--muted-foreground)]">
@@ -244,7 +249,10 @@ function StrainImage({ imageUrl, canonicalPath, name }: { imageUrl: string | nul
         alt={name}
         className="h-16 w-16 rounded-lg border border-[var(--border)]/50 object-cover"
         referrerPolicy="no-referrer"
-        onError={() => setBroken(true)}
+        onError={() => {
+          console.warn(`[StrainImage] Failed to load image for "${name}": ${url}`);
+          setBroken(true);
+        }}
       />
     </a>
   );

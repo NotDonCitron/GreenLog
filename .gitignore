@@ -45,6 +45,11 @@ next-env.d.ts
 # temp / scraped data
 scripts/.tmp-images/
 scripts/.tmp-leafly-images/
+scripts/output/
+scripts/*.log
+scripts/*.txt
+scripts/*.jsonl
+scripts/*.bak
 scripts/.farmer-pipeline-lock.json
 scripts/.fill-missing-images-lock.json
 scripts/.image-pipeline-lock.json
@@ -60,6 +65,11 @@ android/
 
 # build output
 out/
+
+# generated test/browser artifacts
+playwright-report/
+test-results/
+tmp/
 
 # dev docs
 docs/strains-missing-images.md
@@ -81,3 +91,7 @@ scripts/test-upload-check.mjs
 /.clerk/
 .next_old/
 .worktrees/
+
+# local desktop helpers
+/voice-ptt-reset
+tools/voice-stt/.tmp/

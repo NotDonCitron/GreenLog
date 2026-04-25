@@ -15,11 +15,26 @@ const apply = args.has('--apply');
 const limitArg = process.argv.find((arg) => arg.startsWith('--limit='));
 const offsetArg = process.argv.find((arg) => arg.startsWith('--offset='));
 const tableArg = process.argv.find((arg) => arg.startsWith('--table='));
+const statusArg = process.argv.find((arg) => arg.startsWith('--status='));
 const limit = limitArg ? Number(limitArg.split('=')[1]) : 50;
 const offset = offsetArg ? Number(offsetArg.split('=')[1]) : 0;
 const onlyTable = tableArg?.split('=')[1] || null;
+const onlyStatus = statusArg?.split('=')[1] || null;
 
 const PUBLIC_BASE_PATH = (process.env.IMAGE_PUBLIC_BASE_PATH || '/media').trim().replace(/\/+$/, '') || '/media';
+function hostFromUrl(value) {
+  try {
+    return value ? new URL(value).host : null;
+  } catch {
+    return null;
+  }
+}
+
+const SELF_HOSTED_HOSTS = new Set([
+  'storage.cannalog.fun',
+  process.env.MINIO_PUBLIC_HOST,
+  hostFromUrl(process.env.MINIO_PUBLIC_ORIGIN),
+].filter(Boolean));
 const MAX_BYTES = Number(process.env.IMAGE_DOWNLOAD_MAX_BYTES || 10 * 1024 * 1024);
 const REQUEST_TIMEOUT_MS = Number(process.env.REQUEST_TIMEOUT_MS || 20_000);
 const REPORT_DIR = path.resolve('scripts/image-migration-reports');
@@ -27,7 +42,7 @@ const REPORT_DIR = path.resolve('scripts/image-migration-reports');
 const targets = [
   {
     table: 'strains',
-    select: 'id,image_url,canonical_image_path',
+    select: 'id,image_url,canonical_image_path,publication_status',
     urlColumn: 'image_url',
     canonicalColumn: 'canonical_image_path',
     bucket: 'strains',
@@ -105,11 +120,30 @@ function createS3() {
 }
 
 function isMigratedUrl(url) {
-  return typeof url === 'string' && url.startsWith(`${PUBLIC_BASE_PATH}/`);
+  if (typeof url !== 'string') return false;
+  if (url.startsWith(`${PUBLIC_BASE_PATH}/`)) return true;
+
+  try {
+    const parsed = new URL(url);
+    return SELF_HOSTED_HOSTS.has(parsed.host);
+  } catch {
+    return false;
+  }
+}
+
+function isGenericExternalImage(url) {
+  const value = String(url || '').toLowerCase();
+  return (
+    value.includes('/defaults/generic/') ||
+    value.includes('placeholder') ||
+    value.includes('default-avatar') ||
+    value.includes('dummy') ||
+    value.includes('picsum')
+  );
 }
 
 function isDownloadableUrl(url) {
-  if (!url || isMigratedUrl(url) || url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('/')) return false;
+  if (!url || isMigratedUrl(url) || isGenericExternalImage(url) || url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('/')) return false;
   try {
     const parsed = new URL(url);
     return parsed.protocol === 'http:' || parsed.protocol === 'https:';
@@ -182,12 +216,17 @@ async function uploadImage(s3, bucket, key, bytes, contentType) {
 async function loadCandidates(supabase, target) {
   const rangeFrom = Math.max(0, offset);
   const rangeTo = rangeFrom + Math.max(1, limit) - 1;
-  const { data, error } = await supabase
+  let query = supabase
     .from(target.table)
     .select(target.select)
     .not(target.urlColumn, 'is', null)
-    .order('id', { ascending: true })
-    .range(rangeFrom, rangeTo);
+    .order('id', { ascending: true });
+
+  if (target.table === 'strains' && onlyStatus) {
+    query = query.eq('publication_status', onlyStatus);
+  }
+
+  const { data, error } = await query.range(rangeFrom, rangeTo);
 
   if (error) throw new Error(`${target.table}.${target.urlColumn}: ${error.message}`);
   return (data || []).filter((row) => isDownloadableUrl(row[target.urlColumn]));
@@ -247,6 +286,7 @@ async function main() {
     limit,
     offset,
     onlyTable,
+    onlyStatus,
     records: [],
   };
 
