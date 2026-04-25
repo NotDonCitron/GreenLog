@@ -53,13 +53,14 @@ interface Strain extends StrainPublicationCandidate {
   primary_source: string;
   source_notes: string | null;
   created_at?: string;
+  reviewed_at?: string;
 }
 
 type Completeness = Record<StrainPublicationRequirement, boolean>;
 
 type Recommendation = 'publish_ready' | 'needs_review' | 'weak_candidate';
 
-type SortKey = 'name' | 'score' | 'source' | 'status' | 'created';
+type SortKey = 'priority' | 'name' | 'score' | 'source' | 'status' | 'created';
 type SortDir = 'asc' | 'desc';
 type StatusFilter = 'all' | 'draft' | 'review' | 'published' | 'rejected';
 
@@ -87,6 +88,15 @@ const COMPLETENESS_KEYS: StrainPublicationRequirement[] = [
 ];
 
 const PAGE_SIZE = 50;
+const DETAIL_REVIEW_MARKER = 'Zur Review zurückgestellt durch Admin aus Detailseite.';
+
+function isReturnedFromDetail(strain: Strain) {
+  return (
+    strain.publication_status === 'review'
+    && typeof strain.source_notes === 'string'
+    && strain.source_notes.includes(DETAIL_REVIEW_MARKER)
+  );
+}
 
 function formatRange(min: number | null, max: number | null) {
   if (min !== null && max !== null) return `${min}–${max}%`;
@@ -314,8 +324,8 @@ export default function AdminStrainsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [recommendationFilter, setRecommendationFilter] = useState<'all' | Recommendation>('all');
   const [page, setPage] = useState(0);
-  const [sortKey, setSortKey] = useState<SortKey>('score');
-  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [sortKey, setSortKey] = useState<SortKey>('priority');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [undoActions, setUndoActions] = useState<UndoAction[]>([]);
   const [bulkLoading, setBulkLoading] = useState(false);
@@ -525,7 +535,7 @@ export default function AdminStrainsPage() {
     return strains.map((strain) => {
       const completeness = getCompleteness(strain);
       const evaluation = evaluateStrain(strain, completeness);
-      return { strain, completeness, ...evaluation };
+      return { strain, completeness, returnedFromDetail: isReturnedFromDetail(strain), ...evaluation };
     });
   }, [strains]);
 
@@ -556,6 +566,19 @@ export default function AdminStrainsPage() {
     };
 
     return [...filtered].sort((a, b) => {
+      if (sortKey === 'priority') {
+        if (a.returnedFromDetail !== b.returnedFromDetail) return a.returnedFromDetail ? -1 : 1;
+
+        if (a.strain.publication_status !== b.strain.publication_status) {
+          if (a.strain.publication_status === 'review') return -1;
+          if (b.strain.publication_status === 'review') return 1;
+        }
+
+        const aReviewedAt = a.strain.reviewed_at || '';
+        const bReviewedAt = b.strain.reviewed_at || '';
+        if (aReviewedAt !== bReviewedAt) return bReviewedAt.localeCompare(aReviewedAt);
+      }
+
       let cmp = 0;
 
       switch (sortKey) {
@@ -573,6 +596,9 @@ export default function AdminStrainsPage() {
           break;
         case 'created':
           cmp = (a.strain.created_at || '').localeCompare(b.strain.created_at || '');
+          break;
+        case 'priority':
+          cmp = priority[a.recommendation] - priority[b.recommendation];
           break;
         default:
           cmp = priority[a.recommendation] - priority[b.recommendation];
@@ -602,7 +628,7 @@ export default function AdminStrainsPage() {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortKey(key);
-      setSortDir(key === 'name' || key === 'source' ? 'asc' : 'desc');
+      setSortDir(key === 'priority' || key === 'name' || key === 'source' ? 'asc' : 'desc');
     }
     setPage(0);
   };
@@ -860,6 +886,8 @@ export default function AdminStrainsPage() {
       {/* Sort headers */}
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[var(--border)]/30 bg-[var(--card)]/30 px-4 py-2">
         <div className="w-6" />
+        <SortHeader label="Priorität" sortKey="priority" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+        <span className="text-[var(--border)]/50">·</span>
         <SortHeader label="Name" sortKey="name" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
         <span className="text-[var(--border)]/50">·</span>
         <SortHeader label="Score" sortKey="score" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
@@ -942,6 +970,11 @@ export default function AdminStrainsPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-base font-semibold text-[var(--foreground)]">{strain.name}</h2>
                       <StatusPill status={strain.publication_status} />
+                      {row.returnedFromDetail && (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">
+                          <Send size={10} /> Zurückgestellt
+                        </span>
+                      )}
                       <RecommendationPill recommendation={recommendation} />
                       <ScoreBadge score={completeCount} total={COMPLETENESS_KEYS.length} />
                       <SourceTierPill source={strain.primary_source || 'unknown'} />
