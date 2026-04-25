@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '@/components/auth-provider';
+import { useAppAdmin } from '@/hooks/useAppAdmin';
 
 type Operation = 'rollback' | 'cleanup';
 type Mode = 'dry-run' | 'apply';
@@ -131,16 +132,11 @@ function ResultTable({ results }: { results: MediaResult[] }) {
 }
 
 export default function AdminMediaPage() {
-  const { user, session, loading: authLoading } = useAuth();
+  const { session, loading: authLoading } = useAuth();
   const [loadingKey, setLoadingKey] = useState<LoadingKey | null>(null);
   const [responses, setResponses] = useState<Partial<Record<Operation, OperationResponse>>>({});
   const [error, setError] = useState<string | null>(null);
-
-  const adminIds = useMemo(
-    () => (process.env.NEXT_PUBLIC_APP_ADMIN_IDS || '').split(',').map((id) => id.trim()).filter(Boolean),
-    [],
-  );
-  const isAdmin = !!user && adminIds.includes(user.id);
+  const { isAdmin, loading: adminLoading } = useAppAdmin();
 
   const totals = useMemo(() => {
     const allResults = Object.values(responses).flatMap((response) => response?.results ?? []);
@@ -199,7 +195,7 @@ export default function AdminMediaPage() {
     }
   };
 
-  if (authLoading) {
+  if (authLoading || adminLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="animate-spin text-[var(--muted-foreground)]" size={24} />

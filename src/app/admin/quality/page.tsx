@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '@/components/auth-provider';
+import { useAppAdmin } from '@/hooks/useAppAdmin';
 import { supabase } from '@/lib/supabase';
 import { getStrainPublicationSnapshot, type StrainPublicationRequirement } from '@/lib/strains/publication';
 import { getStrainSourcePolicy, type StrainSourceTier } from '@/lib/strains/source-policy';
@@ -179,17 +180,12 @@ function CandidateRow({ item }: { item: EnrichedStrain }) {
 }
 
 export default function AdminQualityPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const [strains, setStrains] = useState<StrainRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-
-  const adminIds = useMemo(
-    () => (process.env.NEXT_PUBLIC_APP_ADMIN_IDS || '').split(',').map((id) => id.trim()).filter(Boolean),
-    [],
-  );
-  const isAdmin = !!user && adminIds.includes(user.id);
+  const { isAdmin, loading: adminLoading } = useAppAdmin();
 
   const fetchQualityData = async () => {
     setLoading(true);
@@ -214,9 +210,9 @@ export default function AdminQualityPage() {
   };
 
   useEffect(() => {
-    if (authLoading || !isAdmin) return;
+    if (authLoading || adminLoading || !isAdmin) return;
     void fetchQualityData();
-  }, [authLoading, isAdmin]);
+  }, [authLoading, adminLoading, isAdmin]);
 
   const enriched = useMemo<EnrichedStrain[]>(() => {
     return strains.map((strain) => {
@@ -279,7 +275,7 @@ export default function AdminQualityPage() {
       .slice(0, 20);
   }, [enriched, query]);
 
-  if (authLoading || loading) {
+  if (authLoading || adminLoading || loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <Loader2 className="animate-spin text-[var(--muted-foreground)]" size={24} />

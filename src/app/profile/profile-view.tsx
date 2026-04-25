@@ -59,7 +59,7 @@ import { ALL_BADGES } from "@/lib/badges";
 import { buildPublicProfileBlocks, withDefaultPublicPreferences } from "@/lib/public-profile";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-bell";
-import { isAppAdmin } from "@/lib/auth";
+import { useAppAdmin } from "@/hooks/useAppAdmin";
 import type {
   ProfileBadge,
   ProfileFavorite,
@@ -155,7 +155,7 @@ export default function ProfilePage() {
   const [userBadges, setUserBadges] = useState<Array<{ badge_id: string; badges?: Partial<import("@/lib/badges").BadgeDefinition> }>>([]);
   const [isSavingPublicPreferences, setIsSavingPublicPreferences] = useState(false);
   const currentUserId = user?.id ?? "";
-  const isCannalogAdmin = !!currentUserId && isAppAdmin(currentUserId);
+  const { isAdmin: isCannalogAdmin } = useAppAdmin();
 
   useEffect(() => {
     if (profileData && !isEditing) {

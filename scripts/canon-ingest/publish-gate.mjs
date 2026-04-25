@@ -30,10 +30,14 @@ function validateFullGate(strain) {
   if (strain.thc_min == null || strain.thc_max == null) reasons.push('Incomplete THC data');
   else if (strain.thc_max > 50) reasons.push('THC max exceeds realistic ceiling (50%)');
   if (strain.cbd_min == null || strain.cbd_max == null) reasons.push('Incomplete CBD data');
-  if (!Array.isArray(strain.terpenes) || strain.terpenes.length < MIN_TERPENES) reasons.push('Minimum 2 terpenes required');
+  const uniqueTerpenes = Array.isArray(strain.terpenes)
+    ? new Set(strain.terpenes.map((value) => String(value).trim().toLowerCase()).filter(Boolean)).size
+    : 0;
+  if (uniqueTerpenes < MIN_TERPENES) reasons.push('Minimum 2 terpenes required');
   if (!Array.isArray(strain.flavors) || strain.flavors.length < MIN_FLAVORS) reasons.push('Minimum 1 flavor required');
   if (!Array.isArray(strain.effects) || strain.effects.length < MIN_EFFECTS) reasons.push('Minimum 1 effect required');
   if (!strain.image_url || !strain.image_url.startsWith('http')) reasons.push('Missing image_url');
+  if (!strain.source || !String(strain.source).trim()) reasons.push('Missing source identifier');
 
   return {
     passed: reasons.length === 0,

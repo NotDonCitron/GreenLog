@@ -48,25 +48,25 @@ describe('Publish Gate Validator', () => {
     it('rejects invalid type', () => {
         const result = validatePublishGate(makeCompleteStrain({ type: 'ruderalis' }));
         expect(result.passed).toBe(false);
-        expect(result.reasons).toContain('Invalid type (must be indica, sativa, or hybrid)');
+        expect(result.reasons).toContain('Invalid type');
     });
 
     it('rejects short description', () => {
         const result = validatePublishGate(makeCompleteStrain({ description: 'Too short' }));
         expect(result.passed).toBe(false);
-        expect(result.reasons).toContain('Description too short (min 20 chars)');
+        expect(result.reasons).toContain('Description too short');
     });
 
     it('rejects missing THC data', () => {
         const result = validatePublishGate(makeCompleteStrain({ thc_min: null, thc_max: null }));
         expect(result.passed).toBe(false);
-        expect(result.reasons).toContain('Incomplete THC data (need min and max)');
+        expect(result.reasons).toContain('Incomplete THC data');
     });
 
     it('rejects missing CBD data', () => {
         const result = validatePublishGate(makeCompleteStrain({ cbd_min: null, cbd_max: null }));
         expect(result.passed).toBe(false);
-        expect(result.reasons).toContain('Incomplete CBD data (need min and max)');
+        expect(result.reasons).toContain('Incomplete CBD data');
     });
 
     it('rejects fewer than 2 terpenes', () => {
