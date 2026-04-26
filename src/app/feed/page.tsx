@@ -845,6 +845,38 @@ function FeedContent() {
             )}
           </div>
         )}
+
+        {/* Grows - User's grow projects */}
+        {activeTab === "grows" && !user && (
+          <div className="text-center py-12 space-y-4">
+            <div className="w-16 h-16 rounded-full bg-[var(--muted)] flex items-center justify-center mx-auto">
+              <Sprout size={24} className="text-[var(--muted-foreground)]" />
+            </div>
+            <p className="text-[var(--muted-foreground)]">Melde dich an um deine Grows zu sehen</p>
+            <Link
+              href="/login"
+              className="inline-block px-6 py-2.5 bg-[#00F5FF] text-black font-bold rounded-full text-sm"
+            >
+              Login
+            </Link>
+          </div>
+        )}
+        {activeTab === "grows" && user && (
+          <div className="space-y-4">
+            <Link
+              href="/grows/new"
+              className="inline-block w-full px-6 py-3 bg-[#2FF801] text-black font-bold rounded-2xl text-center text-sm uppercase tracking-wider"
+            >
+              Neuer Grow
+            </Link>
+            <Link
+              href="/grows"
+              className="block text-center text-sm text-[#00F5FF] hover:underline"
+            >
+              Alle Grows anzeigen →
+            </Link>
+          </div>
+        )}
       </div>
 
       <BottomNav />
