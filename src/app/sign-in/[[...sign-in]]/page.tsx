@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { ForgotPasswordDialog } from "@/components/auth/forgot-password-dialog";
@@ -50,11 +50,48 @@ function getFriendlySignInError(error: unknown) {
 
 export default function SignInPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+
+    useEffect(() => {
+        const oauthError = searchParams.get("oauth_error");
+        if (oauthError === "callback_exchange_failed") {
+            setError("Google-Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.");
+            return;
+        }
+        if (oauthError === "callback_code_missing") {
+            setError("Google-Callback war unvollständig. Bitte starte die Anmeldung erneut.");
+        }
+    }, [searchParams]);
+
+    useEffect(() => {
+        let mounted = true;
+
+        const syncOAuthSession = async () => {
+            const { data } = await supabase.auth.getSession();
+            if (mounted && data.session) {
+                router.replace("/");
+                router.refresh();
+            }
+        };
+
+        void syncOAuthSession();
+
+        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (!mounted || !session) return;
+            router.replace("/");
+            router.refresh();
+        });
+
+        return () => {
+            mounted = false;
+            listener.subscription.unsubscribe();
+        };
+    }, [router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

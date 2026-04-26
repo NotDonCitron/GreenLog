@@ -2,18 +2,23 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import SignInPage from "./page";
 
-const { pushMock, refreshMock, setSessionMock, signInWithPasswordMock } = vi.hoisted(() => ({
+const { pushMock, replaceMock, refreshMock, setSessionMock, signInWithPasswordMock, getSessionMock, onAuthStateChangeMock } = vi.hoisted(() => ({
   pushMock: vi.fn(),
+  replaceMock: vi.fn(),
   refreshMock: vi.fn(),
   setSessionMock: vi.fn(),
   signInWithPasswordMock: vi.fn(),
+  getSessionMock: vi.fn(),
+  onAuthStateChangeMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: pushMock,
+    replace: replaceMock,
     refresh: refreshMock,
   }),
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock("@/lib/supabase/client", () => ({
@@ -21,6 +26,8 @@ vi.mock("@/lib/supabase/client", () => ({
     auth: {
       setSession: setSessionMock,
       signInWithPassword: signInWithPasswordMock,
+      getSession: getSessionMock,
+      onAuthStateChange: onAuthStateChangeMock,
     },
   },
 }));
@@ -33,9 +40,16 @@ describe("SignInPage", () => {
   beforeEach(() => {
     vi.unstubAllGlobals();
     pushMock.mockReset();
+    replaceMock.mockReset();
     refreshMock.mockReset();
     setSessionMock.mockReset();
     signInWithPasswordMock.mockReset();
+    getSessionMock.mockReset();
+    onAuthStateChangeMock.mockReset();
+    getSessionMock.mockResolvedValue({ data: { session: null } });
+    onAuthStateChangeMock.mockReturnValue({
+      data: { listener: null, subscription: { unsubscribe: vi.fn() } },
+    });
   });
 
   it("submits credentials through the local sign-in API and applies the returned session", async () => {

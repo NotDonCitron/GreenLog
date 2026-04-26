@@ -31,8 +31,18 @@ export async function GET(request: Request) {
     if (!error) {
       return NextResponse.redirect(`${origin}${next}`);
     }
+
+    // Fallback: let the browser client handle code exchange (PKCE/local state).
+    const browserFallbackUrl = new URL(`${origin}/sign-in`);
+    searchParams.forEach((value, key) => {
+      browserFallbackUrl.searchParams.set(key, value);
+    });
+    browserFallbackUrl.searchParams.set("oauth_error", "callback_exchange_failed");
+    return NextResponse.redirect(browserFallbackUrl.toString());
   }
 
-  // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+  // No code in callback: route user to sign-in with a clear state instead of a dead-end URL.
+  const signInUrl = new URL(`${origin}/sign-in`);
+  signInUrl.searchParams.set("oauth_error", "callback_code_missing");
+  return NextResponse.redirect(signInUrl.toString());
 }
