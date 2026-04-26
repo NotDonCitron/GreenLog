@@ -159,7 +159,6 @@ USER_ROLES = {
 ```
 
 ### Pre-existing Issues (not caused by this work)
-- 1 test failure: `tests/unit/compliance-readiness.test.ts` - age cookie middleware test (unrelated)
 - Many lint warnings across codebase (pre-existing)
 - `community_feed` RLS still has `USING(true)` on SELECT (was public-read, now gated by API route, but should be hardened at DB level too)
 
@@ -172,8 +171,7 @@ npx tsc --noEmit --incremental false
 # fails due many pre-existing type errors in test files (unchanged by this slice)
 
 npm run test
-# 231/232 pass; 1 pre-existing failure remains:
-# tests/unit/compliance-readiness.test.ts -> age cookie middleware expectation
+# 232/232 pass
 
 npm run build
 # blocked in this environment: EROFS writing .next/trace
@@ -215,6 +213,7 @@ supabase db push    # pushes new migrations to remote
 | `tests/unit/community-feed-route.test.ts` | Modified (added new moderation-table mocks) | 7 |
 | `tests/unit/club-updates-route.test.ts` | Modified (query mock now includes `gte`) | 7 |
 | `src/components/community/moderation-panel.tsx` | Created | 7 |
+| `tests/unit/compliance-readiness.test.ts` | Modified (cookie key updated to `cannalog_age_verified`) | verification follow-up |
 | `src/app/community/[id]/page.tsx` | Modified (moderation panel mount + Club-Info heading) | 7/8 |
 | `src/components/marketing/safe-screenshot.tsx` | Modified (Social → Club-Info in marketing nav) | 8 |
 | `src/components/onboarding/onboarding-guide.tsx` | Modified (Community & Social → Community & Club-Info) | 8 |

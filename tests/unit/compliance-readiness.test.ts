@@ -14,7 +14,7 @@ describe("global 18+ middleware", () => {
 
   it("allows protected pages when the age cookie is present", () => {
     const request = new NextRequest("https://greenlog.app/strains", {
-      headers: { cookie: "greenlog_age_verified=true" },
+      headers: { cookie: "cannalog_age_verified=true" },
     });
 
     const response = middleware(request);
@@ -35,8 +35,8 @@ describe("age gate cookie helpers", () => {
   it("builds a production-safe 18+ verification cookie", async () => {
     const { buildAgeCookie } = await import("@/components/age-gate");
 
-    expect(buildAgeCookie("greenlog_age_verified", "true", true)).toBe(
-      "greenlog_age_verified=true; Max-Age=15552000; Path=/; SameSite=Lax; Secure",
+    expect(buildAgeCookie("cannalog_age_verified", "true", true)).toBe(
+      "cannalog_age_verified=true; Max-Age=15552000; Path=/; SameSite=Lax; Secure",
     );
   });
 });

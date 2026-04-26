@@ -49,12 +49,16 @@ const TABS: Array<{ id: TabKey; label: string; icon: typeof Flag }> = [
   { id: "blocks", label: "Blocks", icon: Ban },
 ];
 
-async function getAuthHeader() {
+async function getAuthHeader(): Promise<Record<string, string>> {
   const {
     data: { session },
   } = await supabase.auth.getSession();
 
-  return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
+  const headers: Record<string, string> = {};
+  if (session?.access_token) {
+    headers.Authorization = `Bearer ${session.access_token}`;
+  }
+  return headers;
 }
 
 export function ModerationPanel({ organizationId }: { organizationId: string }) {
