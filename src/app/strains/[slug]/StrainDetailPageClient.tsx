@@ -61,7 +61,7 @@ export default function StrainDetailPageClient() {
   const [userNotes, setUserNotes] = useState("");
   async function fetchStrainDetail() {
     // Try to fetch by slug first, then by id (in case slug is actually an id)
-    let { data, error } = await supabase.from("strains").select(`
+    const { data: slugRows, error: slugError } = await supabase.from("strains").select(`
       *,
       organization:organization_id (
         id,
@@ -69,11 +69,14 @@ export default function StrainDetailPageClient() {
         slug,
         organization_type
       )
-    `).eq("slug", slug).eq("publication_status", "published").single();
+    `).eq("slug", slug).eq("publication_status", "published").limit(1);
+
+    let data = slugRows?.[0] ?? null;
+    let error = slugError;
 
     // If not found and slug looks like a UUID, try fetching by id
-    if (error && !isDemoMode && slug && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug as string)) {
-      const { data: idData, error: idError } = await supabase.from("strains").select(`
+    if (!data && !isDemoMode && slug && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug as string)) {
+      const { data: idRows, error: idError } = await supabase.from("strains").select(`
         *,
         organization:organization_id (
           id,
@@ -81,10 +84,12 @@ export default function StrainDetailPageClient() {
           slug,
           organization_type
         )
-      `).eq("id", slug).eq("publication_status", "published").single();
+      `).eq("id", slug).eq("publication_status", "published").limit(1);
+
+      const idData = idRows?.[0] ?? null;
 
       if (!idError && idData) {
-        data = idData;
+        data = idData as typeof data;
         error = null;
       }
     }

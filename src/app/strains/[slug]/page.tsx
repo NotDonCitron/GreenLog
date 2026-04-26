@@ -9,12 +9,14 @@ export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params
   const supabase = await createServerSupabaseClient()
 
-  const { data: strain, error } = await supabase
+  const { data: strainRows, error } = await supabase
     .from('strains')
     .select('name, description, thc_max, farmer')
     .eq('slug', slug)
     .eq('publication_status', 'published')
-    .single()
+    .limit(1)
+
+  const strain = strainRows?.[0] ?? null
 
   if (error) {
     console.warn(`[strains/${slug}] metadata query failed:`, error.message)
