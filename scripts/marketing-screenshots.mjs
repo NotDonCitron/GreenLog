@@ -9,13 +9,14 @@ import { MARKETING_SCREENS } from "../src/lib/marketing-screenshots.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
 const outputDir = join(root, "content", "screenshots", "marketing");
+
+dotenv.config({ path: join(root, ".env") });
+dotenv.config({ path: join(root, ".env.local"), override: true });
+
 const localPort = process.env.MARKETING_SCREENSHOT_PORT || "3010";
 const shouldStartLocalServer = !process.env.BASE_URL;
 const baseUrl = process.env.BASE_URL || `http://localhost:${localPort}`;
 const dashboardUrl = `${baseUrl}/marketing/screenshots/dashboard`;
-
-dotenv.config({ path: join(root, ".env") });
-dotenv.config({ path: join(root, ".env.local"), override: false });
 
 await mkdir(outputDir, { recursive: true });
 
