@@ -39,13 +39,20 @@ interface Props {
 
 export function PlantCarousel({ plants, isOwner, onAddPlant, onStatusAdvance }: Props) {
   const activePlants = plants.filter(p => ACTIVE_STATUSES.includes(p.status));
-  const canAddMore = activePlants.length < 3;
+  const isPlantLimitReached = activePlants.length >= 3;
 
   if (plants.length === 0 && !isOwner) return null;
 
   return (
     <div className="space-y-3">
-      <h2 className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)]">Pflanzen</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)]">Pflanzen</h2>
+        {isOwner && (
+          <span className={`text-[10px] font-semibold ${isPlantLimitReached ? 'text-red-400' : 'text-[var(--muted-foreground)]'}`}>
+            Aktiv {activePlants.length}/3 (KCanG § 9)
+          </span>
+        )}
+      </div>
 
       <div className="flex gap-3 overflow-x-auto pb-2 scroll-snap-x mandatory">
         {plants.map((plant) => {
@@ -88,13 +95,20 @@ export function PlantCarousel({ plants, isOwner, onAddPlant, onStatusAdvance }: 
         })}
 
         {/* Add plant card */}
-        {isOwner && canAddMore && (
+        {isOwner && (
           <button
             onClick={onAddPlant}
-            className="flex-shrink-0 w-36 bg-[var(--card)] border border-dashed border-[var(--border)] rounded-xl p-3 flex flex-col items-center justify-center gap-2 hover:border-[#2FF801]/50 transition-all scroll-snap-align-start"
+            className={`flex-shrink-0 w-36 bg-[var(--card)] border border-dashed rounded-xl p-3 flex flex-col items-center justify-center gap-2 transition-all scroll-snap-align-start ${
+              isPlantLimitReached
+                ? 'border-red-500/40'
+                : 'border-[var(--border)] hover:border-[#2FF801]/50'
+            }`}
+            aria-label={isPlantLimitReached ? 'KCanG Limit erreicht: maximal 3 aktive Pflanzen' : 'Pflanze hinzufügen'}
           >
-            <Plus size={20} className="text-[var(--muted-foreground)]" />
-            <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Pflanze</span>
+            <Plus size={20} className={isPlantLimitReached ? 'text-red-400' : 'text-[var(--muted-foreground)]'} />
+            <span className={`text-[9px] font-bold uppercase tracking-wider ${isPlantLimitReached ? 'text-red-400' : 'text-[var(--muted-foreground)]'}`}>
+              {isPlantLimitReached ? '3/3 erreicht' : 'Pflanze'}
+            </span>
           </button>
         )}
       </div>

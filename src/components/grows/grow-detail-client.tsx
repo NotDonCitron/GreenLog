@@ -194,11 +194,32 @@ export function GrowDetailClient({
       setNewPlantName('');
       setIsAddingPlant(false);
     } catch (e) {
+      const supabaseError = e as { code?: string; message?: string } | null;
+      const isPlantLimitError = (
+        supabaseError?.code === 'P0001'
+        && typeof supabaseError.message === 'string'
+        && supabaseError.message.includes('KCANG_PLANT_LIMIT')
+      );
+      if (isPlantLimitError) {
+        setShowPlantLimitWarning(true);
+        toastError('KCanG § 9: Maximal 3 aktive Pflanzen gleichzeitig erlaubt.');
+        return;
+      }
       const message = e instanceof Error ? e.message : 'Unbekannter Fehler';
       console.error('[GrowDetailClient] add plant failed', e);
       toastError(`Fehler beim Hinzufügen der Pflanze: ${message}`);
     } finally { setIsSaving(false); }
   };
+
+  const handleStartAddPlant = useCallback(() => {
+    const active = plants.filter(p => ACTIVE_STATUSES.includes(p.status));
+    if (active.length >= 3) {
+      setShowPlantLimitWarning(true);
+      toastError('KCanG § 9: Maximal 3 aktive Pflanzen gleichzeitig erlaubt.');
+      return;
+    }
+    setIsAddingPlant(true);
+  }, [plants, toastError]);
 
   const handleStatusAdvance = async (plantId: string, newStatus: PlantStatus) => {
     setIsSaving(true);
@@ -363,7 +384,7 @@ export function GrowDetailClient({
         <PlantCarousel
           plants={plants}
           isOwner={isOwner}
-          onAddPlant={() => setIsAddingPlant(true)}
+          onAddPlant={handleStartAddPlant}
           onStatusAdvance={handleStatusAdvance}
         />
 
