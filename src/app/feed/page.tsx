@@ -313,19 +313,19 @@ function FeedContent() {
       </header>
 
       {/* Tabs */}
-      <div className="px-6 relative z-10">
-        <div className="flex gap-2 p-1 bg-[var(--muted)] rounded-2xl">
+      <div className="px-4 sm:px-6 relative z-10">
+        <div className="flex gap-1 sm:gap-2 p-1 bg-[var(--muted)] rounded-2xl">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${activeTab === tab.id
+              className={`flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all min-w-0 ${activeTab === tab.id
                 ? "bg-[#00F5FF] text-black shadow-lg shadow-[#00F5FF]/20"
                 : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
                 }`}
             >
-              <tab.icon size={14} />
-              {tab.label}
+              <tab.icon size={12} className="sm:w-[14px] sm:h-[14px]" />
+              <span className="truncate">{tab.label}</span>
             </button>
           ))}
         </div>
