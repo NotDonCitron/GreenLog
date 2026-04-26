@@ -7,7 +7,7 @@ export default function DiscoverRedirect() {
     const router = useRouter();
 
     useEffect(() => {
-        router.replace("/feed");
+        router.replace("/strains");
     }, [router]);
 
     return (

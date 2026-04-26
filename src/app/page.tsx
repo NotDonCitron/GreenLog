@@ -203,7 +203,7 @@ function HomeContent() {
 
       <div className="pt-6 shrink-0">
         <div className="grid grid-cols-2 gap-3">
-          <Link href="/feed">
+          <Link href="/strains">
             <button className="relative w-full h-16 group overflow-hidden rounded-2xl transition-all duration-300 active:scale-[0.98]">
               <div className="absolute inset-0 bg-[#2FF801]/10 transition-all duration-300 group-hover:bg-[#2FF801]/20" />
               <div className="absolute inset-0 rounded-2xl border border-[var(--border)]/50 group-hover:border-[#2FF801]/50 transition-all duration-300" />
