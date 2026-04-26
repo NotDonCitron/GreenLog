@@ -29,13 +29,19 @@ describe("ServiceWorkerRegister", () => {
   });
 
   afterEach(() => {
-    process.env.NODE_ENV = originalEnv;
-    process.env.NEXT_PUBLIC_DISABLE_SW = originalDisableSw;
+    vi.stubEnv("NODE_ENV", originalEnv ?? "");
+    vi.stubEnv("NEXT_PUBLIC_DISABLE_SW", originalDisableSw ?? "");
+    if (originalEnv === undefined) {
+      Reflect.deleteProperty(process.env, "NODE_ENV");
+    }
+    if (originalDisableSw === undefined) {
+      Reflect.deleteProperty(process.env, "NEXT_PUBLIC_DISABLE_SW");
+    }
     vi.restoreAllMocks();
   });
 
   it("does not register the service worker in development and unregisters old registrations", async () => {
-    process.env.NODE_ENV = "development";
+    vi.stubEnv("NODE_ENV", "development");
 
     render(<ServiceWorkerRegister />);
 
@@ -48,7 +54,7 @@ describe("ServiceWorkerRegister", () => {
   });
 
   it("registers the service worker in production", async () => {
-    process.env.NODE_ENV = "production";
+    vi.stubEnv("NODE_ENV", "production");
 
     render(<ServiceWorkerRegister />);
 
@@ -63,8 +69,8 @@ describe("ServiceWorkerRegister", () => {
   });
 
   it("unregisters in production when NEXT_PUBLIC_DISABLE_SW is true", async () => {
-    process.env.NODE_ENV = "production";
-    process.env.NEXT_PUBLIC_DISABLE_SW = "true";
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("NEXT_PUBLIC_DISABLE_SW", "true");
 
     render(<ServiceWorkerRegister />);
 

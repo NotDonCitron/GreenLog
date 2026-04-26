@@ -24,7 +24,7 @@ test.describe('Grow Detail Page — UI Modules', () => {
     await page.waitForTimeout(2000);
     const firstGrowLink = page.locator('a[href*="/grows/"]').first();
     if (!await firstGrowLink.isVisible({ timeout: 5000 })) {
-      test.skip('No grows found — requires seeded test data');
+      test.skip(true, 'No grows found — requires seeded test data');
     }
     await firstGrowLink.click();
     await page.waitForURL(/\/grows\/[^/]+$/, { timeout: 10000 });
@@ -61,7 +61,7 @@ test.describe('Grow Detail Page — UI Modules', () => {
       const followBtn = page.locator('button[aria-label*="follow" i], button:has-text("Folgen"), button:has-text("Follow")').first();
 
       if (!await followBtn.isVisible({ timeout: 2000 })) {
-        test.skip('Follow button not visible (may be owner)');
+        test.skip(true, 'Follow button not visible (may be owner)');
       }
 
       const initialText = await followBtn.textContent();
@@ -99,7 +99,7 @@ test.describe('Grow Detail Page — UI Modules', () => {
         if (await firstActionBtn.isVisible()) {
           await firstActionBtn.click();
         } else {
-          test.skip('Quick action buttons not found');
+          test.skip(true, 'Quick action buttons not found');
         }
       } else {
         await gießenBtn.click();
@@ -131,7 +131,7 @@ test.describe('Grow Detail Page — UI Modules', () => {
         if (await secondBtn.isVisible()) {
           await secondBtn.click();
         } else {
-          test.skip('Foto button not found');
+          test.skip(true, 'Foto button not found');
         }
       } else {
         await fotoBtn.click();
@@ -154,7 +154,7 @@ test.describe('Grow Detail Page — UI Modules', () => {
 
       const carousel = page.locator('[data-testid="plant-carousel"], .plant-carousel, [class*="plant-carousel"]');
       if (!await carousel.isVisible({ timeout: 3000 })) {
-        test.skip('Plant carousel not visible on this grow');
+        test.skip(true, 'Plant carousel not visible on this grow');
       }
 
       // Should have plant cards visible
@@ -176,7 +176,7 @@ test.describe('Grow Detail Page — UI Modules', () => {
 
       const addBtn = page.getByRole('button', { name: /pflanze hinzufügen|add plant/i }).first();
       if (!await addBtn.isVisible({ timeout: 2000 })) {
-        test.skip('Add plant button not visible');
+        test.skip(true, 'Add plant button not visible');
       }
 
       await addBtn.click();
@@ -192,7 +192,7 @@ test.describe('Grow Detail Page — UI Modules', () => {
 
       const reminderPanel = page.locator('[data-testid="reminder-panel-compact"], .reminder-panel, [class*="reminder"]');
       if (!await reminderPanel.isVisible({ timeout: 3000 })) {
-        test.skip('Reminder panel not visible on this grow');
+        test.skip(true, 'Reminder panel not visible on this grow');
       }
 
       // Look for reminder items (list items or divs with reminder content)

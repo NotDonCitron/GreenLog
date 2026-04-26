@@ -1,13 +1,30 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 
-let validatePublishGate;
+type PublishGateResult = { passed: boolean; reasons: string[] };
+type PublishGateInput = {
+    name: string;
+    slug: string;
+    type: string;
+    description: string;
+    thc_min: number | null;
+    thc_max: number | null;
+    cbd_min: number | null;
+    cbd_max: number | null;
+    terpenes: string[];
+    flavors: string[];
+    effects: string[];
+    image_url: string;
+    source: string;
+};
+
+let validatePublishGate: (input: PublishGateInput) => PublishGateResult;
 
 beforeAll(async () => {
     const mod = await import('../../scripts/canon-ingest/publish-gate.mjs');
     validatePublishGate = mod.validatePublishGate;
 });
 
-function makeCompleteStrain(overrides = {}) {
+function makeCompleteStrain(overrides: Partial<PublishGateInput> = {}): PublishGateInput {
     return {
         name: 'OG Kush',
         slug: 'og-kush',

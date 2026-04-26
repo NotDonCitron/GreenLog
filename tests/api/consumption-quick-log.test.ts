@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { NextRequest } from "next/server";
 import { POST } from "../../src/app/api/consumption/route";
 import { PATCH } from "../../src/app/api/consumption/[id]/route";
 
@@ -56,7 +57,7 @@ describe("POST /api/consumption quick log fields", () => {
 
   it("persists allowed quick log private fields", async () => {
     const response = await POST(
-      new Request("http://localhost/api/consumption", {
+      new NextRequest("http://localhost/api/consumption", {
         method: "POST",
         body: JSON.stringify({
           strain_id: "11111111-1111-1111-1111-111111111111",
@@ -94,7 +95,7 @@ describe("POST /api/consumption quick log fields", () => {
 
   it("rejects side effects submitted as public effect chips", async () => {
     const response = await POST(
-      new Request("http://localhost/api/consumption", {
+      new NextRequest("http://localhost/api/consumption", {
         method: "POST",
         body: JSON.stringify({
           consumption_method: "vaporizer",
@@ -110,7 +111,7 @@ describe("POST /api/consumption quick log fields", () => {
 
   it("rejects non-array public effect chips", async () => {
     const response = await POST(
-      new Request("http://localhost/api/consumption", {
+      new NextRequest("http://localhost/api/consumption", {
         method: "POST",
         body: JSON.stringify({
           consumption_method: "vaporizer",
@@ -126,7 +127,7 @@ describe("POST /api/consumption quick log fields", () => {
 
   it("persists allowed quick log fields on patch", async () => {
     const response = await PATCH(
-      new Request("http://localhost/api/consumption/log-1", {
+      new NextRequest("http://localhost/api/consumption/log-1", {
         method: "PATCH",
         body: JSON.stringify({
           effect_chips: ["ruhe", "schlaf"],

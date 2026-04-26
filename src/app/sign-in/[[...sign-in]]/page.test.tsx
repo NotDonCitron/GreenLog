@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import SignInPage from "./page";
 
 const { pushMock, replaceMock, refreshMock, setSessionMock, signInWithPasswordMock, getSessionMock, onAuthStateChangeMock } = vi.hoisted(() => ({

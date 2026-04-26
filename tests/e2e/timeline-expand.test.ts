@@ -31,7 +31,7 @@ test.describe('Timeline Entry — Expand + Comment Form', () => {
 
     const firstGrowLink = page.locator('a[href*="/grows/"]').first();
     if (!await firstGrowLink.isVisible({ timeout: 5000 })) {
-      test.skip('No grows found');
+      test.skip(true, 'No grows found');
     }
     await firstGrowLink.click();
     await page.waitForTimeout(2000);

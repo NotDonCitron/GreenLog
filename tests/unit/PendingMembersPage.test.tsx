@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import PendingMembersPage from '@/app/settings/organization/pending-members/page.tsx';
+import PendingMembersPage from '@/app/settings/organization/pending-members/page';
 import { useAuth } from '@/components/auth-provider';
 
 // Mock useAuth hook

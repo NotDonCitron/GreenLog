@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 
-let slugify, normalizeType, transformRawStrain;
+type TransformModule = typeof import('../../scripts/canon-ingest/transform.mjs');
+
+let slugify: TransformModule['slugify'];
+let normalizeType: TransformModule['normalizeType'];
+let transformRawStrain: TransformModule['transformRawStrain'];
 
 beforeAll(async () => {
     const mod = await import('../../scripts/canon-ingest/transform.mjs');
@@ -60,7 +64,7 @@ describe('normalizeType', () => {
 });
 
 describe('transformRawStrain', () => {
-    function expectField(result, field, value) {
+    function expectField(result: Record<string, any>, field: string, value: unknown) {
         expect(result[field]).toEqual(expect.objectContaining({ value }));
         expect(result[field].confidence).toEqual(expect.any(Number));
     }

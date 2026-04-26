@@ -150,7 +150,7 @@ test.describe('GreenLog Inspection', () => {
 
       // 13. Check for image errors
       const imgErrors = page.locator('img').evaluateAll(
-        (imgs) => imgs.filter(img => img.naturalWidth === 0).length
+        (imgs) => (imgs as HTMLImageElement[]).filter((img) => img.naturalWidth === 0).length
       );
       console.log('IMAGES WITH 0 WIDTH:', await imgErrors);
 

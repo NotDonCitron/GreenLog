@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 
 import { PublicProfilePreviewCard } from "./public-profile-preview-card";
+import type { ProfileViewModel } from "@/lib/types";
 
 vi.mock("next/link", () => ({
   default: ({ href, children }: { href: string; children: React.ReactNode }) => (
@@ -90,7 +91,7 @@ describe("PublicProfilePreviewCard", () => {
   });
 });
 
-const profileFixture = {
+const profileFixture: Pick<ProfileViewModel, "identity" | "publicPreferences" | "publicBlocks"> = {
   identity: {
     email: null,
     username: "@greenleaf",
@@ -100,17 +101,6 @@ const profileFixture = {
     profileVisibility: "private",
     tagline: "",
     bio: "Still private",
-  },
-  stats: {
-    totalStrains: 12,
-    totalGrows: 2,
-    favoriteCount: 4,
-    unlockedBadgeCount: 3,
-    xp: 250,
-    level: 3,
-    progressToNextLevel: 50,
-    followers: 8,
-    following: 14,
   },
   publicPreferences: {
     user_id: "user-1",

@@ -63,7 +63,7 @@ describe("public profile sanitizer", () => {
       activity_type: "rating",
       target_id: "strain-1",
       target_name: "Wedding Cake",
-      target_image_url: null,
+      target_image_url: undefined,
       metadata: {
         pharmacy: "Private Apotheke",
         dose: "0.2g",
