@@ -1,4 +1,3 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
@@ -15,6 +14,10 @@ type FeedStrainRow = {
 // GET /api/communities/[id]/feed
 export async function GET(request: Request, { params }: RouteParams) {
     try {
+        const auth = await authenticateRequest(request, getAuthenticatedClient);
+        if (auth instanceof Response) return auth;
+        const { user, supabase } = auth;
+
         const { id: organizationId } = await params;
         const { searchParams } = new URL(request.url);
 
@@ -23,8 +26,21 @@ export async function GET(request: Request, { params }: RouteParams) {
         const offset = (page - 1) * limit;
         const scanLimit = Math.min(500, Math.max(offset + limit, limit * 10));
 
-        // Use server client — feed is public-read via RLS
-        const supabase = await createServerSupabaseClient();
+        const { data: membershipRows, error: membershipError } = await supabase
+            .from("organization_members")
+            .select("role")
+            .eq("organization_id", organizationId)
+            .eq("user_id", user.id)
+            .eq("membership_status", "active")
+            .limit(1);
+
+        if (membershipError) {
+            return jsonError("Failed to verify membership", 500, membershipError.code, membershipError.message);
+        }
+
+        if (!membershipRows?.[0]) {
+            return jsonError("Forbidden", 403);
+        }
 
         const { data: feedEntries, error: feedError } = await supabase
             .from("community_feed")

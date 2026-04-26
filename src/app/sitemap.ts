@@ -5,7 +5,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createServerSupabaseClient()
 
   // Fetch all strain slugs from Supabase
-  const { data: strains, error } = await supabase
+  const { data: strains } = await supabase
     .from('strains')
     .select('slug, created_at')
     .eq('publication_status', 'published')
@@ -38,22 +38,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     },
     {
-      url: 'https://greenlog.app/community',
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
       url: 'https://greenlog.app/discover',
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.7,
-    },
-    {
-      url: 'https://greenlog.app/feed',
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.6,
     },
     {
       url: 'https://greenlog.app/profile',
