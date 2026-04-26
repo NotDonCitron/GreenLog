@@ -70,7 +70,6 @@ interface Props {
   plants?: Plant[];
   growStartDate?: string;
   onPhotoClick?: (url: string) => void;
-  onAddComment?: (entryId: string, text: string) => void;
   onDeleteEntry?: (entryId: string) => void;
 }
 
@@ -107,7 +106,7 @@ function FilterChip({ active, label, onClick }: { active: boolean; label: string
   );
 }
 
-export function TimelineSection({ entries, comments, plants = [], growStartDate, onPhotoClick, onAddComment, onDeleteEntry }: Props) {
+export function TimelineSection({ entries, comments, plants = [], growStartDate, onPhotoClick, onDeleteEntry }: Props) {
   const [selectedType, setSelectedType] = useState<'all' | GrowEntryType>('all');
   const [selectedPlantId, setSelectedPlantId] = useState<string>('all');
   const plantNameById = new Map(plants.map(plant => [plant.id, plant.plant_name]));
@@ -236,7 +235,6 @@ export function TimelineSection({ entries, comments, plants = [], growStartDate,
                     dayNumber={day.day_number}
                     affectedPlantNames={getAffectedPlantIds(entry).map(id => plantNameById.get(id)).filter((name): name is string => Boolean(name))}
                     onPhotoClick={onPhotoClick}
-                    onAddComment={onAddComment}
                     onDeleteEntry={onDeleteEntry}
                   />
                 ))}

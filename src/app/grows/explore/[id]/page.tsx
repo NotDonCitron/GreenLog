@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { PhaseBadge } from "@/components/grows";
-import type { Grow, Plant, GrowEntry, GrowMilestone, GrowComment, PlantStatus } from "@/lib/types";
+import type { Grow, Plant, GrowEntry, GrowMilestone, PlantStatus } from "@/lib/types";
 import { KCanGDisclaimer } from "@/components/grows/kcan-g-disclaimer";
 
 const ACTIVE_STATUSES: PlantStatus[] = ['seedling', 'vegetative', 'flowering', 'flushing'];
@@ -49,12 +49,9 @@ export default function ExploreGrowDetailPage() {
     const [plants, setPlants] = useState<Plant[]>([]);
     const [entries, setEntries] = useState<GrowEntry[]>([]);
     const [milestones, setMilestones] = useState<GrowMilestone[]>([]);
-    const [comments, setComments] = useState<GrowComment[]>([]);
     const [loading, setLoading] = useState(true);
     const [isFollowing, setIsFollowing] = useState(false);
     const [followerCount, setFollowerCount] = useState(0);
-    const [newComment, setNewComment] = useState("");
-    const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
     useEffect(() => {
         async function fetchGrowData() {
@@ -77,7 +74,6 @@ export default function ExploreGrowDetailPage() {
                     setPlants([]);
                     setEntries([]);
                     setMilestones([]);
-                    setComments([]);
                     setFollowerCount(0);
                 } else {
                     // Fetch public grow
@@ -120,14 +116,6 @@ export default function ExploreGrowDetailPage() {
                         .eq("grow_id", id)
                         .order("started_at", { ascending: true });
                     if (milestonesData) setMilestones(milestonesData);
-
-                    // Fetch comments
-                    const { data: commentsData } = await supabase
-                        .from("grow_comments")
-                        .select("*, profiles(id, username, display_name, avatar_url)")
-                        .eq("grow_id", id)
-                        .order("created_at", { ascending: true });
-                    if (commentsData) setComments(commentsData);
 
                     // Check if user is following
                     if (user) {
@@ -179,31 +167,6 @@ export default function ExploreGrowDetailPage() {
             }
         } catch (err) {
             console.error("Error toggling follow:", err);
-        }
-    };
-
-    const handleSubmitComment = async () => {
-        if (!user || !grow || !newComment.trim()) return;
-        setIsSubmittingComment(true);
-
-        try {
-            const { data, error } = await supabase
-                .from("grow_comments")
-                .insert({
-                    grow_id: grow.id,
-                    user_id: user.id,
-                    comment: newComment.trim(),
-                })
-                .select("*, profiles(id, username, display_name, avatar_url)")
-                .single();
-
-            if (error) throw error;
-            setComments([...comments, data]);
-            setNewComment("");
-        } catch (err) {
-            console.error("Error submitting comment:", err);
-        } finally {
-            setIsSubmittingComment(false);
         }
     };
 
@@ -431,64 +394,11 @@ export default function ExploreGrowDetailPage() {
                     </div>
                 )}
 
-                {/* Comments Section */}
-                <div className="space-y-4">
-                    <h2 className="text-sm font-black uppercase tracking-wider text-[var(--muted-foreground)]">
-                        Kommentare ({comments.length})
-                    </h2>
-
-                    {user && (
-                        <div className="flex gap-2">
-                            <input
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                placeholder="Kommentar schreiben..."
-                                className="flex-1 h-10 px-4 bg-[var(--input)] border border-[var(--border)]/50 rounded-xl text-[var(--foreground)] placeholder:text-[#484849] text-sm font-medium focus:outline-none focus:border-[#00F5FF]/50 transition-colors"
-                            />
-                            <Button
-                                onClick={handleSubmitComment}
-                                disabled={isSubmittingComment || !newComment.trim()}
-                                size="sm"
-                                className="bg-[#2FF801] text-black font-black"
-                            >
-                                {isSubmittingComment ? <Loader2 className="animate-spin" size={14} /> : 'Senden'}
-                            </Button>
-                        </div>
-                    )}
-
-                    {comments.length > 0 ? (
-                        <div className="space-y-3">
-                            {comments.map((comment) => (
-                                <Card key={comment.id} className="bg-[var(--card)] border border-[var(--border)]/50 p-4">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-8 h-8 rounded-full bg-[var(--muted)] flex items-center justify-center overflow-hidden">
-                                            {comment.profiles?.avatar_url ? (
-                                                <img src={comment.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <span className="text-xs font-bold text-[#00F5FF]">
-                                                    {comment.profiles?.username?.[0]?.toUpperCase() || '?'}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <span className="text-xs font-bold text-[var(--foreground)]">
-                                                {comment.profiles?.display_name || comment.profiles?.username}
-                                            </span>
-                                            <span className="text-[10px] text-[var(--muted-foreground)] ml-2">
-                                                {new Date(comment.created_at).toLocaleDateString('de-DE')}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <p className="text-xs text-[var(--muted-foreground)] leading-relaxed pl-10">{comment.comment}</p>
-                                </Card>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-8 space-y-3">
-                            <MessageSquare className="mx-auto text-[#484849]" size={32} />
-                            <p className="text-[var(--muted-foreground)] text-xs font-bold uppercase tracking-wider">Noch keine Kommentare</p>
-                        </div>
-                    )}
+                <div className="text-center py-8 space-y-3">
+                    <MessageSquare className="mx-auto text-[#484849]" size={32} />
+                    <p className="text-[var(--muted-foreground)] text-xs font-bold uppercase tracking-wider">
+                        Kommentare sind in der Beta pausiert
+                    </p>
                 </div>
             </div>
 

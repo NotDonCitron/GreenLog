@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { TimelineSection } from './timeline-section';
-import type { GrowEntry, Plant } from '@/lib/types';
+import type { GrowComment, GrowEntry, Plant } from '@/lib/types';
 
 describe('TimelineSection', () => {
   it('derives the displayed grow day from start_date when entry day_number is missing', () => {
@@ -174,5 +174,42 @@ describe('TimelineSection', () => {
     expect(screen.getByAltText('Foto 1').getAttribute('src')).toBe(
       'https://example.supabase.co/storage/v1/object/sign/grow-entry-photos/photo.webp?token=signed'
     );
+  });
+
+  it('does not render grow comment content while comments are paused', () => {
+    const entries: GrowEntry[] = [
+      {
+        id: 'entry-1',
+        grow_id: 'grow-1',
+        user_id: 'user-1',
+        entry_type: 'note',
+        content: { note_text: 'Week two check-in' },
+        entry_date: '2026-04-15',
+        created_at: '2026-04-15T10:00:00.000Z',
+      },
+    ];
+    const comments: GrowComment[] = [
+      {
+        id: 'comment-1',
+        grow_entry_id: 'entry-1',
+        user_id: 'user-2',
+        comment: 'This should not be public in beta',
+        created_at: '2026-04-15T11:00:00.000Z',
+      },
+    ];
+
+    render(
+      <TimelineSection
+        entries={entries}
+        comments={comments}
+        growStartDate="2026-04-01"
+      />
+    );
+
+    fireEvent.click(screen.getByText('Week two check-in'));
+
+    expect(screen.getByText('Kommentare sind in der Beta pausiert')).toBeTruthy();
+    expect(screen.queryByText('This should not be public in beta')).toBeNull();
+    expect(screen.queryByPlaceholderText('Kommentar schreiben...')).toBeNull();
   });
 });

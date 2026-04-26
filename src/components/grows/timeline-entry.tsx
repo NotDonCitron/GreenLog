@@ -45,13 +45,11 @@ interface Props {
   dayNumber: number;
   affectedPlantNames?: string[];
   onPhotoClick?: (url: string) => void;
-  onAddComment?: (entryId: string, text: string) => void;
   onDeleteEntry?: (entryId: string) => void;
 }
 
-export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPlantNames = [], onPhotoClick, onAddComment, onDeleteEntry }: Props) {
+export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPlantNames = [], onPhotoClick, onDeleteEntry }: Props) {
   const [expanded, setExpanded] = useState(false);
-  const [commentText, setCommentText] = useState('');
 
   const entryType = entry.entry_type ?? 'note';
   const config = ENTRY_TYPE_CONFIG[entryType] ?? ENTRY_TYPE_CONFIG.note;
@@ -90,13 +88,6 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
 
   const date = new Date(entry.created_at);
   const dateStr = date.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
-
-  function handleCommentSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!commentText.trim() || !onAddComment) return;
-    onAddComment(entry.id, commentText.trim());
-    setCommentText('');
-  }
 
   return (
     <div className="relative">
@@ -218,67 +209,11 @@ export function TimelineEntry({ entry, comments, isToday, dayNumber, affectedPla
               </p>
             )}
 
-            {/* ── Inline flat comments ── */}
-            <div className="pt-2 border-t border-[var(--border)]/30 space-y-2">
-              <p className="text-[9px] font-black uppercase tracking-widest text-[var(--muted-foreground)] flex items-center gap-1">
-                💬 {comments.length} Kommentar{comments.length !== 1 ? 'e' : ''}
+            {comments.length > 0 && (
+              <p className="pt-2 border-t border-[var(--border)]/30 text-[9px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">
+                Kommentare sind in der Beta pausiert
               </p>
-
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-2.5">
-                  {/* Avatar */}
-                  <div className="w-6 h-6 rounded-full bg-[var(--muted)] flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {(comment.profiles as any)?.avatar_url ? (
-                      <img
-                        src={(comment.profiles as any).avatar_url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-[9px] font-black text-[#00F5FF]">
-                        {(comment.profiles as any)?.username?.[0]?.toUpperCase() ?? (comment.profiles as any)?.display_name?.[0]?.toUpperCase() ?? '?'}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Comment content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] font-bold">
-                        {(comment.profiles as any)?.display_name ?? (comment.profiles as any)?.username ?? 'Unbekannt'}
-                      </span>
-                      <span className="text-[9px] text-[var(--muted-foreground)]">
-                        {new Date(comment.created_at).toLocaleDateString('de-DE', {
-                          day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
-                        })}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[var(--foreground)] leading-snug mt-0.5">
-                      {comment.comment}
-                    </p>
-                  </div>
-                </div>
-              ))}
-
-              {/* Add comment form */}
-              {onAddComment && (
-                <form onSubmit={handleCommentSubmit} className="flex gap-2 mt-1" onClick={e => e.stopPropagation()}>
-                  <input
-                    value={commentText}
-                    onChange={e => setCommentText(e.target.value)}
-                    placeholder="Kommentar schreiben..."
-                    className="flex-1 bg-[var(--input)] border border-[var(--border)]/50 rounded-lg px-3 py-1.5 text-[11px] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-[#2FF801]/50"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!commentText.trim()}
-                    className="px-3 py-1.5 bg-[#2FF801] text-black text-[10px] font-black rounded-lg disabled:opacity-40 hover:bg-[#2FF801]/90 transition-colors"
-                  >
-                    Senden
-                  </button>
-                </form>
-              )}
-            </div>
+            )}
           </div>
         )}
       </div>

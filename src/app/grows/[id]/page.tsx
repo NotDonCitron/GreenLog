@@ -4,7 +4,6 @@ import { cookies } from 'next/headers';
 import { GrowDetailClient } from '@/components/grows/grow-detail-client';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getSignedMinioUrl } from '@/lib/minio-storage';
-import type { SupabaseClient } from '@supabase/supabase-js';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -131,14 +130,6 @@ export default async function GrowDetailPage({ params }: PageProps) {
       .eq("grow_id", id)
       .order("due_date", { ascending: true });
     reminders = remindersData || [];
-
-    // Fetch comments with profiles
-    const { data: commentsData } = await supabase
-      .from("grow_comments")
-      .select("*, profiles(id, username, display_name, avatar_url)")
-      .eq("grow_id", id)
-      .order("created_at", { ascending: true });
-    comments = commentsData || [];
 
     // Fetch follower count
     const { count } = await supabase

@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { GrowComment } from '@/lib/types';
 import { useAuth } from '@/components/auth-provider';
 import { useToast } from '@/components/toast-provider';
 import { supabase } from '@/lib/supabase/client';
@@ -331,39 +330,6 @@ export function GrowDetailClient({
     setLightboxUrl(url);
   }, []);
 
-  // Add comment to an entry
-  const handleAddComment = useCallback(async (entryId: string, text: string) => {
-    // In demo mode, add a local comment
-    if (isDemoMode) {
-      const newComment = {
-        id: `demo-comment-${Date.now()}`,
-        grow_entry_id: entryId,
-        user_id: 'demo-user',
-        comment: text,
-        created_at: new Date().toISOString(),
-        profiles: { display_name: 'Demo User', username: 'demo', avatar_url: null },
-      };
-      setLocalComments(prev => [...prev, newComment]);
-      toastSuccess('Kommentar hinzugefügt');
-      return;
-    }
-    if (!user) return;
-    try {
-      const { data, error } = await supabase
-        .from('grow_comments')
-        .insert({ grow_entry_id: entryId, user_id: user.id, comment: text })
-        .select('*, profiles(id, username, display_name, avatar_url)')
-        .single();
-      if (error) throw error;
-      if (data) {
-        setLocalComments(prev => [...prev, data]);
-      }
-      toastSuccess('Kommentar hinzugefügt');
-    } catch (e) {
-      toastError('Fehler beim Hinzufügen des Kommentars');
-    }
-  }, [user, isDemoMode, toastSuccess]);
-
   const handleDeleteEntry = useCallback(async (entryId: string) => {
     if (isDemoMode) {
       setEntries(prev => prev.filter(e => e.id !== entryId));
@@ -461,7 +427,6 @@ export function GrowDetailClient({
           plants={plants}
           growStartDate={grow.start_date}
           onPhotoClick={handlePhotoClick}
-          onAddComment={handleAddComment}
           onDeleteEntry={handleDeleteEntry}
         />
 
