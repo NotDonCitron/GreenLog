@@ -1,25 +1,10 @@
 'use client';
 
-import { Sprout, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Sprout, Plus, Trash2 } from 'lucide-react';
 import { PhaseBadge } from './phase-badge';
 import type { Plant, PlantStatus } from '@/lib/types';
 
 const ACTIVE_STATUSES: PlantStatus[] = ['seedling', 'vegetative', 'flowering', 'flushing'];
-
-const NEXT_STATUS: Partial<Record<PlantStatus, PlantStatus>> = {
-  seedling: 'vegetative',
-  vegetative: 'flowering',
-  flowering: 'flushing',
-  flushing: 'harvested',
-};
-
-const NEXT_LABELS: Partial<Record<PlantStatus, string>> = {
-  seedling: 'Vegetative',
-  vegetative: 'Blüte',
-  flowering: 'Flush',
-  flushing: 'Ernte',
-};
 
 const PHASE_BORDER: Record<string, string> = {
   seedling: 'border-[#2FF801]/50',
@@ -34,10 +19,10 @@ interface Props {
   plants: Plant[];
   isOwner: boolean;
   onAddPlant: () => void;
-  onStatusAdvance: (plantId: string, newStatus: PlantStatus) => void;
+  onDeletePlant: (plantId: string, plantName: string) => void;
 }
 
-export function PlantCarousel({ plants, isOwner, onAddPlant, onStatusAdvance }: Props) {
+export function PlantCarousel({ plants, isOwner, onAddPlant, onDeletePlant }: Props) {
   const activePlants = plants.filter(p => ACTIVE_STATUSES.includes(p.status));
   const isPlantLimitReached = activePlants.length >= 3;
 
@@ -67,6 +52,17 @@ export function PlantCarousel({ plants, isOwner, onAddPlant, onStatusAdvance }: 
               <div className="flex items-center gap-2 mb-2">
                 <Sprout size={12} className={isActive ? 'text-[#2FF801]' : 'text-[var(--muted-foreground)]'} />
                 <span className="text-xs font-bold truncate">{plant.plant_name}</span>
+                {isOwner && (
+                  <button
+                    type="button"
+                    onClick={() => onDeletePlant(plant.id, plant.plant_name)}
+                    className="ml-auto text-[var(--muted-foreground)] hover:text-red-400 transition-colors"
+                    aria-label={`Pflanze ${plant.plant_name} löschen`}
+                    title="Pflanze löschen"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                )}
               </div>
 
               <PhaseBadge status={plant.status} />
@@ -77,19 +73,6 @@ export function PlantCarousel({ plants, isOwner, onAddPlant, onStatusAdvance }: 
                 </p>
               )}
 
-              {isOwner && isActive && (() => {
-                const next = NEXT_STATUS[plant.status];
-                return next ? (
-                  <Button
-                    onClick={() => onStatusAdvance(plant.id, next)}
-                    size="sm"
-                    variant="outline"
-                    className="w-full mt-2 text-[9px] border-[var(--border)]/50"
-                  >
-                    Weiter → {NEXT_LABELS[next]}
-                  </Button>
-                ) : null;
-              })()}
             </div>
           );
         })}

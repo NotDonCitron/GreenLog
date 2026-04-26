@@ -179,7 +179,7 @@ function HomeContent() {
                 <Sprout size={24} className="text-[#2FF801]" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-[#2FF801] font-black uppercase tracking-widest mb-0.5">Aktives Grow</p>
+                <p className="text-[10px] text-[#2FF801] font-black uppercase tracking-widest mb-0.5">Aktiver Grow</p>
                 <h3 className="font-black text-sm uppercase tracking-tight leading-none text-[var(--foreground)] font-display truncate">
                   {activeGrow.title}
                 </h3>

@@ -221,16 +221,48 @@ export function GrowDetailClient({
     setIsAddingPlant(true);
   }, [plants, toastError]);
 
-  const handleStatusAdvance = async (plantId: string, newStatus: PlantStatus) => {
+  const handleDeletePlant = async (plantId: string, plantName: string) => {
+    if (!user?.id) {
+      toastError('Bitte neu einloggen und erneut versuchen');
+      return;
+    }
+    const confirmed = window.confirm(`Pflanze "${plantName}" wirklich löschen?`);
+    if (!confirmed) return;
+
     setIsSaving(true);
     try {
-      const updates: Record<string, unknown> = { status: newStatus };
-      if (newStatus === 'harvested') updates.harvested_at = new Date().toISOString();
-      const { error } = await supabase.from('plants').update(updates).eq('id', plantId);
-      if (error) throw error;
-      setPlants(prev => prev.map(p => p.id === plantId ? { ...p, status: newStatus } : p));
+      const { error } = await supabase
+        .from('plants')
+        .delete()
+        .eq('id', plantId)
+        .eq('grow_id', growId)
+        .eq('user_id', user.id);
+
+      if (!error) {
+        setPlants(prev => prev.filter(p => p.id !== plantId));
+        toastSuccess('Pflanze gelöscht');
+        return;
+      }
+
+      // If linked logs prevent hard delete, fall back to a soft removal state.
+      if (error.code === '23503') {
+        const { error: updateError } = await supabase
+          .from('plants')
+          .update({ status: 'destroyed' as PlantStatus })
+          .eq('id', plantId)
+          .eq('grow_id', growId)
+          .eq('user_id', user.id);
+
+        if (updateError) throw updateError;
+        setPlants(prev => prev.map(p => p.id === plantId ? { ...p, status: 'destroyed' } : p));
+        toastSuccess('Pflanze auf „Vernichtet“ gesetzt (verknüpfte Einträge bleiben erhalten)');
+        return;
+      }
+
+      throw error;
     } catch (e) {
-      toastError('Fehler beim Aktualisieren');
+      const message = e instanceof Error ? e.message : 'Unbekannter Fehler';
+      toastError(`Fehler beim Löschen der Pflanze: ${message}`);
     } finally { setIsSaving(false); }
   };
 
@@ -385,7 +417,7 @@ export function GrowDetailClient({
           plants={plants}
           isOwner={isOwner}
           onAddPlant={handleStartAddPlant}
-          onStatusAdvance={handleStatusAdvance}
+          onDeletePlant={handleDeletePlant}
         />
 
         <TimelineSection
