@@ -293,8 +293,12 @@ export default function ScraperPage() {
             </div>
           </div>
           <p className="mt-2 text-[var(--muted-foreground)] text-sm">
-            Strain-Importer auf srv1606266 — FlareSolverr bypassed Cloudflare automatisch.
+            Strain-Importer auf srv1606266.
           </p>
+          <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs">
+            <strong>⚠️ API-Blockade:</strong> strain-database.com blockiert FlareSolverr mit Cloudflare.
+            Batch-Imports schlagen fehl. Einzel-Importe funktionieren weiterhin.
+          </div>
 
           {/* Progress */}
           {(scraperStatus === 'BUSY' || (scraperStatus === 'DONE' && displayProgress)) && displayProgress && (
@@ -387,9 +391,12 @@ export default function ScraperPage() {
                 <span className="text-sm">DRAFT</span>
               </button>
             </div>
-            <p className="text-[10px] text-zinc-600">
-              Importiert als <span className="text-amber-400 font-bold">Draft</span> — Strain ist sofort in der Datenbank aber noch nicht veröffentlicht.
-            </p>
+          <p className="text-[10px] text-zinc-600">
+            Prioritizes strains with images + THC data
+          </p>
+          <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded text-red-400 text-[10px]">
+            <strong>❌ Blockiert:</strong> API gibt 403 Forbidden für alle Anfragen
+          </div>
             {singleStatus === 'success' && (
               <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 text-xs flex items-center gap-2">
                 <Download size={14} />
