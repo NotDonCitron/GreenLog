@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { SafeScreenshot } from "@/components/marketing/safe-screenshot";
-
-const screens = ["dashboard", "grow", "privacy", "age-gate", "pwa"] as const;
-
-type Screen = (typeof screens)[number];
+import { MARKETING_SCREENS } from "@/lib/marketing-screenshots.mjs";
+import type { ScreenshotKind } from "@/components/marketing/safe-screenshot";
 
 type PageProps = {
   params: Promise<{ screen: string }>;
@@ -24,7 +22,7 @@ export const metadata: Metadata = {
 export default async function MarketingScreenshotPage({ params }: PageProps) {
   const { screen } = await params;
 
-  if (process.env.NEXT_PUBLIC_MARKETING_SAFE_MODE !== "true") {
+  if (process.env.MARKETING_SAFE_MODE !== "true") {
     notFound();
   }
 
@@ -35,7 +33,6 @@ export default async function MarketingScreenshotPage({ params }: PageProps) {
   return <SafeScreenshot kind={screen} />;
 }
 
-function isScreen(screen: string): screen is Screen {
-  return screens.includes(screen as Screen);
+function isScreen(screen: string): screen is ScreenshotKind {
+  return MARKETING_SCREENS.includes(screen as ScreenshotKind);
 }
-

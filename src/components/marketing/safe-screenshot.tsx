@@ -14,12 +14,13 @@ import {
 } from "lucide-react";
 import type { ComponentType } from "react";
 
+import { MARKETING_SCREENS } from "@/lib/marketing-screenshots.mjs";
 import { cn } from "@/lib/utils";
 
 export const MARKETING_SAFE_DISCLAIMER =
   "18+ | Keine Verkaufsplattform | Keine Vermittlung | Keine Konsumaufforderung";
 
-type ScreenshotKind = "dashboard" | "grow" | "privacy" | "age-gate" | "pwa";
+export type ScreenshotKind = (typeof MARKETING_SCREENS)[number];
 
 type SafeScreenshotProps = {
   kind: ScreenshotKind;
@@ -44,12 +45,12 @@ const screenMeta: Record<ScreenshotKind, { eyebrow: string; title: string; subti
   "age-gate": {
     eyebrow: "Age Gate",
     title: "18+ Zugang mit klarer Grenze",
-    subtitle: "GreenLog ist auf volljaehrige Nutzer und dokumentierende Nutzung ausgelegt.",
+    subtitle: "GreenLog ist auf volljährige Nutzer und dokumentierende Nutzung ausgelegt.",
   },
   pwa: {
     eyebrow: "PWA",
     title: "Installierbar, schnell, offline vorbereitet",
-    subtitle: "Eine App-Erfahrung fuer Web und Mobile, ohne App-Store-Abhaengigkeit.",
+    subtitle: "Eine App-Erfahrung für Web und Mobile, ohne App-Store-Abhängigkeit.",
   },
 };
 
@@ -92,7 +93,7 @@ export function SafeScreenshot({ kind }: SafeScreenshotProps) {
             </div>
 
             <div className="grid max-w-[520px] grid-cols-3 gap-3">
-              <Metric label="Eintraege" value="128" />
+              <Metric label="Einträge" value="128" />
               <Metric label="Check-ins" value="42" />
               <Metric label="Privat" value="100%" />
             </div>
@@ -210,7 +211,7 @@ function GrowPanel() {
           </div>
           <h2 className="mt-5 text-xl font-semibold">Pflanzenpflege dokumentieren</h2>
           <p className="mt-2 text-sm leading-6 text-white/55">
-            Aufgaben, Beobachtungen und Fortschritt ohne oeffentliche Konsum- oder Produktoptik.
+            Aufgaben, Beobachtungen und Fortschritt ohne öffentliche Konsum- oder Produktoptik.
           </p>
         </div>
         <TimelineCard />
@@ -227,7 +228,7 @@ function PrivacyPanel() {
         {[
           ["Profil", "Nur Basisdaten sichtbar"],
           ["Diary", "Privat"],
-          ["Aktivitaeten", "Aus"],
+          ["Aktivitäten", "Aus"],
           ["Community", "Manuell freigeben"],
         ].map(([label, value]) => (
           <div key={label} className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
@@ -253,7 +254,7 @@ function AgeGatePanel() {
         <ShieldCheck className="mx-auto h-14 w-14 text-cyan-200" aria-hidden />
         <h2 className="mt-6 font-heading text-4xl font-semibold">Bist du mindestens 18 Jahre alt?</h2>
         <p className="mt-4 text-sm leading-6 text-white/60">
-          GreenLog ist eine dokumentierende PWA fuer volljaehrige Nutzer. Kein Verkauf, keine Vermittlung,
+          GreenLog ist eine dokumentierende PWA für volljährige Nutzer. Kein Verkauf, keine Vermittlung,
           keine Konsumaufforderung.
         </p>
         <div className="mt-7 grid grid-cols-2 gap-3">
@@ -323,7 +324,7 @@ function TimelineCard() {
 
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
-      <h3 className="font-semibold">Aktivitaet</h3>
+      <h3 className="font-semibold">Aktivität</h3>
       <div className="mt-4 space-y-3">
         {rows.map((row) => (
           <div key={row} className="flex items-center gap-3 rounded-lg bg-black/[0.18] p-3">
@@ -337,7 +338,7 @@ function TimelineCard() {
 }
 
 function ChecklistCard() {
-  const items = ["Age Gate aktiv", "Rechtliche Seiten erreichbar", "Service Worker geprueft"];
+  const items = ["Age Gate aktiv", "Rechtliche Seiten erreichbar", "Service Worker geprüft"];
 
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.04] p-5">
