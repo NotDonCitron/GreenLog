@@ -126,13 +126,19 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         return jsonError("feedId is required", 400);
     }
 
-    const { data: membership } = await userClient
+    const { data: membershipRows, error: membershipError } = await userClient
         .from("organization_members")
         .select("role")
         .eq("organization_id", organizationId)
         .eq("user_id", user.id)
         .eq("membership_status", "active")
-        .single();
+        .limit(1);
+
+    if (membershipError) {
+        return jsonError("Failed to verify membership", 500, membershipError.code, membershipError.message);
+    }
+
+    const membership = membershipRows?.[0] ?? null;
 
     if (!membership || ![USER_ROLES.GRUENDER, USER_ROLES.ADMIN].includes(membership.role)) {
         return jsonError("Forbidden", 403);
