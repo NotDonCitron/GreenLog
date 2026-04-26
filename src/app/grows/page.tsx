@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Sprout, Calendar, ArrowRight, Leaf, Compass } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { GrowCardImage } from "@/components/grows/grow-card-image";
 
 interface Grow {
   id: string;
@@ -16,9 +17,11 @@ interface Grow {
   grow_type: string;
   status: string;
   start_date: string;
+  cover_image_url?: string | null;
   harvest_date?: string;
   strains?: {
     name: string;
+    image_url?: string | null;
   };
   plant_count?: number;
 }
@@ -63,7 +66,7 @@ export default function GrowsPage() {
           // Fetch grows with plant counts
           const { data, error } = await supabase
             .from("grows")
-            .select(`*, strains (name)`)
+            .select(`*, strains (name, image_url)`)
             .eq("user_id", user.id)
             .order("created_at", { ascending: false });
 
@@ -141,6 +144,12 @@ export default function GrowsPage() {
           <div className="space-y-4">
             {grows.map((grow) => (
               <Card key={grow.id} className="bg-[var(--card)] border border-[var(--border)]/50 overflow-hidden group active:scale-[0.98] transition-all">
+                <GrowCardImage
+                  primaryUrl={grow.cover_image_url}
+                  secondaryUrl={grow.strains?.image_url}
+                  alt={grow.title}
+                  className="h-36 w-full"
+                />
                 <div className="p-5 flex flex-col gap-4">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">

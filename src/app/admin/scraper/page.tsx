@@ -182,7 +182,7 @@ export default function ScraperPage() {
     const slug = extractSlug(singleUrl);
     if (!slug) {
       setSingleStatus('error');
-      setSingleMsg('Ungültiger Slug oder URL. Format: blue-zushi oder https://strain-database.com/api/strains/blue-zushi');
+      setSingleMsg('Ungültiger Slug oder URL. Format: blue-zushi oder https://api.strain-database.com/api/strains/blue-zushi');
       return;
     }
 
@@ -293,7 +293,7 @@ export default function ScraperPage() {
             </div>
           </div>
           <p className="mt-2 text-[var(--muted-foreground)] text-sm">
-            Strain-Importer auf srv1606266.
+            Strain-Importer auf srv1606266 - direkter API-Host plus Default-Policy: popular first mit THC+Profile-Qualitaetsgate.
           </p>
           <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs">
             <strong>⚠️ API-Blockade:</strong> strain-database.com blockiert FlareSolverr mit Cloudflare.
@@ -377,7 +377,7 @@ export default function ScraperPage() {
                   value={singleUrl}
                   onChange={(e) => setSingleUrl(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && runSingleImport()}
-                  placeholder="Slug oder URL — z.B. blue-zushi oder https://strain-database.com/api/strains/blue-zushi"
+                  placeholder="Slug oder URL — z.B. blue-zushi oder https://api.strain-database.com/api/strains/blue-zushi"
                   disabled={singleLoading || scraperStatus === 'BUSY'}
                   className="w-full bg-[var(--background)] border border-[var(--border)] rounded-xl pl-9 pr-4 py-3 text-sm font-mono focus:ring-2 focus:ring-amber-500 transition-all disabled:opacity-40 placeholder:text-zinc-600"
                 />

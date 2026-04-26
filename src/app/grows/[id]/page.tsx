@@ -76,8 +76,9 @@ export default async function GrowDetailPage({ params }: PageProps) {
       grow_type: "indoor",
       status: "active",
       is_public: true,
+      cover_image_url: null,
       start_date: new Date().toISOString().split('T')[0],
-      strains: { id: 'demo', name: "Gorilla Glue #4", slug: "gorilla-glue-4" },
+      strains: { id: 'demo', name: "Gorilla Glue #4", slug: "gorilla-glue-4", image_url: null },
       user_id: 'demo-user',
     };
     plants = [];
@@ -90,7 +91,7 @@ export default async function GrowDetailPage({ params }: PageProps) {
     // Fetch grow with strain
     const { data: growData, error: growError } = await supabase
       .from("grows")
-      .select("*, strains(id, name, slug)")
+      .select("*, strains(id, name, slug, image_url)")
       .eq("id", id)
       .single();
 

@@ -12,6 +12,7 @@ import { USER_ROLES } from "@/lib/roles";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { useEffect, useCallback } from "react";
+import { GrowCardImage } from "@/components/grows/grow-card-image";
 
 type FeedTab = "foryou" | "following" | "discover" | "grows";
 type FollowingFilter = "users" | "communities";
@@ -53,6 +54,7 @@ interface PublicGrowCard {
   title: string;
   grow_type: string | null;
   start_date: string | null;
+  cover_image_url: string | null;
   profiles: {
     username: string | null;
     display_name: string | null;
@@ -201,6 +203,7 @@ function FeedContent() {
             title,
             grow_type,
             start_date,
+            cover_image_url,
             profiles:user_id(username, display_name, avatar_url),
             strains:strain_id(name, image_url)
           `)
@@ -983,13 +986,12 @@ function FeedContent() {
                       href={`/grows/explore/${grow.id}`}
                       className="block bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl overflow-hidden hover:border-[#00F5FF]/40 transition-all"
                     >
-                      {grow.strains?.image_url ? (
-                        <div className="h-36 w-full bg-[var(--muted)]">
-                          <img src={grow.strains.image_url} alt={grow.strains.name || "Grow"} className="h-full w-full object-cover" />
-                        </div>
-                      ) : (
-                        <div className="h-36 w-full bg-gradient-to-br from-[#2FF801]/10 via-[#00F5FF]/10 to-transparent" />
-                      )}
+                      <GrowCardImage
+                        primaryUrl={grow.cover_image_url}
+                        secondaryUrl={grow.strains?.image_url}
+                        alt={grow.title || grow.strains?.name || 'Grow'}
+                        className="h-36 w-full"
+                      />
                       <div className="p-4 space-y-2">
                         <p className="text-xs uppercase tracking-wider text-[var(--muted-foreground)]">
                           {grow.grow_type || "grow"}
