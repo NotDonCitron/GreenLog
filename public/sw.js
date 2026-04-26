@@ -133,7 +133,15 @@ self.addEventListener('fetch', (event) => {
   // CannaLOG media route → network only. These URLs can be replaced by admin/user uploads
   // while keeping the same path, so the service worker must not pin stale images.
   if (url.origin === self.location.origin && url.pathname.startsWith('/media/')) {
-    event.respondWith(fetch(request));
+    event.respondWith(
+      fetch(request).catch(() => {
+        if (isImageRequest(request, url)) {
+          return fetch('/strains/placeholder-1.svg', { cache: 'no-store' })
+            .catch(() => new Response('', { status: 504, statusText: 'Media fetch failed' }));
+        }
+        return new Response('', { status: 504, statusText: 'Media fetch failed' });
+      })
+    );
     return;
   }
 

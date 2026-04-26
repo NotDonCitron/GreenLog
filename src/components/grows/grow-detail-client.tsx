@@ -171,13 +171,17 @@ export function GrowDetailClient({
 
   const handleAddPlant = async () => {
     if (!newPlantName.trim()) return;
+    if (!user?.id) {
+      toastError('Bitte neu einloggen und erneut versuchen');
+      return;
+    }
     const active = plants.filter(p => ACTIVE_STATUSES.includes(p.status));
     if (active.length >= 3) { setShowPlantLimitWarning(true); return; }
     setIsSaving(true);
     try {
       const { error } = await supabase.from('plants').insert({
         grow_id: growId,
-        user_id: user!.id,
+        user_id: user.id,
         plant_name: newPlantName.trim(),
         strain_id: (grow as any).strain_id ?? null,
         status: 'seedling' as PlantStatus,
@@ -189,7 +193,9 @@ export function GrowDetailClient({
       setNewPlantName('');
       setIsAddingPlant(false);
     } catch (e) {
-      toastError('Fehler beim Hinzufügen der Pflanze');
+      const message = e instanceof Error ? e.message : 'Unbekannter Fehler';
+      console.error('[GrowDetailClient] add plant failed', e);
+      toastError(`Fehler beim Hinzufügen der Pflanze: ${message}`);
     } finally { setIsSaving(false); }
   };
 

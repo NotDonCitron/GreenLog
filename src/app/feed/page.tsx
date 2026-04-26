@@ -945,7 +945,7 @@ function FeedContent() {
                     href={`/grows/${activeGrow.id}`}
                     className="block w-full px-6 py-3 bg-[#00F5FF]/15 border border-[#00F5FF]/40 text-[#00F5FF] font-bold rounded-2xl text-center text-sm uppercase tracking-wider hover:bg-[#00F5FF]/20 transition-colors"
                   >
-                    Aktiven Grow öffnen
+                    Zum Grow-Tagebuch
                     {activeGrow.title ? ` • ${activeGrow.title}` : ""}
                   </Link>
                 )}
