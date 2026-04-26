@@ -109,12 +109,12 @@ const QUICK_LINKS = [
     bg: 'bg-amber-400/10',
   },
   {
-    href: '/admin/seed',
+    href: '/admin/scraper',
     icon: DatabaseZap,
-    title: 'Seed / Import',
-    description: 'Bestehende Import-Werkzeuge öffnen',
-    color: 'text-sky-300',
-    bg: 'bg-sky-400/10',
+    title: 'Scraper',
+    description: 'VPS-Importer starten, Live-Logs, Datenqualität',
+    color: 'text-amber-300',
+    bg: 'bg-amber-400/10',
   },
 ];
 

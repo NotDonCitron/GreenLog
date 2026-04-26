@@ -1,121 +1,370 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth-provider";
-import { useAppAdmin } from "@/hooks/useAppAdmin";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Loader2, Database, RefreshCw, ShieldCheck, ChevronLeft, AlertCircle } from "lucide-react";
-import Link from "next/link";
-import { Strain } from "@/lib/types";
+import {
+  Loader2, Zap, Square, Search, RotateCw, AlertCircle, Terminal, Database, ArrowDown
+} from "lucide-react";
 
-// 20 AI-GENERIERTE, PHOTOREALISTISCHE CANNABIS BILDER (GARANTIERT KEINE KATZEN)
-const STRAIN_DATA: Partial<Strain>[] = [
-  { name: "Godfather OG", slug: "godfather-og", type: "indica", thc_max: 34, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Godfather%20OG?width=600&height=800&seed=1" },
-  { name: "Animal Face", slug: "animal-face", type: "indica", thc_max: 30, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Animal%20Face?width=600&height=800&seed=2" },
-  { name: "GMO Cookies", slug: "gmo-cookies", type: "indica", thc_max: 33, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20GMO%20Cookies?width=600&height=800&seed=3" },
-  { name: "Gelato #33", slug: "gelato-33", type: "hybrid", thc_max: 25, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Gelato%2033?width=600&height=800&seed=4" },
-  { name: "Sour Diesel", slug: "sour-diesel", type: "sativa", thc_max: 22, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Sour%20Diesel?width=600&height=800&seed=5" },
-  { name: "Durban Poison", slug: "durban-poison", type: "sativa", thc_max: 25, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Durban%20Poison?width=600&height=800&seed=6" },
-  { name: "White Widow", slug: "white-widow", type: "hybrid", thc_max: 25, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20White%20Widow?width=600&height=800&seed=7" },
-  { name: "OG Kush", slug: "og-kush", type: "hybrid", thc_max: 26, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20OG%20Kush?width=600&height=800&seed=8" },
-  { name: "Jack Herer", slug: "jack-herer", type: "sativa", thc_max: 24, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Jack%20Herer?width=600&height=800&seed=9" },
-  { name: "Purple Haze", slug: "purple-haze", type: "sativa", thc_max: 20, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Purple%20Haze?width=600&height=800&seed=10" },
-  { name: "Amnesia Haze", slug: "amnesia-haze", type: "sativa", thc_max: 25, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Amnesia%20Haze?width=600&height=800&seed=11" },
-  { name: "Blueberry", slug: "blueberry", type: "indica", thc_max: 24, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Blueberry?width=600&height=800&seed=12" },
-  { name: "Granddaddy Purple", slug: "gdp", type: "indica", thc_max: 23, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Granddaddy%20Purple?width=600&height=800&seed=13" },
-  { name: "Acapulco Gold", slug: "acapulco-gold", type: "sativa", thc_max: 24, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Acapulco%20Gold?width=600&height=800&seed=14" },
-  { name: "Skywalker OG", slug: "skywalker-og", type: "indica", thc_max: 26, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Skywalker%20OG?width=600&height=800&seed=15" },
-  { name: "Green Crack", slug: "green-crack", type: "sativa", thc_max: 25, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Green%20Crack?width=600&height=800&seed=16" },
-  { name: "Bruce Banner", slug: "bruce-banner", type: "hybrid", thc_max: 29, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Bruce%20Banner?width=600&height=800&seed=17" },
-  { name: "Northern Lights", slug: "northern-lights", type: "indica", thc_max: 21, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Northern%20Lights?width=600&height=800&seed=18" },
-  { name: "Blue Dream", slug: "blue-dream-official", type: "sativa", thc_max: 24, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Blue%20Dream?width=600&height=800&seed=19" },
-  { name: "Pineapple Express", slug: "pineapple-express", type: "hybrid", thc_max: 22, image_url: "https://pollinations.ai/p/photorealistic%20cannabis%20bud%20macro%20close-up%20Pineapple%20Express?width=600&height=800&seed=20" }
-];
+const WATCH_SLUG = "blue-zushi";
 
-export default function AdminSeedPage() {
+type RunStatus = "idle" | "busy" | "done" | "error";
+
+function parseStatus(sourceNotes: string | null): { status: RunStatus; runId?: string; detail?: string } {
+  if (!sourceNotes) return { status: "idle" };
+  if (sourceNotes.startsWith("BUSY_")) return { status: "busy", runId: sourceNotes.slice(5) };
+  if (sourceNotes.startsWith("DONE_")) {
+    const parts = sourceNotes.split("_");
+    return { status: "done", runId: parts[3], detail: `${parts[1]} imported of ${parts[2]}` };
+  }
+  if (sourceNotes.startsWith("ERROR_")) return { status: "error", detail: sourceNotes };
+  if (sourceNotes.startsWith("STOP_")) return { status: "idle" };
+  if (sourceNotes.startsWith("TRIGGER_") || sourceNotes.startsWith("SINGLE_")) return { status: "busy" };
+  return { status: "idle" };
+}
+
+export default function AdminScraperPage() {
   const { user } = useAuth();
-  const { isAdmin, loading: adminLoading } = useAppAdmin();
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [message, setMessage] = useState("");
+  const [triggerRow, setTriggerRow] = useState<{ source_notes: string | null } | null>(null);
+  const [logs, setLogs] = useState<{ id: number; line: string; created_at: string }[]>([]);
+  const [limit, setLimit] = useState("50");
+  const [singleSlug, setSingleSlug] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const logEndRef = useRef<HTMLDivElement>(null);
+  const logContainerRef = useRef<HTMLDivElement>(null);
 
-  if (adminLoading || !isAdmin) {
+  const ADMIN_IDS = (process.env.NEXT_PUBLIC_APP_ADMIN_IDS || "").split(",").filter(Boolean);
+  const isAdmin = user && ADMIN_IDS.includes(user.id);
+
+  const state = parseStatus(triggerRow?.source_notes ?? null);
+  const isBusy = state.status === "busy";
+
+  const fetchTrigger = useCallback(async () => {
+    const { data } = await supabase
+      .from("strains")
+      .select("source_notes")
+      .eq("slug", WATCH_SLUG)
+      .single();
+    if (data) setTriggerRow(data);
+  }, []);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    fetchTrigger();
+    const interval = setInterval(fetchTrigger, 5000);
+    return () => clearInterval(interval);
+  }, [isAdmin, fetchTrigger]);
+
+  useEffect(() => {
+    if (!isAdmin || !state.runId) return;
+
+    const channel = supabase
+      .channel(`scraper-logs-${state.runId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "scraper_logs",
+          filter: `run_id=eq.${state.runId}`,
+        },
+        (payload) => {
+          setLogs((prev) => {
+            if (prev.some((l) => l.id === payload.new.id)) return prev;
+            return [...prev, payload.new as { id: number; line: string; created_at: string }];
+          });
+        }
+      )
+      .subscribe();
+
+    supabase
+      .from("scraper_logs")
+      .select("id, line, created_at")
+      .eq("run_id", state.runId)
+      .order("id", { ascending: true })
+      .limit(500)
+      .then(({ data }) => {
+        if (data) setLogs(data);
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAdmin, state.runId]);
+
+  useEffect(() => {
+    if (autoScroll && logEndRef.current) {
+      logEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [logs, autoScroll]);
+
+  const handleScroll = () => {
+    if (!logContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = logContainerRef.current;
+    const nearBottom = scrollHeight - scrollTop - clientHeight < 80;
+    setAutoScroll(nearBottom);
+  };
+
+  const triggerBatch = async () => {
+    setActionLoading(true);
+    const n = parseInt(limit);
+    if (isNaN(n) || n <= 0) { setActionLoading(false); return; }
+    await supabase
+      .from("strains")
+      .update({ source_notes: `TRIGGER_LIMIT_${n}` })
+      .eq("slug", WATCH_SLUG);
+    setLogs([]);
+    setActionLoading(false);
+    setTimeout(fetchTrigger, 1000);
+  };
+
+  const triggerSingle = async () => {
+    if (!singleSlug.trim()) return;
+    setActionLoading(true);
+    await supabase
+      .from("strains")
+      .update({ source_notes: `SINGLE_${singleSlug.trim()}` })
+      .eq("slug", WATCH_SLUG);
+    setLogs([]);
+    setSingleSlug("");
+    setActionLoading(false);
+    setTimeout(fetchTrigger, 1000);
+  };
+
+  const stopScraper = async () => {
+    setActionLoading(true);
+    await supabase
+      .from("strains")
+      .update({ source_notes: "STOP_ADMIN" })
+      .eq("slug", WATCH_SLUG);
+    setActionLoading(false);
+    setTimeout(fetchTrigger, 1000);
+  };
+
+  const resetTrigger = async () => {
+    setActionLoading(true);
+    await supabase
+      .from("strains")
+      .update({ source_notes: "IDLE" })
+      .eq("slug", WATCH_SLUG);
+    setLogs([]);
+    setActionLoading(false);
+    setTimeout(fetchTrigger, 500);
+  };
+
+  const loadLatestRun = async () => {
+    const { data } = await supabase
+      .from("scraper_logs")
+      .select("id, line, created_at, run_id")
+      .order("id", { ascending: false })
+      .limit(1)
+      .single();
+    if (data) {
+      const { data: runLogs } = await supabase
+        .from("scraper_logs")
+        .select("id, line, created_at")
+        .eq("run_id", data.run_id)
+        .order("id", { ascending: true })
+        .limit(500);
+      if (runLogs) setLogs(runLogs);
+    }
+  };
+
+  if (!isAdmin) {
     return (
-      <main className="min-h-screen bg-white text-black flex flex-col items-center justify-center p-6">
-        <Card className="max-w-md w-full p-10 bg-[var(--card)] border-red-500/20 text-center space-y-8 shadow-2xl border-t-4 border-t-red-500">
+      <main className="min-h-screen flex items-center justify-center p-6">
+        <Card className="max-w-md w-full p-10 border-red-500/20 text-center space-y-8 shadow-2xl border-t-4 border-t-red-500">
           <AlertCircle className="text-red-500 mx-auto" size={64} />
           <h1 className="text-xl font-black uppercase tracking-tighter text-red-500">Access Denied</h1>
-          <p className="text-black/30 text-[10px] uppercase tracking-widest leading-relaxed">
-            Admin access required for this page.
-          </p>
         </Card>
       </main>
     );
   }
 
-  const handleUpsertSeed = async () => {
-    if (!user) return;
-    setStatus("loading");
-    setMessage("AI-Image Synthesis in progress...");
-
-    try {
-      const { error } = await supabase
-        .from("strains")
-        .upsert(STRAIN_DATA, { onConflict: 'slug' });
-
-      if (error) throw error;
-
-      setStatus("success");
-      setMessage("AI-SYNC COMPLETE!");
-    } catch (err) {
-      const error = err as Error;
-      console.error(error);
-      setStatus("error");
-      setMessage(error.message || "Error during sync.");
-    }
-  };
+  const statusColor = state.status === "busy" ? "text-amber-400" : state.status === "done" ? "text-emerald-400" : state.status === "error" ? "text-red-400" : "text-zinc-400";
+  const statusLabel = state.status === "busy" ? "RUNNING" : state.status === "done" ? "COMPLETE" : state.status === "error" ? "ERROR" : "IDLE";
 
   return (
-    <main className="min-h-screen bg-white text-black flex flex-col items-center justify-center p-6 relative">
-      <Link href="/profile" className="absolute top-8 left-8 p-3 rounded-full bg-black/5 border border-black/10 hover:bg-black/10 transition-all flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
-        <ChevronLeft size={14} /> Back
-      </Link>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">StrainDB Scraper</h1>
+        <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+          Trigger imports from strain-database.com (prioritizes strains with images)
+        </p>
+      </div>
 
-      <Card className="max-w-md w-full p-10 bg-[var(--card)] border-black/10 text-center space-y-8 shadow-2xl border-t-4 border-t-[#2FF801]">
-        <Database className="text-[#2FF801] mx-auto animate-pulse" size={64} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card className="p-5 space-y-4 border-[var(--border)]/50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Database size={18} className="text-[var(--primary)]" />
+              <span className="text-sm font-semibold">Status</span>
+            </div>
+            <span className={`text-xs font-bold uppercase tracking-wider ${statusColor}`}>
+              {isBusy && <Loader2 size={12} className="inline animate-spin mr-1" />}
+              {statusLabel}
+            </span>
+          </div>
+          {state.detail && (
+            <p className="text-xs text-[var(--muted-foreground)]">{state.detail}</p>
+          )}
+          {state.runId && (
+            <p className="text-[10px] text-[var(--muted-foreground)]/60 font-mono">run: {state.runId}</p>
+          )}
+        </Card>
 
-        <div className="space-y-2">
-          <h1 className="text-xl font-black uppercase tracking-tighter italic">AI <span className="text-[#2FF801]">Visual Sync</span></h1>
-          <p className="text-black/30 text-[10px] uppercase tracking-widest leading-relaxed">
-            Generates high-fidelity photorealistic bud images for all legendary strains.
+        <Card className="p-5 space-y-3 border-[var(--border)]/50">
+          <div className="flex items-center gap-2">
+            <Zap size={18} className="text-amber-400" />
+            <span className="text-sm font-semibold">Batch Import</span>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              value={limit}
+              onChange={(e) => setLimit(e.target.value)}
+              placeholder="Limit"
+              disabled={isBusy}
+              className="flex-1 h-9 text-sm"
+              min={1}
+              max={500}
+            />
+            <Button
+              onClick={triggerBatch}
+              disabled={isBusy || actionLoading}
+              className="h-9 bg-[var(--primary)] text-[var(--primary-foreground)] hover:bg-[var(--primary)]/80 text-xs font-bold gap-1.5"
+            >
+              {actionLoading ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
+              START
+            </Button>
+          </div>
+          <p className="text-[10px] text-[var(--muted-foreground)]">
+            Prioritizes strains with images + THC data
           </p>
-        </div>
+        </Card>
+      </div>
 
-        <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card className="p-4 space-y-2 border-[var(--border)]/50">
+          <span className="text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider">Single Strain</span>
+          <div className="flex gap-2">
+            <Input
+              value={singleSlug}
+              onChange={(e) => setSingleSlug(e.target.value)}
+              placeholder="slug e.g. acai-mints"
+              disabled={isBusy}
+              className="flex-1 h-8 text-xs"
+              onKeyDown={(e) => e.key === "Enter" && triggerSingle()}
+            />
+            <Button
+              onClick={triggerSingle}
+              disabled={isBusy || !singleSlug.trim()}
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs gap-1"
+            >
+              <Search size={12} /> Import
+            </Button>
+          </div>
+        </Card>
+
+        <Card className="p-4 flex items-center gap-2 border-[var(--border)]/50">
           <Button
-            onClick={handleUpsertSeed}
-            disabled={status === "loading" || !user}
-            className="w-full h-16 bg-[#2FF801] text-black font-black hover:bg-[#2FF801]/80 transition-all text-sm uppercase tracking-widest gap-2"
+            onClick={stopScraper}
+            disabled={!isBusy || actionLoading}
+            variant="destructive"
+            size="sm"
+            className="h-8 text-xs gap-1"
           >
-            {status === "loading" ? <Loader2 className="animate-spin" /> : <><RefreshCw size={20} /> INITIALIZE AI SYNC</>}
+            <Square size={12} /> STOP
           </Button>
+          <Button
+            onClick={resetTrigger}
+            disabled={isBusy || actionLoading}
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs gap-1"
+          >
+            <RotateCw size={12} /> RESET
+          </Button>
+          <Button
+            onClick={loadLatestRun}
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs gap-1"
+          >
+            <Terminal size={12} /> LAST LOG
+          </Button>
+        </Card>
 
-          {status === "success" && (
-            <div className="p-5 bg-[#2FF801]/10 border border-[#2FF801]/20 rounded-xl text-[#2FF801] text-xs font-bold flex flex-col items-center gap-3 animate-in zoom-in">
-              <ShieldCheck size={32} />
-              <p className="uppercase tracking-widest">{message}</p>
-              <Link href="/strains" className="mt-2 text-black bg-[#2FF801] px-6 py-2 rounded-lg font-black uppercase text-[10px] tracking-widest hover:scale-105 transition-transform">View Album</Link>
-            </div>
-          )}
+        <Card className="p-4 flex flex-col items-center justify-center border-[var(--border)]/50">
+          <span className="text-[10px] text-[var(--muted-foreground)] uppercase tracking-wider">Auto-scroll</span>
+          <button
+            onClick={() => setAutoScroll(!autoScroll)}
+            className={`mt-1 text-xs font-bold ${autoScroll ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}`}
+          >
+            {autoScroll ? "ON" : "OFF"}
+          </button>
+        </Card>
+      </div>
 
-          {status === "error" && (
-            <div className="p-5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-[10px] font-bold flex items-center gap-2 uppercase tracking-widest">
-              <AlertCircle size={16} /> {message}
-            </div>
+      <Card className="border-[var(--border)]/50 overflow-hidden">
+        <div className="flex items-center justify-between border-b border-[var(--border)]/30 px-4 py-2">
+          <div className="flex items-center gap-2">
+            <Terminal size={14} className="text-[var(--muted-foreground)]" />
+            <span className="text-xs font-semibold text-[var(--muted-foreground)]">Live Log</span>
+            {logs.length > 0 && (
+              <span className="text-[10px] text-[var(--muted-foreground)]/60">{logs.length} lines</span>
+            )}
+          </div>
+          {autoScroll && (
+            <button
+              onClick={() => logEndRef.current?.scrollIntoView({ behavior: "smooth" })}
+              className="text-[10px] text-[var(--primary)] hover:underline flex items-center gap-1"
+            >
+              <ArrowDown size={10} /> bottom
+            </button>
           )}
+        </div>
+        <div
+          ref={logContainerRef}
+          onScroll={handleScroll}
+          className="h-80 overflow-y-auto bg-zinc-950 p-3 font-mono text-[11px] leading-relaxed"
+        >
+          {logs.length === 0 ? (
+            <div className="h-full flex items-center justify-center text-zinc-600">
+              {isBusy ? "Waiting for output..." : "No logs yet — trigger a batch to start"}
+            </div>
+          ) : (
+            logs.map((l) => (
+              <div
+                key={l.id}
+                className={`${
+                  l.line.includes("✅")
+                    ? "text-emerald-400"
+                    : l.line.includes("❌") || l.line.includes("⚠️") || l.line.includes("⚠")
+                    ? "text-red-400"
+                    : l.line.includes("🚀") || l.line.includes("🏁") || l.line.includes("📊") || l.line.includes("⭐")
+                    ? "text-amber-300"
+                    : l.line.includes("📷")
+                    ? "text-sky-400"
+                    : l.line.includes("[*]")
+                    ? "text-zinc-300"
+                    : "text-zinc-500"
+                }`}
+              >
+                {l.line}
+              </div>
+            ))
+          )}
+          <div ref={logEndRef} />
         </div>
       </Card>
-    </main>
+    </div>
   );
 }
