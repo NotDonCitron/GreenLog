@@ -1,18 +1,25 @@
 const PUBLIC_MEDIA_PREFIX = "/media/";
-const PUBLIC_MEDIA_STORAGE_ORIGIN = "https://storage.cannalog.fun";
 
 const KNOWN_BUCKETS = ["strains", "user-strains", "avatars", "org-logos", "grow-entry-photos"];
 
+function getPublicMediaStorageOrigin() {
+  return (
+    process.env.NEXT_PUBLIC_MEDIA_STORAGE_ORIGIN?.trim()
+    || "https://minio.srv1606266.hstgr.cloud"
+  ).replace(/\/+$/, "");
+}
+
 function resolvePublicMediaPath(path: string): string {
+  const origin = getPublicMediaStorageOrigin();
   // If it starts with /media/, strip it
   if (path.startsWith(PUBLIC_MEDIA_PREFIX)) {
     const storagePath = path.slice(PUBLIC_MEDIA_PREFIX.length);
-    return `${PUBLIC_MEDIA_STORAGE_ORIGIN}/${storagePath}`;
+    return `${origin}/${storagePath}`;
   }
 
   // If it starts with a leading slash, strip it for the storage URL
   const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-  return `${PUBLIC_MEDIA_STORAGE_ORIGIN}/${cleanPath}`;
+  return `${origin}/${cleanPath}`;
 }
 
 /**
@@ -32,6 +39,9 @@ export function resolvePublicMediaUrl(value: string | null | undefined): string 
 
   // If it starts with /media/, it's definitely one of ours
   if (trimmed.startsWith(PUBLIC_MEDIA_PREFIX)) {
+    // Keep grow cover images on same-origin media proxy. Their objects are served
+    // reliably via /media/grows even when external storage domains lag behind.
+    if (trimmed.startsWith('/media/grows/')) return trimmed;
     return resolvePublicMediaPath(trimmed);
   }
 
