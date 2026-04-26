@@ -248,7 +248,7 @@ export const StrainCard = memo(function StrainCard({
                       ? "line-clamp-2 break-words text-[8px] font-black leading-tight tracking-normal text-white/80"
                       : "line-clamp-2 break-words text-[6px] font-bold leading-[0.95] tracking-wide text-white/70",
                   )}
-                  style={marketingSafe && idx < 2 ? { color: themeColor } : undefined}
+                  style={idx < 2 ? { color: themeColor } : undefined}
                 >
                   {item.value}
                 </span>
