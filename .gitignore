@@ -78,6 +78,7 @@ out/
 
 # generated test/browser artifacts
 tmp/
+content/screenshots/marketing/*.png
 
 # dev docs
 docs/strains-missing-images.md

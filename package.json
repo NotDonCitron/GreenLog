@@ -17,7 +17,8 @@
     "ingest:canon": "node scripts/canon-ingest/index.mjs",
     "ingest:canon:dry": "node scripts/canon-ingest/index.mjs --dry-run",
     "images:migrate": "node scripts/migrate-images-to-minio.mjs",
-    "images:migrate:apply": "node scripts/migrate-images-to-minio.mjs --apply"
+    "images:migrate:apply": "node scripts/migrate-images-to-minio.mjs --apply",
+    "screenshots:marketing": "node scripts/marketing-screenshots.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1033.0",
