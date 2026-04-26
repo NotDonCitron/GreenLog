@@ -1,10 +1,11 @@
 import { memo } from 'react';
 import Link from 'next/link';
-import { Check } from 'lucide-react';
+import { Check, Leaf } from 'lucide-react';
 import { Strain } from '@/lib/types';
 import { formatPercent, getEffectDisplay, getStrainTheme, getTasteDisplay } from '@/lib/strain-display';
 import { sanitizeDisplayText } from '@/lib/strain-display-text';
 import { escapeRegExp } from '@/lib/string-utils';
+import { cn } from '@/lib/utils';
 
 function hasRealImage(strain: Strain): boolean {
   if (!strain.image_url) return false;
@@ -22,6 +23,7 @@ interface StrainCardProps {
   selectionMode?: boolean;
   isSelected?: boolean;
   onSelect?: () => void;
+  marketingSafe?: boolean;
 }
 
 export const StrainCard = memo(function StrainCard({
@@ -31,16 +33,29 @@ export const StrainCard = memo(function StrainCard({
   selectionMode = false,
   isSelected = false,
   onSelect,
+  marketingSafe = false,
 }: StrainCardProps) {
   const { color: themeColor, className: themeClass } = getStrainTheme(strain.type);
 
   const rawFarmer = strain.farmer?.trim() || strain.manufacturer?.trim() || strain.brand?.trim() || '';
   const farmerDisplay = rawFarmer ? sanitizeDisplayText(rawFarmer) : 'Unbekannter Farmer';
   const showFarmer = farmerDisplay && !/unknown|unbekannt/i.test(farmerDisplay);
-  const thcDisplay = formatPercent(strain.avg_thc ?? strain.thc_max, '—');
-  const cbdDisplay = formatPercent(strain.avg_cbd ?? strain.cbd_max, '< 1%');
-  const effectDisplay = getEffectDisplay(strain);
-  const tasteDisplay = getTasteDisplay(strain);
+  const thcDisplay = marketingSafe ? 'Demo' : formatPercent(strain.avg_thc ?? strain.thc_max, '—');
+  const cbdDisplay = marketingSafe ? 'Privat' : formatPercent(strain.avg_cbd ?? strain.cbd_max, '< 1%');
+  const effectDisplay = marketingSafe ? 'Neutral' : getEffectDisplay(strain);
+  const tasteDisplay = marketingSafe ? 'Platzhalter' : getTasteDisplay(strain);
+  const cardMeta = marketingSafe
+    ? [
+      { label: 'Status', value: thcDisplay },
+      { label: 'Daten', value: cbdDisplay },
+      { label: 'Hinweis', value: effectDisplay },
+    ]
+    : [
+      { label: 'THC', value: thcDisplay },
+      { label: 'CBD', value: cbdDisplay },
+      { label: 'Aroma', value: tasteDisplay },
+      { label: 'Wirkung', value: effectDisplay },
+    ];
 
   // Strip farmer prefix from strain name — handles "420 Pharma: Natural Gorilla Glue" -> "Natural Gorilla Glue"
   // and "420 Natural Gorilla Glue" (farmer="420 Pharma") -> "420 Natural Gorilla Glue" (keep embedded farmer name)
@@ -85,7 +100,7 @@ export const StrainCard = memo(function StrainCard({
     return rawName;
   })();
 
-  const realImage = hasRealImage(strain);
+  const realImage = marketingSafe ? false : hasRealImage(strain);
 
   const cardBaseClass = `premium-card ${themeClass} group relative flex w-full min-w-0 rounded-[20px] border-2 bg-[#121212] transition-all duration-300 overflow-hidden aspect-[4/5] ${selectionMode ? 'cursor-pointer' : 'hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]'}`;
   const cardStyle = {
@@ -132,6 +147,35 @@ export const StrainCard = memo(function StrainCard({
             </p>
           </div>
         </>
+      ) : marketingSafe ? (
+        <>
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden p-4"
+            style={{
+              background:
+                `radial-gradient(circle at 30% 20%, ${themeColor}33, transparent 38%), linear-gradient(135deg, ${themeColor}18, #0f1010 72%)`,
+            }}
+          >
+            <div className="absolute inset-4 rounded-[18px] border border-white/10" />
+            <div
+              className="flex h-20 w-20 items-center justify-center rounded-full border"
+              style={{ backgroundColor: `${themeColor}18`, borderColor: `${themeColor}55` }}
+            >
+              <Leaf className="h-10 w-10" style={{ color: themeColor }} aria-hidden />
+            </div>
+            <p className="mt-4 text-center text-[9px] font-black uppercase tracking-[0.16em] text-white/35">
+              Neutraler Platzhalter
+            </p>
+          </div>
+          <div className="absolute top-0 left-0 right-0 z-10 px-3 pt-2 pb-1.5 min-w-0 bg-[#121212]/95">
+            <p className="text-[8px] font-bold tracking-[0.1em] uppercase text-white/50 truncate">
+              Demo Profil
+            </p>
+            <p className="title-font italic text-[13px] font-black leading-tight uppercase text-white break-words line-clamp-2">
+              {normalizedStrainName}
+            </p>
+          </div>
+        </>
       ) : (
         <>
           {/* NO IMAGE: typographic fallback — never looks like a product photo */}
@@ -166,19 +210,21 @@ export const StrainCard = memo(function StrainCard({
       )}
 
       {/* 3. BADGES — centered over image, above stats bar */}
-      <div className="absolute bottom-14 left-2 z-20">
-        <div
-          className="px-1.5 py-0.5 rounded-lg backdrop-blur-md border text-[7px] font-bold uppercase tracking-widest"
-          style={{
-            backgroundColor: `${themeColor}30`,
-            borderColor: `${themeColor}80`,
-            color: themeColor,
-          }}
-        >
-          {strain.type === 'sativa' ? 'Sativa' : strain.type === 'indica' ? 'Indica' : 'Hybride'}
+      {!marketingSafe && (
+        <div className="absolute bottom-14 left-2 z-20">
+          <div
+            className="px-1.5 py-0.5 rounded-lg backdrop-blur-md border text-[7px] font-bold uppercase tracking-widest"
+            style={{
+              backgroundColor: `${themeColor}30`,
+              borderColor: `${themeColor}80`,
+              color: themeColor,
+            }}
+          >
+            {strain.type === 'sativa' ? 'Sativa' : strain.type === 'indica' ? 'Indica' : 'Hybride'}
+          </div>
         </div>
-      </div>
-      {isCollected && (
+      )}
+      {isCollected && !marketingSafe && (
         <div className="absolute bottom-14 right-2 z-20 flex items-center gap-1 px-1.5 py-0.5 rounded-full backdrop-blur-md border border-[#00F5FF]/30"
           style={{ backgroundColor: '#00F5FF20' }}>
           <div className="w-1 h-1 rounded-full bg-[#00F5FF]" />
@@ -187,29 +233,27 @@ export const StrainCard = memo(function StrainCard({
       )}
 
       {/* 4. STATS BAR — bottom with solid gradient background */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 px-2 pb-2 pt-4 bg-gradient-to-t from-black/90 via-black/70 to-transparent">
-        <div className="rounded-xl border border-white/10 bg-[#121212]/90 p-1.5 shadow-inner backdrop-blur-sm">
-          <div className="grid grid-cols-[0.8fr_0.9fr_1.15fr_1.15fr] gap-1">
-            <div className="flex flex-col items-center gap-0">
-              <span className="text-[5px] font-bold uppercase tracking-widest text-white/40">THC</span>
-              <span className="whitespace-nowrap text-[8px] font-black tracking-normal" style={{ color: themeColor }}>{thcDisplay}</span>
-            </div>
-            <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1">
-              <span className="text-[5px] font-bold uppercase tracking-widest text-white/40">CBD</span>
-              <span className="whitespace-nowrap text-[8px] font-black tracking-normal" style={{ color: themeColor }}>{cbdDisplay}</span>
-            </div>
-            <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1 min-w-0">
-              <span className="text-[5px] font-bold uppercase tracking-widest text-white/40">Aroma</span>
-              <span className="line-clamp-2 w-full break-words text-center text-[6px] font-bold leading-[0.95] tracking-wide text-white/70">
-                {tasteDisplay}
-              </span>
-            </div>
-            <div className="flex flex-col items-center gap-0 border-l border-white/10 pl-1 min-w-0">
-              <span className="text-[5px] font-bold uppercase tracking-widest text-white/40">Wirkung</span>
-              <span className="line-clamp-2 w-full break-words text-center text-[6px] font-bold leading-[0.95] tracking-wide text-white/70">
-                {effectDisplay}
-              </span>
-            </div>
+      <div className={marketingSafe ? "absolute bottom-0 left-0 right-0 z-10 px-2 pb-2 pt-3 bg-gradient-to-t from-black/90 via-black/70 to-transparent" : "absolute bottom-0 left-0 right-0 z-10 px-2 pb-2 pt-4 bg-gradient-to-t from-black/90 via-black/70 to-transparent"}>
+        <div className={marketingSafe ? "rounded-xl border border-white/10 bg-[#121212]/90 p-2 shadow-inner backdrop-blur-sm" : "rounded-xl border border-white/10 bg-[#121212]/90 p-1.5 shadow-inner backdrop-blur-sm"}>
+          <div className={marketingSafe ? "grid grid-cols-3 gap-1.5" : "grid grid-cols-[0.8fr_0.9fr_1.15fr_1.15fr] gap-1"}>
+            {cardMeta.map((item, idx) => (
+              <div key={item.label} className={`flex min-w-0 flex-col items-center gap-0.5 ${idx > 0 ? "border-l border-white/10 pl-1" : ""}`}>
+                <span className={marketingSafe ? "text-[6px] font-bold uppercase tracking-[0.08em] text-white/50" : "text-[5px] font-bold uppercase tracking-widest text-white/40"}>
+                  {item.label}
+                </span>
+                <span
+                  className={cn(
+                    "w-full text-center",
+                    marketingSafe
+                      ? "line-clamp-2 break-words text-[8px] font-black leading-tight tracking-normal text-white/80"
+                      : "line-clamp-2 break-words text-[6px] font-bold leading-[0.95] tracking-wide text-white/70",
+                  )}
+                  style={idx < 2 ? { color: themeColor } : undefined}
+                >
+                  {item.value}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
