@@ -33,16 +33,17 @@ Verification performed on 2026-04-26:
 - Confirmed all six expected files were generated in `content/screenshots/marketing/`.
 - Visually reviewed each generated screenshot.
 - Reviewed the marketing-safe screenshot source for unsafe visible copy or real cannabis imagery.
+- Re-ran capture against local server (`BASE_URL=http://localhost:3010 npm run screenshots:marketing`) after a transient local dev subprocess drop, resulting in complete updated PNG set.
 
 ## File Results
 
 | File | Result | Real app UI used | Safety neutralization |
 | --- | --- | --- | --- |
-| `dashboard.png` | Pass | CannaLog home header, active grow quick card, real `StrainCard`, quick actions, bottom navigation. | Demo grow/profile data, neutral strain name, plant placeholder, no bud image, no THC/CBD values. |
-| `strains.png` | Pass | Strains page header, search, filter chips, real `StrainCard` grid, add-note card, bottom navigation. | `Demo Sorte A/B/C`, neutral plant placeholders, no effect wording, no THC/CBD values. |
+| `dashboard.png` | Pass | CannaLog home header, active grow quick card, real `StrainCard`, quick actions, bottom navigation. | Demo grow/profile data, neutral strain name, compact readable card labels, shield icon in marketing-safe header, no bud image, no THC/CBD values. |
+| `strains.png` | Pass | Katalog/Sorten header, search, filter chips, real `StrainCard` grid, add-note card, bottom navigation. | Marketing heading uses `Sorten-Katalog`, metric label uses `Werbefotos`, `Demo Sorte A/B/C` remains readable, placeholder shortened to `Neutraler Platzhalter`, no THC/CBD values. |
 | `grow.png` | Pass | Grow tracker header, grow list cards, status badges, timeline card, bottom navigation. | Demo grow/notiz/community data only, no real user data, no sales or use encouragement. |
 | `privacy.png` | Pass | Settings/profile/privacy layout with form fields, privacy toggles, data export card, bottom navigation. | Demo profile only, no real email or personal data, disclaimer visible. |
-| `age-gate.png` | Pass | Age gate card structure, logo, year selector, confirm/reject actions. | 18+ framing retained, disclaimer visible, no sales or medical framing. |
+| `age-gate.png` | Pass | Age gate card structure, neutral shield icon, year selector, confirm/reject actions. | 18+ framing retained, disclaimer visible, no sales or medical framing. |
 | `pwa.png` | Pass | Offline/PWA screen style, install-status card, app-shell/offline indicators, bottom navigation. | Demo install state only, no real account data, no unsafe cannabis imagery. |
 
 ## Checklist Result

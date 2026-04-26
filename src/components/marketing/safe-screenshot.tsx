@@ -81,8 +81,8 @@ const screenCopy: Record<ScreenshotKind, { title: string; summary: string }> = {
     summary: "Echte Home-Struktur mit CannaLog Header, Tageskarte, Quick Actions und Bottom Navigation.",
   },
   strains: {
-    title: "Strains",
-    summary: "Echte Strain-Listenstruktur mit Suche, Filtern, Kartenraster und neutralisierten Demo-Sorten.",
+    title: "Sorten-Katalog",
+    summary: "Echte Katalogstruktur mit Suche, Filtern, Kartenraster und neutralisierten Demo-Sorten.",
   },
   grow: {
     title: "Grow Diary",
@@ -128,7 +128,7 @@ export function SafeScreenshot({ kind }: SafeScreenshotProps) {
           </div>
           <div className="grid max-w-[520px] grid-cols-3 gap-3">
             <SafetyPill label="Demo Daten" value="100%" />
-            <SafetyPill label="Bud Fotos" value="0" />
+            <SafetyPill label="Werbefotos" value="0" />
             <SafetyPill label="Public Safe" value="18+" />
           </div>
           <div className="max-w-[560px] rounded-xl border border-white/10 bg-white/[0.045] p-4 text-sm font-semibold leading-6 text-white/72">
@@ -250,7 +250,7 @@ function DashboardScreen() {
             <h2 className="font-display text-3xl font-black italic uppercase leading-none tracking-tighter">CannaLog</h2>
           </div>
           <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-[var(--border)]/50 bg-[var(--card)]">
-            <img src="/logo.png" alt="CannaLog Logo" className="absolute inset-0 h-full w-full object-contain p-1.5" />
+            <Shield className="h-6 w-6 text-[#00F5FF]" aria-hidden />
           </div>
         </header>
 
@@ -304,7 +304,7 @@ function QuickAction({ icon: Icon, label, tone }: { icon: ComponentType<{ size?:
 function StrainsScreen() {
   return (
     <section className="h-full overflow-hidden bg-[var(--background)] text-[var(--foreground)]">
-      <AppHeader eyebrow="Katalog" title="Strains" icon={SlidersHorizontal} />
+      <AppHeader eyebrow="Katalog" title="Sorten" icon={SlidersHorizontal} />
       <div className="px-6 pb-4 pt-4">
         <div className="relative mb-4">
           <Search className="absolute left-4 top-3.5 text-[#484849]" size={18} aria-hidden />
@@ -481,7 +481,9 @@ function AgeGateScreen() {
         <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-[#00F5FF]/5 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 -left-20 h-40 w-40 rounded-full bg-[#2FF801]/5 blur-3xl" />
         <div className="relative z-10 space-y-6 text-center">
-          <img src="/logo.webp" alt="GreenLog" className="mx-auto mb-4 h-32 w-32 object-contain drop-shadow-2xl" />
+          <div className="mx-auto mb-4 flex h-28 w-28 items-center justify-center rounded-3xl border border-[var(--border)] bg-[var(--background)]">
+            <Shield className="h-12 w-12 text-[#00F5FF]" aria-hidden />
+          </div>
           <div className="space-y-2">
             <h1 className="font-display text-2xl font-black italic uppercase tracking-tight text-[var(--foreground)]">GreenLog</h1>
             <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--muted-foreground)]">Altersverifikation</p>
