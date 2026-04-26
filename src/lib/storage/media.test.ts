@@ -23,6 +23,10 @@ describe("media storage paths", () => {
       bucket: "avatars",
       key: "user-1/photo.webp",
     });
+    expect(parseMediaPath(["grows", "user-1", "cover.webp"])).toEqual({
+      bucket: "grows",
+      key: "user-1/cover.webp",
+    });
     expect(parseMediaPath(["grow-entry-photos", "user-1", "photo.webp"])).toBeNull();
   });
 

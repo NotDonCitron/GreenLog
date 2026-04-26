@@ -107,6 +107,7 @@ export interface Grow {
   user_id: string;
   organization_id: string;
   strain_id?: string | null;
+  cover_image_url?: string | null;
   title: string;
   grow_type: 'indoor' | 'outdoor' | 'greenhouse';
   medium?: string | null;
@@ -122,6 +123,8 @@ export interface Grow {
   created_at?: string;
   strains?: {
     name: string;
+    slug?: string;
+    image_url?: string | null;
   } | null;
   plants?: Plant[];
   // Joined from explore queries

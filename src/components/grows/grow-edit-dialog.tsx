@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import { Eye, EyeOff, Loader2, Save } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/lib/supabase/client';
 import type { Grow } from '@/lib/types';
+import { compressGrowPhoto } from '@/lib/grows/photo-compression';
+import { GrowCardImage } from './grow-card-image';
 
 interface GrowEditDialogProps {
   grow: Grow;
@@ -21,17 +23,68 @@ interface GrowEditDialogProps {
 export function GrowEditDialog({ grow, open, onOpenChange, onSaved }: GrowEditDialogProps) {
   const [title, setTitle] = useState(grow.title);
   const [growNotes, setGrowNotes] = useState(grow.grow_notes ?? '');
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(grow.cover_image_url ?? null);
   const [isPublic, setIsPublic] = useState(grow.is_public);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setTitle(grow.title);
     setGrowNotes(grow.grow_notes ?? '');
+    setCoverImageUrl(grow.cover_image_url ?? null);
     setIsPublic(grow.is_public);
     setErrorMessage(null);
   }, [grow, open]);
+
+  async function updateCoverImage(action: 'upload' | 'remove', file?: File) {
+    setIsUploadingImage(true);
+    setErrorMessage(null);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = {};
+      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+
+      const response = await fetch(`/api/grows/${grow.id}`, action === 'upload'
+        ? {
+            method: 'POST',
+            headers,
+            body: (() => {
+              const formData = new FormData();
+              if (file) formData.set('image', file);
+              return formData;
+            })(),
+          }
+        : {
+            method: 'DELETE',
+            headers,
+          });
+
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        setErrorMessage(body?.error?.message || 'Bild konnte nicht gespeichert werden');
+        return;
+      }
+
+      const updatedGrow = body?.data?.grow as Grow | undefined;
+      if (!updatedGrow) return;
+      setCoverImageUrl(updatedGrow.cover_image_url ?? null);
+      onSaved(updatedGrow);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  }
+
+  async function handleCoverImageChange(event: ChangeEvent<HTMLInputElement>) {
+    const selectedFile = event.target.files?.[0] ?? null;
+    event.target.value = '';
+    if (!selectedFile) return;
+
+    const compressed = await compressGrowPhoto(selectedFile);
+    await updateCoverImage('upload', compressed);
+  }
 
   async function handleSave() {
     const trimmedTitle = title.trim();
@@ -107,6 +160,43 @@ export function GrowEditDialog({ grow, open, onOpenChange, onSaved }: GrowEditDi
               placeholder="Setup, Medium, Plan..."
               className="bg-[var(--background)] border border-[var(--border)]/50"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] block">
+              Profilbild
+            </Label>
+            <div className="overflow-hidden rounded-xl border border-[var(--border)]/50">
+              <GrowCardImage
+                primaryUrl={coverImageUrl}
+                secondaryUrl={grow.strains?.image_url}
+                alt={title || 'Grow'}
+                className="h-40 w-full"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="inline-flex cursor-pointer items-center rounded-lg border border-[var(--border)]/50 px-3 py-2 text-xs font-bold uppercase tracking-wider text-[var(--foreground)] transition-colors hover:border-[#00F5FF]/50">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handleCoverImageChange}
+                  disabled={isUploadingImage}
+                />
+                {isUploadingImage ? 'Upload läuft…' : 'Bild wählen'}
+              </label>
+              {coverImageUrl && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-red-300 hover:text-red-200"
+                  onClick={() => void updateCoverImage('remove')}
+                  disabled={isUploadingImage}
+                >
+                  Entfernen
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center justify-between rounded-lg border border-[var(--border)]/50 bg-[var(--card)] p-3">

@@ -14,6 +14,7 @@ import { LogEntryModal } from './log-entry-modal';
 import { GrowEditDialog } from './grow-edit-dialog';
 import { BottomNav } from '@/components/bottom-nav';
 import { PlantLimitWarning } from './plant-limit-warning';
+import { GrowCardImage } from './grow-card-image';
 import type { Grow, Plant, GrowEntry, GrowEntryType, GrowMilestone, PlantStatus } from '@/lib/types';
 
 const ACTIVE_STATUSES: PlantStatus[] = ['seedling', 'vegetative', 'flowering', 'flushing'];
@@ -318,6 +319,15 @@ export function GrowDetailClient({
       />
 
       <div className="p-6 space-y-6 relative z-10">
+        <div className="overflow-hidden rounded-2xl border border-[var(--border)]/50">
+          <GrowCardImage
+            primaryUrl={grow.cover_image_url}
+            secondaryUrl={grow.strains?.image_url}
+            alt={grow.title}
+            className="h-48 w-full"
+          />
+        </div>
+
         <QuickActionBar
           onAction={(type) => openLogModal(null, type)}
           onMore={() => openLogModal(null)}

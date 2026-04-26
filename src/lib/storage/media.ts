@@ -8,6 +8,7 @@ export const PUBLIC_MEDIA_BUCKETS = [
   "user-strains",
   "avatars",
   "org-logos",
+  "grows",
 ] as const;
 
 export type PublicMediaBucket = (typeof PUBLIC_MEDIA_BUCKETS)[number];
