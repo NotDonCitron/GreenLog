@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Loader2, ShieldCheck, Terminal, AlertCircle, Trash2, Clock, ChevronDown, Copy, Check, ScrollText, Link, Download } from 'lucide-react';
+import { Play, Loader2, ShieldCheck, Terminal, AlertCircle, Trash2, Clock, ChevronDown, Copy, Check, ScrollText, Link, Download, Square } from 'lucide-react';
 import { useAuth } from '@/components/auth-provider';
 import { useAppAdmin } from '../../../hooks/useAppAdmin';
 import { supabase } from '@/lib/supabase/client';
@@ -220,6 +220,19 @@ export default function ScraperPage() {
     }
   };
 
+  const stopScraper = async () => {
+    if (!session?.access_token) return;
+    try {
+      await fetch('/api/admin/scraper/stop', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+      });
+    } catch {}
+  };
+
   const runScraper = async () => {
     if (!session?.access_token) {
       setTriggerStatus('error');
@@ -324,7 +337,7 @@ export default function ScraperPage() {
             <button
               onClick={runScraper}
               disabled={loading || scraperStatus === 'BUSY'}
-              className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-black py-4 rounded-xl flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-black font-black py-4 rounded-xl flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading || scraperStatus === 'BUSY' ? (
                 <Loader2 className="animate-spin" size={20} />
@@ -333,6 +346,15 @@ export default function ScraperPage() {
               )}
               {loading ? 'STARTE VPS PROZESS...' : scraperStatus === 'BUSY' ? 'SCRAPER LÄUFT...' : 'SCRAPER STARTEN'}
             </button>
+            {scraperStatus === 'BUSY' && (
+              <button
+                onClick={stopScraper}
+                className="bg-red-500 hover:bg-red-400 text-white font-black px-5 py-4 rounded-xl flex items-center justify-center gap-2 transition-all shrink-0"
+              >
+                <Square size={18} fill="currentColor" />
+                STOP
+              </button>
+            )}
           </div>
 
           {/* Divider */}
