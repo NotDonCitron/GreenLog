@@ -1,6 +1,6 @@
 'use client';
 
-import { Sprout, Plus, Trash2 } from 'lucide-react';
+import { Sprout, Plus } from 'lucide-react';
 import { PhaseBadge } from './phase-badge';
 import type { Plant, PlantStatus } from '@/lib/types';
 
@@ -19,10 +19,9 @@ interface Props {
   plants: Plant[];
   isOwner: boolean;
   onAddPlant: () => void;
-  onDeletePlant: (plantId: string, plantName: string) => void;
 }
 
-export function PlantCarousel({ plants, isOwner, onAddPlant, onDeletePlant }: Props) {
+export function PlantCarousel({ plants, isOwner, onAddPlant }: Props) {
   const activePlants = plants.filter(p => ACTIVE_STATUSES.includes(p.status));
   const isPlantLimitReached = activePlants.length >= 3;
 
@@ -52,17 +51,6 @@ export function PlantCarousel({ plants, isOwner, onAddPlant, onDeletePlant }: Pr
               <div className="flex items-center gap-2 mb-2">
                 <Sprout size={12} className={isActive ? 'text-[#2FF801]' : 'text-[var(--muted-foreground)]'} />
                 <span className="text-xs font-bold truncate">{plant.plant_name}</span>
-                {isOwner && (
-                  <button
-                    type="button"
-                    onClick={() => onDeletePlant(plant.id, plant.plant_name)}
-                    className="ml-auto text-[var(--muted-foreground)] hover:text-red-400 transition-colors"
-                    aria-label={`Pflanze ${plant.plant_name} löschen`}
-                    title="Pflanze löschen"
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                )}
               </div>
 
               <PhaseBadge status={plant.status} />

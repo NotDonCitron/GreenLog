@@ -25,9 +25,20 @@ interface Props {
   onFollowToggle: () => void;
   isOwner: boolean;
   onEditGrow: () => void;
+  onManagePlants: () => void;
+  onDeleteGrow: () => void;
 }
 
-export function GrowDetailHeader({ grow, followerCount, isFollowing, onFollowToggle, isOwner, onEditGrow }: Props) {
+export function GrowDetailHeader({
+  grow,
+  followerCount,
+  isFollowing,
+  onFollowToggle,
+  isOwner,
+  onEditGrow,
+  onManagePlants,
+  onDeleteGrow,
+}: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Derive phase from most advanced active plant
@@ -94,6 +105,15 @@ export function GrowDetailHeader({ grow, followerCount, isFollowing, onFollowTog
                   >
                     Bearbeiten
                   </button>
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onManagePlants();
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-[var(--muted)] flex items-center gap-2"
+                  >
+                    Pflanzen verwalten
+                  </button>
                   {grow.status === 'completed' && (
                     <Link
                       href={`/grows/${grow.id}/harvest-report`}
@@ -102,6 +122,15 @@ export function GrowDetailHeader({ grow, followerCount, isFollowing, onFollowTog
                       Ernte-Zertifikat
                     </Link>
                   )}
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onDeleteGrow();
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+                  >
+                    Grow löschen
+                  </button>
                 </div>
               </>
             )}

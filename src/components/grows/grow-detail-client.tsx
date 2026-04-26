@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import type { GrowComment } from '@/lib/types';
 import { useAuth } from '@/components/auth-provider';
 import { useToast } from '@/components/toast-provider';
@@ -38,6 +39,7 @@ export function GrowDetailClient({
   initialComments,
   initialFollowerCount,
 }: Props) {
+  const router = useRouter();
   const growId = initialGrow.id;
   const { user, session, isDemoMode } = useAuth();
   const { error: toastError, success: toastSuccess } = useToast();
@@ -62,6 +64,7 @@ export function GrowDetailClient({
   const [selectedLogType, setSelectedLogType] = useState<GrowEntryType | null>(null);
   const [logModalPlantId, setLogModalPlantId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [managePlantsOpen, setManagePlantsOpen] = useState(false);
 
   const isOwner = user?.id === grow.user_id;
 
@@ -266,6 +269,37 @@ export function GrowDetailClient({
     } finally { setIsSaving(false); }
   };
 
+  const handleDeleteGrow = async () => {
+    if (!user?.id) {
+      toastError('Bitte neu einloggen und erneut versuchen');
+      return;
+    }
+
+    const firstConfirm = window.confirm(`Grow "${grow.title}" wirklich löschen?`);
+    if (!firstConfirm) return;
+    const secondConfirm = window.confirm('Letzte Bestätigung: Grow inkl. Einträge dauerhaft löschen?');
+    if (!secondConfirm) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('grows')
+        .delete()
+        .eq('id', growId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      toastSuccess('Grow gelöscht');
+      router.push('/grows');
+      router.refresh();
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Unbekannter Fehler';
+      toastError(`Fehler beim Löschen des Grows: ${message}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleFollowToggle = async () => {
     if (!user) return;
     try {
@@ -369,6 +403,8 @@ export function GrowDetailClient({
         onFollowToggle={handleFollowToggle}
         isOwner={isOwner}
         onEditGrow={() => setEditDialogOpen(true)}
+        onManagePlants={() => setManagePlantsOpen(true)}
+        onDeleteGrow={handleDeleteGrow}
       />
 
       <div className="p-6 space-y-6 relative z-10">
@@ -417,7 +453,6 @@ export function GrowDetailClient({
           plants={plants}
           isOwner={isOwner}
           onAddPlant={handleStartAddPlant}
-          onDeletePlant={handleDeletePlant}
         />
 
         <TimelineSection
@@ -438,6 +473,52 @@ export function GrowDetailClient({
       </div>
 
       <BottomNav />
+
+      {managePlantsOpen && isOwner && (
+        <div className="fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm p-4" onClick={() => setManagePlantsOpen(false)}>
+          <div
+            className="mx-auto mt-20 w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-black uppercase tracking-wider text-[var(--muted-foreground)]">Pflanzen verwalten</p>
+                <p className="text-xs text-[var(--muted-foreground)]">Löschen nur über diesen Dialog, nicht in der Card.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setManagePlantsOpen(false)}
+                className="rounded-md px-2 py-1 text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              >
+                Schließen
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {plants.length === 0 ? (
+                <p className="text-sm text-[var(--muted-foreground)]">Keine Pflanzen vorhanden.</p>
+              ) : (
+                plants.map((plant) => (
+                  <div key={plant.id} className="flex items-center justify-between rounded-lg border border-[var(--border)]/50 px-3 py-2">
+                    <div>
+                      <p className="text-sm font-semibold">{plant.plant_name}</p>
+                      <p className="text-[11px] text-[var(--muted-foreground)]">{plant.status}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void handleDeletePlant(plant.id, plant.plant_name)}
+                      disabled={isSaving}
+                      className="rounded-md border border-red-500/40 px-2 py-1 text-xs font-semibold text-red-400 hover:bg-red-500/10 disabled:opacity-50"
+                    >
+                      Löschen
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Photo lightbox */}
       {lightboxUrl && (
