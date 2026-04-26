@@ -68,7 +68,8 @@ scripts/.image-pipeline-lock.json
 !tsconfig.json
 
 # strain images (stored in Supabase storage, not needed for deploy)
-public/strains/
+public/strains/*
+!public/strains/placeholder-1.svg
 
 # android / capacitor (not deployed)
 android/

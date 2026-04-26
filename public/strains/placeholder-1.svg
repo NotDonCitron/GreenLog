@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Strain image placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#041018"/>
+      <stop offset="100%" stop-color="#0a1f2f"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2ff801" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#00f5ff" stop-opacity="0.8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="220" cy="120" r="180" fill="#2ff801" opacity="0.08"/>
+  <circle cx="980" cy="540" r="220" fill="#00f5ff" opacity="0.08"/>
+  <rect x="180" y="135" width="840" height="360" rx="28" fill="#0d1824" stroke="url(#glow)" stroke-width="2"/>
+  <g fill="none" stroke="#00f5ff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+    <path d="M600 235c-26 48-32 99-16 150"/>
+    <path d="M600 235c26 48 32 99 16 150"/>
+    <path d="M600 255c-8 22-10 45-7 69"/>
+    <path d="M600 255c8 22 10 45 7 69"/>
+  </g>
+  <text x="600" y="430" text-anchor="middle" fill="#b6c2cf" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="34" letter-spacing="4" style="text-transform:uppercase">No strain image</text>
+</svg>

@@ -48,6 +48,30 @@ interface CommunityOrg {
   role?: string;
 }
 
+interface PublicGrowCard {
+  id: string;
+  title: string;
+  grow_type: string | null;
+  start_date: string | null;
+  profiles: {
+    username: string | null;
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null;
+  strains: {
+    name: string | null;
+    image_url: string | null;
+  } | null;
+}
+
+interface UserActiveGrow {
+  id: string;
+  title: string;
+  grow_type: string | null;
+  start_date: string | null;
+  is_public: boolean;
+}
+
 
 export default function FeedPage() {
   return (
@@ -86,11 +110,11 @@ function FeedContent() {
   // Initialize main tab from URL searchParams (SSR/hydration) or window.location (hard refresh after replaceState)
   const getInitialView = (): FeedTab => {
     const param = searchParams.get("view") as FeedTab | null;
-    if (param && ["foryou", "following", "discover"].includes(param)) return param;
+    if (param && ["foryou", "following", "discover", "grows"].includes(param)) return param;
     // After replaceState, useSearchParams won't update — fall back to window.location
     if (typeof window !== "undefined") {
       const urlParam = new URLSearchParams(window.location.search).get("view");
-      if (urlParam && ["foryou", "following", "discover"].includes(urlParam)) return urlParam as FeedTab;
+      if (urlParam && ["foryou", "following", "discover", "grows"].includes(urlParam)) return urlParam as FeedTab;
     }
     return "foryou";
   };
@@ -150,6 +174,9 @@ function FeedContent() {
   const [browseUsers, setBrowseUsers] = useState<ProfileStub[]>([]);
   const [discoverSearch, setDiscoverSearch] = useState("");
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
+  const [publicGrows, setPublicGrows] = useState<PublicGrowCard[]>([]);
+  const [activeGrow, setActiveGrow] = useState<UserActiveGrow | null>(null);
+  const [loadingPublicGrows, setLoadingPublicGrows] = useState(false);
 
   const tabs: { id: FeedTab; label: string; icon: typeof Sparkles }[] = [
     { id: "foryou", label: "Für dich", icon: Sparkles },
@@ -157,6 +184,68 @@ function FeedContent() {
     { id: "discover", label: "Entdecken", icon: Compass },
     { id: "grows", label: "Grows", icon: Sprout },
   ];
+
+  useEffect(() => {
+    if (activeTab !== "grows") return;
+
+    let isCancelled = false;
+    setLoadingPublicGrows(true);
+    setActiveGrow(null);
+
+    (async () => {
+      try {
+        const publicGrowsPromise = supabase
+          .from("grows")
+          .select(`
+            id,
+            title,
+            grow_type,
+            start_date,
+            profiles:user_id(username, display_name, avatar_url),
+            strains:strain_id(name, image_url)
+          `)
+          .eq("is_public", true)
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(12);
+
+        const activeGrowPromise = user
+          ? supabase
+              .from("grows")
+              .select("id, title, grow_type, start_date, is_public")
+              .eq("user_id", user.id)
+              .eq("status", "active")
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null });
+
+        const [{ data, error }, { data: ownGrow, error: ownGrowError }] = await Promise.all([
+          publicGrowsPromise,
+          activeGrowPromise,
+        ]);
+
+        if (error) throw error;
+        if (ownGrowError) throw ownGrowError;
+        if (!isCancelled) {
+          setPublicGrows((data ?? []) as unknown as PublicGrowCard[]);
+          setActiveGrow((ownGrow ?? null) as UserActiveGrow | null);
+        }
+      } catch (err) {
+        console.error("Error fetching public grows for feed:", err);
+        if (!isCancelled) {
+          setPublicGrows([]);
+          setActiveGrow(null);
+        }
+      } finally {
+        if (!isCancelled) setLoadingPublicGrows(false);
+      }
+    })();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeTab, user]);
 
   // Fetch communities for following + discover tabs
   useEffect(() => {
@@ -846,35 +935,87 @@ function FeedContent() {
           </div>
         )}
 
-        {/* Grows - User's grow projects */}
-        {activeTab === "grows" && !user && (
-          <div className="text-center py-12 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-[var(--muted)] flex items-center justify-center mx-auto">
-              <Sprout size={24} className="text-[var(--muted-foreground)]" />
-            </div>
-            <p className="text-[var(--muted-foreground)]">Melde dich an um deine Grows zu sehen</p>
-            <Link
-              href="/login"
-              className="inline-block px-6 py-2.5 bg-[#00F5FF] text-black font-bold rounded-full text-sm"
-            >
-              Login
-            </Link>
-          </div>
-        )}
-        {activeTab === "grows" && user && (
+        {/* Grows - Public grows visible directly; personal shortcuts when logged in */}
+        {activeTab === "grows" && (
           <div className="space-y-4">
-            <Link
-              href="/grows/new"
-              className="inline-block w-full px-6 py-3 bg-[#2FF801] text-black font-bold rounded-2xl text-center text-sm uppercase tracking-wider"
-            >
-              Neuer Grow
-            </Link>
-            <Link
-              href="/grows"
-              className="block text-center text-sm text-[#00F5FF] hover:underline"
-            >
-              Alle Grows anzeigen →
-            </Link>
+            {user ? (
+              <div className="space-y-2">
+                {activeGrow && (
+                  <Link
+                    href={`/grows/${activeGrow.id}`}
+                    className="block w-full px-6 py-3 bg-[#00F5FF]/15 border border-[#00F5FF]/40 text-[#00F5FF] font-bold rounded-2xl text-center text-sm uppercase tracking-wider hover:bg-[#00F5FF]/20 transition-colors"
+                  >
+                    Aktiven Grow öffnen
+                    {activeGrow.title ? ` • ${activeGrow.title}` : ""}
+                  </Link>
+                )}
+                <Link
+                  href="/grows/new"
+                  className="inline-block w-full px-6 py-3 bg-[#2FF801] text-black font-bold rounded-2xl text-center text-sm uppercase tracking-wider"
+                >
+                  Neuer Grow
+                </Link>
+                <Link
+                  href="/grows"
+                  className="block text-center text-sm text-[#00F5FF] hover:underline"
+                >
+                  Alle Grows anzeigen →
+                </Link>
+              </div>
+            ) : (
+              <div className="text-center py-2">
+                <p className="text-[var(--muted-foreground)] text-sm">Öffentliche Grows entdecken</p>
+              </div>
+            )}
+
+            {loadingPublicGrows ? (
+              <div className="flex items-center justify-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-[#00F5FF]" />
+              </div>
+            ) : publicGrows.length > 0 ? (
+              <div className="space-y-3">
+                {publicGrows.map((grow) => {
+                  const ownerName = grow.profiles?.display_name || grow.profiles?.username || "Grower";
+
+                  return (
+                    <Link
+                      key={grow.id}
+                      href={`/grows/explore/${grow.id}`}
+                      className="block bg-[var(--card)] border border-[var(--border)]/50 rounded-2xl overflow-hidden hover:border-[#00F5FF]/40 transition-all"
+                    >
+                      {grow.strains?.image_url ? (
+                        <div className="h-36 w-full bg-[var(--muted)]">
+                          <img src={grow.strains.image_url} alt={grow.strains.name || "Grow"} className="h-full w-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="h-36 w-full bg-gradient-to-br from-[#2FF801]/10 via-[#00F5FF]/10 to-transparent" />
+                      )}
+                      <div className="p-4 space-y-2">
+                        <p className="text-xs uppercase tracking-wider text-[var(--muted-foreground)]">
+                          {grow.grow_type || "grow"}
+                          {grow.start_date ? ` • gestartet ${grow.start_date}` : ""}
+                        </p>
+                        <h3 className="font-bold text-[var(--foreground)]">{grow.title}</h3>
+                        <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                          <div className="w-6 h-6 rounded-full overflow-hidden bg-[var(--muted)] flex items-center justify-center">
+                            {grow.profiles?.avatar_url ? (
+                              <img src={grow.profiles.avatar_url} alt={ownerName} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-[10px] font-bold text-[#00F5FF]">{ownerName.charAt(0).toUpperCase()}</span>
+                            )}
+                          </div>
+                          <span>{ownerName}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-10 text-[var(--muted-foreground)]">
+                Noch keine öffentlichen Grows.
+              </div>
+            )}
           </div>
         )}
       </div>

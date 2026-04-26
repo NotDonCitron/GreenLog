@@ -1,4 +1,4 @@
-const STATIC_CACHE = 'greenlog-static-v2';
+const STATIC_CACHE = 'greenlog-static-v3';
 const API_CACHE = 'greenlog-api-v2';
 
 const MAX_STATIC = 100;
@@ -7,6 +7,7 @@ const IMAGE_EXTENSIONS = ['.avif', '.gif', '.jpeg', '.jpg', '.png', '.svg', '.we
 const STATIC_DESTINATIONS = new Set(['audio', 'font', 'image', 'manifest', 'script', 'style', 'video']);
 const BYPASS_IMAGE_HOSTS = new Set([
   'leafly-public.imgix.net',
+  'images.leafly.com',
   'uwjyvvvykyueuxtdkscs.supabase.co',
 ]);
 
