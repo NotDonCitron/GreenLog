@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { FollowButton } from "@/components/community/follow-button";
 import { JoinButton } from "@/components/community/join-button";
 import { CommunityFeed } from "@/components/community/feed";
+import { ModerationPanel } from "@/components/community/moderation-panel";
 import { InviteAdminModal } from "@/components/community/invite-admin-modal";
 import { AdminListModal } from "@/components/community/admin-list-modal";
 import { CreateStrainModal } from "@/components/strains/create-strain-modal";
@@ -275,7 +276,7 @@ export default function CommunityDetailPage() {
 
       {user && isAdminOrGründer && (
         <div className="px-6 mt-6 relative z-10">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {/* Strains hinzufügen */}
             <CreateStrainModal
               organizationId={organizationId}
@@ -311,14 +312,32 @@ export default function CommunityDetailPage() {
               </div>
               <span className="text-xs font-bold text-[var(--muted-foreground)]">Einstellungen</span>
             </Link>
+
+            <button
+              onClick={() => {
+                document.getElementById("community-moderation-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-amber-500/10 border border-amber-400/30 hover:bg-amber-500/20 transition-colors min-h-[100px]"
+            >
+              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                <Users size={18} className="text-amber-300" />
+              </div>
+              <span className="text-xs font-bold text-amber-300">Moderation</span>
+            </button>
           </div>
+        </div>
+      )}
+
+      {user && isAdminOrGründer && (
+        <div id="community-moderation-panel" className="px-6 relative z-10">
+          <ModerationPanel organizationId={organizationId} />
         </div>
       )}
 
       {/* Feed */}
       <div className="px-6 mt-8 relative z-10">
         <h2 className="text-sm font-black uppercase tracking-wider text-[var(--muted-foreground)] mb-4">
-          Aktivitaet
+          Club-Info
         </h2>
         <CommunityFeed organizationId={organizationId} refreshKey={refreshKey} isAdminOrGründer={isAdminOrGründer} orgLogoUrl={organization.logo_url} />
       </div>

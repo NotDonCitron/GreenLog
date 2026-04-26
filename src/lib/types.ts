@@ -761,3 +761,55 @@ export interface OrgActivityItem {
   rating?: number;
   createdAt: string;
 }
+
+// =============================================
+// CSC Club Update Posts (V1 admin-only)
+// =============================================
+
+export type ClubUpdatePostType =
+  | "announcement"
+  | "event"
+  | "compliance_notice"
+  | "documentation_note"
+  | "strain_info"
+  | "club_info"
+  | "system_notice"
+  | "poll_notice";
+
+export type ClubUpdateVisibility = "club_only";
+
+export type ClubUpdateModerationStatus = "active" | "hidden" | "removed";
+
+export interface ClubUpdatePost {
+  id: string;
+  organization_id: string;
+  author_id: string;
+  post_type: ClubUpdatePostType;
+  title: string;
+  body: string;
+  metadata: Record<string, unknown>;
+  visibility: ClubUpdateVisibility;
+  moderation_status: ClubUpdateModerationStatus;
+  hidden_at: string | null;
+  hidden_by: string | null;
+  removed_at: string | null;
+  removed_by: string | null;
+  created_at: string;
+  updated_at: string;
+  author?: ProfileRow | null;
+}
+
+export interface ClubUpdatePostCreateInput {
+  post_type: ClubUpdatePostType;
+  title: string;
+  body: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ClubUpdatePostUpdateInput {
+  post_type?: ClubUpdatePostType;
+  title?: string;
+  body?: string;
+  metadata?: Record<string, unknown>;
+  moderation_status?: ClubUpdateModerationStatus;
+}

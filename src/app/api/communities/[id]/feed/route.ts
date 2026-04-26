@@ -1,7 +1,7 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { jsonSuccess, jsonError, authenticateRequest } from "@/lib/api-response";
 import { getAuthenticatedClient } from "@/lib/supabase/client";
-import { USER_ROLES } from "@/lib/roles";
+import { getUserModerationRestriction, isAdminRole, logModerationAction, requireOrgMembership } from "@/lib/moderation";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -26,20 +26,14 @@ export async function GET(request: Request, { params }: RouteParams) {
         const offset = (page - 1) * limit;
         const scanLimit = Math.min(500, Math.max(offset + limit, limit * 10));
 
-        const { data: membershipRows, error: membershipError } = await supabase
-            .from("organization_members")
-            .select("role")
-            .eq("organization_id", organizationId)
-            .eq("user_id", user.id)
-            .eq("membership_status", "active")
-            .limit(1);
-
-        if (membershipError) {
-            return jsonError("Failed to verify membership", 500, membershipError.code, membershipError.message);
+        const membership = await requireOrgMembership(supabase, organizationId, user.id);
+        if (!membership.ok) {
+            return jsonError(membership.message, membership.status, membership.code, membership.detail);
         }
 
-        if (!membershipRows?.[0]) {
-            return jsonError("Forbidden", 403);
+        const restriction = await getUserModerationRestriction(supabase, organizationId, user.id);
+        if (restriction.blocked) {
+            return jsonError(restriction.message, restriction.status);
         }
 
         const { data: feedEntries, error: feedError } = await supabase
@@ -142,21 +136,11 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         return jsonError("feedId is required", 400);
     }
 
-    const { data: membershipRows, error: membershipError } = await userClient
-        .from("organization_members")
-        .select("role")
-        .eq("organization_id", organizationId)
-        .eq("user_id", user.id)
-        .eq("membership_status", "active")
-        .limit(1);
-
-    if (membershipError) {
-        return jsonError("Failed to verify membership", 500, membershipError.code, membershipError.message);
+    const membership = await requireOrgMembership(userClient, organizationId, user.id);
+    if (!membership.ok) {
+        return jsonError(membership.message, membership.status, membership.code, membership.detail);
     }
-
-    const membership = membershipRows?.[0] ?? null;
-
-    if (!membership || ![USER_ROLES.GRUENDER, USER_ROLES.ADMIN].includes(membership.role)) {
+    if (!isAdminRole(membership.role)) {
         return jsonError("Forbidden", 403);
     }
 
@@ -169,6 +153,15 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     if (deleteError) {
         return jsonError("Failed to delete feed entry", 500, deleteError.code, deleteError.message);
     }
+
+    await logModerationAction(userClient, {
+        organizationId,
+        actorId: user.id,
+        actionType: "content_removed",
+        targetType: "community_feed",
+        targetId: feedId,
+        details: { path: "community_feed_delete" },
+    });
 
     return jsonSuccess({ success: true });
 }

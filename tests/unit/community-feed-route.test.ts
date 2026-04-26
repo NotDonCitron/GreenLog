@@ -60,11 +60,21 @@ function createFeedSupabase(options: {
       data: [],
       error: null,
     })),
+    userBlocks: createQuery(Promise.resolve({
+      data: [],
+      error: null,
+    })),
+    clubMutes: createQuery(Promise.resolve({
+      data: [],
+      error: null,
+    })),
   };
   const from = vi.fn((table: string) => {
     if (table === "organization_members") return queries.membership;
     if (table === "community_feed") return queries.feed;
     if (table === "profiles") return queries.profiles;
+    if (table === "user_blocks") return queries.userBlocks;
+    if (table === "club_mutes") return queries.clubMutes;
     throw new Error(`Unexpected table: ${table}`);
   });
 

@@ -28,7 +28,14 @@ interface Step {
 
 const ONBOARDING_STEPS: Step[] = [
     {
-        title: "Willkommen bei CannaLog",
+        title: "Willkommen in der CannaLOG Beta",
+        description: "Wir freuen uns, dass du dabei bist! Hilf uns, CannaLOG besser zu machen. Wenn dir etwas auffällt, nutze einfach den Feedback-Button im Profil. 🌿🚀",
+        icon: <Sparkles size={48} />,
+        color: "#2FF801",
+        path: "/"
+    },
+    {
+        title: "Über CannaLog",
         description: "Dein Werkzeug für strukturierte Strain-Dokumentation, Sammlungen und Aktivitätsdaten.",
         icon: <img src="/logo.png" alt="Logo" width={40} height={40} className="object-contain" />,
         color: "#00F5FF",
@@ -49,8 +56,8 @@ const ONBOARDING_STEPS: Step[] = [
         path: "/collection"
     },
     {
-        title: "Community & Social",
-        description: "Verwalte Kontakte, Aktivitätsdaten und organisatorische Zuordnungen in einer gemeinsamen Oberfläche.",
+        title: "Community & Club-Info",
+        description: "Verwalte Kontakte, Club-Infos und organisatorische Zuordnungen in einer gemeinsamen Oberfläche.",
         icon: <Users size={48} />,
         color: "#2FF801",
         path: "/discover"

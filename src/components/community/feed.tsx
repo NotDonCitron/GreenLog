@@ -2,12 +2,12 @@
 
 import { useState, useEffect, memo } from "react";
 import Link from "next/link";
-import { Leaf, Sprout, Star, Loader2, Trash2, Building2 } from "lucide-react";
+import { Leaf, Sprout, Star, Trash2, Building2, Flag } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/lib/supabase/client";
 import { Strain } from "@/lib/types";
-import { formatPercent, getEffectDisplay, getTasteDisplay, getStrainTheme } from "@/lib/strain-display";
+import { formatPercent, getEffectDisplay, getTasteDisplay } from "@/lib/strain-display";
 import { formatRelativeTime } from "@/lib/relative-time";
 
 const TYPE_COLORS: Record<string, string> = {
@@ -98,6 +98,7 @@ const FeedItemCard = memo(function FeedItemCard({
   const [strain, setStrain] = useState<Strain | null>(item.strain ?? null);
   const [imgError, setImgError] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [reporting, setReporting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -179,6 +180,49 @@ const FeedItemCard = memo(function FeedItemCard({
       }
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleReport = async () => {
+    if (!organizationId || reporting) return;
+
+    const reasonInput = window.prompt("Grund fuer Meldung (min. 3 Zeichen):", "Moeglicher Regelverstoss");
+    if (reasonInput === null) return;
+    const reason = reasonInput.trim();
+    if (reason.length < 3) {
+      console.warn("Report rejected: missing reason");
+      return;
+    }
+
+    setReporting(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const res = await fetch(`/api/communities/${organizationId}/reports/content`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({
+          content_type: "community_feed",
+          content_id: item.id,
+          reason,
+        }),
+      });
+
+      if (res.ok) {
+        console.info("Content report sent");
+        return;
+      }
+
+      const errorData = await res.json().catch(() => null);
+      console.error(errorData?.error?.message || "Meldung konnte nicht gesendet werden.");
+    } catch (error) {
+      console.error("Failed to report feed item:", error);
+    } finally {
+      setReporting(false);
     }
   };
 
@@ -274,6 +318,16 @@ const FeedItemCard = memo(function FeedItemCard({
         {/* User info overlay — bottom right */}
         <div className="absolute bottom-3 right-3 flex items-center gap-2 z-20">
           <span className="text-[10px] text-[var(--foreground)]/40">{formatDate(item.created_at)}</span>
+          {!isAdminOrGründer && (
+            <button
+              onClick={handleReport}
+              disabled={reporting}
+              className="w-7 h-7 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-amber-300 hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+              title="Melden"
+            >
+              <Flag size={11} />
+            </button>
+          )}
           {isAdminOrGründer && (
             <button
               onClick={handleDelete}
@@ -345,6 +399,16 @@ const FeedItemCard = memo(function FeedItemCard({
             <Trash2 size={12} />
           </button>
         )}
+        {!isAdminOrGründer && (
+          <button
+            onClick={handleReport}
+            disabled={reporting}
+            className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0 text-amber-300 hover:bg-amber-500/20 transition-colors disabled:opacity-50"
+            title="Melden"
+          >
+            <Flag size={12} />
+          </button>
+        )}
       </div>
     </Card>
   );
@@ -356,7 +420,7 @@ function EmptyFeed() {
       <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto">
         <Leaf size={24} className="text-[var(--foreground)]/20" />
       </div>
-      <p className="text-[var(--foreground)]/40 text-sm">Noch keine Aktivitaeten in dieser Community.</p>
+      <p className="text-[var(--foreground)]/40 text-sm">Noch keine Club-Infos in diesem Club.</p>
     </div>
   );
 }
@@ -375,11 +439,11 @@ export function CommunityFeed({ organizationId, refreshKey = 0, isAdminOrGründe
           const data: FeedApiResponse = await res.json();
           setFeed(data.data?.feed || []);
         } else {
-          setError("Feed konnte nicht geladen werden.");
+          setError("Club-Info konnte nicht geladen werden.");
         }
       } catch (err) {
         console.error("Error fetching feed:", err);
-        setError("Feed konnte nicht geladen werden.");
+        setError("Club-Info konnte nicht geladen werden.");
       } finally {
         setLoading(false);
       }

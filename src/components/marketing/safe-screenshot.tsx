@@ -78,7 +78,7 @@ const demoStrains: Strain[] = [
 const screenCopy: Record<ScreenshotKind, { title: string; summary: string }> = {
   dashboard: {
     title: "Dashboard",
-    summary: "Echte Home-Struktur mit CannaLog Header, Tageskarte, Quick Actions und Bottom Navigation.",
+    summary: "Echte Home-Struktur mit CannaLOG Header, Tageskarte, Quick Actions und Bottom Navigation.",
   },
   strains: {
     title: "Sorten-Katalog",
@@ -122,7 +122,7 @@ export function SafeScreenshot({ kind }: SafeScreenshotProps) {
             Marketing Safe Mode
           </div>
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.26em] text-[#00F5FF]/75">CannaLog / GreenLog</p>
+            <p className="text-sm font-black uppercase tracking-[0.26em] text-[#00F5FF]/75">CannaLOG</p>
             <h1 className="mt-4 font-display text-6xl font-black italic leading-[0.95] tracking-tighter">{copy.title}</h1>
             <p className="mt-5 max-w-[520px] text-lg leading-8 text-white/62">{copy.summary}</p>
           </div>
@@ -180,7 +180,7 @@ function MarketingBottomNav({ active }: { active: ScreenshotKind }) {
     { href: "/", label: "Home", icon: Home },
     { href: "/strains", label: "Strains", icon: Leaf },
     { href: "/collection", label: "Sammlung", icon: BookMarked },
-    { href: "/feed", label: "Social", icon: Users },
+    { href: "/feed", label: "Club-Info", icon: Users },
     { href: "/profile", label: "Profil", icon: User },
   ];
 
@@ -247,7 +247,7 @@ function DashboardScreen() {
         <header className="flex shrink-0 items-center justify-between">
           <div className="flex items-center gap-3">
             <Bell className="text-[#00F5FF]" size={21} aria-hidden />
-            <h2 className="font-display text-3xl font-black italic uppercase leading-none tracking-tighter">CannaLog</h2>
+            <h2 className="font-display text-3xl font-black italic uppercase leading-none tracking-tighter">CannaLOG</h2>
           </div>
           <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border border-[var(--border)]/50 bg-[var(--card)]">
             <Shield className="h-6 w-6 text-[#00F5FF]" aria-hidden />
@@ -485,10 +485,10 @@ function AgeGateScreen() {
             <Shield className="h-12 w-12 text-[#00F5FF]" aria-hidden />
           </div>
           <div className="space-y-2">
-            <h1 className="font-display text-2xl font-black italic uppercase tracking-tight text-[var(--foreground)]">GreenLog</h1>
+            <h1 className="font-display text-2xl font-black italic uppercase tracking-tight text-[var(--foreground)]">CannaLOG</h1>
             <p className="text-[11px] font-semibold uppercase tracking-widest text-[var(--muted-foreground)]">Altersverifikation</p>
           </div>
-          <p className="text-sm leading-relaxed text-[var(--muted-foreground)]">GreenLog richtet sich an Personen ab 18 Jahren. Bitte bestätige dein Alter.</p>
+          <p className="text-sm leading-relaxed text-[var(--muted-foreground)]">CannaLOG richtet sich an Personen ab 18 Jahren. Bitte bestätige dein Alter.</p>
           <div className="space-y-2">
             <label className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)]">Geburtsjahr</label>
             <select className="w-full cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--input)] px-4 py-3 text-sm text-[var(--foreground)] outline-none">
