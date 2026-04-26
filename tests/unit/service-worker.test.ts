@@ -24,7 +24,7 @@ function loadFetchHandler(): FetchHandler {
       match: vi.fn(),
     },
     console,
-    fetch: vi.fn(),
+    fetch: vi.fn(() => Promise.resolve(new Response(""))),
     self: {
       addEventListener: (type: string, listener: EventListener) => {
         listeners.set(type, listener);
@@ -51,7 +51,7 @@ function loadFetchHandler(): FetchHandler {
     throw new Error("Service worker fetch handler was not registered");
   }
 
-  return handler as FetchHandler;
+  return handler as unknown as FetchHandler;
 }
 
 describe("service worker external image routing", () => {

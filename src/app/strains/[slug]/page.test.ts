@@ -20,18 +20,18 @@ describe("strain detail metadata", () => {
         select: (columns: string) => ({
           eq: () => ({
             eq: () => ({
-              single: async () => {
+              limit: async () => {
                 if (columns.includes("breeder") || columns.includes("thc_level")) {
                   return { data: null, error: { message: "column does not exist" } };
                 }
 
                 return {
-                  data: {
+                  data: [{
                     name: "Apple Fritter",
                     description: "Sweet hybrid strain",
                     thc_max: 24,
                     farmer: "LUMPY",
-                  },
+                  }],
                   error: null,
                 };
               },
@@ -62,20 +62,20 @@ describe("strain detail metadata", () => {
                   eqCalls.push([publicationColumn, publicationValue]);
                   if (publicationColumn === "publication_status" && publicationValue === "published") {
                     return {
-                      single: async () => ({
-                        data: null,
-                        error: { message: "No rows" },
+                      limit: async () => ({
+                        data: [],
+                        error: null,
                       }),
                     };
                   }
                   return {
-                    single: async () => ({
-                      data: {
+                    limit: async () => ({
+                      data: [{
                         name: "Should Not Resolve",
                         description: "Unpublished",
                         thc_max: 20,
                         farmer: "Private",
-                      },
+                      }],
                       error: null,
                     }),
                   };
@@ -85,9 +85,9 @@ describe("strain detail metadata", () => {
 
             return {
               eq: () => ({
-                single: async () => ({
-                  data: null,
-                  error: { message: "Unexpected query path" },
+                limit: async () => ({
+                  data: [],
+                  error: null,
                 }),
               }),
             };

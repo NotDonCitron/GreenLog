@@ -6,6 +6,15 @@ vi.mock('@/lib/supabase/client', () => ({
   getAuthenticatedClient: vi.fn(),
 }));
 
+vi.mock('@/lib/supabase/server', () => ({
+  createServerSupabaseClient: vi.fn(),
+}));
+
+vi.mock('@/lib/minio-storage', () => ({
+  deleteFromMinio: vi.fn(),
+  uploadToMinio: vi.fn(),
+}));
+
 function makeRequest(body: Record<string, unknown>) {
   return new Request('http://localhost:3000/api/grows/grow-1', {
     method: 'PATCH',
