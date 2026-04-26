@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Home, Leaf, BookMarked, Users, User } from "lucide-react";
+import { Home, Leaf, BookMarked, Users, User, Sprout } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { lazy, Suspense } from "react";
@@ -12,6 +12,7 @@ const FollowRequestsModal = lazy(() => import("@/components/social/follow-reques
 const navItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/strains", label: "Strains", icon: Leaf },
+  { href: "/grows", label: "Grows", icon: Sprout },
   { href: "/collection", label: "Sammlung", icon: BookMarked },
   { href: "/feed", label: "Social", icon: Users, showBadge: true },
   { href: "/profile", label: "Profil", icon: User },
