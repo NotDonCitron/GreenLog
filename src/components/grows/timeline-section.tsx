@@ -38,7 +38,7 @@ function groupByDay(entries: GrowEntry[], comments: GrowComment[], growStartDate
     if (!dayMap[day]) {
       dayMap[day] = {
         day_number: day,
-        date: entry.created_at,
+        date: entry.entry_date ?? entry.created_at,
         entries: [],
         comments: [],
       };

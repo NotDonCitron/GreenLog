@@ -79,6 +79,7 @@ export function LogEntryModal({ open, onClose, growId, plantId, plants = [], onE
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [photoCaption, setPhotoCaption] = useState('');
+  const [photoEntryDate, setPhotoEntryDate] = useState('');
   const [phValue, setPhValue] = useState('');
   const [ecValue, setEcValue] = useState('');
   const [milestonePhase, setMilestonePhase] = useState('');
@@ -98,6 +99,7 @@ export function LogEntryModal({ open, onClose, growId, plantId, plants = [], onE
     if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
     setPhotoPreviewUrl(null);
     setPhotoCaption('');
+    setPhotoEntryDate('');
     setPhValue('');
     setEcValue('');
     setMilestonePhase('');
@@ -209,6 +211,7 @@ export function LogEntryModal({ open, onClose, growId, plantId, plants = [], onE
         uploadBody.set('grow_id', growId);
         uploadBody.set('image', await compressGrowPhoto(photoFile));
         if (photoCaption.trim()) uploadBody.set('caption', photoCaption.trim());
+        if (photoEntryDate) uploadBody.set('entry_date', photoEntryDate);
         if (affectedPlantIds.length > 0) {
           uploadBody.set('affected_plant_ids', JSON.stringify(affectedPlantIds));
         }
@@ -453,6 +456,21 @@ export function LogEntryModal({ open, onClose, growId, plantId, plants = [], onE
                 placeholder="Caption..."
                 className="bg-[var(--background)] border border-[var(--border)]/50"
               />
+            </div>
+            <div>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-1 block">
+                Datum (optional)
+              </Label>
+              <Input
+                type="date"
+                value={photoEntryDate}
+                onChange={e => setPhotoEntryDate(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+                className="bg-[var(--background)] border border-[var(--border)]/50"
+              />
+              <p className="mt-1 text-[10px] text-[var(--muted-foreground)]">
+                Leer = heute. Für nachträgliche Einträge ändern.
+              </p>
             </div>
           </div>
         )}

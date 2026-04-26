@@ -39,6 +39,7 @@ const minioOrigin = parseOrigin(process.env.MINIO_ENDPOINT);
 const connectSrc = [
   "'self'",
   "https://uwjyvvvykyueuxtdkscs.supabase.co",
+  "wss://uwjyvvvykyueuxtdkscs.supabase.co",
   "https://*.ingest.sentry.io",
   "https://*.ingest.us.sentry.io",
   "https://greenlog.app",

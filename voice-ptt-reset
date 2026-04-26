@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TOGGLE_SCRIPT="$REPO_ROOT/tools/voice-stt/voice-stt-toggle.sh"
+TMP_DIR="$REPO_ROOT/tools/voice-stt/.tmp"
+LOCK_FILE="$TMP_DIR/ptt.lock"
+STATE_FILE="$TMP_DIR/ptt-state.env"
+LOG_FILE="$TMP_DIR/hotkey.log"
+
+mkdir -p "$TMP_DIR"
+printf "%s voice-ptt-reset invoked (DISPLAY=%s WAYLAND_DISPLAY=%s)\n" \
+  "$(date '+%Y-%m-%d %H:%M:%S')" "${DISPLAY:-}" "${WAYLAND_DISPLAY:-}" >> "$LOG_FILE"
+
+if [ ! -x "$TOGGLE_SCRIPT" ]; then
+  echo "Fehler: $TOGGLE_SCRIPT nicht gefunden oder nicht ausführbar."
+  exit 1
+fi
+
+# Recover from stale lock directories left after interrupted sessions.
+if [ -d "$LOCK_FILE" ]; then
+  stale_lock=1
+  if [ -f "$STATE_FILE" ]; then
+    # shellcheck disable=SC1090
+    source "$STATE_FILE"
+    if [ -n "${REC_PID:-}" ] && kill -0 "$REC_PID" 2>/dev/null; then
+      stale_lock=0
+    fi
+  fi
+  if [ "$stale_lock" -eq 1 ]; then
+    rmdir "$LOCK_FILE" 2>/dev/null || true
+  fi
+fi
+
+exec "$TOGGLE_SCRIPT" "$@"

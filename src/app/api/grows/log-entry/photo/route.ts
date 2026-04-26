@@ -194,6 +194,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('[POST /api/grows/log-entry/photo]', error);
-    return jsonError('Internal server error', 500);
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return jsonError(message, 500);
   }
 }
