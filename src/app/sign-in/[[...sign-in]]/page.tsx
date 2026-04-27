@@ -48,6 +48,12 @@ function getFriendlySignInError(error: unknown) {
     return "Anmeldung aktuell nicht erreichbar. Bitte versuche es erneut.";
 }
 
+function getSafeErrorMessage(message: string | null | undefined, fallback = "Anmeldung fehlgeschlagen") {
+    if (!message) return fallback;
+    const trimmed = message.trim();
+    return trimmed.length > 0 ? trimmed : fallback;
+}
+
 export default function SignInPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -99,40 +105,8 @@ export default function SignInPage() {
         setLoading(true);
 
         try {
-            let session: { access_token: string; refresh_token: string } | null = null;
-
             try {
-                const response = await withTimeout(
-                    fetch("/api/auth/sign-in", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ email, password }),
-                    }),
-                    "sign-in request"
-                );
-
-                const payload = await response.json();
-
-                if (!response.ok) {
-                    if (response.status < 500) {
-                        setError(payload?.error?.message || "Anmeldung fehlgeschlagen");
-                        return;
-                    }
-                    throw new Error(payload?.error?.message || "Sign-in proxy unavailable");
-                }
-
-                const nextSession = payload?.data?.session;
-                if (!nextSession?.access_token || !nextSession?.refresh_token) {
-                    throw new Error("Anmeldung fehlgeschlagen");
-                }
-
-                session = nextSession;
-            } catch (proxyError) {
-                console.warn("[SignInPage] local sign-in proxy unavailable, falling back to direct auth", proxyError);
-
-                const { data, error: directError } = await withTimeout(
+                const { data: directData, error: directError } = await withTimeout(
                     supabase.auth.signInWithPassword({
                         email,
                         password,
@@ -141,34 +115,71 @@ export default function SignInPage() {
                 );
 
                 if (directError) {
-                    setError(directError.message);
+                    setError(getSafeErrorMessage(directError.message));
                     return;
                 }
 
-                if (!data.session?.access_token || !data.session?.refresh_token) {
-                    setError("Anmeldung fehlgeschlagen");
+                if (directData.session?.access_token && directData.session?.refresh_token) {
+                    router.replace("/");
+                    router.refresh();
                     return;
                 }
 
-                session = data.session;
+                console.warn("[SignInPage] direct sign-in returned without session, falling back to local proxy");
+            } catch (directSignInError) {
+                console.warn("[SignInPage] direct sign-in unavailable, falling back to local proxy", directSignInError);
             }
 
-            if (!session) {
+            const response = await withTimeout(
+                fetch("/api/auth/sign-in", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ email, password }),
+                }),
+                "sign-in request"
+            );
+
+            const payload = await response.json().catch(() => null) as {
+                data?: {
+                    session?: { access_token?: string; refresh_token?: string };
+                };
+                error?: { message?: string };
+            } | null;
+
+            if (!response.ok) {
+                const message = payload?.error?.message;
+                if (response.status < 500) {
+                    setError(getSafeErrorMessage(message));
+                    return;
+                }
+                throw new Error(getSafeErrorMessage(message, "Sign-in proxy unavailable"));
+            }
+
+            const nextSession = payload?.data?.session;
+            if (!nextSession?.access_token || !nextSession?.refresh_token) {
                 setError("Anmeldung fehlgeschlagen");
                 return;
             }
 
             const { error: sessionError } = await supabase.auth.setSession({
-                access_token: session.access_token,
-                refresh_token: session.refresh_token,
+                access_token: nextSession.access_token,
+                refresh_token: nextSession.refresh_token,
             });
 
             if (sessionError) {
-                setError(sessionError.message);
+                setError(getSafeErrorMessage(sessionError.message));
                 return;
             }
 
-            router.push("/");
+            const { data: persistedData } = await supabase.auth.getSession();
+            if (!persistedData.session?.access_token) {
+                setError("Anmeldung fehlgeschlagen");
+                return;
+            }
+
+            router.replace("/");
             router.refresh();
         } catch (err) {
             console.error("[SignInPage] sign-in request failed", err);

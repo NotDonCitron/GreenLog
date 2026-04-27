@@ -52,53 +52,15 @@ describe("SignInPage", () => {
     });
   });
 
-  it("submits credentials through the local sign-in API and applies the returned session", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        data: {
-          session: { access_token: "access-token", refresh_token: "refresh-token" },
-        },
-      }),
-    });
-
+  it("prefers direct Supabase auth and redirects after successful session creation", async () => {
+    const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-    setSessionMock.mockResolvedValue({ error: null });
-    signInWithPasswordMock.mockResolvedValue({ data: { session: null }, error: null });
-
-    render(<SignInPage />);
-
-    fireEvent.change(screen.getByLabelText(/E-Mail/i), { target: { value: "test@example.com" } });
-    fireEvent.change(screen.getByLabelText(/Passwort/i), { target: { value: "secret123" } });
-    fireEvent.click(screen.getByRole("button", { name: /^Anmelden$/i }));
-
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        "/api/auth/sign-in",
-        expect.objectContaining({
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        })
-      );
-    });
-
-    expect(setSessionMock).toHaveBeenCalledWith({
-      access_token: "access-token",
-      refresh_token: "refresh-token",
-    });
-    expect(pushMock).toHaveBeenCalledWith("/");
-    expect(refreshMock).toHaveBeenCalled();
-  });
-
-  it("falls back to direct Supabase auth when the local sign-in request fails", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("NetworkError when attempting to fetch resource.")));
     signInWithPasswordMock.mockResolvedValue({
       data: {
         session: { access_token: "direct-access", refresh_token: "direct-refresh" },
       },
       error: null,
     });
-    setSessionMock.mockResolvedValue({ error: null });
 
     render(<SignInPage />);
 
@@ -113,19 +75,46 @@ describe("SignInPage", () => {
       });
     });
 
-    expect(setSessionMock).toHaveBeenCalledWith({
-      access_token: "direct-access",
-      refresh_token: "direct-refresh",
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(setSessionMock).not.toHaveBeenCalled();
+    expect(replaceMock).toHaveBeenCalledWith("/");
+    expect(refreshMock).toHaveBeenCalled();
+  });
+
+  it("falls back to local sign-in API and applies returned session when direct auth throws", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: {
+          session: { access_token: "proxy-access", refresh_token: "proxy-refresh" },
+        },
+      }),
     });
-    expect(pushMock).toHaveBeenCalledWith("/");
+    vi.stubGlobal("fetch", fetchMock);
+    signInWithPasswordMock.mockRejectedValue(new TypeError("NetworkError when attempting to fetch resource."));
+    setSessionMock.mockResolvedValue({ error: null });
+    getSessionMock.mockResolvedValue({
+      data: { session: { access_token: "proxy-access", refresh_token: "proxy-refresh" } },
+    });
+
+    render(<SignInPage />);
+
+    fireEvent.change(screen.getByLabelText(/E-Mail/i), { target: { value: "test@example.com" } });
+    fireEvent.change(screen.getByLabelText(/Passwort/i), { target: { value: "secret123" } });
+    fireEvent.click(screen.getByRole("button", { name: /^Anmelden$/i }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    expect(setSessionMock).toHaveBeenCalledWith({
+      access_token: "proxy-access",
+      refresh_token: "proxy-refresh",
+    });
+    expect(replaceMock).toHaveBeenCalledWith("/");
   });
 
   it("shows a friendly error when both sign-in paths fail", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("NetworkError when attempting to fetch resource.")));
-    signInWithPasswordMock.mockResolvedValue({
-      data: { session: null },
-      error: { message: "Invalid login credentials" },
-    });
+    signInWithPasswordMock.mockRejectedValue(new TypeError("NetworkError when attempting to fetch resource."));
 
     render(<SignInPage />);
 
@@ -137,7 +126,7 @@ describe("SignInPage", () => {
       expect(screen.getByRole("alert")).toBeTruthy();
     });
 
-    expect(screen.getByText(/invalid login credentials/i)).toBeTruthy();
+    expect(screen.getByText(/networkerror when attempting to fetch resource/i)).toBeTruthy();
   });
 
   it("renders the app-styled sign-in experience", () => {
