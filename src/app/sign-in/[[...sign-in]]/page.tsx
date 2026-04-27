@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
@@ -63,6 +63,19 @@ export default function SignInPage() {
     const [loading, setLoading] = useState(false);
     const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
+    const navigateAfterSignIn = useCallback(() => {
+        router.replace("/");
+        router.refresh();
+
+        if (typeof window !== "undefined") {
+            window.setTimeout(() => {
+                if (window.location.pathname.startsWith("/sign-in")) {
+                    window.location.assign("/");
+                }
+            }, 350);
+        }
+    }, [router]);
+
     useEffect(() => {
         const oauthError = searchParams.get("oauth_error");
         if (oauthError === "callback_exchange_failed") {
@@ -80,8 +93,7 @@ export default function SignInPage() {
         const syncOAuthSession = async () => {
             const { data } = await supabase.auth.getSession();
             if (mounted && data.session) {
-                router.replace("/");
-                router.refresh();
+                navigateAfterSignIn();
             }
         };
 
@@ -89,15 +101,14 @@ export default function SignInPage() {
 
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
             if (!mounted || !session) return;
-            router.replace("/");
-            router.refresh();
+            navigateAfterSignIn();
         });
 
         return () => {
             mounted = false;
             listener.subscription.unsubscribe();
         };
-    }, [router]);
+    }, [navigateAfterSignIn]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -120,8 +131,7 @@ export default function SignInPage() {
                 }
 
                 if (directData.session?.access_token && directData.session?.refresh_token) {
-                    router.replace("/");
-                    router.refresh();
+                    navigateAfterSignIn();
                     return;
                 }
 
@@ -179,15 +189,14 @@ export default function SignInPage() {
                 return;
             }
 
-            router.replace("/");
-            router.refresh();
+            navigateAfterSignIn();
         } catch (err) {
             console.error("[SignInPage] sign-in request failed", err);
-            setError(
+            const message =
                 isTimeoutError(err) || isAbortError(err)
                     ? "Anmeldung hat zu lange gebraucht. Bitte versuche es erneut."
-                    : getFriendlySignInError(err)
-            );
+                    : getFriendlySignInError(err);
+            setError(getSafeErrorMessage(message));
         } finally {
             setLoading(false);
         }
