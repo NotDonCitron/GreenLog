@@ -3,11 +3,16 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
-const AGE_VERIFIED_KEY = "cannalog_age_verified";
-const AGE_REJECTED_KEY = "cannalog_age_rejected";
+
+const AGE_VERIFIED_KEY = "greenlog_age_verified";
+const AGE_REJECTED_KEY = "greenlog_age_rejected";
+const LEGACY_AGE_VERIFIED_KEY = "cannalog_age_verified";
+const LEGACY_AGE_REJECTED_KEY = "cannalog_age_rejected";
 const AGE_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 180;
 const AGE_VERIFIED_COOKIE = "greenlog_age_verified";
 const AGE_REJECTED_COOKIE = "greenlog_age_rejected";
+const LEGACY_AGE_VERIFIED_COOKIE = "cannalog_age_verified";
+const LEGACY_AGE_REJECTED_COOKIE = "cannalog_age_rejected";
 
 interface AgeGateProps {
   onVerified: () => void;
@@ -27,6 +32,24 @@ function setAgeCookie(name: string, value: string) {
   document.cookie = buildAgeCookie(name, value, window.location.protocol === "https:");
 }
 
+function readAgeFlag(verified = true): boolean {
+  const primaryKey = verified ? AGE_VERIFIED_KEY : AGE_REJECTED_KEY;
+  const legacyKey = verified ? LEGACY_AGE_VERIFIED_KEY : LEGACY_AGE_REJECTED_KEY;
+  return localStorage.getItem(primaryKey) === "true" || localStorage.getItem(legacyKey) === "true";
+}
+
+function persistAgeFlag(verified = true) {
+  const primaryKey = verified ? AGE_VERIFIED_KEY : AGE_REJECTED_KEY;
+  const legacyKey = verified ? LEGACY_AGE_VERIFIED_KEY : LEGACY_AGE_REJECTED_KEY;
+  const primaryCookie = verified ? AGE_VERIFIED_COOKIE : AGE_REJECTED_COOKIE;
+  const legacyCookie = verified ? LEGACY_AGE_VERIFIED_COOKIE : LEGACY_AGE_REJECTED_COOKIE;
+
+  localStorage.setItem(primaryKey, "true");
+  localStorage.setItem(legacyKey, "true");
+  setAgeCookie(primaryCookie, "true");
+  setAgeCookie(legacyCookie, "true");
+}
+
 export function AgeGate({ onVerified }: AgeGateProps) {
   const [birthYear, setBirthYear] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -36,13 +59,13 @@ export function AgeGate({ onVerified }: AgeGateProps) {
 
   useEffect(() => {
     // If already verified, skip
-    if (localStorage.getItem(AGE_VERIFIED_KEY) === "true") {
-      setAgeCookie(AGE_VERIFIED_COOKIE, "true");
+    if (readAgeFlag(true)) {
+      persistAgeFlag(true);
       onVerified();
       return;
     }
     // If rejected, redirect immediately
-    if (localStorage.getItem(AGE_REJECTED_KEY) === "true") {
+    if (readAgeFlag(false)) {
       router.push("/age-gate-rejected");
       return;
     }
@@ -62,20 +85,17 @@ export function AgeGate({ onVerified }: AgeGateProps) {
     const age = currentYear - year;
 
     if (age >= 18) {
-      localStorage.setItem(AGE_VERIFIED_KEY, "true");
-      setAgeCookie(AGE_VERIFIED_COOKIE, "true");
+      persistAgeFlag(true);
       onVerified();
       router.replace(nextPath);
     } else {
-      localStorage.setItem(AGE_REJECTED_KEY, "true");
-      setAgeCookie(AGE_REJECTED_COOKIE, "true");
+      persistAgeFlag(false);
       router.push("/age-gate-rejected");
     }
   };
 
   const handleReject = () => {
-    localStorage.setItem(AGE_REJECTED_KEY, "true");
-    setAgeCookie(AGE_REJECTED_COOKIE, "true");
+    persistAgeFlag(false);
     router.push("/age-gate-rejected");
   };
 
@@ -88,12 +108,17 @@ export function AgeGate({ onVerified }: AgeGateProps) {
 
         <div className="relative z-10 text-center space-y-6">
           {/* Logo */}
-          <img src="/logo.webp" alt="GreenLog" className="w-32 h-32 mx-auto mb-4 object-contain drop-shadow-2xl" />
+          <img src="/logo.webp" alt="CannaLOG" className="w-32 h-32 mx-auto mb-4 object-contain drop-shadow-2xl" />
 
           <div className="space-y-2">
-            <h1 className="text-2xl font-black uppercase italic tracking-tight font-display text-[var(--foreground)]">
-              GreenLog
-            </h1>
+            <div className="flex items-center justify-center gap-2">
+              <h1 className="text-2xl font-black uppercase italic tracking-tight font-display text-[var(--foreground)]">
+                CannaLOG
+              </h1>
+              <span className="text-[9px] font-black bg-[#2FF801]/10 text-[#2FF801] px-1.5 py-0.5 rounded border border-[#2FF801]/20 tracking-widest uppercase">
+                Beta
+              </span>
+            </div>
             <p className="text-[11px] text-[var(--muted-foreground)] uppercase tracking-widest font-semibold">
               Altersverifikation
             </p>
@@ -101,7 +126,7 @@ export function AgeGate({ onVerified }: AgeGateProps) {
 
           <div className="space-y-4">
             <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">
-              GreenLog richtet sich an Personen ab 18 Jahren. Bitte bestätige dein Alter.
+              CannaLOG richtet sich an Personen ab 18 Jahren. Bitte bestätige dein Alter.
             </p>
 
             <div className="space-y-2">
@@ -143,7 +168,7 @@ export function AgeGate({ onVerified }: AgeGateProps) {
           </div>
 
           <p className="text-[9px] text-[var(--muted-foreground)]/60 leading-relaxed">
-            Mit der Nutzung von GreenLog bestätigst du, dass du das gesetzliche Mindestalter für den Umgang mit Cannabis-Produkten in deinem Land erreicht hast.
+            Mit der Nutzung von CannaLOG bestätigst du, dass du das gesetzliche Mindestalter für den Umgang mit Cannabis-Produkten in deinem Land erreicht hast.
           </p>
         </div>
       </Card>
@@ -157,15 +182,14 @@ export function useAgeVerified() {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(AGE_VERIFIED_KEY);
-      setTimeout(() => setVerified(stored === "true"), 0);
+      setTimeout(() => setVerified(readAgeFlag(true)), 0);
     } catch {
       setTimeout(() => setVerified(true), 0);
     }
   }, []);
 
   const markVerified = () => {
-    localStorage.setItem(AGE_VERIFIED_KEY, "true");
+    persistAgeFlag(true);
     setVerified(true);
   };
 
@@ -175,5 +199,5 @@ export function useAgeVerified() {
 // Server-safe age check for redirects
 export function isAgeVerified(): boolean {
   if (typeof window === "undefined") return true; // SSR: allow rendering
-  return localStorage.getItem(AGE_VERIFIED_KEY) === "true";
+  return readAgeFlag(true);
 }

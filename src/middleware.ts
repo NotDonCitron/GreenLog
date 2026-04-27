@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const AGE_VERIFIED_COOKIE = "greenlog_age_verified";
-const AGE_REJECTED_COOKIE = "greenlog_age_rejected";
+const AGE_VERIFIED_COOKIES = ["greenlog_age_verified", "cannalog_age_verified"];
+const AGE_REJECTED_COOKIES = ["greenlog_age_rejected", "cannalog_age_rejected"];
 
 const AGE_PUBLIC_PATHS = [
     "/age-gate",
@@ -44,8 +44,9 @@ export function middleware(request: NextRequest) {
     if (request.method === "OPTIONS") {
         const origin = request.headers.get("origin");
         const allowed = [
-            process.env.NEXT_PUBLIC_SITE_URL || "https://green-log-two.vercel.app",
+            process.env.NEXT_PUBLIC_SITE_URL || "https://cannalog.app",
             "http://localhost:3000",
+            "http://localhost:3002",
         ];
         if (origin && allowed.includes(origin)) {
             return new NextResponse(null, {
@@ -67,11 +68,17 @@ export function middleware(request: NextRequest) {
         !isPublicAgePath(pathname) &&
         isProtectedAgePath(pathname)
     ) {
-        if (request.cookies.get(AGE_REJECTED_COOKIE)?.value === "true") {
+        const hasRejectedCookie = AGE_REJECTED_COOKIES.some(
+            (cookieName) => request.cookies.get(cookieName)?.value === "true"
+        );
+        if (hasRejectedCookie) {
             return NextResponse.redirect(new URL("/age-gate-rejected", request.url));
         }
 
-        if (request.cookies.get(AGE_VERIFIED_COOKIE)?.value !== "true") {
+        const hasVerifiedCookie = AGE_VERIFIED_COOKIES.some(
+            (cookieName) => request.cookies.get(cookieName)?.value === "true"
+        );
+        if (!hasVerifiedCookie) {
             const ageGateUrl = new URL("/age-gate", request.url);
             ageGateUrl.searchParams.set("next", `${pathname}${search}`);
             return NextResponse.redirect(ageGateUrl);

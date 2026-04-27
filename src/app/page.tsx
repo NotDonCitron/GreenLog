@@ -29,7 +29,8 @@ const DEMO_SIMULATION_DATA: Strain[] = [
   }
 ];
 
-const AGE_VERIFIED_KEY = "cannalog_age_verified";
+const AGE_VERIFIED_KEY = "greenlog_age_verified";
+const LEGACY_AGE_VERIFIED_KEY = "cannalog_age_verified";
 
 type ActiveGrow = {
   id: string;
@@ -169,7 +170,7 @@ function HomeContent() {
   }
 
   return (
-    <div className="flex-1 flex flex-col py-8">
+    <div className="flex-1 flex flex-col py-8 pb-28">
       {/* Active Grows Quick-Access Widget */}
       {activeGrow && (
         <Link href={`/grows/${activeGrow.id}`} className="block mb-6">
@@ -247,7 +248,8 @@ function AgeGateWrapper({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Synchronous read from localStorage - no setTimeout needed
     const stored = localStorage.getItem(AGE_VERIFIED_KEY);
-    setAgeVerified(stored === "true");
+    const legacyStored = localStorage.getItem(LEGACY_AGE_VERIFIED_KEY);
+    setAgeVerified(stored === "true" || legacyStored === "true");
   }, []);
 
   if (ageVerified === null) {
@@ -278,14 +280,19 @@ export default function Home() {
           <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 w-[100%] h-[40%] bg-[#2FF801]/4 blur-[100px] rounded-full animate-pulse [animation-delay:2s]" />
         </div>
 
-        <div className="relative mx-auto w-full px-4 pt-12 flex flex-col h-screen overflow-hidden">
+        <div className="relative mx-auto w-full px-4 pt-12 flex min-h-screen flex-col">
           <header className="flex justify-between items-center shrink-0">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-3">
                 <NotificationBell />
-                <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
-                  CannaLog
-                </h1>
+                <div className="flex items-baseline gap-2">
+                  <h1 className="text-3xl font-black italic tracking-tighter uppercase leading-none font-display text-[var(--foreground)]">
+                    CannaLog
+                  </h1>
+                  <span className="text-[10px] font-black bg-[#2FF801]/10 text-[#2FF801] px-1.5 py-0.5 rounded border border-[#2FF801]/20 tracking-widest uppercase">
+                    Beta
+                  </span>
+                </div>
               </div>
             </div>
             <div className="relative group">

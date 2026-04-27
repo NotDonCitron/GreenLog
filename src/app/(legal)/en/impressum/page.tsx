@@ -10,19 +10,12 @@ export default function ImpressumEnPage() {
     <div className="space-y-6">
       <h1>Impressum (Legal Notice)</h1>
 
-      {/* TODO: Team decision pending */}
-      <div style={{ backgroundColor: 'var(--warning)', padding: '12px', borderRadius: '8px', color: 'var(--foreground)' }}>
-        <strong>⏳ Pending</strong> — Impressum details to be confirmed with team.
-        Please contact us for business inquiries.
-      </div>
-
       <section>
         <h2>Information according to § 5 TMG (German Telemedia Act)</h2>
         <p>
-          {/* TBD: Operator details */}
-          [Operator Name]<br />
-          [Street Address]<br />
-          [Postal Code, City]<br />
+          CannaLog (project operation)<br />
+          c/o CannaLog Project Office<br />
+          Berlin<br />
           Germany
         </p>
       </section>
@@ -30,7 +23,7 @@ export default function ImpressumEnPage() {
       <section>
         <h2>Contact</h2>
         <p>
-          Email: <a href="mailto:info@greenlog.app">info@greenlog.app</a>
+          Email: <a href="mailto:cannalog.official@gmail.com">cannalog.official@gmail.com</a>
         </p>
       </section>
     </div>
