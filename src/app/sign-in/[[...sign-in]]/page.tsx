@@ -173,20 +173,30 @@ export default function SignInPage() {
                 return;
             }
 
+            let sessionEstablished = false;
+
             const { error: sessionError } = await supabase.auth.setSession({
                 access_token: nextSession.access_token,
                 refresh_token: nextSession.refresh_token,
             });
 
-            if (sessionError) {
-                setError(getSafeErrorMessage(sessionError.message));
-                return;
+            if (!sessionError) {
+                const { data: persistedData } = await supabase.auth.getSession();
+                sessionEstablished = Boolean(persistedData.session?.access_token);
+            } else {
+                console.warn("[SignInPage] setSession failed after proxy success", sessionError);
             }
 
-            const { data: persistedData } = await supabase.auth.getSession();
-            if (!persistedData.session?.access_token) {
-                setError("Anmeldung fehlgeschlagen");
-                return;
+            if (!sessionEstablished) {
+                const { data: retryData, error: retryError } = await withTimeout(
+                    supabase.auth.signInWithPassword({ email, password }),
+                    "direct sign-in retry"
+                );
+                if (retryError) {
+                    console.warn("[SignInPage] direct retry failed after proxy success", retryError);
+                } else {
+                    sessionEstablished = Boolean(retryData.session?.access_token);
+                }
             }
 
             navigateAfterSignIn();
