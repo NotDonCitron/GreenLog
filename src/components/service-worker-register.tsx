@@ -20,6 +20,11 @@ export function ServiceWorkerRegister() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
     const shouldDisableInProduction = process.env.NEXT_PUBLIC_DISABLE_SW === "true";
+    const pathname = window.location.pathname;
+    const isAuthRoute =
+      pathname.startsWith("/login") ||
+      pathname.startsWith("/sign-in") ||
+      pathname.startsWith("/sign-up");
 
     if (process.env.NODE_ENV !== "production") {
       unregisterAndClearCaches().catch((error) => {
@@ -31,6 +36,13 @@ export function ServiceWorkerRegister() {
     if (shouldDisableInProduction) {
       unregisterAndClearCaches().catch((error) => {
         console.warn("[SW] Cleanup failed:", error);
+      });
+      return;
+    }
+
+    if (isAuthRoute) {
+      unregisterAndClearCaches().catch((error) => {
+        console.warn("[SW] Cleanup failed on auth route:", error);
       });
       return;
     }
